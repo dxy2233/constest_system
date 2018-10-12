@@ -4,6 +4,7 @@ namespace common\models;
 
 use common\dzbase\DzModel;
 use yii\web\IdentityInterface;
+use common\models\business\BUserAccessToken;
 
 /**
  * This is the model class for table "{{%admin_user}}".
@@ -41,7 +42,7 @@ class AdminUser extends DzModel implements IdentityInterface
     public function rules()
     {
         return [
-            [['name', 'mobile', 'password', 'pwd_salt'], 'required'],
+            [['name', 'password', 'pwd_salt'], 'required'],
             [['status', 'create_time', 'last_login_time'], 'integer'],
             [['name', 'password'], 'string', 'max' => 45, 'min' => 5],
             [['mobile'], 'string', 'max' => 15],
@@ -60,6 +61,9 @@ class AdminUser extends DzModel implements IdentityInterface
             'id'            => 'ID',
             'name'          => '用户名',
             'mobile'        => '手机号码',
+            'real_name'        => '姓名',
+            'email'        => '邮箱',
+            'department'        => '部门',
             'password'      => '密码',
             'status' => '状态',
             'create_time'    => '创建时间',
@@ -107,6 +111,13 @@ class AdminUser extends DzModel implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
+        $accessToken = BUserAccessToken::find()
+        ->where(['access_token' => $token,'client_id' => \Yii::$app->controller->module->id])
+        ->andWhere(['>=', 'expire_time', NOW_TIME])
+        ->one();
+        return !empty($accessToken['user_id'])
+            ? static::findIdentity($accessToken['user_id'])
+            : null;
     }
 
     /**

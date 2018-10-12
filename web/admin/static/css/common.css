@@ -1,0 +1,36 @@
+.form-control{
+    height: 35px;
+    font-size: 12px;
+}
+
+.control-label{
+    font-size: 12px;
+}
+
+.box-header .page-header{
+    font-size: 14px;
+    margin: auto;
+}
+
+.box-header .page-header a{
+    margin: 0px 5px;
+}
+
+.form-horizontal .radio {
+    min-height: 27px;
+    margin: 0px 5px;
+    float: left;
+}
+
+.dz-error {
+    color: red;
+    padding: 5px 0px;
+}
+
+.cert-img {
+    max-width:80px;
+}
+
+td {
+    word-break: break-all;
+}

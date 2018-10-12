@@ -19,11 +19,11 @@ return [
         ],
         'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=localhost;dbname=record',
+            'dsn' => 'mysql:host=localhost;dbname=gr_contest',
             'username' => 'root',
             'password' => 'trans.pwd',
             'charset' => 'utf8',
-            'tablePrefix'=>'db_',
+            'tablePrefix'=>'gr_',
         ],
         'formatter' => [
             'dateFormat' => 'yyyy-MM-dd',

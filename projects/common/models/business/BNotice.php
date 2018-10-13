@@ -26,6 +26,23 @@ class BNotice extends \common\models\Notice
 
         return $arr;
     }
+    // 跳转
+    const TYPE_URL = 0;
+    // 文章页
+    const TYPE_ARTICLE = 1;
+
+    public static function getType($key = '')
+    {
+        $arr = [
+            self::TYPE_URL => \Yii::t('app', '跳转'),
+            self::TYPE_ARTICLE => \Yii::t('app', '文章页'),
+        ];
+        if ($key !== "") {
+            return isset($arr[$key]) ? $arr[$key] : "";
+        }
+
+        return $arr;
+    }
 
     /**
      * 自定义查询规则
@@ -77,6 +94,27 @@ class BNotice extends \common\models\Notice
             ];
         }
         return new FuncResult(0, "获取成功", $noticeList);
+    }
+
+    /**
+     * 输出时间时自动格式化
+     *
+     * @return void
+     */
+    public function getStartTimeText()
+    {
+        // return \Yii::$app->formatter->asDatetime($this->create_time);
+        return date('Y-m-d H:i:s', $this->start_time);
+    }
+    /**
+     * 输出时间时自动格式化
+     *
+     * @return void
+     */
+    public function getEndTimeText()
+    {
+        // return \Yii::$app->formatter->asDatetime($this->create_time);
+        return date('Y-m-d H:i:s', $this->end_time);
     }
 
     /**

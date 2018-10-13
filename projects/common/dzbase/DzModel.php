@@ -45,4 +45,25 @@ class DzModel extends \yii\db\ActiveRecord
 
         return array_values($errors)[0][0];
     }
+    
+    /**
+     * 输出时间时自动格式化
+     *
+     * @return void
+     */
+    public function getCreateTimeText()
+    {
+        // return \Yii::$app->formatter->asDatetime($this->create_time);
+        return date('Y-m-d H:i:s', $this->create_time);
+    }
+    /**
+     * 输出时间时自动格式化
+     *
+     * @return void
+     */
+    public function getUpdateTimeText()
+    {
+        // return \Yii::$app->formatter->asDatetime($this->create_time);
+        return date('Y-m-d H:i:s', $this->update_time);
+    }
 }

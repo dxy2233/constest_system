@@ -42,6 +42,19 @@ class NoticeController extends BaseController
     public function actionInfo()
     {
         $noticeId = $this->pInt('id', 0);
-        return $this->respondJson(0, '获取成功', BNotice::find()->active(BNotice::STATUS_ACTIVE)->where(['id' => $noticeId])->asArray()->one());
+        $notice = BNotice::find()
+        ->select(['title', 'create_time', 'start_time', 'end_time', 'detail', 'desc', 'type'])
+        ->active(BNotice::STATUS_ACTIVE)
+        ->where(['id' => $noticeId])
+        ->one();
+        if (is_object($notice) && $notice->type === BNotice::TYPE_URL) {
+            return $this->respondJson(0, '获取公告失败或者该公告为链接');
+        }
+        $data = ArrayHelper::toArray($notice);
+        // 模型中格式化时间
+        $data['create_time'] = $notice->createTimeText;
+        $data['start_time'] = $notice->startTimeText;
+        $data['end_time'] = $notice->endTimeText;
+        return $this->respondJson(0, '获取成功', $data);
     }
 }

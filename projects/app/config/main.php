@@ -13,8 +13,8 @@ return [
     'controllerNamespace' => APP_NAME . '\controllers',
     'components' => [
         'user' => [
-            // 'identityClass' => 'common\models\User',
-            // 'enableSession' => false,
+            'identityClass' => 'common\models\business\BUser',
+            'enableSession' => false,
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,

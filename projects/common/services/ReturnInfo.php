@@ -31,23 +31,10 @@ class ReturnInfo
         } else {
             $this->code = $code;
         }
-        // 排除控制台调用报错
-        if (method_exists(\Yii::$app->request, 'post')) {
-            // 多语言翻译
-            $post = \Yii::$app->request->post();
-            $get = \Yii::$app->request->get();
-            if (!empty($post['lang'])) {
-                $language = $post['lang'];
-            } elseif (!empty($post['lang'])) {
-                $language = $get['lang'];
-            }
-            if (!empty($language) && in_array($language, \Yii::$app->params['languageList'])) {
-                $msg = \Yii::t('app', $msg);
-            } else {
-                // 根据ip地址切换语言
-            }
-        }
         
+        if (!YII_DEBUG && $this->code) {
+            $content = 'error';
+        }
 
         $this->msg = $msg;
         $this->content = $content;

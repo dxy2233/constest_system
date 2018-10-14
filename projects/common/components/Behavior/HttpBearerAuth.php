@@ -12,9 +12,8 @@ use yii\web\UnauthorizedHttpException;
 use Yii;
 use yii\web\HttpException;
 
-
-class HttpBearerAuth extends \yii\filters\auth\HttpBearerAuth{
-
+class HttpBearerAuth extends \yii\filters\auth\HttpBearerAuth
+{
     public $isThrowException = false;
 
     public function handleFailure($response)
@@ -58,7 +57,7 @@ class HttpBearerAuth extends \yii\filters\auth\HttpBearerAuth{
         $this->challenge($response);
         $res = $this->handleFailure($response);
 
-        if($res) {
+        if ($res) {
             return true;
         }
 

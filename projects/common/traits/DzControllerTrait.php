@@ -101,7 +101,7 @@ trait DzControllerTrait
             // 根据ip地址切换语言
         }
         $msg = $msg === null ? '' : $msg;
-        return json_encode(array('code' => $errCode, 'msg' => $msg, 'content' => $content));
+        return json_encode(array('code' => $errCode, 'msg' => $msg, 'content' => $content), JSON_UNESCAPED_UNICODE);
     }
 
 

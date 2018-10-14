@@ -12,6 +12,21 @@ return [
         'doc' => [
             'class' => 'common\modules\doc\Module',
         ],
+        'sms' => [
+            'class' => 'common\modules\sms\Module',
+        ],
+        'captcha' => [
+            'class' => 'common\modules\captcha\Module',
+        ],
+        'upload' => [
+            'class' => 'common\modules\upload\Module',
+        ],
+        'validate' => [
+            'class' => 'common\modules\validate\Module',
+        ],
+        'wallet' => [
+            'class' => 'common\modules\wallet\Module',
+        ],
     ],
     'components' => [
         'cache' => [

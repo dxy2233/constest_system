@@ -22,29 +22,57 @@ class DzQuery extends ActiveQuery
     }
 
     /**
-     * 公共查询，按照时间查询
+     * 公共查询，判断当前时间是否在时间段内
      *
      * @param integer $start
      * @param integer $end
      * @return void
      */
-    public function startAndEndTime(int $time = NOW_TIME)
+    public function hasStartAndEndTime(int $time = NOW_TIME)
     {
         $query = $this->andOnCondition(['<=', 'start_time', $time]);
         return $query->andOnCondition(['>=', 'end_time', $time]);
     }
 
     /**
-     * 公共查询，按照时间查询
+     * 公共分页
      *
-     * @param integer $start
-     * @param integer $end
+     * @param integer $page
+     * @param integer $pageSize
      * @return void
      */
     public function page(int $page = 1, int $pageSize = 20)
     {
         $query = $this->offset(($page-1)*$pageSize);
         $query = $this->Limit($pageSize);
+        return $query;
+    }
+
+    /**
+     * 公共查询，按照时间查询
+     *
+     * @param string $start
+     * @param string $field
+     * @return void
+     */
+    public function startTime(string $start, string $field)
+    {
+        $str_time = strtotime($start);
+        $query = $this->andWhere(['>=', $field, $str_time]);
+        return $query;
+    }
+
+    /**
+     * 公共查询，按照时间查询
+     *
+     * @param string $end
+     * @param string $field
+     * @return void
+     */
+    public function endTime(string $end, string $field)
+    {
+        $end_time = strtotime($end);
+        $query = $this->andWhere(['<=', $field, $end_time]);
         return $query;
     }
 }

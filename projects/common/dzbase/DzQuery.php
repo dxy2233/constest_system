@@ -33,4 +33,18 @@ class DzQuery extends ActiveQuery
         $query = $this->andOnCondition(['<=', 'start_time', $time]);
         return $query->andOnCondition(['>=', 'end_time', $time]);
     }
+
+    /**
+     * 公共查询，按照时间查询
+     *
+     * @param integer $start
+     * @param integer $end
+     * @return void
+     */
+    public function page(int $page = 1, int $pageSize = 20)
+    {
+        $query = $this->offset(($page-1)*$pageSize);
+        $query = $this->Limit($pageSize);
+        return $query;
+    }
 }

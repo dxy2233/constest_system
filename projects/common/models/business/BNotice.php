@@ -63,7 +63,7 @@ class BNotice extends \common\models\Notice
             $query->limit($setting->value);
         } else {
             $count = $query->count();
-            $query->limit($pageSize)->offset(($page - 1) * $pageSize);
+            $query->page($page, $pageSize);
         }
         
         // ->createCommand()->getRawSql();

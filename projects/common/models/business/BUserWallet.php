@@ -6,23 +6,6 @@ use yii\behaviors\TimestampBehavior;
 
 class BUserWallet extends \common\models\UserWallet
 {
-    public function behaviors()
-    {
-        return [
-            [
-                // 自动添加时间
-                'class' => TimestampBehavior::className(),
-                'attributes' => [
-                    # 创建之前
-                    self::EVENT_BEFORE_INSERT => ['create_time', 'update_time'],
-                    # 修改之前
-                    self::EVENT_BEFORE_UPDATE => ['update_time']
-                ],
-                #设置默认值
-                'value' => NOW_TIME
-            ]
-        ];
-    }
 
     /**
      * 用户钱包

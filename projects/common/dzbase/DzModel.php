@@ -8,6 +8,8 @@
 
 namespace common\dzbase;
 
+use yii\behaviors\TimestampBehavior;
+
 class DzModel extends \yii\db\ActiveRecord
 {
 
@@ -17,6 +19,33 @@ class DzModel extends \yii\db\ActiveRecord
     // 启用/启用/开启
     const STATUS_ACTIVE = 1;
     
+    public function behaviors()
+    {
+        $attributes = [];
+        if ($this->hasAttribute('update_time')) {
+            # 创建之前
+            $attributes[self::EVENT_BEFORE_INSERT] = ['update_time'];
+            # 修改之前
+            $attributes[self::EVENT_BEFORE_UPDATE] = ['update_time'];
+        }
+        if ($this->hasAttribute('create_time')) {
+            # 创建之前
+            if (array_key_exists(self::EVENT_BEFORE_INSERT, $attributes)) {
+                array_push($attributes[self::EVENT_BEFORE_INSERT], 'create_time');
+            } else {
+                $attributes[self::EVENT_BEFORE_INSERT] = ['create_time'];
+            }
+        }
+        return [
+            [
+                // 自动添加时间
+                'class' => TimestampBehavior::className(),
+                'attributes' => $attributes,
+                #设置默认值
+                'value' => NOW_TIME
+            ]
+        ];
+    }
     /**
      * 返回model 验证错误信息
      * @return array

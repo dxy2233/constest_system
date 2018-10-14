@@ -44,16 +44,6 @@ class BNotice extends \common\models\Notice
         return $arr;
     }
 
-    /**
-     * 自定义查询规则
-     * 公用定义查询类
-     * @return void
-     */
-    public static function find()
-    {
-        return new BaseQuery(get_called_class());
-    }
-
     public static function getAppNoticeList(bool $isIndex = true, int $page = 1, int $pageSize = 15)
     {
         $isOpen = SettingService::get('notice', 'is_open');

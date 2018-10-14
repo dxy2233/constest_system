@@ -16,15 +16,6 @@ class BSetting extends \common\models\Setting
         $setting->initialize = \yii\helpers\Json::encode($data);
         $setting->save();
     }
-    /**
-     * 自定义查询规则
-     * 公用定义查询类
-     * @return void
-     */
-    public static function find()
-    {
-        return new BaseQuery(get_called_class());
-    }
 
 
     /**

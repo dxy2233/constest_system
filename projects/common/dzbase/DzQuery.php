@@ -1,10 +1,10 @@
 <?php
 
-namespace common\models\business;
+namespace common\dzbase;
 
 use yii\db\ActiveQuery;
 
-class BaseQuery extends ActiveQuery
+class DzQuery extends ActiveQuery
 {
     public function init()
     {

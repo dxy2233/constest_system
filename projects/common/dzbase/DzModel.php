@@ -45,6 +45,17 @@ class DzModel extends \yii\db\ActiveRecord
 
         return array_values($errors)[0][0];
     }
+
+    
+    /**
+     * 自定义查询规则
+     * 公用定义查询类
+     * @return void
+     */
+    public static function find()
+    {
+        return new DzQuery(get_called_class());
+    }
     
     /**
      * 输出时间时自动格式化

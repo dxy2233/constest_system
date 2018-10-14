@@ -8,6 +8,10 @@ use Yii;
  * This is the model class for table "{{%setting}}".
  *
  * @property int $id
+ * @property string $name 名称
+ * @property string $value 设置值
+ * @property string $remark 备注
+ * @property int $create_time
  * @property string $group 设置组
  * @property string $name 设置名称
  * @property string $key 设置键值

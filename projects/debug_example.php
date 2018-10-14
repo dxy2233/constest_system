@@ -44,7 +44,7 @@ return [
                         'class' => 'yii\gii\generators\model\Generator',
                         'ns' =>'common\models',
                         'generateLabelsFromComments'=>true,
-                        'tableName'=>'db_',
+                        'tableName'=>'gr_',
                         'baseClass' => 'common\dzbase\DzModel',
                         'useTablePrefix' => true,
                     ]
@@ -62,7 +62,7 @@ return [
                 'username' => 'app',
                 'password' => 'app',
                 'charset'  => 'utf8',
-                'tablePrefix'=>'db_'
+                'tablePrefix'=>'gr_'
             ],
         ]
     ],
@@ -77,7 +77,7 @@ return [
                 'username' => 'app',
                 'password' => 'app',
                 'charset'  => 'utf8',
-                'tablePrefix'=>'db_'
+                'tablePrefix'=>'gr_'
             ],
         ],
     ],

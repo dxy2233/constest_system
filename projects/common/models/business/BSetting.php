@@ -4,6 +4,10 @@ namespace common\models\business;
 
 class BSetting extends \common\models\Setting
 {
+    public static $PAYMENT_NUMBER = 'payment_number';
+    public static $ORDINARY_NUMBER = 'ordinary_number';
+    public static $VOTE_OPEN = 'vote_open';
+
     // 留备用，没实质性功能
     public function set()
     {

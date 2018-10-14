@@ -52,15 +52,26 @@ class DzQuery extends ActiveQuery
      * 公共查询，按照时间查询
      *
      * @param string $start
+     * @param string $field
+     * @return void
+     */
+    public function startTime(string $start, string $field)
+    {
+        $str_time = strtotime($start);
+        $query = $this->andWhere(['>=', $field, $str_time]);
+        return $query;
+    }
+
+    /**
+     * 公共查询，按照时间查询
+     *
      * @param string $end
      * @param string $field
      * @return void
      */
-    public function startTimeToEndTime(string $start, string $end, string $field)
+    public function endTime(string $end, string $field)
     {
-        $str_time = strtotime($start);
         $end_time = strtotime($end);
-        $query = $this->andWhere(['>=', $field, $str_time]);
         $query = $this->andWhere(['<=', $field, $end_time]);
         return $query;
     }

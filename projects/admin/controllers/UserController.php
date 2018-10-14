@@ -40,6 +40,7 @@ class UserController extends BaseController
         }
         $str_time = $this->pString('str_time');
         $end_time = $this->pString('end_time');
+        
         $count = $find->count();
         $list = $find->page($page, $pageSize)->asArray()->all();
     }

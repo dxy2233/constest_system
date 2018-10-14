@@ -100,6 +100,7 @@ class NodeController extends BaseController
         foreach ($nodeModelList as $key => $node) {
             $number = $node->getVotes()
             ->select(['COUNT(id) as count_number', 'SUM(vote_number) as vote_number'])
+            ->where(['<=', 'create_time', $updateTime])
             ->asArray()
             ->one();
             $number['vote_number'] = $number['vote_number'] ?? '0';
@@ -164,24 +165,35 @@ class NodeController extends BaseController
             return $this->respondJson(1, '节点ID不能为空');
         }
         $voteModel = BVote::find()
-        // ->select(['vote_number', 'create_time'])
+        ->select(['user_id', 'node_id', 'create_time', 'type', 'status'])
+        ->with('user')
         ->active()
         ->where(['node_id' => $nodeId]);
+        if ($nodeShowType !== 'log') {
+            $voteModel->addSelect(['SUM(vote_number) as vote_number']);
+            $voteModel->groupBy('user_id');
+        } else {
+            $voteModel->addSelect(['vote_number']);
+        }
         $data['count'] = $voteModel->count();
         $voteModel->page($page, $pageSize);
-        if ($nodeShowType === 'log') {
-            $voteData = $voteModel->all();
-        } else {
-
-        }
-        if (!is_object(reset($voteData))) {
+        $voteDataModel = $voteModel->all();
+        if (!is_object(reset($voteDataModel))) {
             return $this->respondJson(0, '记录为空');
         }
-        foreach ($voteData as $vote) {
-            // $vote->type = 
+        $voteData = [];
+        foreach ($voteDataModel as $key => $vote) {
             $vote->create_time = $vote->createTimeText;
+            $addData = [
+                'type_str' => BVote::getType($vote->type),
+                'status_str' => BVote::getStatus($vote->status),
+                'mobile' => substr_replace($vote->user->mobile, '****', 3, 4),
+            ];
+            $vote = $vote->toArray();
+            FuncHelper::arrayForget($vote, ['type', 'status', 'consume', 'user_id', 'node_id']);
+            $voteData[$key] = array_merge($vote, $addData);
         }
-        $data['list'] = ArrayHelper::toArray($voteData);
+        $data['list'] = $voteData;
         return $this->respondJson(0, '获取成功', $data);
     }
 }

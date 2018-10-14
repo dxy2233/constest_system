@@ -36,4 +36,6 @@ class AppController extends BaseController
         $result = BNotice::getAppNoticeList();
         return $this->respondJson($result->code, $result->msg, $result->content);
     }
+
+    // public function
 }

@@ -45,8 +45,6 @@ class LoginController extends BaseController
     {
         $type = $this->pInt('type');
         $mobile = $this->pString('mobile');
-        $walletAddress = $this->pString('wallet_address');
-        $walletCode = $this->pString('wallet_code');
         $vcode = $this->pString('vcode');
         if (!$mobile) {
             return $this->respondJson(1, "手机号不能为空");
@@ -88,17 +86,9 @@ class LoginController extends BaseController
         $userModel = BUser::find()->where(['mobile' => $mobile])->one();
         //验证手机、是否存在
         if (!is_object($userModel)) {
-            if (!empty(FuncHelper::getDefaultWallet()) && empty($walletAddress)) {
-                return $this->respondJson(1, '钱包地址不能为空');
-            }
-            if (!FuncHelper::validatewallet($walletAddress)) {
-                return $this->respondJson(1, '钱包地址格式错误');
-            }
             $user = [
                 'username' => $mobile,
                 'mobile' => $mobile,
-                'wallet_code' => $walletCode,
-                'wallet_address' => $walletAddress,
             ];
             // 如果用户不存在则创建用户
             $createUser = UserService::createUser($user);

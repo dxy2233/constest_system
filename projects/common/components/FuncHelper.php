@@ -334,10 +334,7 @@ class FuncHelper
 
                 continue;
             }
-            var_dump($array);
-            exit;
             $parts = explode('.', $key);
-
             // clean up before each pass
             $array = &$original;
 
@@ -596,6 +593,12 @@ class FuncHelper
         return false;
     }
 
+    /**
+     * 获取默认钱包
+     *
+     * @param string $key
+     * @return void
+     */
     public static function getDefaultWallet(string $key = null)
     {
         $walletList = \Yii::$app->params['wallet'];
@@ -606,5 +609,43 @@ class FuncHelper
         });
         $wallet = reset($data);
         return is_null($key) ? $wallet : $walletList[strtoupper($key)];
+    }
+    /**
+     * 转换驼峰命名
+     *
+     * @param [type] $data
+     * @param string $separator
+     * @return void
+     */
+    public static function keyCamelize(&$data, string $separator = '_')
+    {
+        if (is_array($data)) {
+            $newData = [];
+            foreach ($data as $key => &$value) {
+                if (is_string($key)) {
+                    $key = self::camelize($key, $separator);
+                }
+                if (is_array($value)) {
+                    $value = self::keyCamelize($value, $separator);
+                }
+                $newData[$key] = $value;
+            }
+            $data = $newData;
+        } else {
+            $data = self::camelize($data, $separator);
+        }
+        return $data;
+    }
+    /**
+     * 字符串转驼峰命名法
+     *
+     * @param string $data
+     * @param string $separator
+     * @return void
+     */
+    public static function camelize(string $data, string $separator = '_')
+    {
+        $data = $separator. str_replace($separator, " ", strtolower($data));
+        return ltrim(str_replace(" ", "", ucwords($data)), $separator);
     }
 }

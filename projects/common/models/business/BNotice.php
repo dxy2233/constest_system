@@ -50,15 +50,15 @@ class BNotice extends \common\models\Notice
         if (is_null($isOpen)) {
             return new FuncResult(1, "公告关闭");
         }
-        if ((bool) $isOpen->value) {
+        if (!(bool) $isOpen->value) {
             return new FuncResult(1, "公告未启用");
         }
 
         $setting = SettingService::get('notice', 'show_count');
         $query = self::find()
-        ->select(['title', 'desc', 'type', 'image', 'url', 'click', 'sort', 'create_time'])
+        ->select(['id', 'title', 'desc', 'type', 'image', 'url', 'click', 'sort', 'create_time'])
         ->active()
-        ->startAndEndTime();
+        ->hasStartAndEndTime();
         if ($isIndex) {
             $query->limit($setting->value);
         } else {
@@ -73,16 +73,18 @@ class BNotice extends \common\models\Notice
         // ])
         
         $noticeList = $query->asArray()->all();
+        ArrayHelper::multisort($noticeList, ['sort', 'create_time'], [SORT_ASC, SORT_DESC]);
         foreach ($noticeList as $key => &$notice) {
             $notice['image'] = FuncHelper::getImageUrl($notice['image']);
+            unset($notice['create_time']);
         }
-        ArrayHelper::multisort($noticeList, ['sort', 'create_time'], [SORT_ASC, SORT_DESC]);
         if (!$isIndex) {
             $noticeList = [
                 'list' => $noticeList,
                 'count' => $count,
             ];
         }
+        
         return new FuncResult(0, "获取成功", $noticeList);
     }
 

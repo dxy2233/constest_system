@@ -2,14 +2,20 @@
 
 namespace common\models\business;
 
-
-
 class BNodeType extends \common\models\NodeType
- {
+{
 
 
 
-
+    /**
+     * 节点类型下选举列表
+     *  一对多
+     * @return void
+     */
+    public function getNode()
+    {
+        return $this->hasMany(BNode::className(), ['type_id' => 'id']);
+    }
 
     /**
     * 自定义 label
@@ -17,7 +23,7 @@ class BNodeType extends \common\models\NodeType
     */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(),[
+        return array_merge(parent::attributeLabels(), [
 
         ]);
     }

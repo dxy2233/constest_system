@@ -39,10 +39,10 @@ return [
     
   // 钱包列表 预设 钱包默认值 default = 1 为默认钱包 后面可更改为 保存到数据库
   'wallet' => [
-      'GRT' => [
+      'GST' => [
           'default' => true,
-          'code' => 'grt',
-          'name' => '贵人通',
+          'code' => 'gst',
+          'name' => '贵生态钱包',
       ],
       'BTC' => [
           'default' => false,

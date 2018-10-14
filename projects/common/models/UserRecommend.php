@@ -42,6 +42,7 @@ class UserRecommend extends \common\dzbase\DzModel
             'id' => Yii::t('app', 'ID'),
             'user_id' => Yii::t('app', '用户ID'),
             'parent_id' => Yii::t('app', '推荐人ID'),
+            'amount' => Yii::t('app', '投票数量'),
             'create_time' => Yii::t('app', '推荐时间'),
         ];
     }

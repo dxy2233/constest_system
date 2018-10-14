@@ -2,8 +2,13 @@
 
 namespace common\models\business;
 
-class BUserIdentify extends \common\models\UserIdentify
-{
+
+
+class BUserCurrencyDetail extends \common\models\UserCurrencyDetail
+ {
+
+
+
 
 
     /**
@@ -12,7 +17,7 @@ class BUserIdentify extends \common\models\UserIdentify
     */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(), [
+        return array_merge(parent::attributeLabels(),[
 
         ]);
     }

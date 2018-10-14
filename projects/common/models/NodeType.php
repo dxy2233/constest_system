@@ -15,6 +15,7 @@ use Yii;
  * @property string $rule_list 权限列表
  * @property int $is_examine 是否审核
  * @property int $status 启用状态
+ * @property int $sort 排序
  * @property int $create_time
  */
 class NodeType extends \common\dzbase\DzModel
@@ -35,7 +36,7 @@ class NodeType extends \common\dzbase\DzModel
         return [
             [['name', 'min_money', 'max_people', 'max_candidate', 'rule_list', 'is_examine', 'status', 'create_time'], 'required'],
             [['min_money'], 'number'],
-            [['max_people', 'max_candidate', 'is_examine', 'status', 'create_time'], 'integer'],
+            [['max_people', 'max_candidate', 'is_examine', 'status', 'sort', 'create_time'], 'integer'],
             [['name'], 'string', 'max' => 16],
             [['rule_list'], 'string', 'max' => 256],
         ];
@@ -55,6 +56,7 @@ class NodeType extends \common\dzbase\DzModel
             'rule_list' => '权限列表',
             'is_examine' => '是否审核',
             'status' => '启用状态',
+            'sort' => '排序',
             'create_time' => 'Create Time',
         ];
     }

@@ -14,6 +14,10 @@ use Yii;
  * @property int $max_candidate 候选人上限
  * @property string $rule_list 权限列表
  * @property int $is_examine 是否审核
+ * @property int $is_candidate 是否开启候选功能
+ * @property int $is_vote 是否开启投票功能
+ * @property int $is_order 是否开启排名功能
+ * @property int $tenure_num 任职数量
  * @property int $status 启用状态
  * @property int $sort 排序
  * @property int $create_time
@@ -34,9 +38,9 @@ class NodeType extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['name', 'min_money', 'max_people', 'max_candidate', 'rule_list', 'is_examine', 'status', 'create_time'], 'required'],
+            [['name', 'min_money', 'max_people', 'max_candidate', 'rule_list', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'create_time'], 'required'],
             [['min_money'], 'number'],
-            [['max_people', 'max_candidate', 'is_examine', 'status', 'sort', 'create_time'], 'integer'],
+            [['max_people', 'max_candidate', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'sort', 'create_time'], 'integer'],
             [['name'], 'string', 'max' => 16],
             [['rule_list'], 'string', 'max' => 256],
         ];
@@ -55,6 +59,10 @@ class NodeType extends \common\dzbase\DzModel
             'max_candidate' => '候选人上限',
             'rule_list' => '权限列表',
             'is_examine' => '是否审核',
+            'is_candidate' => '是否开启候选功能',
+            'is_vote' => '是否开启投票功能',
+            'is_order' => '是否开启排名功能',
+            'tenure_num' => '任职数量',
             'status' => '启用状态',
             'sort' => '排序',
             'create_time' => 'Create Time',

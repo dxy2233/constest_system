@@ -12,6 +12,7 @@ use common\models\business\BNodeType;
 use common\models\business\BNodeRule;
 use common\models\business\BUserIdentify;
 use common\models\business\BUnvote;
+use common\models\business\BTypeRuleContrast;
 use common\models\business\BUserWallet;
 use common\models\business\BUserCurrency;
 use common\models\business\BVoucher;
@@ -44,12 +45,12 @@ class NodeController extends BaseController
 
     public function actionIndex()
     {
+        $type = $this->pInt('type');
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
         $page = $this->pInt('page', 0);
-        
-        $data = NodeService::getList($page, $searchName, $str_time, $end_time);
+        $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type);
         $id_arr = [];
         foreach ($data as $v) {
             $id_arr[] = $v['id'];
@@ -175,9 +176,107 @@ class NodeController extends BaseController
         foreach ($data as $v) {
             $id_arr[] = $v['id'];
         }
-        $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
+        $people = NodeService::getPeopleNum($id_arr, '', $endTime);
         foreach ($data as &$v) {
             $v['count'] = $people[$v['id']];
+        }
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    public function actionUpdate()
+    {
+        $id = $this->pInt('id');
+        
+        $name = $this->pString('name');
+        if ($id) {
+            $node = BNodeType::find()->where(['id' => $id])->one();
+        } else {
+            $node = new BNodeType();
+            $node->name = $name;
+        }
+        if (empty($id) && empty($name)) {
+            return $this->respondJson(1, 'ID与名称不能同时为空');
+        }
+        $is_examine = $this->pInt('is_examine', 0);
+        
+        $is_candidate = $this->pInt('is_candidate', 0);
+        $is_vote = $this->pInt('is_vote', 0);
+        $is_order = $this->pInt('is_order', 0);
+        $tenure_num = $this->pInt('tenure_num');
+        if (empty($tenure_num)) {
+            return $this->respondJson(1, '任职数量必须大于0');
+        }
+        $max_candidate = $this->pInt('max_candidate');
+        if ($is_candidate > 0 && empty($max_candidate)) {
+            return $this->respondJson(1, '候选数量必须大于0');
+        }
+        $min_money = $this->pInt('min_money');
+        if (empty($tenure_num)) {
+            return $this->respondJson(1, '质押资产必须大于0');
+        }
+        $node->is_examine = $is_examine;
+        $node->is_candidate = $is_candidate;
+        $node->is_vote = $is_vote;
+        $node->is_order = $is_order;
+        $node->tenure_num = $tenure_num;
+        $node->max_candidate = $max_candidate;
+        $node->min_money = $min_money;
+        $transaction = \Yii::$app->db->beginTransaction();
+        if (!$node->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '操作失败', $node->getFirstErrorText());
+        }
+        $rule = $this->pString('rule', '');
+        $rule_arr = json_decode($rule, true);
+        // BTypeRuleContrast::find()->where(['type_id' => $node->id])->delete();
+        \Yii::$app->db->createCommand()->delete(BTypeRuleContrast::tableName(), 'type_id = '.$node->id)->execute();
+        foreach ($rule_arr as $v) {
+            $rule_obj = new BTypeRuleContrast();
+            $rule_obj->type_id = $node->id;
+            $rule_obj->is_tenure = $v['is_tenure'];
+            $rule_obj->min_order = $v['min_order'];
+            $rule_obj->max_order = $v['max_order'];
+            $rule_obj->rule_id = $v['rule_id'];
+            if (!$rule_obj->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '操作失败', $rule_obj->getFirstErrorText());
+            }
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '操作成功');
+    }
+
+    public function actionGetRuleList()
+    {
+        $data = BNodeRule::find()->asArray()->all();
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    public function actionSetRule()
+    {
+        $id = $this->pInt('id');
+        if ($id) {
+            $node = BNodeRule::find()->where(['id' => $id])->one();
+        } else {
+            $node = new BNodeRule();
+        }
+        $name = $this->pString('name');
+
+        if (empty($name)) {
+            return $this->respondJson(1, '权益名称不能为空');
+        }
+        $content = $this->pString('content');
+        if (empty($name)) {
+            return $this->respondJson(1, '权益描述不能为空');
+        }
+        $is_tenure = $this->pInt('is_tenure', 0);
+        $node->name = $name;
+        $node->content = $content;
+        $node->is_tenure = $is_tenure;
+        if (!$node->save()) {
+            return $this->respondJson(1, '操作失败', $node->getFirstErrorText());
+        } else {
+            return $this->respondJson(0, '操作成功');
         }
     }
 }

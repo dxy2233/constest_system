@@ -30,6 +30,7 @@ class DzModel extends \yii\db\ActiveRecord
             # 修改之前
             $attributes[self::EVENT_BEFORE_UPDATE] = ['update_time'];
         }
+
         if ($this->hasAttribute('create_time')) {
             # 创建之前
             if (array_key_exists(self::EVENT_BEFORE_INSERT, $attributes)) {

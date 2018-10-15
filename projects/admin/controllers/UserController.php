@@ -476,39 +476,49 @@ class UserController extends BaseController
     // 冻结用户
     public function actionStopUser()
     {
-        $userId = $this->pInt('userId');
-        $user = BUser::find()->where(['id' => $userId])->one();
-        if (empty($user)) {
+        $userId = $this->pString('userId');
+        $user_id = explode(',', $userId);
+        $users = BUser::find()->where(['in','id',$user_id])->all();
+        if (empty($users)) {
             return $this->respondJson(1, '不存在的用户');
         }
-        if ($user->status == BNotice::STATUS_INACTIVE) {
-            return $this->respondJson(1, '此用户已处于冻结状态');
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($users as $user) {
+            // if ($user->status == BNotice::STATUS_INACTIVE) {
+            //     return $this->respondJson(1, '此用户已处于冻结状态');
+            // }
+            $user->status = BNotice::STATUS_INACTIVE;
+            if (!$user->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '冻结失败', $user->getFirstErrorText());
+            }
         }
-        $user->status = BNotice::STATUS_INACTIVE;
-        if ($user->save()) {
-            return $this->respondJson(0, '冻结成功');
-        } else {
-            return $this->respondJson(1, '冻结失败', $user->getFirstErrorText());
-        }
+        $transaction->commit();
+        return $this->respondJson(0, '冻结成功');
     }
 
     // 解冻用户
     public function actionOpenUser()
     {
-        $userId = $this->pInt('userId');
-        $user = BUser::find()->where(['id' => $userId])->one();
-        if (empty($user)) {
+        $userId = $this->pString('userId');
+        $user_id = explode(',', $userId);
+        $users = BUser::find()->where(['in','id',$user_id])->all();
+        if (empty($users)) {
             return $this->respondJson(1, '不存在的用户');
         }
-        if ($user->status == BNotice::STATUS_ACTIVE) {
-            return $this->respondJson(1, '此用户处于非冻结状态');
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($users as $user) {
+            // if ($user->status == BNotice::STATUS_ACTIVE) {
+            //     return $this->respondJson(1, '此用户处于非冻结状态');
+            // }
+            $user->status = BNotice::STATUS_ACTIVE;
+            if (!$user->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '解冻失败', $user->getFirstErrorText());
+            }
         }
-        $user->status = BNotice::STATUS_ACTIVE;
-        if ($user->save()) {
-            return $this->respondJson(0, '解冻成功');
-        } else {
-            return $this->respondJson(1, '解冻失败', $user->getFirstErrorText());
-        }
+        $transaction->commit();
+        return $this->respondJson(0, '解冻成功');
     }
 
     //编辑用户信息

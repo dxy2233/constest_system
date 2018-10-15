@@ -57,6 +57,7 @@ class NodeService extends ServiceBase
         return $data;
     }
     
+
     /**
      * 统计支持人数
      *
@@ -64,6 +65,36 @@ class NodeService extends ServiceBase
      * @return void
      */
     public static function getPeopleNum(array $id_arr = [], string $str_time = '', string $end_time = '')
+    {
+        $voteMode = BVote::find()->select(['node_id', 'COUNT(DISTINCT user_id) as people_number']);
+        if (!empty($id_arr)) {
+            $voteMode->where(['node_id' => $id_arr]);
+        }
+        
+        if ($str_time != '') {
+            $voteMode->startTime($str_time, 'create_time');
+        }
+        if ($end_time != '') {
+            $voteMode->endTime($end_time, 'create_time');
+        }
+
+        $res = $voteMode->groupBy(['node_id'])
+        ->indexBy('node_id')
+        ->asArray()
+        ->all();
+        $data = [];
+        foreach ($res as $v) {
+            $data[$v['node_id']] = $v['people_number'];
+        }
+        return $data;
+    }
+    /**
+     * 统计支持人数
+     *
+     * @param BUser $user
+     * @return void
+     */
+    public static function getPeopleNumOld(array $id_arr = [], string $str_time = '', string $end_time = '')
     {
         $where = [];
         if ($id_arr != []) {

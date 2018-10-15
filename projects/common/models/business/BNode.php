@@ -19,6 +19,16 @@ class BNode extends \common\models\Node
     {
         return $this->hasMany(BVote::className(), ['node_id' => 'id']);
     }
+
+    /**
+     * 节点下投票选举列表
+     *  一对一
+     * @return void
+     */
+    public function getUser()
+    {
+        return $this->hasOne(BUser::className(), ['id' => 'user_id']);
+    }
     /**
      * 转换LOGO链接
      *
@@ -37,8 +47,6 @@ class BNode extends \common\models\Node
     {
         return (bool) $this->is_tenure;
     }
-
-
 
     /**
     * 自定义 label

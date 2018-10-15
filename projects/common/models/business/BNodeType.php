@@ -12,7 +12,7 @@ class BNodeType extends \common\models\NodeType
      *  一对多
      * @return void
      */
-    public function getNode()
+    public function getNodes()
     {
         return $this->hasMany(BNode::className(), ['type_id' => 'id']);
     }

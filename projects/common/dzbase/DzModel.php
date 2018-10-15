@@ -16,8 +16,10 @@ class DzModel extends \yii\db\ActiveRecord
     // 设置基础状态 可全局使用
     // 不启用/停用/关闭
     const STATUS_INACTIVE = 0;
-    // 启用/启用/开启
+    // 启用/开启
     const STATUS_ACTIVE = 1;
+    // 失败/失效
+    const STATUS_FAIL = 2;
     
     public function behaviors()
     {

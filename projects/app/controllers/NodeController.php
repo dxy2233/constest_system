@@ -79,6 +79,10 @@ class NodeController extends BaseController
         if (!is_object($nodeTypeModel)) {
             return $this->respondJson(1, '节点不存在');
         }
+        
+        if (!(bool) $nodeTypeModel->is_order) {
+            return $this->respondJson(1, '节点排名关闭');
+        }
 
         $nodeModel = $nodeTypeModel->getNodes()
         ->alias('n')
@@ -108,22 +112,11 @@ class NodeController extends BaseController
         $nodeList = $nodeQuery->queryAll();
         // 获取节点user 去重统计
         $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
-        $voteUser = \common\services\NodeService::getPeopleNumNew($nodeIds);
-        var_dump($voteUser);
-        exit;
-        $voteUser = BVote::find()
-        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number'])
-        ->where(['node_id' => $nodeIds])
-        ->groupBy(['node_id'])
-        ->indexBy('node_id')
-        ->createCommand()->getRawSql();
-        // ->asArray()
-        // ->all();
-        var_dump($voteUser);exit;
+        $voteUser = \common\services\NodeService::getPeopleNum($nodeIds);
         foreach ($nodeList as $key => &$node) {
             $node['logo'] = FuncHelper::getImageUrl($node['logo']);
             $node['is_tenure'] = (bool) $node['is_tenure'];
-            $node['people_number'] = $voteUser[$node['id']]['people_number'];
+            $node['people_number'] = $voteUser[$node['id']];
         }
         if (!$page) {
             $data = $nodeList;
@@ -158,8 +151,10 @@ class NodeController extends BaseController
         ->select(['COUNT(id) as people_number', 'SUM(vote_number) as vote_number'])
         ->asArray()
         ->one();
+        
         $nodeList = ArrayHelper::toArray($nodeModel);
-        $nodeList['people_number'] = $votesCount['people_number'] ?? '0';
+        $voteUser = \common\services\NodeService::getPeopleNum((array) $nodeList['id']);
+        $nodeList['people_number'] = $voteUser[$nodeList['id']] ?? '0';
         $nodeList['vote_number'] = $votesCount['vote_number'] ?? '0';
         $nodeList['logo'] = $nodeModel->logoText;
         $nodeList['is_tenure'] = $nodeModel->isTenureText;

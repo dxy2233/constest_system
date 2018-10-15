@@ -6,19 +6,19 @@ use yii\helpers\ArrayHelper;
 use common\components\FuncHelper;
 use common\services\SettingService;
 
-class WalletController extends BaseController
+class UserController extends BaseController
 {
     public function behaviors()
     {
         $parentBehaviors = parent::behaviors();
         
         $behaviors = [];
-        // 需登录访问
+        // 无需需登录访问 为空则所有相关接口都需登录后访问
         $authActions = [
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
-            if (in_array(\Yii::$app->controller->action->id, $authActions)) {
+            if (!in_array(\Yii::$app->controller->action->id, $authActions)) {
                 $parentBehaviors['authenticator']['isThrowException'] = true;
             }
         }
@@ -27,35 +27,21 @@ class WalletController extends BaseController
     }
 
     /**
-     * 贡献榜
+     * 用户中心
      *
      * @return void
      */
     public function actionIndex()
     {
-        echo 1;
-        exit;
+        return $this->respondJson(0, '获取成功');
     }
 
     /**
-     * 钱包创建
+     * 设置支付密码
      *
      * @return void
      */
-    public function actionCreate()
+    public function actionAddPayPass()
     {
-        echo 1;
-        exit;
-    }
-
-    /**
-     * 贡献榜
-     *
-     * @return void
-     */
-    public function actionImport()
-    {
-        echo 1;
-        exit;
     }
 }

@@ -619,6 +619,9 @@ class FuncHelper
      */
     public static function keyCamelize(&$data, string $separator = '_')
     {
+        if (is_object($data)) {
+            $data = \yii\helpers\ArrayHelper::toArray($data);
+        }
         if (is_array($data)) {
             $newData = [];
             foreach ($data as $key => &$value) {

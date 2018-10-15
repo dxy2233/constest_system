@@ -49,6 +49,15 @@ class BUser extends \common\models\User
      *  一对多
      * @return void
      */
+    public function getIdentify()
+    {
+        return $this->hasOne(BUserIdentify::className(), ['user_id' => 'id']);
+    }
+    /**
+     * 用户钱包
+     *  一对多
+     * @return void
+     */
     public function getUserWallet()
     {
         return $this->hasMany(BUserWallet::className(), ['user_id' => 'id']);

@@ -24,7 +24,7 @@ class SettingService extends ServiceBase
     {
         $query = BSetting::find()->filterWhere(['group' => $group, 'key' => $key]);
         if (!is_null($key)) {
-            return $query->one();
+            return $query->one() ?? (object) ['value' => null];
         }
         return $query->all();
     }

@@ -38,6 +38,8 @@ class Vote extends \common\dzbase\DzModel
         ];
     }
 
+
+
     /**
      * {@inheritdoc}
      */

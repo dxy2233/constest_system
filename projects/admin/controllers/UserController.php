@@ -64,10 +64,10 @@ class UserController extends BaseController
             $node = BNode::find()
             ->from(BNode::tableName()." A")
             ->join('inner join', 'gr_node_type B', 'A.type_id = B.id')
-            ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $v['id']])->one();
+            ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $v['id']])->asArray()->one();
             if ($node) {
-                $v['userType'] = $node->name;
-                $v['nodeName'] = $node->nodeName;
+                $v['userType'] = $node['name'];
+                $v['nodeName'] = $node['nodeName'];
             } else {
                 $v['userType'] = '普通用户';
                 $v['nodeName'] = '——';
@@ -366,7 +366,9 @@ class UserController extends BaseController
                 $c_item['positionAmount'] = $val['position_amount'];
                 $c_item['frozenAmount'] = $val['frozen_amount'];
                 $c_item['useAmount'] = $val['use_amount'];
-                $in_and_out_detail = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
+                $c_item['inAndOut'] = [];
+                $c_item['frozen'] = [];
+                $in_and_out_detail = BUserCurrencyDetail::find()->active(BNotice::STATUS_ACTIVE)->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
                 foreach ($in_and_out_detail as $value) {
                     $d_item = [];
                     $d_item['remark'] = $value->remark;
@@ -374,12 +376,12 @@ class UserController extends BaseController
                     $d_item['effectTime'] = date('Y-m-d', $value->effect_time);
                     $c_item['inAndOut'][] = $d_item;
                 }
-                $frozen_detail = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
+                $frozen_detail = BUserCurrencyFrozen::find()->active(BNotice::STATUS_ACTIVE)->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
                 foreach ($frozen_detail as $value) {
                     $d_item = [];
                     $d_item['remark'] = $value->remark;
                     $d_item['amount'] = $value->amount;
-                    $d_item['effectTime'] = date('Y-m-d', $value->effect_time);
+                    $d_item['effectTime'] = date('Y-m-d', $value->create_time);
                     $c_item['frozen'][] = $d_item;
                 }
                 $wallet_item['list'][] = $c_item;
@@ -411,6 +413,7 @@ class UserController extends BaseController
             $voucher_item['nodeName'] = $v['nodeName'];
             $voucher_item['typeName'] = $v['typeName'];
             $voucher_item['voucherNum'] = $v['voucher_num'];
+            $voucher_item['username'] = $user->username;
             $all += $v['use_voucher'];
             $voucher_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voucher[] = $voucher_item;
@@ -426,6 +429,7 @@ class UserController extends BaseController
             $voucher_item = [];
             $voucher_item['nodeName'] = $v['nodeName'];
             $voucher_item['typeName'] = $v['typeName'];
+            $voucher_item['username'] = $user->username;
             $voucher_item['amount'] = $v['amount'];
             $voucher_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voucher_detail[] = $voucher_item;
@@ -510,20 +514,28 @@ class UserController extends BaseController
     //编辑用户信息
     public function actionEditUser()
     {
-        $userId = $this->pInt('userId');
-        $user = BUser::find()->where(['id' => $userId])->one();
-        if (empty($user)) {
-            return $this->respondJson(1, '不存在的用户');
+        $userId = $this->pInt('userId', 0);
+        if ($userId != 0) {
+            $user = BUser::find()->where(['id' => $userId])->one();
+            if (empty($user)) {
+                return $this->respondJson(1, '不存在的用户');
+            }
+            $str = '修改';
+        } else {
+            $user = new BUser();
+            $str = '新增';
         }
+        
         $name = $this->pString('name');
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
         }
+        $user->mobile = $name;
         $user->username = $name;
         if ($user->save()) {
-            return $this->respondJson(0, '修改成功');
+            return $this->respondJson(0, $str.'成功');
         } else {
-            return $this->respondJson(1, '修改失败', $user->getFirstErrorText());
+            return $this->respondJson(1, $str.'失败', $user->getFirstErrorText());
         }
     }
 

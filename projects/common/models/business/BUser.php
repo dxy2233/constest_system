@@ -6,23 +6,6 @@ use yii\behaviors\TimestampBehavior;
 
 class BUser extends \common\models\User
 {
-    public function behaviors()
-    {
-        return [
-            [
-                // 自动添加时间
-                'class' => TimestampBehavior::className(),
-                'attributes' => [
-                    # 创建之前
-                    self::EVENT_BEFORE_INSERT => ['create_time', 'update_time'],
-                    # 修改之前
-                    self::EVENT_BEFORE_UPDATE => ['update_time']
-                ],
-                #设置默认值
-                'value' => NOW_TIME
-            ]
-        ];
-    }
     // 需要事务的操作
     public function transactions()
     {

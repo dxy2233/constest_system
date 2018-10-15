@@ -45,10 +45,10 @@ class User extends DzModel implements IdentityInterface
         return [
             [['mobile'], 'required'],
             [['is_identified', 'status', 'last_login_time', 'create_time', 'update_time'], 'integer'],
-            [['username', 'nickname', 'password', 'email', 'trans_password'], 'string', 'max' => 50],
+            [['username', 'nickname', 'password', 'email'], 'string', 'max' => 50],
             [['realname', 'mobile', 'last_login_ip'], 'string', 'max' => 20],
             [['pwd_salt'], 'string', 'max' => 32],
-            [['equipment_number'], 'string', 'max' => 128],
+            [['equipment_number', 'trans_password'], 'string', 'max' => 128],
         ];
     }
 

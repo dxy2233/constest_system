@@ -14,7 +14,7 @@ class SmsController extends BaseController
         $behaviors = [];
         // 需登录才能访问
         $authActions = [
-            // 'team-login',
+            'user-pay-pass'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -23,7 +23,6 @@ class SmsController extends BaseController
                 $parentBehaviors['authenticator']['isThrowException'] = true;
             }
         }
-
         return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
 
@@ -58,6 +57,25 @@ class SmsController extends BaseController
         }
         
         $returnInfo = ValidationCodeSmsService::sendValidationCode($mobile, BSmsTemplate::$TYPE_USER_LOGIN);
+        if ($returnInfo->code != 0) {
+            return $this->respondJson($returnInfo->code, $returnInfo->msg);
+        }
+
+        return $this->respondJson(0, '发送成功');
+    }
+    /**
+     * 用户修改支付密码发送验证码
+     *
+     * @return void
+     */
+    public function actionUserPayPass()
+    {
+        $userModel = $this->user;
+        if (is_null($userModel)) {
+            return $this->respondJson(1, '此号码未注册');
+        }
+        
+        $returnInfo = ValidationCodeSmsService::sendValidationCode($userModel->mobile, BSmsTemplate::$TYPE_PAY_PASSWORD);
         if ($returnInfo->code != 0) {
             return $this->respondJson($returnInfo->code, $returnInfo->msg);
         }

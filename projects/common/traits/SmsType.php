@@ -19,5 +19,8 @@ trait SmsType
     public static $TYPE_USER_LOGIN = 3;
 
     //用户注册
-    public static $TYPE_USER_REGISTER = 3;
+    public static $TYPE_USER_REGISTER = 4;
+
+    //用户支付密码修改
+    public static $TYPE_PAY_PASSWORD = 5;
 }

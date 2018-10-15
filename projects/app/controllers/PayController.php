@@ -27,13 +27,68 @@ class PayController extends BaseController
     }
 
     /**
-     * 用户中心
+     * 创建支付密码
      *
      * @return void
      */
-    public function actionIndex()
+    public function actionExistPass()
     {
-        return $this->respondJson(0, '获取成功');
+        $userModel = $this->user;
+        return $this->respondJson(0, '获取成功', !empty($userModel->trans_password));
+    }
+
+
+    /**
+     * 创建支付密码
+     *
+     * @return void
+     */
+    public function actionCreatePass()
+    {
+        $payPass = $this->pInt('pass', false);
+        $userModel = $this->user;
+        if (!empty($userModel->trans_password)) {
+            return $this->respondJson(1, '支付密码已存在');
+        }
+        if (!$payPass) {
+            return $this->respondJson(1, '支付密码不能为空');
+        }
+        $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
+        if ($passLen == strlen($payPass)) {
+            $userModel->trans_password = \Yii::$app->getSecurity()->encryptByPassword($payPass, \Yii::$app->params['secretKey']);
+        } else {
+            return $this->respondJson(1, '支付密码长度不够');
+        }
+        if (!$userModel->save()) {
+            return $this->respondJson(1, '支付密码保存失败', $userModel->getFirstErrorText());
+        }
+        return $this->respondJson(0, '支付密码设置成功');
+    }
+    /**
+     * 创建支付密码
+     *
+     * @return void
+     */
+    public function actionUpdatePass()
+    {
+        $payPass = $this->pInt('pass', false);
+        $userModel = $this->user;
+        if (!empty($userModel->trans_password)) {
+            return $this->respondJson(1, '支付密码已存在');
+        }
+        if (!$payPass) {
+            return $this->respondJson(1, '支付密码不能为空');
+        }
+        $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
+        if ($passLen == strlen($payPass)) {
+            $userModel->trans_password = \Yii::$app->getSecurity()->encryptByPassword($payPass, \Yii::$app->params['secretKey']);
+        } else {
+            return $this->respondJson(1, '支付密码长度不够');
+        }
+        if (!$userModel->save()) {
+            return $this->respondJson(1, '支付密码保存失败', $userModel->getFirstErrorText());
+        }
+        return $this->respondJson(0, '支付密码设置成功');
     }
 
     /**

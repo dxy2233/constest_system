@@ -10,6 +10,7 @@ use Yii;
  * @property int $id
  * @property string $name 权限名称
  * @property string $content 权限内容
+ * @property int $is_tenure 是否任职
  * @property int $create_time 添加时间
  */
 class NodeRule extends \common\dzbase\DzModel
@@ -28,9 +29,9 @@ class NodeRule extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['name', 'content', 'create_time'], 'required'],
+            [['name', 'content', 'is_tenure', 'create_time'], 'required'],
             [['content'], 'string'],
-            [['create_time'], 'integer'],
+            [['is_tenure', 'create_time'], 'integer'],
             [['name'], 'string', 'max' => 128],
         ];
     }
@@ -44,6 +45,7 @@ class NodeRule extends \common\dzbase\DzModel
             'id' => 'ID',
             'name' => '权限名称',
             'content' => '权限内容',
+            'is_tenure' => '是否任职',
             'create_time' => '添加时间',
         ];
     }

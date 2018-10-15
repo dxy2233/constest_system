@@ -75,14 +75,21 @@ class NodeController extends BaseController
             return $this->respondJson(1, "投票更新时间未设定");
         }
         $updateTime = (int) $endUpdate->value;
-        $nodeType = BNodeType::findOne($nodeId);
-        if (!is_object($nodeType)) {
+        $nodeTypeModel = BNodeType::findOne($nodeId);
+        if (!is_object($nodeTypeModel)) {
             return $this->respondJson(1, '节点不存在');
         }
-        $nodeModel = BNode::find()
-        ->select(['id', 'name', 'desc', 'logo', 'is_tenure'])
-        ->active()
-        ->with('votes');
+
+        $nodeModel = $nodeTypeModel->getNodes()
+        ->alias('n')
+        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
+        ->active(BNode::STATUS_ACTIVE, 'n.')
+        ->andWhere(['<=', 'v.create_time', $updateTime])
+        ->joinWith(['votes v' => function ($query) use ($updateTime) {
+            $query->andWhere(['<=', 'v.create_time', $updateTime]);
+        }])
+        ->groupBy('n.id')
+        ->orderBy(['vote_number' => SORT_DESC]);
         // 不传递page 则为首页
         if (!$page) {
             $nodeNumberModel = SettingService::get('vote', 'index_node_number');
@@ -95,18 +102,28 @@ class NodeController extends BaseController
             $data['count'] = $nodeModel->count();
             $nodeModel->page($page, $pageSize);
         }
-        $nodeModelList = $nodeModel->all();
-        $nodeList = ArrayHelper::toArray($nodeModelList);
-        foreach ($nodeModelList as $key => $node) {
-            $number = $node->getVotes()
-            ->select(['COUNT(id) as count_number', 'SUM(vote_number) as vote_number'])
-            ->where(['<=', 'create_time', $updateTime])
-            ->asArray()
-            ->one();
-            $number['vote_number'] = $number['vote_number'] ?? '0';
-            $nodeList[$key] = array_merge($nodeList[$key], $number);
-            $nodeList[$key]['logo'] = $node->logoText;
-            $nodeList[$key]['is_tenure'] = $node->isTenureText;
+        $nodeModel->cache(true);
+        $nodeQuery = $nodeModel->createCommand();
+        // echo ($nodeQuery->getRawSql());exit;
+        $nodeList = $nodeQuery->queryAll();
+        // 获取节点user 去重统计
+        $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
+        $voteUser = \common\services\NodeService::getPeopleNumNew($nodeIds);
+        var_dump($voteUser);
+        exit;
+        $voteUser = BVote::find()
+        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number'])
+        ->where(['node_id' => $nodeIds])
+        ->groupBy(['node_id'])
+        ->indexBy('node_id')
+        ->createCommand()->getRawSql();
+        // ->asArray()
+        // ->all();
+        var_dump($voteUser);exit;
+        foreach ($nodeList as $key => &$node) {
+            $node['logo'] = FuncHelper::getImageUrl($node['logo']);
+            $node['is_tenure'] = (bool) $node['is_tenure'];
+            $node['people_number'] = $voteUser[$node['id']]['people_number'];
         }
         if (!$page) {
             $data = $nodeList;
@@ -171,9 +188,11 @@ class NodeController extends BaseController
         ->where(['node_id' => $nodeId]);
         if ($nodeShowType !== 'log') {
             $voteModel->addSelect(['SUM(vote_number) as vote_number']);
+            $voteModel->orderBy(['vote_number' => SORT_DESC]);
             $voteModel->groupBy('user_id');
         } else {
             $voteModel->addSelect(['vote_number']);
+            $voteModel->orderBy(['create_time' => SORT_DESC]);
         }
         $data['count'] = $voteModel->count();
         $voteModel->page($page, $pageSize);

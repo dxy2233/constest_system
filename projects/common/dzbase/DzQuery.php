@@ -16,9 +16,9 @@ class DzQuery extends ActiveQuery
      * @param integer $status 自定义状态
      * @return void
      */
-    public function active(int $status = 1)
+    public function active(int $status = 1, string $prefix = null)
     {
-        return $this->andOnCondition(['status' => $status]);
+        return $this->andOnCondition([$prefix.'status' => $status]);
     }
 
     /**

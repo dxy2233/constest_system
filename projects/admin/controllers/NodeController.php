@@ -151,4 +151,33 @@ class NodeController extends BaseController
         $rule_data = BNodeRule::find()->where(['in','id',$rule_arr])->asArray()->all();
         return $this->respondJson(0, '获取成功', $rule_data);
     }
+
+
+    public function actionGetTypeList()
+    {
+        $data = BNodeType::find()->asArray()->all();
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    public function actionGetHistoryOrder()
+    {
+        $type = $this->pInt('type');
+        if (empty($type)) {
+            return $this->respondJson(1, '节点类型不能为空');
+        }
+        $endTime = $this->pString('endTime', '');
+        if ($endTime == '') {
+            $endTime = date('Y-m-d H:i:s');
+        }
+        $page = $this->pInt('page', 1);
+        $data = NodeService::getList($page, '', '', $endTime, $type);
+        $id_arr = [];
+        foreach ($data as $v) {
+            $id_arr[] = $v['id'];
+        }
+        $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
+        foreach ($data as &$v) {
+            $v['count'] = $people[$v['id']];
+        }
+    }
 }

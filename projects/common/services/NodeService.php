@@ -29,7 +29,7 @@ class NodeService extends ServiceBase
         ->join('left join', 'gr_user B', 'A.user_id = B.id')
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','sum(consume) as consume','A.is_tenure','A.create_time','A.status','A.id'])
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','sum(consume) as consume','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure'])
         ->orderBy('sum(C.vote_number) desc');
         
         if ($searchName != '') {

@@ -4,22 +4,11 @@ namespace common\models\business;
 
 class BSetting extends \common\models\Setting
 {
-    public static $PAYMENT_NUMBER = 'payment_number';
-    public static $ORDINARY_NUMBER = 'ordinary_number';
-    public static $VOTE_OPEN = 'vote_open';
+    public static $GROUP_NOTICE = 'notice'; // 公告
+    public static $GROUP_NODE = 'node'; // 节点
+    public static $GROUP_VOTE = 'vote'; // 投票
+    public static $GROUP_USER = 'user'; // 用户
 
-    // 留备用，没实质性功能
-    public function set()
-    {
-        $data = [];
-        for ($i = 1; $i < 10; $i++) {
-            $data[$i] = $i;
-        }
-
-        $setting = \common\models\business\BSetting::findOne(1);
-        $setting->initialize = \yii\helpers\Json::encode($data);
-        $setting->save();
-    }
 
 
     /**

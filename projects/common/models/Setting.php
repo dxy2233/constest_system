@@ -39,7 +39,7 @@ class Setting extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['name', 'key', 'initialize', 'remark', 'create_time', 'update_time'], 'required'],
+            [['name', 'key', 'value'], 'required'],
             [['initialize'], 'string'],
             [['create_time', 'update_time'], 'integer'],
             [['group', 'key', 'type'], 'string', 'max' => 50],

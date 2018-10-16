@@ -57,7 +57,6 @@ class NodeType extends \common\dzbase\DzModel
             'min_money' => '最低标准',
             'max_people' => '人数上限',
             'max_candidate' => '候选人上限',
-            'rule_list' => '权限列表',
             'is_examine' => '是否审核',
             'is_candidate' => '是否开启候选功能',
             'is_vote' => '是否开启投票功能',

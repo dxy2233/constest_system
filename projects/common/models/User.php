@@ -116,7 +116,7 @@ class User extends DzModel implements IdentityInterface
     public static function findIdentityByAccessToken($token, $type = null)
     {
         $accessToken = BUserAccessToken::find()
-        ->where(['access_token' => $token,'client_id' => \Yii::$app->controller->module->id])
+        ->where(['access_token' => $token,'client_id' => \Yii::$app->id ?? \Yii::$app->controller->module->id])
         ->andWhere(['>=', 'expire_time', NOW_TIME])
         ->one();
         return !empty($accessToken['user_id'])

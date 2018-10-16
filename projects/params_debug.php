@@ -8,8 +8,8 @@
 
 // 此文件放置所有的第三方服务配置信息, 开发环境和正式环境一样,只是参数不同, 会合并到 Yii::$app->params里面去
 return [
-    // 密码加密/解密串
-    'secretKey' => 'ncjelvgojnrksheyvjak34856jddk',
+    // 密码加密/解密串 // 使用 yii 安全助手生成 Yii::$app->getSecurity()->generateRandomString();
+    'secretKey' => '2QST9d46soiQpf2Hug8igL0ja0RdOYTk',
 
     'imgAddress' => 'http://app.contest_system.local/',
 
@@ -40,6 +40,8 @@ return [
     'JTIssuer'=>'jh195JTSbws2owFT4HW6tvNTxBcygU5jAs',//银关
     'JTWalletActiveAmount'=>0.000001,//激活钱包GRT金额
 
+    // 货币显示精度 0.000012 小数点位数
+    'wallet_precision' => 6,
     // 钱包列表 预设 钱包默认值 default = 1 为默认钱包 后面可更改为 保存到数据库
     'wallet' => [
         'GST' => [

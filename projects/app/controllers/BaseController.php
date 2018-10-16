@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: havoe
- * Date: 2017/11/13
- * Time: 下午4:15
- */
-
 namespace app\controllers;
 
 use common\dzbase\DzController;
@@ -22,6 +15,7 @@ class BaseController extends DzController
     public $user = null;
 
     public $user_id = null;
+    
     /**
      * @inheritdoc
      */

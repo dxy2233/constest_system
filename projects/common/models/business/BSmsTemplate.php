@@ -23,8 +23,9 @@ class BSmsTemplate extends \common\models\SmsTemplate
     public static function assembleContent($type, array $params)
     {
         $template = self::findOne(['type' => $type, 'status' => self::$STATUS_USED]);
-        assert($template != null);
-
+        if (!is_object($template)) {
+            return null;
+        }
         $content = $template->content;
         foreach ($params as $key => $value) {
             $key = $key == "vcode" ? "code" : $key;

@@ -6,26 +6,27 @@ use yii\behaviors\TimestampBehavior;
 
 class BUserCurrency extends \common\models\UserCurrency
 {
-    public function behaviors()
+    
+
+    /**
+     * 用户货币 ->货币详情
+     *  一对一
+     * @return void
+     */
+    public function getCurrency()
     {
-        return [
-            [
-                // 自动添加时间
-                'class' => TimestampBehavior::className(),
-                'attributes' => [
-                    # 创建之前
-                    self::EVENT_BEFORE_INSERT => ['create_time', 'update_time'],
-                    # 修改之前
-                    self::EVENT_BEFORE_UPDATE => ['update_time']
-                ],
-                #设置默认值
-                'value' => NOW_TIME
-            ]
-        ];
+        return $this->hasOne(BCurrency::className(), ['id' => 'currency_id']);
     }
 
-
-
+    /**
+    * 用户货币 -> 钱包
+    *  一对一
+    * @return void
+    */
+    public function getWallet()
+    {
+        return $this->hasOne(BUserwallet::className(), ['id' => 'currency_id']);
+    }
     /**
     * 自定义 label
     * @return array

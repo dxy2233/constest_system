@@ -23,6 +23,8 @@ class DzModel extends \yii\db\ActiveRecord
     
     public function behaviors()
     {
+        // 以下无需手动添加时间就可以实现 自动插入数据库
+        // $model->touch('login_time'); // touch 方式指定字段添加 当前时间戳
         $attributes = [];
         if ($this->hasAttribute('update_time')) {
             # 创建之前

@@ -31,10 +31,10 @@ class UserWallet extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'wallet', 'address', 'create_time', 'update_time'], 'required'],
-            [['user_id', 'create_time', 'update_time'], 'integer'],
+            [['user_id', 'wallet', 'address', 'create_time', 'update_time', 'name'], 'required'],
+            [['user_id', 'create_time', 'update_time', 'is_main', 'status'], 'integer'],
             [['wallet'], 'string', 'max' => 50],
-            [['address', 'secret'], 'string', 'max' => 255],
+            [['address', 'secret', 'name'], 'string', 'max' => 255],
         ];
     }
 
@@ -46,9 +46,12 @@ class UserWallet extends \common\dzbase\DzModel
         return [
             'id' => Yii::t('app', 'ID'),
             'user_id' => Yii::t('app', '用户ID'),
+            'name' => Yii::t('app', '钱包名称'),
             'wallet' => Yii::t('app', '钱包CODE'),
             'address' => Yii::t('app', '钱包地址'),
             'secret' => Yii::t('app', '钱包私钥'),
+            'is_main' => Yii::t('app', '主钱包'),
+            'status' => Yii::t('app', '钱包状态'),
             'create_time' => Yii::t('app', '创建时间'),
             'update_time' => Yii::t('app', '修改时间'),
         ];

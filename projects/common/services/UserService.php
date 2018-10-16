@@ -202,6 +202,6 @@ class UserService extends ServiceBase
      */
     public static function logout()
     {
-//        \Yii::$app->user->logout();
+       return \Yii::$app->user->logout();
     }
 }

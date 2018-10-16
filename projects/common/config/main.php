@@ -23,10 +23,7 @@ return [
         ],
         'validate' => [
             'class' => 'common\modules\validate\Module',
-        ],
-        'wallet' => [
-            'class' => 'common\modules\wallet\Module',
-        ],
+        ]
     ],
     'components' => [
         'cache' => [

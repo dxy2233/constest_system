@@ -49,12 +49,16 @@ class PayController extends BaseController
     public function actionCreatePass()
     {
         $payPass = $this->pInt('pass', false);
+        $rePass = $this->pInt('repass', false);
         $userModel = $this->user;
         if (!empty($userModel->trans_password)) {
             return $this->respondJson(1, '支付密码已存在');
         }
         if (!$payPass) {
             return $this->respondJson(1, '支付密码不能为空');
+        }
+        if ($payPass !== $rePass) {
+            return $this->respondJson(1, '两次支付密码不一致');
         }
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
@@ -76,6 +80,42 @@ class PayController extends BaseController
     {
         $payPass = $this->pInt('pass', false);
         $rePass = $this->pInt('repass', false);
+        $oldpass = $this->pInt('oldpass', false);
+        $userModel = $this->user;
+        if (!$payPass) {
+            return $this->respondJson(1, '支付密码不能为空');
+        }
+        if ($payPass !== $rePass) {
+            return $this->respondJson(1, '两次支付密码不一致');
+        }
+        $validateOldPass = FuncHelper::validatePassWordHash($oldpass, $userModel->trans_password);
+        if ($validateOldPass) {
+            return $this->respondJson(1, '原密码错误');
+        }
+        $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
+        if ($passLen == strlen($payPass)) {
+            $userModel->trans_password = FuncHelper::encryptPassWordHash($payPass);
+        } else {
+            return $this->respondJson(1, '支付密码长度不够');
+        }
+        if (!$userModel->save()) {
+            return $this->respondJson(1, '支付密码保存失败', $userModel->getFirstErrorText());
+        }
+        // 写日志
+        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_ALERT_TRANS_PWD, BUserLog::$STATUS_SUCCESS, '登录成功', $userModel->last_login_ip);
+        return $this->respondJson(0, '支付密码设置成功');
+    }
+
+    /**
+     * 重置支付密码
+     *
+     * @return void
+     */
+    public function actionResetPass()
+    {
+        $payPass = $this->pInt('pass', false);
+        $rePass = $this->pInt('repass', false);
+        $vcode = $this->pString('vcode');
         $userModel = $this->user;
         if (!$payPass) {
             return $this->respondJson(1, '支付密码不能为空');
@@ -105,7 +145,7 @@ class PayController extends BaseController
             return $this->respondJson(1, '支付密码保存失败', $userModel->getFirstErrorText());
         }
         // 写日志
-        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_LOGIN, BUserLog::$STATUS_SUCCESS, '登录成功', $userModel->last_login_ip);
+        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_RESET_TRANS_PWD, BUserLog::$STATUS_SUCCESS, '登录成功', $userModel->last_login_ip);
         return $this->respondJson(0, '支付密码设置成功');
     }
     /**

@@ -9,6 +9,7 @@ use common\services\SettingService;
 use common\models\business\BSmsAuth;
 use common\models\business\BUserLog;
 use common\models\business\BUserCurrency;
+use common\models\business\BUserCurrencyDetail;
 
 class WalletController extends BaseController
 {
@@ -123,11 +124,43 @@ class WalletController extends BaseController
         ->orderBy('c.sort')
         ->asArray()
         ->one();
+        
+        $userCurrency['position_amount'] = FuncHelper::formatAmount($userCurrency['position_amount']);
+        $userCurrency['frozen_amount'] = FuncHelper::formatAmount($userCurrency['frozen_amount']);
+        $userCurrency['use_amount'] = FuncHelper::formatAmount($userCurrency['use_amount']);
         FuncHelper::arrayForget($userCurrency, 'currency');
         return $this->respondJson(0, '获取成功', $userCurrency);
     }
 
-    // public function actionCurrency
+    /**
+     * 货币收入明细
+     *
+     * @return void
+     */
+    public function actionCurrencyDetail()
+    {
+        $currencyId = $this->pInt('id', false);
+        $type = $this->pInt('type', 1);
+        $page = $this->pInt('page', 1);
+        $pageSize = $this->pInt('page_size', 15);
+        if (!$currencyId) {
+            return $this->respondJson(1, '货币不能为空');
+        }
+        $userId = $this->user->id;
+        // 获取收入 类型ID
+        $detailType = (bool) $type ? BUserCurrencyDetail::getTypeRevenue() : BUserCurrencyDetail::getTypePay();
+        $currencyModel = BUserCurrencyDetail::find()
+        ->select(['amount', 'remark', 'effect_time'])
+        ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType])
+        ->active();
+        $data['count'] = $currencyModel->count();
+        $data['list'] = $currencyModel->page($page, $pageSize)->asArray()->all();
+        foreach ($data['list'] as &$val) {
+            $val['amount'] = FuncHelper::formatAmount($val['amount']);
+            $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
+        }
+        return $this->respondJson(0, '获取成功', $data);
+    }
 
     /**
      * 创建支付密码

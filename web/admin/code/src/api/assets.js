@@ -39,3 +39,19 @@ export function getLockList(searchName, currency_id, str_time, end_time, page) {
     }
   })
 }
+
+// 财务流水
+export function getRuningList(searchName, currency_id, type, str_time, end_time, page) {
+  return request({
+    url: '/finance/get-finance-list',
+    method: 'post',
+    data: {
+      searchName,
+      currency_id,
+      type,
+      str_time,
+      end_time,
+      page
+    }
+  })
+}

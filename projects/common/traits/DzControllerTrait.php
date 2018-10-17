@@ -8,6 +8,8 @@
 
 namespace common\traits;
 
+use common\components\FuncHelper;
+
 trait DzControllerTrait
 {
    
@@ -86,7 +88,7 @@ trait DzControllerTrait
     }
 
 
-    final protected function respondJson($errCode, $msg = '', $content = '')
+    final protected function respondJson($errCode, $msg = '', $content = '', bool $camelize = true)
     {
         $post = \Yii::$app->request->post();
         $get = \Yii::$app->request->get();
@@ -101,7 +103,9 @@ trait DzControllerTrait
             // 根据ip地址切换语言
         }
         $msg = $msg === null ? '' : $msg;
-        return json_encode(array('code' => $errCode, 'msg' => $msg, 'content' => $content));
+        // 将变量转换为驼峰命名法
+        $content = $camelize && !is_bool($content)? FuncHelper::keyCamelize($content) : $content;
+        return json_encode(array('code' => $errCode, 'msg' => $msg, 'content' => $content), JSON_UNESCAPED_UNICODE);
     }
 
 

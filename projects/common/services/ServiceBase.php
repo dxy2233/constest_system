@@ -1,15 +1,14 @@
 <?php
 namespace common\services;
 
-
 /**
  *
  * User: simonzhang
  * Date: 15/7/3
  * Time: 下午12:51
  */
-class ServiceBase {
-
+class ServiceBase
+{
     public static $platformId = 1;
 
     protected static $logDomain = 'service';
@@ -17,14 +16,15 @@ class ServiceBase {
     private static $transaction;
     protected static $instance;
 
-    public function init() {
-
+    public function init()
+    {
     }
 
     /**
      * @return ServiceBase
      */
-    public static function getServiceInstance() : ServiceBase {
+    public static function getServiceInstance() : ServiceBase
+    {
         $className = get_called_class();
         $instance = new $className();
         $instance->init();
@@ -32,56 +32,65 @@ class ServiceBase {
         return $instance;
     }
 
-    public static function executeSql($sql) {
+    public static function executeSql($sql)
+    {
         $connection = \Yii::$app->db;
         $command = $connection->createCommand($sql);
 
         return $command->execute();
     }
 
-    public static function executeSqlAndGetRows($sql) {
+    public static function executeSqlAndGetRows($sql)
+    {
         $connection = \Yii::$app->db;
         $command = $connection->createCommand($sql);
 
         return $command->queryAll();
     }
 
-    public static function executeSqlAndGetRow($sql) {
+    public static function executeSqlAndGetRow($sql)
+    {
         $connection = \Yii::$app->db;
         $command = $connection->createCommand($sql);
 
         return $command->query();
     }
 
-    public static function executeSqlAndGetScalar($sql) {
+    public static function executeSqlAndGetScalar($sql)
+    {
         $connection = \Yii::$app->db;
         $command = $connection->createCommand($sql);
 
         return $command->queryScalar();
     }
 
-    public static function beginTransaction() {
+    public static function beginTransaction()
+    {
         self::$transaction = \Yii::$app->db->beginTransaction();
-
     }
 
-    public static function commitTransaction() {
+    public static function commitTransaction()
+    {
         self::$transaction->commit();
     }
 
-    public static function rollbackTransaction() {
+    public static function rollbackTransaction()
+    {
         self::$transaction->rollBack();
     }
-
-    protected static function info($msg, $cate = 'service') {
-        LogService::info('[' . self::$logDomain . ']' . $msg, $cate);
+    
+    protected static function info($msg, $cate = 'app')
+    {
+        \Yii::info($msg, $cate);
     }
 
-    protected static function warning($msg, $cate = 'service') {
-        LogService::warning('[' . self::$logDomain . ']' . $msg, $cate);
+    protected static function error($msg, $cate = 'app')
+    {
+        \Yii::error($msg, $cate);
     }
 
-    protected static function error($msg, $cate = 'service') {
-        LogService::error('[' . self::$logDomain . ']' . $msg, $cate);
+    protected static function warning($msg, $cate = 'app')
+    {
+        \Yii::warning($msg, $cate);
     }
 }

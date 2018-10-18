@@ -14,46 +14,44 @@ use common\models\business\BWalletSent;
 use common\models\Setting;
 use common\services\ReturnInfo;
 
-class RechargeService extends ServiceBase
-{
+class RechargeService extends ServiceBase {
 
     /**
      * 获取提现地址
      */
-    public static function getAddress($currencyId, $userId)
-    {
+    public static function getAddress($currencyId, $userId) {
         $address = "";
 
         $rechargeAddress = BUserRechargeAddress::find()
             ->where(['currency_id' => $currencyId,'user_id' => $userId])
             ->limit(1)
             ->one();
-        if ($rechargeAddress) {
+        if($rechargeAddress) {
             $address = $rechargeAddress->address;
         } else {
             //井通下的货币
             $currencyJingtum = BCurrency::getJingtumCurrency();
             //井通下的货币共用一个钱包
-            if (in_array($currencyId, $currencyJingtum)) {
+            if(in_array($currencyId, $currencyJingtum)) {
                 $jingtumAddress = BUserRechargeAddress::find()
                     ->where(['user_id' => $userId])
                     ->andWhere(['in', 'currency_id', $currencyJingtum])
                     ->one();
-                if ($jingtumAddress) {
+                if($jingtumAddress) {
                     $address = $jingtumAddress->address;
                 }
             }
 
-            if (empty($address)) {
+            if(empty($address)) {
                 //创建钱包
                 $returnInfo = self::createAddress($currencyId);
-                if ($returnInfo->code) {
+                if($returnInfo->code) {
                     return new ReturnInfo(1, $returnInfo->msg);
                 }
                 $address = $returnInfo->content;
             }
 
-            if ($address) {
+            if($address) {
                 //添加地址
                 $userRechargeAddress = new BUserRechargeAddress();
                 $userRechargeAddress->user_id = $userId;
@@ -62,17 +60,17 @@ class RechargeService extends ServiceBase
                 $userRechargeAddress->create_time = NOW_TIME;
                 $userRechargeAddress->update_time = NOW_TIME;
                 $res = $userRechargeAddress->insert();
-                if (!$res) {
+                if(!$res) {
                     return new ReturnInfo(1, "获取失败");
                 }
 
                 //井通下的货币共用一个钱包，添加相应货币地址
-                if (in_array($currencyId, $currencyJingtum)) {
-                    foreach ($currencyJingtum as $val) {
+                if(in_array($currencyId, $currencyJingtum)) {
+                    foreach($currencyJingtum AS $val) {
                         $rechargeAddressJingtum = BUserRechargeAddress::find()
                             ->where(['currency_id' => $val,'user_id' => $userId])
                             ->one();
-                        if (empty($rechargeAddressJingtum)) {
+                        if(empty($rechargeAddressJingtum)) {
                             $userRechargeAddress = new BUserRechargeAddress();
                             $userRechargeAddress->user_id = $userId;
                             $userRechargeAddress->currency_id = $val;
@@ -96,13 +94,12 @@ class RechargeService extends ServiceBase
      * @param $currencyId
      * @return string
      */
-    private static function createAddress($currencyId)
-    {
+    private static function createAddress($currencyId) {
         $address = "";
 
         $currencyJingtum = BCurrency::getJingtumCurrency();
 
-        if (in_array($currencyId, $currencyJingtum)) {
+        if(in_array($currencyId, $currencyJingtum)) {
             //账户余额是否足够
             $amount = \Yii::$app->params['JTWalletActiveAmount'];
             $mainBalanceRes = JingTumService::getInstance()->mainBalance(JingTumService::ASSETS_TYPE_GRT);
@@ -193,7 +190,7 @@ class RechargeService extends ServiceBase
             $address = "";
         }
 
-        if ($address) {
+        if($address) {
             return new ReturnInfo(0, "生成成功", $address);
         } else {
             return new ReturnInfo(1, "生成失败");
@@ -203,17 +200,16 @@ class RechargeService extends ServiceBase
     /**
      * 充币操作
      */
-    public static function handle($currencyId, $address, $tag = "", $amount, $transaction_id = "")
-    {
+    public static function handle($currencyId, $address, $tag = "", $amount, $transaction_id = "") {
         $userRechargeAddress = BUserRechargeAddress::find()->where(['currency_id' => $currencyId, 'address' => $address])->one();
-        if ($transaction_id) {
+        if($transaction_id) {
             $userRechargeWithdrawOne = BUserRechargeWithdraw::find()->where(['currency_id' => $currencyId, 'transaction_id' => $transaction_id, 'type' => BUserRechargeWithdraw::$TYPE_RECHARGE])->one();
-            if ($userRechargeWithdrawOne) {
+            if($userRechargeWithdrawOne) {
                 //交易ID已存在，不再充值
                 return new ReturnInfo(2, "transaction_id error");
             }
         }
-        if ($userRechargeAddress) {
+        if($userRechargeAddress) {
             //事务开始
             $transaction = \Yii::$app->db->beginTransaction();
             try {
@@ -227,7 +223,7 @@ class RechargeService extends ServiceBase
                 $newUserRechargeWithdraw->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
                 $newUserRechargeWithdraw->amount = $amount;
                 $newUserRechargeWithdraw->transaction_id = $transaction_id;
-                if ($rechargePoundage > 0) {
+                if($rechargePoundage > 0) {
                     $newUserRechargeWithdraw->poundage = abs(round($amount*$rechargePoundage, 8));
                 }
                 $newUserRechargeWithdraw->destination_address = $address;
@@ -238,7 +234,7 @@ class RechargeService extends ServiceBase
                 $newUserRechargeWithdraw->create_time = NOW_TIME;
                 $newUserRechargeWithdraw->update_time = NOW_TIME;
                 $res = $newUserRechargeWithdraw->insert();
-                if (!$res) {
+                if(!$res) {
                     throw new \Exception('insert user recharge withdraw fail');
                 }
                 $userRechargeWithdrawId = $newUserRechargeWithdraw->id;
@@ -257,12 +253,12 @@ class RechargeService extends ServiceBase
                 $newUserCurrencyDetail->create_time = NOW_TIME;
                 $newUserCurrencyDetail->update_time = NOW_TIME;
                 $res = $newUserCurrencyDetail->insert();
-                if (!$res) {
+                if(!$res) {
                     throw new \Exception('insert user currency detail fail');
                 }
 
                 //添加货币手续费资金明细
-                if ($rechargePoundage > 0) {
+                if($rechargePoundage > 0) {
                     $newUserCurrencyDetail = new BUserCurrencyDetail();
                     $newUserCurrencyDetail->currency_id = $currencyId;
                     $newUserCurrencyDetail->user_id = $userRechargeAddress->user_id;
@@ -276,14 +272,14 @@ class RechargeService extends ServiceBase
                     $newUserCurrencyDetail->create_time = NOW_TIME;
                     $newUserCurrencyDetail->update_time = NOW_TIME;
                     $res = $newUserCurrencyDetail->insert();
-                    if (!$res) {
+                    if(!$res) {
                         throw new \Exception('insert user poundage currency detail fail');
                     }
                 }
 
                 //重置用户货币持仓
                 $res = UserService::resetCurrency($userRechargeAddress->user_id, $currencyId);
-                if (!$res) {
+                if(!$res) {
                     throw new \Exception('reset currency fail');
                 }
 

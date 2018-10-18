@@ -2,44 +2,29 @@
 
 namespace common\models\business;
 
+use common\models\business\Traits\UserCurrencyTrait;
+
 class BUserCurrencyDetail extends \common\models\UserCurrencyDetail
 {
-    const TYPE_ELECTION = 1; // 选举
-    const TYPE_VOTE = 2; // 投票
-    const TYPE_UN_VOTE = 3; // 赎回
-    
-    public static function getType($key)
+    use UserCurrencyTrait;
+
+    public static $STATUS_EFFECT_WAIT = 0; // 待生效
+    public static $STATUS_EFFECT_SUCCESS = 1; // 已生效
+    public static $STATUS_EFFECT_FAIL = 2; // 不生效
+
+    public static function getStatus(int $key = null)
     {
         $arr = [
-            static::TYPE_ELECTION => \Yii::t('app', '选举'),
-            static::TYPE_VOTE => \Yii::t('app', '投票'),
-            static::TYPE_UN_VOTE => \Yii::t('app', '赎回'),
+            static::$STATUS_EFFECT_WAIT => \Yii::t('app', '审核中'),
+            static::$STATUS_EFFECT_SUCCESS => \Yii::t('app', '成功'),
+            static::$STATUS_EFFECT_FAIL => \Yii::t('app', '失败'),
         ];
-        if ($key !== '') {
-            return isset($arr[$key]) ? $arr[$key] : '';
+        if (!is_null($key)) {
+            return isset($arr[$key]) ? $arr[$key] : null;
         }
 
         return $arr;
     }
-    const STATUS_WAIT_EFFECTIVE = 0; // 未生效
-    const STATUS_EFFECTIVE = 1; // 生效
-    const STATUS_UN_EFFECTIVE = 2; // 不生效
-    
-    public static function getStatus($key)
-    {
-        $arr = [
-            static::STATUS_WAIT_EFFECTIVE => \Yii::t('app', '未生效'),
-            static::STATUS_EFFECTIVE => \Yii::t('app', '生效'),
-            static::STATUS_UN_EFFECTIVE => \Yii::t('app', '不生效'),
-        ];
-        if ($key !== '') {
-            return isset($arr[$key]) ? $arr[$key] : '';
-        }
-
-        return $arr;
-    }
-
-
     /**
     * 自定义 label
     * @return array

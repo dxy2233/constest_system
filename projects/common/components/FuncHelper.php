@@ -618,8 +618,7 @@ class FuncHelper
                 return $element;
             }
         });
-        $wallet = reset($data);
-        return is_null($key) ? $wallet : $walletList[strtoupper($key)];
+        return is_null($key) ? reset($data) : $walletList[strtoupper($key)];
     }
     /**
      * 转换驼峰命名

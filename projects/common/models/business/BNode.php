@@ -36,6 +36,15 @@ class BNode extends \common\models\Node
      *  一对多
      * @return void
      */
+    public function getNodeType()
+    {
+        return $this->hasOne(BNodeType::className(), ['id' => 'type_id']);
+    }
+    /**
+     * 节点下投票选举列表
+     *  一对多
+     * @return void
+     */
     public function getVotes()
     {
         return $this->hasMany(BVote::className(), ['node_id' => 'id']);

@@ -46,7 +46,6 @@ class BUserWallet extends \common\models\UserWallet
         return $this->hasMany(BUserCurrency::className(), ['id' => 'wallet_id']);
     }
 
-
     /**
     * 自定义 label
     * @return array

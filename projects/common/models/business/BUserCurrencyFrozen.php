@@ -2,29 +2,35 @@
 
 namespace common\models\business;
 
+use common\models\business\Traits\UserCurrencyTrait;
 use yii\behaviors\TimestampBehavior;
 
 class BUserCurrencyFrozen extends \common\models\UserCurrencyFrozen
 {
-    public function behaviors()
+    use UserCurrencyTrait;
+
+    // 解冻
+    const STATUS_THAW = 0;
+    // 冻结
+    const STATUS_FROZEN = 1;
+
+    /**
+     * 获取所有状态 类型
+     *
+     * @return void
+     */
+    public static function getStatus(int $key = null)
     {
-        return [
-            [
-                // 自动添加时间
-                'class' => TimestampBehavior::className(),
-                'attributes' => [
-                    # 创建之前
-                    self::EVENT_BEFORE_INSERT => ['create_time', 'update_time'],
-                    # 修改之前
-                    self::EVENT_BEFORE_UPDATE => ['update_time']
-                ],
-                #设置默认值
-                'value' => NOW_TIME
-            ]
+        $arr = [
+            static::STATUS_THAW => \Yii::t('app', '解冻'),
+            static::STATUS_FROZEN => \Yii::t('app', '冻结'),
         ];
+        if (!is_null($key)) {
+            return isset($arr[$key]) ? $arr[$key] : null;
+        }
+
+        return $arr;
     }
-
-
 
     /**
     * 自定义 label

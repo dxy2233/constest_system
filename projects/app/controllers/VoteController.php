@@ -16,10 +16,11 @@ class VoteController extends BaseController
         $behaviors = [];
         // 需登录访问
         $authActions = [
+            'index'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
-            if (in_array(\Yii::$app->controller->action->id, $authActions)) {
+            if (!in_array(\Yii::$app->controller->action->id, $authActions)) {
                 $parentBehaviors['authenticator']['isThrowException'] = true;
             }
         }
@@ -28,7 +29,7 @@ class VoteController extends BaseController
     }
 
     /**
-     * 贡献榜
+     * 贡献榜 无需登录可查看
      *
      * @return void
      */
@@ -79,5 +80,75 @@ class VoteController extends BaseController
         }
         $data['list'] = $voteData;
         return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 我的投票劵获取和使用列表
+     *
+     * @return void
+     */
+    public function actionVoucher()
+    {
+        // 返回容器
+        $data = [];
+        $type = $this->pInt('type', 1);
+        $page = $this->pInt('page', 1);
+        $pageSize = $this->pInt('page_size', 15);
+        $userModel = $this->user;
+        // $voucherModel->sum('voucher_num - use_voucher');
+        if ((bool) $type) {
+            $voucherModel = $userModel->getVouchers();
+            $voucherModel->alias('vh')
+            ->select(['vh.voucher_num', 'u.mobile', 'vh.node_id', 'vh.create_time'])
+            ->joinWith(['node n' => function ($query) {
+                $query->joinWith(['user u']);
+            }]);
+            $data['count'] = $voucherModel->count();
+            $data['list'] = $voucherModel
+            ->page($page, $pageSize)
+            ->asArray()->all();
+            foreach ($data['list'] as &$voucher) {
+                $voucher['mobile'] = substr_replace($voucher['mobile'], '****', 3, 4);
+                $voucher['create_time'] = FuncHelper::formateDate($voucher['create_time']);
+                unset($voucher['node']);
+                unset($voucher['node_id']);
+            }
+        } else {
+            $voucherDetailModel = $userModel->getVoucherDetails()
+            ->alias('vd')
+            ->joinWith(['node n'])
+            ->select(['n.name', 'vd.amount', 'vd.create_time', 'vd.node_id']);
+            
+            $data['count'] = $voucherDetailModel->count();
+            $data['list'] = $voucherDetailModel
+            ->page($page, $pageSize)
+            ->asArray()->all();
+            foreach ($data['list'] as &$voucherDetail) {
+                $voucherDetail['create_time'] = FuncHelper::formateDate($voucherDetail['create_time']);
+                unset($voucherDetail['node']);
+                unset($voucherDetail['node_id']);
+            }
+        }
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 我的投票劵信息
+     *
+     * @return void
+     */
+    public function actionVoucherInfo()
+    {
+        $userModel = $this->user;
+        $voucher = $userModel->getVouchers()
+        ->select(['SUM(vh.voucher_num) voucher_num', 'SUM(vd.amount) use_amount', 'vh.user_id'])
+        ->alias('vh')
+        ->joinWith(['user u' => function($query) {
+            $query->joinWith(['voucherDetails vd']);
+        }])
+        ->one();
+        $data['count'] = (int) $voucher->voucher_num - $voucher->use_amount;
+        return $this->respondJson(0, '获取成功', $data);
+        exit;
     }
 }

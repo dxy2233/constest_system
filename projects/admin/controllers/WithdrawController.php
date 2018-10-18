@@ -11,6 +11,7 @@ use common\models\business\BUser;
 use common\models\business\BUserWallet;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BUserCurrencyFrozen;
+use common\task\TestJob;
 
 /**
  * Site controller
@@ -36,30 +37,36 @@ class WithdrawController extends BaseController
     // 修改设置
     public function actionSetNotice()
     {
-        $currency_code = $this->pString('currencyCode');
-        if (empty($currency_code)) {
-            return $this->respondJson(1, '币种代码不能为空');
-        }
-        $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_CURRENCY.'_'.$currency_code])->all();
-        if (empty($data)) {
-            return $this->respondJson(1, '币种代码不存在');
-        }
-        $transaction = \Yii::$app->db->beginTransaction();
-        foreach ($data as $v) {
-            $post_item = $this->pString($v->key, '');
-            if ($post_item == '') {
-                continue;
-            }
-            $v->value = $post_item;
+        exit;
+        \Yii::$app->queue->delay(30)->push(new \common\task\TestJob([
+            'url' => 'http://www.auslinkshop.com/themes/xyx/images/login-img.gif',
+            'file' => PROJECTS_ROOT . '/runtime/temp/login-img.gif',
+        ]));
+        exit;
+        // $currency_code = $this->pString('currencyCode');
+        // if (empty($currency_code)) {
+        //     return $this->respondJson(1, '币种代码不能为空');
+        // }
+        // $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_CURRENCY.'_'.$currency_code])->all();
+        // if (empty($data)) {
+        //     return $this->respondJson(1, '币种代码不存在');
+        // }
+        // $transaction = \Yii::$app->db->beginTransaction();
+        // foreach ($data as $v) {
+        //     $post_item = $this->pString($v->key, '');
+        //     if ($post_item == '') {
+        //         continue;
+        //     }
+        //     $v->value = $post_item;
             
-            if (!$v->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, "操作失败", $v->getFirstErrorText());
-            }
-        }
+        //     if (!$v->save()) {
+        //         $transaction->rollBack();
+        //         return $this->respondJson(1, "操作失败", $v->getFirstErrorText());
+        //     }
+        // }
 
-        $transaction->commit();
-        return $this->respondJson(0, "操作成功");
+        // $transaction->commit();
+        // return $this->respondJson(0, "操作成功");
     }
 
     // 获取设置项

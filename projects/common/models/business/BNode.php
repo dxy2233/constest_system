@@ -32,7 +32,7 @@ class BNode extends \common\models\Node
     }
 
     /**
-     * 节点下投票选举列表
+     * 节点下类型关联
      *  一对多
      * @return void
      */
@@ -41,7 +41,7 @@ class BNode extends \common\models\Node
         return $this->hasOne(BNodeType::className(), ['id' => 'type_id']);
     }
     /**
-     * 节点下投票选举列表
+     * 节点下投票关联
      *  一对多
      * @return void
      */
@@ -51,7 +51,7 @@ class BNode extends \common\models\Node
     }
 
     /**
-     * 节点下投票选举列表
+     * 节点下用户关联
      *  一对一
      * @return void
      */

@@ -81,6 +81,16 @@ class BUser extends \common\models\User
     {
         return $this->hasMany(BVoucher::className(), ['user_id' => 'id']);
     }
+
+    /**
+     * 用户节点
+     *
+     * @return void
+     */
+    public function getNode()
+    {
+        return $this->hasOne(BNode::className(), ['user_id' => 'id']);
+    }
     
     /**
      * 用户的投票记录

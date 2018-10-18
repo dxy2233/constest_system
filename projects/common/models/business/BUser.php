@@ -28,7 +28,7 @@ class BUser extends \common\models\User
         ]);
     }
     /**
-     * 用户钱包
+     * 用户实名认证
      *  一对多
      * @return void
      */
@@ -64,12 +64,31 @@ class BUser extends \common\models\User
         return $this->hasMany(BUserCurrencyFrozen::className(), ['user_id' => 'id']);
     }
     /**
-     * 用户推荐
+     * 用户推荐人
      *  一对多
      * @return void
      */
     public function getUserRecommend()
     {
-        return $this->hasOne(BUserRecommend::className(), ['user_id' => 'id']);
+        return $this->hasMany(BUserRecommend::className(), ['parent_id' => 'id']);
+    }
+    /**
+     * 用户的投票劵
+     *
+     * @return void
+     */
+    public function getVouchers()
+    {
+        return $this->hasMany(BVoucher::className(), ['user_id' => 'id']);
+    }
+    
+    /**
+     * 用户的投票记录
+     *
+     * @return void
+     */
+    public function getVoucherDetails()
+    {
+        return $this->hasMany(BVoucherDetail::className(), ['user_id' => 'id']);
     }
 }

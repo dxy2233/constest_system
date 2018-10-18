@@ -48,6 +48,15 @@ return [
             'default' => true,
             'code' => 'gst',
             'name' => '贵生态钱包',
+            // 初始化钱包币种
+            'balances' => [
+                [
+                    'value' => '0',
+                    'currency' => 'GRT',
+                    'issuer' => '',
+                    'freezed' => '0',
+                ],
+            ],
         ],
         'BTC' => [
             'default' => false,

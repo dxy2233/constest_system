@@ -37,7 +37,7 @@ class Notice extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['title', 'desc', 'type', 'url', 'sort', 'status', 'start_time', 'end_time', 'click', 'create_time', 'update_time', 'image'], 'required'],
+            [['title', 'type'], 'required'],
             [['detail'], 'string'],
             [['type', 'sort', 'status', 'start_time', 'end_time', 'click', 'create_time', 'update_time'], 'integer'],
             [['title', 'desc', 'url', 'image'], 'string', 'max' => 255],
@@ -58,6 +58,7 @@ class Notice extends \common\dzbase\DzModel
             'url' => Yii::t('app', '链接地址'),
             'image' => Yii::t('app', '展示图'),
             'sort' => Yii::t('app', '排序'),
+            'is_top' => Yii::t('app', '是否置顶'),
             'status' => Yii::t('app', '状态：0 关闭 1 启用'),
             'start_time' => Yii::t('app', '开始时间'),
             'end_time' => Yii::t('app', '结束时间'),

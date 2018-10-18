@@ -29,7 +29,7 @@ class NodeRule extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['name', 'content', 'is_tenure', 'create_time'], 'required'],
+            [['name', 'content', 'is_tenure'], 'required'],
             [['content'], 'string'],
             [['is_tenure', 'create_time'], 'integer'],
             [['name'], 'string', 'max' => 128],

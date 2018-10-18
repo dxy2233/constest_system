@@ -13,12 +13,15 @@ class BNotice extends \common\models\Notice
     const STATUS_INACTIVE = 0;
     // 上架
     const STATUS_ACTIVE = 1;
+    // 删除
+    const STATUS_DELETE = 2;
 
     public static function getStatus($key = '')
     {
         $arr = [
             self::STATUS_INACTIVE => \Yii::t('app', '下架'),
             self::STATUS_ACTIVE => \Yii::t('app', '上架'),
+            self::STATUS_DELETE => \Yii::t('app', '删除'),
         ];
         if ($key !== "") {
             return isset($arr[$key]) ? $arr[$key] : "";

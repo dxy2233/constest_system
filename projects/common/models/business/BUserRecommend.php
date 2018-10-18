@@ -4,24 +4,36 @@ namespace common\models\business;
 
 class BUserRecommend extends \common\models\UserRecommend
 {
-    public function behaviors()
+
+    /**
+     * 对应用户
+     *  一对多
+     * @return void
+     */
+    public function getUser()
     {
-        return [
-            [
-                // 自动添加时间
-                'class' => TimestampBehavior::className(),
-                'attributes' => [
-                    # 创建之前
-                    self::EVENT_BEFORE_INSERT => ['create_time', 'update_time'],
-                    # 修改之前
-                    self::EVENT_BEFORE_UPDATE => ['update_time']
-                ],
-                #设置默认值
-                'value' => NOW_TIME
-            ]
-        ];
+        return $this->hasOne(BUser::className(), ['id' => 'user_id']);
     }
 
+    /**
+     * 对应推荐节点
+     *  一对多
+     * @return void
+     */
+    public function getNode()
+    {
+        return $this->hasOne(BNode::className(), ['id' => 'node_id']);
+    }
+
+    /**
+     * 对应推荐节点
+     *  一对多
+     * @return void
+     */
+    public function getParent()
+    {
+        return $this->hasOne(BUser::className(), ['id' => 'parent_id']);
+    }
 
     /**
     * 自定义 label

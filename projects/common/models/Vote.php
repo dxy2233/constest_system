@@ -53,6 +53,7 @@ class Vote extends \common\dzbase\DzModel
             'consume' => Yii::t('app', '消耗'),
             'type' => Yii::t('app', '投票类型'),
             'status' => Yii::t('app', '状态 1：正常 0：已赎回'),
+            'undo_time' => Yii::t('app', '撤消时间'),
             'create_time' => Yii::t('app', '创建时间'),
         ];
     }

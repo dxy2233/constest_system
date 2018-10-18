@@ -618,8 +618,7 @@ class FuncHelper
                 return $element;
             }
         });
-        $wallet = reset($data);
-        return is_null($key) ? $wallet : $walletList[strtoupper($key)];
+        return is_null($key) ? reset($data) : $walletList[strtoupper($key)];
     }
     /**
      * 转换驼峰命名
@@ -722,7 +721,7 @@ class FuncHelper
      */
     public static function camelize(string $data, string $separator = '_')
     {
-        $data = $separator. str_replace($separator, " ", strtolower($data));
+        $data = $separator. str_replace($separator, " ", $data);
         return ltrim(str_replace(" ", "", ucwords($data)), $separator);
     }
 }

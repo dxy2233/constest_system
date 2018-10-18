@@ -22,14 +22,14 @@ class NodeService extends ServiceBase
      * @param BUser $user
      * @return void
      */
-    public static function getList(int $page = 0, string $searchName = '', string $str_time = '', string $end_time = '', int $type = 0)
+    public static function getList(int $page = 0, string $searchName = '', string $str_time = '', string $end_time = '', int $type = 0, int $status = 0)
     {
         $find = BNode::find()
         ->from(BNode::tableName()." A")
         ->join('left join', 'gr_user B', 'A.user_id = B.id')
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','sum(consume) as consume','A.is_tenure','A.create_time','A.status','A.id'])
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','sum(consume) as consume','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure'])
         ->orderBy('sum(C.vote_number) desc');
         
         if ($searchName != '') {
@@ -46,6 +46,10 @@ class NodeService extends ServiceBase
 
         if ($type != '') {
             $find->where(['A.type_id' => $type]);
+        }
+
+        if ($status != '') {
+            $find->where(['A.status' => $status]);
         }
         $count = $find->count();
         

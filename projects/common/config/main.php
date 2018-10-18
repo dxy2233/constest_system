@@ -3,6 +3,7 @@ return [
     'charset' => 'utf-8',
     'language' => 'zh-CN',
     'timeZone' => 'Asia/Shanghai',
+    'bootstrap' => ['queue'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -65,5 +66,11 @@ return [
             // for the mailer to send real emails.
             'useFileTransport' => true,
         ],
+        'queue' => [
+            'class' => \yii\queue\file\Queue::class,
+            'path' => '@runtime/queue',
+            // 驱动的其他选项
+        ],
     ],
+
 ];

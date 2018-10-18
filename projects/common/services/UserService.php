@@ -39,9 +39,6 @@ class UserService extends ServiceBase
         self::writeUserLog($user->id, BUserLog::$TYPE_LOGIN, BUserLog::$STATUS_SUCCESS, '登录成功', $user->last_login_ip);
         $accessToken->content['name'] = $user->username;
         $accessToken->content['mobile'] = $user->mobile;
-        $defaultWallet = FuncHelper::getDefaultWallet();
-        $userWallet = $user->getUserWallet()->select(['address', 'wallet'])->where(['wallet' => $defaultWallet['code']])->asArray()->all();
-        $accessToken->content['wallet_address'] = $userWallet;
         return new ReturnInfo(0, "登录成功", $accessToken->content);
     }
     

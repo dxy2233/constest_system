@@ -18,4 +18,7 @@ trait SmsType
 
     //用户支付密码修改
     public static $TYPE_PAY_PASSWORD = 3;
+
+    //用户转账短信验证码获取
+    public static $TYPE_TRANSFER_GET = 4;
 }

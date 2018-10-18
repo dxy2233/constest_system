@@ -98,6 +98,25 @@ class SmsController extends BaseController
         return $this->respondJson(0, '发送成功');
     }
     /**
+     * 用户修改支付密码发送验证码
+     *
+     * @return void
+     */
+    public function actionTransferPass()
+    {
+        $userModel = $this->user;
+        if (is_null($userModel) || empty($userModel->mobile)) {
+            return $this->respondJson(1, '此号码未注册');
+        }
+        
+        $returnInfo = ValidationCodeSmsService::sendValidationCode($userModel->mobile, BSmsTemplate::$TYPE_TRANSFER_GET);
+        if ($returnInfo->code != 0) {
+            return $this->respondJson($returnInfo->code, $returnInfo->msg);
+        }
+
+        return $this->respondJson(0, '发送成功');
+    }
+    /**
      * 用户修改支付密码验证码验证---配合 actionUserPayPass 方法一起使用
      *
      * @return void

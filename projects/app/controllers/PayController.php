@@ -82,6 +82,9 @@ class PayController extends BaseController
         $rePass = $this->pInt('repass', false);
         $oldpass = $this->pInt('oldpass', false);
         $userModel = $this->user;
+        if (!$oldpass) {
+            return $this->respondJson(1, '旧支付密码不能为空');
+        }
         if (!$payPass) {
             return $this->respondJson(1, '支付密码不能为空');
         }
@@ -89,8 +92,12 @@ class PayController extends BaseController
             return $this->respondJson(1, '两次支付密码不一致');
         }
         $validateOldPass = FuncHelper::validatePassWordHash($oldpass, $userModel->trans_password);
-        if ($validateOldPass) {
+        if (!$validateOldPass) {
             return $this->respondJson(1, '原密码错误');
+        }
+        $validateOldPass = FuncHelper::validatePassWordHash($payPass, $userModel->trans_password);
+        if ($validateOldPass) {
+            return $this->respondJson(1, '旧密码新密码不能一致');
         }
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {

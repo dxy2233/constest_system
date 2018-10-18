@@ -40,6 +40,16 @@ class ReturnInfo
         $this->content = $content;
     }
 
+    public function __get($name)
+    {
+        return $this->$name;
+    }
+
+    public function __set($name, $value)
+    {
+        return $this->$name = $value;
+    }
+
     /**
      * 通过反射得到所有的静态code的映射
      * @return array|null

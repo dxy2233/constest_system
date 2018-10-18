@@ -92,13 +92,13 @@ export const constantRouterMap = [
   },
 
   {
-    path: '/notive',
+    path: '/notice',
     component: Layout,
     children: [
       {
         path: '',
-        name: 'NotiveManagement',
-        component: () => import('@/views/notiveManagement/index'),
+        name: 'NoticeManagement',
+        component: () => import('@/views/noticeManagement/index'),
         meta: { title: '公告管理', icon: 'form' }
       }
     ]
@@ -129,122 +129,19 @@ export const constantRouterMap = [
       }
     ]
   },
-  //
-  // {
-  //   path: '/activity',
-  //   component: Layout,
-  //   redirect: '/activity/list',
-  //   name: 'Activity',
-  //   meta: { title: '活动管理', icon: 'example' },
-  //   children: [
-  //     {
-  //       path: 'list',
-  //       name: 'ActivityList',
-  //       component: () => import('@/views/activity/activityList/index'),
-  //       meta: { title: '活动列表', icon: 'table' }
-  //     },
-  //     {
-  //       path: 'create:id',
-  //       name: 'CreateActivity',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/createActivity'),
-  //       meta: { title: '创建活动' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'details:id',
-  //       name: 'ActivityDetails',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/activityDetails'),
-  //       meta: { title: '活动详情', icon: 'table' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'signup:passagewayId',
-  //       name: 'SignUp',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/signUp'),
-  //       meta: { title: '注册通道设置' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'sureteam:id',
-  //       name: 'SureTeam',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/sureTeam'),
-  //       meta: { title: '团队注册' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'team:id',
-  //       name: 'Team',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/team'),
-  //       meta: { title: '团队注册管理' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'pc:id',
-  //       name: 'PC',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/execute/pc'),
-  //       meta: { title: '电脑签到' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'wx:id',
-  //       name: 'WX',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/execute/wx'),
-  //       meta: { title: '微信签到' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'ticket:id',
-  //       name: 'Ticket',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/execute/ticket'),
-  //       meta: { title: '电子门票' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'self:id',
-  //       name: 'Self',
-  //       hidden: true,
-  //       component: () => import('@/views/activity/activityList/execute/self'),
-  //       meta: { title: '个人中心' },
-  //       props: true
-  //     },
-  //     {
-  //       path: 'people',
-  //       name: 'PeopleList',
-  //       component: () => import('@/views/activity/peopleList/index'),
-  //       meta: { title: '参会者列表', icon: 'tree' }
-  //     }
-  //   ]
-  // },
-  //
-  // {
-  //   path: '/contact',
-  //   component: Layout,
-  //   redirect: '/contact/manage',
-  //   name: 'Contact',
-  //   meta: { title: '联系人管理', icon: 'example' },
-  //   children: [
-  //     {
-  //       path: 'manage',
-  //       name: 'ContactManage',
-  //       component: () => import('@/views/contact/manage/index'),
-  //       meta: { title: '联系人管理', icon: 'table' }
-  //     },
-  //     {
-  //       path: 'datamange',
-  //       name: 'ContactDataManage',
-  //       component: () => import('@/views/contact/dataMange/index'),
-  //       meta: { title: '联系人数据管理', icon: 'tree' }
-  //     }
-  //   ]
-  // },
+
+  {
+    path: '/transfer',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'Transfer',
+        component: () => import('@/views/transfer/index'),
+        meta: { title: '转账审核', icon: 'form' }
+      }
+    ]
+  },
 
   { path: '*', redirect: '/404', hidden: true }
 ]

@@ -83,7 +83,7 @@ class VoteController extends BaseController
     }
 
     /**
-     * 我的投票劵数量
+     * 我的投票劵获取和使用列表
      *
      * @return void
      */
@@ -129,8 +129,26 @@ class VoteController extends BaseController
                 unset($voucherDetail['node_id']);
             }
         }
-        // 未完待续 数据结构修改
-        // var_dump($voucherModel->sum('voucher_num - use_voucher'));
         return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 我的投票劵信息
+     *
+     * @return void
+     */
+    public function actionVoucherInfo()
+    {
+        $userModel = $this->user;
+        $voucher = $userModel->getVouchers()
+        ->select(['SUM(vh.voucher_num) voucher_num', 'SUM(vd.amount) use_amount', 'vh.user_id'])
+        ->alias('vh')
+        ->joinWith(['user u' => function($query) {
+            $query->joinWith(['voucherDetails vd']);
+        }])
+        ->one();
+        $data['count'] = (int) $voucher->voucher_num - $voucher->use_amount;
+        return $this->respondJson(0, '获取成功', $data);
+        exit;
     }
 }

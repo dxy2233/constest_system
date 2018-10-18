@@ -44,7 +44,6 @@ class Setting extends \common\dzbase\DzModel
             [['create_time', 'update_time'], 'integer'],
             [['group', 'key', 'type'], 'string', 'max' => 50],
             [['name'], 'string', 'max' => 100],
-            [['value', 'default', 'remark'], 'string', 'max' => 255],
         ];
     }
 

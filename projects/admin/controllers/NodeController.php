@@ -363,7 +363,7 @@ class NodeController extends BaseController
                 }
                 $node->name = $val['name'];
                 $node->content = $val['content'];
-                $node->is_tenure = $val['isTenure'];
+                $node->is_tenure = $val['is_tenure'];
                 if (!$node->save()) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '操作失败', $node->getFirstErrorText());

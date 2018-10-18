@@ -3,12 +3,14 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\JobService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BSetting;
 use common\models\business\BVote;
 use common\models\business\BUser;
 use common\models\business\BNode;
 use common\models\business\BNotice;
+use common\task\TestJob;
 
 /**
  * Site controller
@@ -69,11 +71,12 @@ class VoteController extends BaseController
     }
     /**
      * Displays homepage.
-     *
+     *  修改配置
      * @return string
      */
     public function actionSetVote()
     {
+        $time = BSetting::find()->where(['key' => 'count_time'])->one();
         $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_VOTE])->all();
         $transaction = \Yii::$app->db->beginTransaction();
         foreach ($data as $v) {
@@ -81,6 +84,34 @@ class VoteController extends BaseController
             if ($post_item == '') {
                 continue;
             }
+            if (strstr($v->key, 'count_time')) {
+                $post_item = strtotime($post_item);
+            }
+            // if ($v->key == 'count_time') {
+            //     //查询截止开关状态
+            //     $status = $this->pString('stop_vote', '');
+            //     //查询数据库设置
+            //     $old = BSetting::find()->where(['key' => 'stop_vote'])->one();
+            //     if (empty($status)) {
+            //         $status = $old->value;
+            //     }
+            //     if ($status == BNotice::STATUS_ACTIVE) {
+            //         // 上一次队列ID
+            //         $job_id = $old->remark;
+            //         // if ($job_id != 0) {
+            //         //     // 停止作业
+            //         //     $t = \Yii::$app->queue->remove($job_id);
+            //         // }
+            //         $time = $post_item - time();
+            //         // 添加队列
+            //         $this_id = \Yii::$app->queue->delay($time)->push(new TestJob([]));
+            //         // $old->remark = $this_id;
+            //         // if (!$old->save()) {
+            //         //     $transaction->rollBack();
+            //         //     return $this->respondJson(1, "操作失败", $old->getFirstErrorText());
+            //         // }
+            //     }
+            // }
             $v->value = $post_item;
             
             if (!$v->save()) {
@@ -93,7 +124,10 @@ class VoteController extends BaseController
         return $this->respondJson(0, "操作成功");
     }
 
-
+    public function actionNowReload()
+    {
+        JobService::beginPut(1);
+    }
     public function actionGetSettingList()
     {
         $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_VOTE])->orderBy('sort')->asArray()->all();

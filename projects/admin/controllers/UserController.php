@@ -340,57 +340,7 @@ class UserController extends BaseController
     }
 
     // 获取用户钱包信息
-    public function actionGetUserWallet()
-    {
-        $userId = $this->pInt('userId');
-        $user = BUser::find()->where(['id' => $userId])->one();
-        if (empty($user)) {
-            return $this->respondJson(1, '不存在的用户');
-        }
-        $wallet = [];
-        $wallet_data = BUserWallet::find()->where(['user_id' => $userId])->all();
-        foreach ($wallet_data  as $v) {
-            $wallet_item = [];
-            $wallet_item['id'] = $v['id'];
-            $wallet_item['name'] = $v['wallet'];
-            
-            $wallet_item['address'] = $v['address'];
-            $wallet_item['list'] = [];
-            $currency = BUserCurrency::find()
-            ->from(BUserCurrency::tableName()." A")
-            ->join('inner join', 'gr_currency B', 'A.currency_id = B.id')
-            ->select(['A.*','B.name'])
-            ->where(['A.user_id' => $userId, 'A.wallet_id' => $v['id']])->asArray()->all();
-            foreach ($currency as $val) {
-                $c_item = [];
-                $c_item['name'] = $val['name'];
-                $c_item['positionAmount'] = $val['position_amount'];
-                $c_item['frozenAmount'] = $val['frozen_amount'];
-                $c_item['useAmount'] = $val['use_amount'];
-                $c_item['inAndOut'] = [];
-                $c_item['frozen'] = [];
-                $in_and_out_detail = BUserCurrencyDetail::find()->active(BNotice::STATUS_ACTIVE)->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
-                foreach ($in_and_out_detail as $value) {
-                    $d_item = [];
-                    $d_item['remark'] = $value->remark;
-                    $d_item['amount'] = $value->amount;
-                    $d_item['effectTime'] = date('Y-m-d', $value->effect_time);
-                    $c_item['inAndOut'][] = $d_item;
-                }
-                $frozen_detail = BUserCurrencyFrozen::find()->active(BNotice::STATUS_ACTIVE)->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
-                foreach ($frozen_detail as $value) {
-                    $d_item = [];
-                    $d_item['remark'] = $value->remark;
-                    $d_item['amount'] = $value->amount;
-                    $d_item['effectTime'] = date('Y-m-d', $value->create_time);
-                    $c_item['frozen'][] = $d_item;
-                }
-                $wallet_item['list'][] = $c_item;
-            }
-            $wallet[] = $wallet_item;
-        }
-        return $this->respondJson(0, '获取成功', $wallet);
-    }
+
 
 
     // 获取用户投票券信息 change
@@ -558,23 +508,13 @@ class UserController extends BaseController
         }
     }
 
-    // 编辑钱包信息
-    public function actionEditWallet()
+    // 添加用户
+    public function actionCreateUser()
     {
-        $walletId = $this->pInt('walletId');
-        $wallet = BUserWallet::find()->where(['id' => $walletId])->one();
-        if (empty($wallet)) {
-            return $this->respondJson(1, '不存在的钱包ID');
+        $mobile = $this->pString('mobile');
+        if (empty($mobile)) {
+            return $this->respondJson(1, '手机不能为空');
         }
-        $address = $this->pString('address');
-        if (empty($address)) {
-            return $this->respondJson(1, '钱包地址不能为空');
-        }
-        $wallet->address = $address;
-        if ($wallet->save()) {
-            return $this->respondJson(0, '修改成功');
-        } else {
-            return $this->respondJson(1, '修改失败', $wallet->getFirstErrorText());
-        }
+        $code = $this->pString('code');
     }
 }

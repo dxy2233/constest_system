@@ -39,9 +39,8 @@ class FinanceController extends BaseController
         $find = BUserCurrency::find()
         ->from(BUserCurrency::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
-        ->join('left join', BUserWallet::tableName().' C', 'A.wallet_id = C.id')
-        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = C.id')
-        ->select(['A.*','B.mobile','C.wallet','D.name']);
+        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
+        ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
             $find->andWhere(['B.mobile','like',$searchName]);
@@ -111,8 +110,7 @@ class FinanceController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
         ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
-        ->join('left join', BUserWallet::tableName().' F', 'E.wallet_id = F.id')
-        ->select(['A.*','B.mobile','D.name','F.wallet']);
+        ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
             $find->andWhere(['B.mobile','like',$searchName]);
@@ -155,8 +153,7 @@ class FinanceController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
         ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
-        ->join('left join', BUserWallet::tableName().' F', 'E.wallet_id = F.id')
-        ->select(['A.*','B.mobile','D.name','F.wallet']);
+        ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
             $find->andWhere(['B.mobile','like',$searchName]);

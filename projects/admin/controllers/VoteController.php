@@ -58,6 +58,10 @@ class VoteController extends BaseController
             $find->page($page);
         }
         $data = $find->asArray()->all();
+        foreach ($data as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+        }
+        
         $return = [];
         $return['count'] = $count;
         $return['list'] = $data;
@@ -92,8 +96,14 @@ class VoteController extends BaseController
 
     public function actionGetSettingList()
     {
-        $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_VOTE])->asArray()->all();
-        return $this->respondJson(0, "获取成功", $data);
+        $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_VOTE])->orderBy('sort')->asArray()->all();
+        foreach ($data as &$v) {
+            $v['initialize'] = json_decode($v['initialize'], true);
+            if ($v['key'] == 'end_update_time') {
+                $v['value'] = date('Y-m-d H:i:s', $v['value']);
+            }
+        }
+        return $this->respondJson(0, "获取成功", $data, false);
     }
 
     public function actionGetVoteOrder()

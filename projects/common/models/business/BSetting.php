@@ -8,6 +8,7 @@ class BSetting extends \common\models\Setting
     public static $GROUP_NODE = 'node'; // 节点
     public static $GROUP_VOTE = 'vote'; // 投票
     public static $GROUP_USER = 'user'; // 用户
+    public static $GROUP_CURRENCY = 'currency'; // GRT转账
 
 
 

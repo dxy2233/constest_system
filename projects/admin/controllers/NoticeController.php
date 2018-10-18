@@ -35,6 +35,9 @@ class NoticeController extends BaseController
         $type = $this->pInt('type', 1);
         $find = BNotice::find();
         if ($type != 0) {
+            if ($type == 2) {
+                $type = 0 ;
+            }
             $find->andWhere(['status' => $type]);
         }
         $page = $this->pInt('page', 1);
@@ -85,6 +88,68 @@ class NoticeController extends BaseController
         }
     }
 
+    // 删除
+    public function actionDelNotice()
+    {
+        $id = $this->pString('id');
+        $notice_id = explode(',', $id);
+        $notices = BNotice::find()->where(['in','id',$notice_id])->all();
+        if (empty($notices)) {
+            return $this->respondJson(1, '不存在的公告');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($notices as $notice) {
+            $notice->status = BNotice::STATUS_DELETE;
+            if (!$notice->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '删除失败', $notice->getFirstErrorText());
+            }
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '删除成功');
+    }
+
+    // 上架
+    public function actionOnShelf()
+    {
+        $id = $this->pString('id');
+        $notice_id = explode(',', $id);
+        $notices = BNotice::find()->where(['in','id',$notice_id])->all();
+        if (empty($notices)) {
+            return $this->respondJson(1, '不存在的公告');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($notices as $notice) {
+            $notice->status = BNotice::STATUS_ACTIVE;
+            if (!$notice->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '上架失败', $notice->getFirstErrorText());
+            }
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '上架成功');
+    }
+
+    // 下架
+    public function actionOffShelf()
+    {
+        $id = $this->pString('id');
+        $notice_id = explode(',', $id);
+        $notices = BNotice::find()->where(['in','id',$notice_id])->all();
+        if (empty($notices)) {
+            return $this->respondJson(1, '不存在的公告');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($notices as $notice) {
+            $notice->status = BNotice::STATUS_INACTIVE;
+            if (!$notice->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '下架失败', $notice->getFirstErrorText());
+            }
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '下架成功');
+    }
 
     // 获取文章详细信息
     public function actionGetDetail()
@@ -211,7 +276,10 @@ class NoticeController extends BaseController
 
     public function actionGetSettingList()
     {
-        $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_NOTICE])->asArray()->all();
-        return $this->respondJson(0, "获取成功", $data);
+        $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_NOTICE])->orderBy('sort')->asArray()->all();
+        foreach ($data as &$v) {
+            $v['initialize'] = json_decode($v['initialize'], true);
+        }
+        return $this->respondJson(0, "获取成功", $data, false);
     }
 }

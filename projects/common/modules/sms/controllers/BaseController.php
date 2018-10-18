@@ -1,12 +1,10 @@
 <?php
-
 namespace common\modules\sms\controllers;
 
 use yii\filters\Cors;
 use yii\web\Controller;
 use yii\helpers\ArrayHelper;
 use common\dzbase\DzController;
-use common\modules\sms\services\Route;
 
 /**
  * Default controller for the `api` module

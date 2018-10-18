@@ -12,7 +12,6 @@ use Yii;
  * @property string $min_money 最低标准
  * @property int $max_people 人数上限
  * @property int $max_candidate 候选人上限
- * @property string $rule_list 权限列表
  * @property int $is_examine 是否审核
  * @property int $is_candidate 是否开启候选功能
  * @property int $is_vote 是否开启投票功能
@@ -38,11 +37,10 @@ class NodeType extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['name', 'min_money', 'max_people', 'max_candidate', 'rule_list', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'create_time'], 'required'],
+            [['name', 'min_money', 'max_people', 'max_candidate', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'create_time'], 'required'],
             [['min_money'], 'number'],
             [['max_people', 'max_candidate', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'sort', 'create_time'], 'integer'],
             [['name'], 'string', 'max' => 16],
-            [['rule_list'], 'string', 'max' => 256],
         ];
     }
 

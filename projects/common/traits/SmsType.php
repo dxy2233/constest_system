@@ -9,15 +9,13 @@ namespace common\traits;
 
 trait SmsType
 {
-    // 团队领队登录
-    public static $TYPE_TEAM_LOGIN = 1;
-
-    //用户手机签到
-    public static $TYPE_USER_SIGN = 2;
 
     //用户登录
-    public static $TYPE_USER_LOGIN = 3;
+    public static $TYPE_USER_LOGIN = 1;
 
     //用户注册
-    public static $TYPE_USER_REGISTER = 3;
+    public static $TYPE_USER_REGISTER = 2;
+
+    //用户支付密码修改
+    public static $TYPE_PAY_PASSWORD = 3;
 }

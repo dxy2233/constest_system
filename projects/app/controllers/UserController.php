@@ -36,12 +36,4 @@ class UserController extends BaseController
         return $this->respondJson(0, '获取成功');
     }
 
-    /**
-     * 设置支付密码
-     *
-     * @return void
-     */
-    public function actionAddPayPass()
-    {
-    }
 }

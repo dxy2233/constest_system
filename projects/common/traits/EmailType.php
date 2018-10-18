@@ -9,6 +9,6 @@ namespace common\traits;
 
 trait EmailType
 {
-    // 团队成员添加
-    public static $TYPE_TEAM_USER_ADD = 1;
+    //用户登录
+    public static $TYPE_USER_LOGIN = 1;
 }

@@ -1,32 +1,19 @@
 <?php
-namespace app\controllers;
+namespace common\modules\sms\controllers;
 
-use common\dzbase\DzController;
-use yii\web\Error;
-use yii\filters\Cors;
 use yii\helpers\ArrayHelper;
+use yii\filters\Cors;
 
-class BaseController extends DzController
+/**
+ * Site controller
+ */
+class IndexController extends \common\dzbase\DzController
 {
-    public $errorMsg = null;
-
-    public $adminUser = null;
-
-    public $user = null;
-
-    public $user_id = null;
-    
-    /**
-     * @inheritdoc
-     */
     public function behaviors()
     {
-        $behaviors = [
-            'authenticator' => [
-                'class' => \common\components\Behavior\HttpBearerAuth::className(),
-                'isThrowException' => false,
-            ],
-        ];
+        $parentBehaviors = parent::behaviors();
+        $behaviors = [];
+
         //测试环境，接口跨域
         if (YII_DEBUG) {
             $behaviors[] = [
@@ -44,29 +31,18 @@ class BaseController extends DzController
             ];
         }
 
-        return ArrayHelper::merge(parent::behaviors(), $behaviors);
+        return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
 
-    public function actions()
+    /**
+     * Displays homepage.
+     *
+     * @return string
+     */
+    public function actionIndex()
     {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
-        ];
+        return $this->respondJson(0, "获取成功");
     }
-
-    public function beforeAction($action)
-    {
-        $res = parent::beforeAction($action);
-        if (\Yii::$app->user->id) {
-            $this->user = \Yii::$app->user->identity;
-            $this->user_id = \Yii::$app->user->id;
-        }
-
-        return $res;
-    }
-    
 
     /**
      * 错误返回

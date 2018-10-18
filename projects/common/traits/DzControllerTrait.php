@@ -104,7 +104,7 @@ trait DzControllerTrait
         }
         $msg = $msg === null ? '' : $msg;
         // 将变量转换为驼峰命名法
-        $content = $camelize ? FuncHelper::keyCamelize($content) : $content;
+        $content = $camelize && !is_bool($content)? FuncHelper::keyCamelize($content) : $content;
         return json_encode(array('code' => $errCode, 'msg' => $msg, 'content' => $content), JSON_UNESCAPED_UNICODE);
     }
 

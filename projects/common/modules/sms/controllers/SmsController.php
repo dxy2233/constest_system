@@ -12,9 +12,9 @@ class SmsController extends BaseController
     {
         $parentBehaviors = parent::behaviors();
         $behaviors = [];
-        // 需登录才能访问
+        // 需登录才能访问  // 不管哪个module平台访问都需要访问
         $authActions = [
-            // 'team-login',
+            'user-pay-pass'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -23,7 +23,6 @@ class SmsController extends BaseController
                 $parentBehaviors['authenticator']['isThrowException'] = true;
             }
         }
-
         return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
 
@@ -34,6 +33,18 @@ class SmsController extends BaseController
     {
         $count = preg_match('/^1\d{10}$/', $mobile);
         return $count == 1 ? true : false;
+    }
+    
+    public function actionExistMobile()
+    {
+        $mobile = $this->pString('mobile');
+        $userModel = \Yii::$app->user->identityClass;
+        
+        if ($this->isValidMobile($mobile) == false) {
+            return $this->respondJson(1, '手机号码格式错误');
+        }
+        $existMobile = $userModel::find()->where(['mobile' => $mobile])->exists();
+        return $this->respondJson(0, '校验结果', $existMobile);
     }
 
 
@@ -50,14 +61,34 @@ class SmsController extends BaseController
             return $this->respondJson(1, '手机号码格式错误');
         }
 
+        $userModel = \Yii::$app->user->identityClass;
         //判断注册号码是否已经使用过
-        $user = \common\models\business\Buser::find()->where(['mobile' => $mobile])->exists();
+        $user = $userModel::find()->where(['mobile' => $mobile])->exists();
 
         if (!$user) {
             return $this->respondJson(1, '此号码未注册');
         }
         
         $returnInfo = ValidationCodeSmsService::sendValidationCode($mobile, BSmsTemplate::$TYPE_USER_LOGIN);
+        if ($returnInfo->code != 0) {
+            return $this->respondJson($returnInfo->code, $returnInfo->msg);
+        }
+
+        return $this->respondJson(0, '发送成功');
+    }
+    /**
+     * 用户修改支付密码发送验证码
+     *
+     * @return void
+     */
+    public function actionUserPayPass()
+    {
+        $userModel = $this->user;
+        if (is_null($userModel) || empty($userModel->mobile)) {
+            return $this->respondJson(1, '此号码未注册');
+        }
+        
+        $returnInfo = ValidationCodeSmsService::sendValidationCode($userModel->mobile, BSmsTemplate::$TYPE_PAY_PASSWORD);
         if ($returnInfo->code != 0) {
             return $this->respondJson($returnInfo->code, $returnInfo->msg);
         }

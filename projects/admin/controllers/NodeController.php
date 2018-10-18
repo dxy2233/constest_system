@@ -11,7 +11,6 @@ use common\models\business\BNotice;
 use common\models\business\BNodeType;
 use common\models\business\BNodeRule;
 use common\models\business\BUserIdentify;
-use common\models\business\BUnvote;
 use common\models\business\BTypeRuleContrast;
 use common\models\business\BUserWallet;
 use common\models\business\BUserCurrency;
@@ -42,9 +41,10 @@ class NodeController extends BaseController
 
         return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
-
+    // 节点管理
     public function actionIndex()
     {
+        // 节点类型
         $type = $this->pInt('type');
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
@@ -60,6 +60,71 @@ class NodeController extends BaseController
             $v['count'] = $people[$v['id']];
         }
         return $this->respondJson(0, '获取成功', $data);
+    }
+    // 审核列表
+    public function actionExamine()
+    {
+        $status = $this->pInt('status', 2);
+        if (empty($status)) {
+            return $this->respondJson(1, '审核状态不能为空');
+        }
+        $searchName = $this->pString('searchName', '');
+        $str_time = $this->pString('str_time', '');
+        $end_time = $this->pString('end_time', '');
+        $page = $this->pInt('page', 0);
+        $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status);
+        $return = [];
+        foreach ($data as $v) {
+            $item = [];
+            $item['username'] = $v['username'];
+            $item['name'] = $v['name'];
+            $item['consume'] = $v['consume'];
+            $item['status'] = BNode::getStatus($v['status']);
+            $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $return[] = $item;
+        }
+        return $this->respondJson(0, '获取成功', $return);
+    }
+    // 审核通过
+    public function actionExamineOn()
+    {
+        $nodeId = $this->pInt('nodeId');
+        if (empty($nodeId)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $data = BNode::find()->where(['id' => $nodeId])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $data->status = BNode::STATUS_ON;
+        $data->status_remark = '已开启';
+        if (!$data->save()) {
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '审核成功');
+    }
+
+    // 审核不通过
+    public function actionExamineOff()
+    {
+        $nodeId = $this->pInt('nodeId');
+        if (empty($nodeId)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $remark = $this->pString('remark');
+        if (empty($remark)) {
+            return $this->respondJson(1, '原因不能为空');
+        }
+        $data = BNode::find()->where(['id' => $nodeId])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $data->status = BNode::STATUS_NO;
+        $data->status_remark = $remark;
+        if (!$data->save()) {
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '审核成功');
     }
 
     public function actionGetNodeData()

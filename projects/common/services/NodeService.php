@@ -22,7 +22,7 @@ class NodeService extends ServiceBase
      * @param BUser $user
      * @return void
      */
-    public static function getList(int $page = 0, string $searchName = '', string $str_time = '', string $end_time = '', int $type = 0)
+    public static function getList(int $page = 0, string $searchName = '', string $str_time = '', string $end_time = '', int $type = 0, int $status = 0)
     {
         $find = BNode::find()
         ->from(BNode::tableName()." A")
@@ -46,6 +46,10 @@ class NodeService extends ServiceBase
 
         if ($type != '') {
             $find->where(['A.type_id' => $type]);
+        }
+
+        if ($status != '') {
+            $find->where(['A.status' => $status]);
         }
         $count = $find->count();
         

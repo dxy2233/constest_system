@@ -110,8 +110,13 @@ class FuncHelper
      * @return string
      * info: 格式化货币小数，将amount格式化为amount.000....（舍去小数位数后）
      */
-    public static function formatCurrencyAmount($amount = '', $precision = 8)
+    public static function formatAmount($amount = '', int $precision = 0)
     {
+        $walletPrecision = (int) \Yii::$app->params['wallet_precision'];
+        if (!(bool) $precision) {
+            $precision = $walletPrecision;
+        }
+        
         if (empty($amount)) {
             $amount = 0;
         }
@@ -593,6 +598,12 @@ class FuncHelper
         return false;
     }
 
+    public static function getWalletTypeList(string $key = null)
+    {
+        $wallet = \yii\helpers\ArrayHelper::toArray(\Yii::$app->params['wallet']);
+        return is_null($key) ? $wallet : $wallet[strtoupper($key)];
+    }
+
     /**
      * 获取默认钱包
      *
@@ -601,7 +612,7 @@ class FuncHelper
      */
     public static function getDefaultWallet(string $key = null)
     {
-        $walletList = \Yii::$app->params['wallet'];
+        $walletList = self::getWalletTypeList();
         $data = \yii\helpers\ArrayHelper::getColumn($walletList, function ($element) {
             if ($element['default']) {
                 return $element;
@@ -625,6 +636,9 @@ class FuncHelper
         if (is_array($data)) {
             $newData = [];
             foreach ($data as $key => &$value) {
+                if (is_object($value)) {
+                    $value = \yii\helpers\ArrayHelper::toArray($value);
+                }
                 if (is_string($key)) {
                     $key = self::camelize($key, $separator);
                 }
@@ -639,6 +653,66 @@ class FuncHelper
         }
         return $data;
     }
+
+    /**
+     * 密码加密 使用字符串加密
+     *  长度为 128位
+     * @param string $password
+     * @param string $secretKey
+     * @return void
+     */
+    public static function encryptPassWordHash(string $password)
+    {
+        return \Yii::$app->getSecurity()->generatePasswordHash($password);
+    }
+    /**
+     * 密码验证 使用字符串加密
+     *  长度为 128位
+     * @param string $password
+     * @param string $secretKey
+     * @return void
+     */
+    public static function validatePassWordHash(string $password, string $hash = null)
+    {
+        if (is_null($hash) || is_null($password)) {
+            return false;
+        }
+        return \Yii::$app->getSecurity()->validatePassword($password, $hash);
+    }
+
+    /**
+     * 密码加密 使用字符串加密
+     *  长度为 128位
+     * @param string $password
+     * @param string $secretKey
+     * @return void
+     */
+    public static function encryptPassWord(string $password, string $secretKey = null)
+    {
+        if (is_null($secretKey)) {
+            $secretKey = isset(\Yii::$app->params['secretKey']) ? \Yii::$app->params['secretKey'] : '';
+        }
+        
+        return \Yii::$app->getSecurity()->encryptByPassword($password, $secretKey);
+    }
+
+    /**
+     * 密码解密 使用字符串加密
+     *  长度为 128位
+     * @param string $password
+     * @param string $secretKey
+     * @return void
+     */
+    public static function decryptPassWord(string $password, string $secretKey = null)
+    {
+        if (is_null($secretKey)) {
+            $secretKey = isset(\Yii::$app->params['secretKey']) ? \Yii::$app->params['secretKey'] : '';
+        }
+        var_dump($password, $secretKey, \Yii::$app->getSecurity()->decryptByPassword($password, $secretKey));
+        exit;
+        return \Yii::$app->getSecurity()->decryptByPassword($password, $secretKey);
+    }
+    
     /**
      * 字符串转驼峰命名法
      *
@@ -648,7 +722,7 @@ class FuncHelper
      */
     public static function camelize(string $data, string $separator = '_')
     {
-        $data = $separator. str_replace($separator, " ", strtolower($data));
+        $data = $separator. str_replace($separator, " ", $data);
         return ltrim(str_replace(" ", "", ucwords($data)), $separator);
     }
 }

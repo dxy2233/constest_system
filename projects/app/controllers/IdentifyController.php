@@ -44,12 +44,12 @@ class IdentifyController extends BaseController
         }
         
         $data['status'] = $identify->status;
-        $data['status_str'] = BUserIdentify::getStatus($identify->status);
+        $data['status_remark'] = $identify->status_remark;
         // 前端查看状态
         // $data['status_list'] = BUserIdentify::getStatus();
         switch ($identify->status) {
             case BUserIdentify::STATUS_FAIL:
-                $data['status_remark'] = $identify->status_remark;
+                $data['remark'] = $identify->remark;
                 break;
             case BUserIdentify::STATUS_INACTIVE:
                 break;
@@ -87,6 +87,7 @@ class IdentifyController extends BaseController
             return $this->respondJson(1, '验证失败', $identify->errors);
         }
         $identify->status = (int) SettingService::get('user', 'has_identify')->value;
+        $identify->status_remark = BUserIdentify::getStatus($identify->status);
         $identify->user_id = $userModel->id;
         $identify->save();
         $identify->pic_front = $identify->picFrontText;

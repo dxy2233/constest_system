@@ -32,8 +32,9 @@ class Currency extends \common\dzbase\DzModel
     public function rules()
     {
         return [
+            [['wallet_id', 'code'], 'required'],
             [['summary'], 'string'],
-            [['status', 'sort', 'create_time', 'update_time'], 'integer'],
+            [['status', 'sort', 'create_time', 'update_time', 'wallet_id'], 'integer'],
             [['code', 'name'], 'string', 'max' => 20],
             [['code'], 'unique'],
         ];
@@ -46,6 +47,7 @@ class Currency extends \common\dzbase\DzModel
     {
         return [
             'id' => Yii::t('app', '货币ID'),
+            'wallet_id' => Yii::t('app', '钱包ID'),
             'code' => Yii::t('app', '编码'),
             'name' => Yii::t('app', '标题'),
             'summary' => Yii::t('app', '摘要'),

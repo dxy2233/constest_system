@@ -1,0 +1,153 @@
+@import './variables.scss';
+@import './mixin.scss';
+@import './transition.scss';
+@import './element-ui.scss';
+@import './sidebar.scss';
+
+body {
+  height: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+}
+
+label {
+  font-weight: 700;
+}
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#app{
+  height: 100%;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  outline: none;
+  text-decoration: none;
+}
+
+div:focus{
+  outline: none;
+ }
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
+
+//main-container全局样式
+.app-main{
+  min-height: 100%
+}
+
+.app-container {
+  padding: 20px;
+  min-height: calc(100vh - 50px);
+}
+
+// 页面标题同行右侧按钮
+.btn-right {
+  float: right;
+  margin-top: 20px;
+}
+
+// 单选菜单切换
+.radioTabs {
+  display: flex;
+  justify-content: center;
+}
+
+// 侧栏外层
+.fade-slide {
+  width: 650px;
+  height: 100%;
+  padding: 20px;
+  background: #fff;
+  border-left: 1px solid #ddd;
+  z-index: 100;
+  position: absolute;
+  top: 0;
+  right: 0;
+  overflow-y: auto;
+  .title {
+    img {
+      float: left;
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+    }
+    .name {
+      font-size: 16px;
+      display: inline-block;
+      line-height: 1.5;
+      padding-left: 10px;
+    }
+    .btn {
+      float: right;
+    }
+    i {
+      margin-top: 6px;
+      font-size: 28px;
+    }
+  }
+  .info {
+    clear: both;
+    margin: 20px 0;
+    .title {
+      margin-bottom: 10px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+}
+
+// 侧栏动画
+.fade-enter-active {
+  transition: all 0.2s;
+}
+.fade-enter {
+  opacity: 0;
+  transform: translateX(650px);
+}
+.fade-leave-active {
+  transition: all 0.4s;
+}
+.fade-leave-to {
+  opacity: 0;
+  transform: translateX(650px);
+}

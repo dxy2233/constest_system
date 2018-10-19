@@ -34,10 +34,9 @@ class Currency extends \common\dzbase\DzModel
         return [
             [['summary'], 'string'],
             [['status', 'sort', 'is_address_tag', 'recharge_status', 'recharge_amount_precision', 'recharge_confirmation', 'withdraw_status',
-                'withdraw_amount_precision', 'withdraw_confirmation','otc_status', 'create_time', 'update_time'], 'integer'],
-            [['recharge_min_amount', 'withdraw_min_amount'], 'number'],
+                'withdraw_amount_precision', 'withdraw_confirmation', 'create_time', 'update_time'], 'integer'],
+            [['recharge_min_amount', 'withdraw_min_amount', 'withdraw_max_amount', 'withdraw_audit_amount', 'withdraw_day_amount'], 'number'],
             [['code', 'name'], 'string', 'max' => 20],
-            [['withdraw_max_amount'], 'string', 'max' => 200],
             [['code'], 'unique'],
         ];
     }
@@ -61,14 +60,13 @@ class Currency extends \common\dzbase\DzModel
             'recharge_confirmation' => '充值确认数',
             'withdraw_status' => '提现状态：0 不可提现，1 可提现',
             'withdraw_min_amount' => '提现最小数量',
-            'withdraw_max_amount' => '提现最大数量（等级制）',
-            'withdraw_amount_precision' => '提现数量精度',
+            'withdraw_max_amount' => '提现最大数量',
+            'withdraw_audit_amount' => '提现最大数量',
+            'withdraw_max_amount' => '提现审核数量',
+            'withdraw_day_amount' => '提现日限制数量',
             'withdraw_confirmation' => '提现确认数',
             'create_time' => '添加时间',
             'update_time' => '修改时间',
-            'first' => '提现等级一',
-            'second' => '提现等级二',
-            'otc_status' => '法币交易， 0 不参与，1 参与',
         ];
     }
 }

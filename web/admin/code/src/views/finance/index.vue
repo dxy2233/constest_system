@@ -36,7 +36,6 @@
     <el-table :data="tableDataPage" style="margin:10px 0;">
       <el-table-column prop="id" label="流水号"/>
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="wallet" label="钱包"/>
       <el-table-column prop="name" label="币种"/>
       <el-table-column prop="type2" label="收支"/>
       <el-table-column prop="type" label="类型"/>
@@ -104,8 +103,8 @@ export default {
     // 导出excel
     addExcel() {
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['流水号', '用户', '钱包', '币种', '收支', '类型', '数量', '状态', '时间']
-        const filterVal = ['id', 'mobile', 'wallet', 'name', 'type2', 'type', 'amount', 'status', 'createTime']
+        const tHeader = ['流水号', '用户', '币种', '收支', '类型', '数量', '状态', '时间']
+        const filterVal = ['id', 'mobile', 'name', 'type2', 'type', 'amount', 'status', 'createTime']
         const list = this.tableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({

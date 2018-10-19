@@ -45,15 +45,15 @@ export function getUserVote(userId) {
   })
 }
 // tabs钱包信息
-export function getUserWallet(userId) {
-  return request({
-    url: '/user/get-user-wallet',
-    method: 'post',
-    data: {
-      userId
-    }
-  })
-}
+// export function getUserWallet(userId) {
+//   return request({
+//     url: '/user/get-user-wallet',
+//     method: 'post',
+//     data: {
+//       userId
+//     }
+//   })
+// }
 // tabs投票券信息
 export function getUserVoucher(userId) {
   return request({

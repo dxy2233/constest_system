@@ -15,7 +15,7 @@
         range-separator="至"
         start-placeholder="开始日期"
         end-placeholder="结束日期"
-        format="yyyy 年 MM 月 dd 日 HH：mm"
+        format="yyyy 年 MM 月 dd 日 HH:mm"
         value-format="yyyy-MM-dd HH:mm"/>
       <el-button @click="searchTableData">查询</el-button>
     </div>
@@ -41,13 +41,26 @@
           <span>{{ item.name }}</span>
           <el-switch v-model="pushSetData[index][item.key]" active-value="1" inactive-value="0" active-color="#13ce66" inactive-color="#ff4949"/>
         </div>
-        <div v-if="item.type=='select'">
+        <div v-if="item.type=='text'" class="txt">
+          <span>{{ item.name }}{{ pushSetData[index][item.key] }}</span>
+        </div>
+        <div v-if="item.type=='time'">
+          <span>{{ item.name }}</span>
+          <el-date-picker
+            v-model="pushSetData[index][item.key]"
+            type="datetime"
+            format="yyyy 年 MM 月 dd 日 HH:mm:ss"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            placeholder="选择日期时间"
+            style="width:250px;"/>
+          <el-button style="float:right;" @click="manuakStop">手动截止</el-button>
+        </div>
+        <!-- <div v-if="item.type=='select'">
           <p>{{ item.name }}</p>
           <el-select v-model="pushSetData[index][item.key]" placeholder="请选择" size="small">
             <el-option v-for="(item2,index2) in item.initialize" :key="index2" :value="index2" :label="item2"/>
           </el-select> /天
-          <!-- <el-button style="float:right;margin-top:-10px;">刷新数据</el-button> -->
-        </div>
+        </div> -->
         <div v-if="item.type=='input'" class="item">
           <span class="title">{{ item.name }}</span>
           <el-input v-model="pushSetData[index][item.key]" style="width:200px;"/>
@@ -168,6 +181,15 @@ export default {
         this.dialogSet = true
       })
     },
+    // 手动截至投票时间
+    manuakStop(index) {
+      var nowDate = new Date()
+      var time = nowDate.getFullYear() + '-' + (nowDate.getMonth() + 1) + '-' +
+        nowDate.getDate() + ' ' + nowDate.toLocaleTimeString('chinese', { hour12: false })
+      this.pushSetData.map((item, index, arry) => {
+        if (item.hasOwnProperty('end_update_time')) arry[index].end_update_time = time
+      })
+    },
     // 保存投票设置
     saveVoteSet() {
       var temList = {}
@@ -259,6 +281,10 @@ export default {
   .switch {
     display: flex;
     justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .txt {
+    margin-bottom: 20px;
   }
   .item {
     margin-top: 20px;

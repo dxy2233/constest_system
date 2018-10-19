@@ -10,8 +10,8 @@ namespace common\services;
 
 use yii\helpers\ArrayHelper;
 use common\services\ServiceBase;
-use common\components\FuncHelper;
-use common\models\business\BWalletSent;
+use common\models\business\BCurrency;
+use common\models\business\BReportJingtum;
 
 class JingTumService extends ServiceBase
 {
@@ -19,6 +19,7 @@ class JingTumService extends ServiceBase
     //贵人通
     const ASSETS_TYPE_GRT = 'GRT';
 
+    protected $pullReponse = [];
 
     protected $api_url;
 
@@ -101,7 +102,7 @@ class JingTumService extends ServiceBase
             ->setData(['data' => $encrypt])
             ->setUrl(\Yii::$app->params['JTAccountUrl'] . '/app/getUserPublicKeyAndSecret')
             ->send();
-        LogService::info('发起井通请求 - 请求数据 - ' . var_export(['data' => $data], true) . ' - 返回数据 -' . var_export($result, true), 'jt');
+        self::info('发起井通请求 - 请求数据 - ' . var_export(['data' => $data], true) . ' - 返回数据 -' . var_export($result, true), 'jt');
         if ($result->isOk) {
             $result = $result->getData();
             if ($result['success']) {
@@ -329,46 +330,6 @@ class JingTumService extends ServiceBase
         return new ReturnInfo(1, '请求失败!');
     }
 
-    /**
-     * 初始化一个新账户
-     *
-     * @return void
-     */
-    public function initializeWallet(string $address)
-    {
-        $sourceAddress = \Yii::$app->params['JTAddress'];
-        $sourceAmount = \Yii::$app->params['JTWalletActiveAmount'];
-        $remark = '钱包激活';
-        $transNum = FuncHelper::generateWalletSentTransNum();
-        $walletSentModel = new BWalletSent();
-        $walletSentModel->transaction_number = $transNum;
-        $walletSentModel->type = BWalletSent::$TYPE_ACTIVE;
-        $walletSentModel->relate_table = 'wallet_jingtum';
-        $walletSentModel->amount = $sourceAmount;
-        $walletSentModel->source_address = $sourceAddress;
-        $walletSentModel->destination_address = $address;
-        $walletSentModel->remark = $remark;
-        $walletSentModel->status = BWalletSent::$STATUS_WAIT;
-        if (!$walletSentModel->save()) {
-            return new ReturnInfo(1, '插入井通激活记录表失败', $walletSentModel->getFirstErrors());
-        }
-        $resWalletSent = $this->addUserBalanceFormMain($address, $transNum, $sourceAmount, $remark, self::ASSETS_TYPE_GRT);
-        
-        if ($resWalletSent->code == 0) {
-            $resultSent = $resWalletSent->content;
-            $walletSentModel->transaction_id = $resultSent['hash'];
-            $walletSentModel->response_data = json_encode($resultSent['responseData']);
-            $walletSentModel->status = BWalletSent::$STATUS_SUCCESS;
-        } else {
-            $walletSentModel->response_data = is_array($resWalletSent->msg) ? json_encode($resWalletSent->msg) : $resWalletSent->msg;
-            $walletSentModel->status = BWalletSent::$STATUS_FAIL;
-        }
-        if (!$walletSentModel->save()) {
-            return new ReturnInfo(1, '激活失败', $walletSentModel->getFirstErrors());
-        }
-        return new ReturnInfo(0, '激活成功', $walletSentModel);
-    }
-
 
     /**
      * 支付历史
@@ -394,9 +355,6 @@ class JingTumService extends ServiceBase
      * @param Int $pageSize
      * @param boolean $is_update 是否立即更新记录状态
      * @return array [
-     *  'address' => '钱包地址',
-     *  'page' => '执行页码',
-     *  'already' => '已存在记录hash以及类型',
      *  'status' => '拉取综合状态', # 只要有数据以及已存在记录 都返回 true，反之
      *  'list' => '记录详情',
      *  'count' => '记录详情条数'
@@ -404,18 +362,15 @@ class JingTumService extends ServiceBase
      */
     public function pullTransRecord(string $address = null, Int $page = 1, Int $pageSize = 10, bool $isUpdate = true) :array
     {
-        $this->pullReponse['address'] = $address;
-        $this->pullReponse['page'] = $page;
-        $this->pullReponse['already'] = null;
         if ($page <= 1) {
             $this->pullReponse['count'] = 0;
             $this->pullReponse['status'] = false;
+            $this->pullReponse['new_record'] = false;
             $this->pullReponse['list'] = [];
-        } else {
-            $this->pullReponse['status'] = true;
         }
+        $this->pullReponse['status'] = $this->pullReponse['status'] ? true : false;
         if (is_null($address)) {
-            return false;
+            return $this->pullReponse;
         }
         $resJingTum = $this->queryPayments($address, $page, $pageSize);
         $transList = [];
@@ -425,6 +380,7 @@ class JingTumService extends ServiceBase
         $hasExist = false;
         foreach ($transList as $trans) {
             $this->pullReponse['count']++;
+            $this->pullReponse['status'] = true;
             $row['type'] = $trans['type'];
             $row['hash'] = $trans['hash'];
             $row['already'] = false;
@@ -438,8 +394,7 @@ class JingTumService extends ServiceBase
             //记录是否存在
             if (BReportJingtum::find()->where(['hash' => $trans['hash'], 'destination_address' => $destination_address, 'type' => $trans['type']])->one()) {
                 //后续的记录都存在，跳出循环，结束抓取
-                $hasExist = $this->pullReponse['status'] = $row['already'] = true;
-                $this->pullReponse['already'] = $trans['type'] .'-'. $trans['hash'];
+                $hasExist = $row['already'] = true;
                 $this->pullReponse['list'][] = $row;
                 break;
             }
@@ -462,8 +417,11 @@ class JingTumService extends ServiceBase
             }
             $hasExist = null;
             $this->pullReponse['list'][] = $row;
+            $this->pullReponse['new_record'] = true;
         }
-        return is_null($hasExist) ? $this->pullTransRecord($address, $page++, $pageSize, $isUpdate) : $this->pullReponse;
+
+        $page++;
+        return is_null($hasExist) ? $this->pullTransRecord($address, $page, $pageSize, $isUpdate) : $this->pullReponse;
     }
     /**
      * 执行充值以及更新记录状态
@@ -485,7 +443,7 @@ class JingTumService extends ServiceBase
                 //可充币,符合最小入账数量
 
                 //符合确认数，执行充值
-                $res = RechargeService::handle($currency->id, $report->destination_address, "", $report->amount, $report->hash);
+                $res = RechargeService::handle($currency->id, $report->destination_address, "", $report->amount, $report->hash, $report->source_address);
 
                 if ($res->code == 0) {
                     //充值处理成功，停止更新

@@ -35,14 +35,15 @@
       <el-table-column prop="userType" label="类型"/>
       <el-table-column prop="nodeName" label="拥有节点"/>
       <el-table-column prop="num" label="已投票数"/>
+      <el-table-column prop="num" label="推荐人"/>
       <el-table-column label="状态">
         <template slot-scope="scope">
           <div v-if="scope.row.status==1">正常</div>
           <div v-else>停用</div>
         </template>
       </el-table-column>
-      <el-table-column prop="create_time" label="注册时间"/>
-      <el-table-column prop="last_login_time" label="最近一次登录时间"/>
+      <el-table-column prop="createTime" label="注册时间"/>
+      <el-table-column prop="lastLoginTime" label="最近一次登录时间"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
@@ -55,7 +56,7 @@
       <div v-show="showUserInfo" class="fade-slide">
         <div class="title">
           <img src="@/assets/img/user.jpg" alt="">
-          <span class="name">{{ userInfoBase.nodename }}<br><span>用户</span></span>
+          <span class="name">{{ userInfoBase.mobile }}<br><span>用户</span></span>
           <i class="el-icon-close btn" @click="showUserInfo=false"/>
           <el-button type="primary" class="btn" style="margin: 0 10px;" @click="rowEdit">编辑</el-button>
           <el-button v-show="rowInfo.status==1" type="danger" class="btn" @click="free">冻结</el-button>
@@ -66,7 +67,7 @@
             <el-col :span="6">
               <el-card shadow="never">
                 <div class="title">类型</div>
-                {{ userInfoBase.usertype }}
+                {{ userInfoBase.userType }}
               </el-card>
             </el-col>
             <el-col :span="6">
@@ -104,21 +105,21 @@
               <el-radio-button label="赎回记录"/>
             </el-radio-group>
             <el-table v-show="pollName=='投票记录'" :data="userInfoVote.vote">
-              <el-table-column prop="nodename" label="节点名称"/>
-              <el-table-column prop="typename" label="类型"/>
+              <el-table-column prop="nodeName" label="节点名称"/>
+              <el-table-column prop="typeName" label="类型"/>
               <el-table-column prop="type" label="方式"/>
-              <el-table-column prop="votenumber" label="数量"/>
-              <el-table-column prop="createtime" label="投票时间"/>
+              <el-table-column prop="voteNumber" label="数量"/>
+              <el-table-column prop="createTime" label="投票时间"/>
             </el-table>
             <el-table v-show="pollName=='赎回记录'" :data="userInfoVote.unvote">
-              <el-table-column prop="nodename" label="节点名称"/>
-              <el-table-column prop="typename" label="类型"/>
-              <el-table-column prop="votenumber" label="数量"/>
-              <el-table-column prop="createtime" label="赎回时间"/>
+              <el-table-column prop="nodeName" label="节点名称"/>
+              <el-table-column prop="typeName" label="类型"/>
+              <el-table-column prop="voteNumber" label="数量"/>
+              <el-table-column prop="undoTime" label="赎回时间"/>
             </el-table>
           </el-tab-pane>
 
-          <el-tab-pane label="钱包" name="Wallet" class="wallet">
+          <!-- <el-tab-pane label="钱包" name="Wallet" class="wallet">
             <el-tabs v-model="walletName" type="card">
               <el-tab-pane v-for="(item,index) in userInfoWallet" :key="index" :label="item.name" :name="item.name">
                 <p>钱包地址</p>
@@ -152,7 +153,7 @@
                 </el-tabs>
               </el-tab-pane>
             </el-tabs>
-          </el-tab-pane>
+          </el-tab-pane> -->
 
           <el-tab-pane label="投票券" name="Voucher">
             <p>剩余数量：{{ userInfoVoucher.length }}票</p>
@@ -162,25 +163,25 @@
             </el-radio-group>
             <el-table v-show="voucherName=='获取记录'" :data="userInfoVoucher.voucherList">
               <el-table-column prop="username" label="推荐用户"/>
-              <el-table-column prop="nodename" label="节点名称"/>
-              <el-table-column prop="typename" label="节点类型"/>
-              <el-table-column prop="vouchernum" label="获取数量"/>
-              <el-table-column prop="createtime" label="获取时间"/>
+              <el-table-column prop="nodeName" label="节点名称"/>
+              <el-table-column prop="typeName" label="节点类型"/>
+              <el-table-column prop="voucherNum" label="获取数量"/>
+              <el-table-column prop="createTime" label="获取时间"/>
             </el-table>
             <el-table v-show="voucherName=='使用记录'" :data="userInfoVoucher.voucherDetailList">
-              <el-table-column prop="nodename" label="投票节点"/>
-              <el-table-column prop="typename" label="节点类型"/>
+              <el-table-column prop="nodeName" label="投票节点"/>
+              <el-table-column prop="typeName" label="节点类型"/>
               <el-table-column prop="username" label="用户"/>
               <el-table-column prop="amount" label="投票数量"/>
-              <el-table-column prop="createtime" label="使用时间"/>
+              <el-table-column prop="createTime" label="使用时间"/>
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="推荐记录" name="Recommend">
             <el-table :data="userInfoRecommend">
               <el-table-column prop="username" label="推荐用户"/>
-              <el-table-column prop="nodename" label="节点名称"/>
-              <el-table-column prop="typename" label="节点类型"/>
-              <el-table-column prop="createtime" label="推荐时间"/>
+              <el-table-column prop="nodeName" label="节点名称"/>
+              <el-table-column prop="typeName" label="节点类型"/>
+              <el-table-column prop="createTime" label="推荐时间"/>
             </el-table>
           </el-tab-pane>
         </el-tabs>
@@ -190,12 +191,12 @@
     <el-dialog :visible.sync="dialogAddUser" title="用户编辑">
       <el-form label-width="60px">
         <el-form-item label="账号："><el-input v-model="addUserName"/></el-form-item>
-        <el-tabs v-if="!ifAddUser" v-model="edidWallet">
+        <!-- <el-tabs v-if="!ifAddUser" v-model="edidWallet">
           <el-tab-pane v-for="(item,index) in userInfoWallet" :key="index" :label="item.name" :name="item.name">
             <p>钱包地址</p>
             <el-input v-model="item.address"/>
           </el-tab-pane>
-        </el-tabs>
+        </el-tabs> -->
       </el-form>
       <span slot="footer">
         <el-button type="primary" @click="editUser">确 认</el-button>
@@ -206,8 +207,8 @@
 </template>
 
 <script>
-import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserWallet,
-  getUserVoucher, getUserRecommend, freezeUser, thawUser, addUser, addWallet } from '@/api/admin'
+import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
+  getUserRecommend, freezeUser, thawUser, addUser } from '@/api/admin'
 import { Message } from 'element-ui'
 import { parseTime } from '@/utils'
 
@@ -228,7 +229,7 @@ export default {
       userInfoBase: [], // 基础
       userInfoIdentify: [], // 实名
       userInfoVote: [], // 投票
-      userInfoWallet: [], // 钱包
+      // userInfoWallet: [], // 钱包
       userInfoVoucher: [], // 投票券
       userInfoRecommend: [], // 推荐记录
       activeName: 'Base',
@@ -286,11 +287,11 @@ export default {
         getUserVote(this.rowInfo.id).then(res => {
           this.userInfoVote = res.content
         })
-      } else if (val.name === 'Wallet') {
-        getUserWallet(this.rowInfo.id).then(res => {
-          this.userInfoWallet = res.content
-          this.walletName = this.userInfoWallet[0].name
-        })
+      // } else if (val.name === 'Wallet') {
+      //   getUserWallet(this.rowInfo.id).then(res => {
+      //     this.userInfoWallet = res.content
+      //     this.walletName = this.userInfoWallet[0].name
+      //   })
       } else if (val.name === 'Voucher') {
         getUserVoucher(this.rowInfo.id).then(res => {
           this.userInfoVoucher = res.content
@@ -355,11 +356,11 @@ export default {
       this.dialogAddUser = true
       this.ifAddUser = false
       this.addUserName = this.rowInfo.username
-      getUserWallet(this.rowInfo.id).then(res => {
-        this.userInfoWallet = res.content
-        this.walletName = this.userInfoWallet[0].name
-        this.edidWallet = this.userInfoWallet[0].name
-      })
+      // getUserWallet(this.rowInfo.id).then(res => {
+      //   this.userInfoWallet = res.content
+      //   this.walletName = this.userInfoWallet[0].name
+      //   this.edidWallet = this.userInfoWallet[0].name
+      // })
     },
     // 编辑上传用户信息
     editUser() {
@@ -367,21 +368,30 @@ export default {
       if (this.ifAddUser) {
         addUser(null, this.addUserName).then(res => {
           Message({ message: res.msg, type: 'success' })
+          getUserList().then(res => {
+            this.tableData = res.content.list
+            this.total = parseInt(res.content.count)
+          })
         })
       } else {
         addUser(this.rowInfo.id, this.addUserName).then(res => {
           Message({ message: res.msg, type: 'success' })
+          getUserList().then(res => {
+            this.tableData = res.content.list
+            this.total = parseInt(res.content.count)
+          })
+          this.changeTabs({ name: this.activeName })
         })
-        for (var i = 0; i < this.userInfoWallet.length; i++) {
-          addWallet(this.userInfoWallet[i].id, this.userInfoWallet[i].address)
-        }
+        // for (var i = 0; i < this.userInfoWallet.length; i++) {
+        //   addWallet(this.userInfoWallet[i].id, this.userInfoWallet[i].address)
+        // }
       }
     },
     // 导出excel
     addExcel() {
       import('@/vendor/Export2Excel').then(excel => {
         const tHeader = ['用户', '类型', '拥有节点', '已投票数', '状态', '注册时间', '最近一次登录时间']
-        const filterVal = ['username', 'userType', 'nodeName', 'num', 'status', 'create_time', 'last_login_time']
+        const filterVal = ['username', 'userType', 'nodeName', 'num', 'status', 'createTime', 'lastLoginTime']
         const list = this.tableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({

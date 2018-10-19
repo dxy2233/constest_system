@@ -106,4 +106,18 @@ class UserController extends BaseController
         }
         return $this->respondJson(0, '获取成功', $data);
     }
+
+
+    /**
+     * 用户节点权益信息
+     *
+     * @return void
+     */
+    public function actionNodeRuleInfo()
+    {
+        $userModel = $this->user;
+        $nodeModel = $userModel->node;
+        // var_dump($nodeModel);
+        return $this->respondJson(0, '获取成功');
+    }
 }

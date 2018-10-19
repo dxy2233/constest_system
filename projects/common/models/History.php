@@ -9,11 +9,13 @@ use Yii;
  *
  * @property int $id
  * @property int $node_id 节点ID
- * @property int $username 用户名
- * @property int $node_name 节点名
+ * @property int $node_type 节点类型ID
+ * @property string $username 用户名
+ * @property string $node_name 节点名
  * @property int $vote_number 票数
  * @property int $people_number 支持人数
  * @property int $is_tenure 0:未任职 1:已任职
+ * @property int $update_number 更新次数
  * @property int $create_time
  */
 class History extends \common\dzbase\DzModel
@@ -43,15 +45,16 @@ class History extends \common\dzbase\DzModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'node_id' => '节点ID',
-            'username' => '用户名',
-            'node_name' => '节点名',
-            'vote_number' => '票数',
-            'people_number' => '支持人数',
-            'update_number' => '记录号',
-            'is_tenure' => '0:未任职 1:已任职',
-            'create_time' => 'Create Time',
+            'id' => Yii::t('app', 'ID'),
+            'node_id' => Yii::t('app', '节点ID'),
+            'node_type' => Yii::t('app', '节点类型ID'),
+            'username' => Yii::t('app', '用户名'),
+            'node_name' => Yii::t('app', '节点名'),
+            'vote_number' => Yii::t('app', '票数'),
+            'people_number' => Yii::t('app', '支持人数'),
+            'is_tenure' => Yii::t('app', '0:未任职 1:已任职'),
+            'update_number' => Yii::t('app', '更新次数'),
+            'create_time' => Yii::t('app', 'Create Time'),
         ];
     }
 }

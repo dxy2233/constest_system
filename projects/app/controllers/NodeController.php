@@ -69,12 +69,6 @@ class NodeController extends BaseController
         if (!is_object($isOpen) && !(bool) $isOpen->value) {
             return $this->respondJson(1, "投票未启用");
         }
-        // 刷新时间获取，更新时间
-        $endUpdate = SettingService::get('vote', 'end_update_time');
-        if (!is_object($endUpdate) && empty($endUpdate->value)) {
-            return $this->respondJson(1, "投票更新时间未设定");
-        }
-        $updateTime = (int) $endUpdate->value;
         $nodeTypeModel = BNodeType::findOne($nodeId);
         if (!is_object($nodeTypeModel)) {
             return $this->respondJson(1, '节点不存在');
@@ -88,18 +82,17 @@ class NodeController extends BaseController
         ->alias('n')
         ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
         ->active(BNode::STATUS_ACTIVE, 'n.')
-        ->andWhere(['<=', 'v.create_time', $updateTime])
-        ->joinWith(['votes v' => function ($query) use ($updateTime) {
-            $query->andWhere(['<=', 'v.create_time', $updateTime]);
+        ->joinWith(['votes v' => function($query) {
+            $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
         }])
         ->groupBy('n.id')
         ->orderBy(['vote_number' => SORT_DESC]);
         // 不传递page 则为首页
         if (!$page) {
-            $nodeNumberModel = SettingService::get('vote', 'index_node_number');
+            $nodeNumberModel = (int) SettingService::get('node', 'index_node_number')->value;
             $nodeNumber = BNode::INDEX_NUMBER;
-            if (is_object($nodeNumberModel)) {
-                $nodeNumber = intval($nodeNumberModel->value);
+            if ($nodeNumberModel) {
+                $nodeNumber = intval($nodeNumberModel);
             }
             $nodeModel->limit($nodeNumber);
         } else {
@@ -116,12 +109,11 @@ class NodeController extends BaseController
         foreach ($nodeList as $key => &$node) {
             $node['logo'] = FuncHelper::getImageUrl($node['logo']);
             $node['is_tenure'] = (bool) $node['is_tenure'];
-            $node['people_number'] = $voteUser[$node['id']];
+            $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;
         }
         if (!$page) {
             $data = $nodeList;
         } else {
-            $data['countTime'] = FuncHelper::formateDate($updateTime);
             $data['list'] = $nodeList;
         }
         return $this->respondJson(0, '获取成功', $data);
@@ -134,9 +126,15 @@ class NodeController extends BaseController
      */
     public function actionInfo()
     {
+        $userModel = $this->user;
         $nodeId = $this->pInt('id', 0);
-        if (empty($nodeId)) {
+
+        if (empty($nodeId) && is_null($userModel)) {
             return $this->respondJson(1, '节点ID不能为空');
+        }
+        
+        if (empty($nodeId) && !is_null($userModel)) {
+            $nodeId = $userModel->node->id;
         }
 
         $nodeModel = BNode::find()
@@ -209,5 +207,18 @@ class NodeController extends BaseController
         }
         $data['list'] = $voteData;
         return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 所有节点权益详情
+     *
+     * @return void
+     */
+    public function actionAllRuleInfo()
+    {
+        // 节点类型
+        $typeId = $this->pInt('id');
+        $TypeRuleModel = BTypeRuleContrast::find()
+        ->where(['type_id' => $typeId]);
     }
 }

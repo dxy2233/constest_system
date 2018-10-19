@@ -2,12 +2,12 @@
 
 namespace common\models\business;
 
-class BTypeRuleContrast extends \common\models\TypeRuleContrast
+class BUserRechargeAddress extends \common\models\UserRechargeAddress
 {
-    public static $TYPE_ORDER = 0;
-    public static $TYPE_TENURE = 1;
-    public static $TYPE_ALL = 2;
-
+    public function getCurrency()
+    {
+        return $this->hasOne(BCurrency::className(), ['id' => 'currency_id']);
+    }
 
 
     /**

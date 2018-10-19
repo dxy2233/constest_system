@@ -2,6 +2,10 @@
 
 namespace common\services;
 
+use common\models\business\BUserCurrency;
+use common\models\business\BUserCurrencyDetail;
+use common\models\business\BUserCurrencyFrozen;
+use common\models\User;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 use common\components\NetUtil;
@@ -72,6 +76,7 @@ class UserService extends ServiceBase
         self::writeUserLog($user->id, BUserLog::$TYPE_LOGIN, BUserLog::$STATUS_SUCCESS, '登录成功', $user->last_login_ip);
         $accessToken->content['name'] = $user->username;
         $accessToken->content['mobile'] = $user->mobile;
+        $accessToken->content['is_node'] = (bool) $user->node;
         return new ReturnInfo(0, "登录成功", $accessToken->content);
     }
 
@@ -94,7 +99,7 @@ class UserService extends ServiceBase
      */
     public static function validateTransPwd(User $user, $pwd)
     {
-        if (self::generatePwdHash($user->pwd_salt, $pwd) == $user->trans_password) {
+        if (self::generateTransPwdHash($user->pwd_salt, $pwd) == $user->trans_password) {
             return true;
         }
 
@@ -211,6 +216,73 @@ class UserService extends ServiceBase
 
         return new ReturnInfo(1, "刷新用户认证失败");
     }
+
+    /**
+     * @param $userId
+     * @param $currencyId
+     * @return bool
+     * @throws \Exception
+     * 重置用户货币持仓
+     */
+    public static function resetCurrency($userId, $currencyId)
+    {
+        $positionAmount = BUserCurrencyDetail::find()
+            ->where(['user_id' => $userId, 'currency_id' => $currencyId])
+            ->andWhere(['<>', 'status', BUserCurrencyDetail::$STATUS_EFFECT_FAIL])// 已生效、待生效
+            ->sum('amount');
+        $effectAmount = BUserCurrencyDetail::find()
+            ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'status' => BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS]) // 已生效
+            ->sum('amount');
+        $frozenAmount = BUserCurrencyFrozen::find()
+            ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'status' => BUserCurrencyFrozen::STATUS_FROZEN]) // 冻结
+            ->sum('amount');
+
+        $positionAmount = $positionAmount ? round($positionAmount, 8) : 0;
+        $effectAmount = $effectAmount ? round($effectAmount, 8) : 0;
+        $frozenAmount = $frozenAmount ? round($frozenAmount, 8) : 0;
+
+        $useAmount = round($effectAmount - $frozenAmount, 8);
+
+        //可用数量小于0时，发生数据错误，返回false
+        //屏蔽不作判断返回，数据异常也保存，避免异常后数据无法真实重置
+//        if ($useAmount < 0 || $positionAmount < $useAmount) {
+//            return false;
+//        }
+
+        $userCurrencyRes = BUserCurrency::find()
+            ->where(['user_id' => $userId, 'currency_id' => $currencyId])
+            ->one();
+
+        $time = time();
+        if (empty($userCurrencyRes)) {
+            // 添加
+            $userCurrency = new BUserCurrency();
+            $userCurrency->user_id = $userId;
+            $userCurrency->currency_id = $currencyId;
+            $userCurrency->position_amount = $positionAmount;
+            $userCurrency->frozen_amount = $frozenAmount;
+            $userCurrency->use_amount= $useAmount;
+            $userCurrency->create_time = $time;
+            $userCurrency->update_time = $time;
+            $sign = $userCurrency->insert();
+            if (!$sign) {
+                return false;
+            }
+        } else {
+            // 修改
+            $sign = BUserCurrency::updateAll(
+                ['position_amount' => $positionAmount, 'frozen_amount' => $frozenAmount, 'use_amount' => $useAmount, 'update_time' => $time],
+                ['user_id' => $userId, 'currency_id' => $currencyId]
+            );
+            //数据无变化，影响行数为0也是执行成功的
+            if ($sign === false) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @param $userId
      * @param $type
@@ -247,6 +319,6 @@ class UserService extends ServiceBase
      */
     public static function logout()
     {
-       return \Yii::$app->user->logout();
+        return \Yii::$app->user->logout();
     }
 }

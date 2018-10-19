@@ -130,17 +130,16 @@ class PayController extends BaseController
             return $this->respondJson(1, '两次支付密码不一致');
         }
         // 短信验证码
-        if (\Yii::$app->params['sendSms']) {
-            //手机验证码是否正确, 有效期只有5分钟
-            $returnInfo = ValidationCodeSmsService::checkValidateCode(
-                $userModel->mobile,
-                $vcode,
-                BSmsAuth::$TYPE_PAY_PASSWORD
-            );
-            if ($returnInfo->code != 0) {
-                return $this->respondJson(1, $returnInfo->msg);
-            }
+        //手机验证码是否正确, 有效期只有5分钟
+        $returnInfo = ValidationCodeSmsService::checkValidateCode(
+            $userModel->mobile,
+            $vcode,
+            BSmsAuth::$TYPE_PAY_PASSWORD
+        );
+        if ($returnInfo->code != 0) {
+            return $this->respondJson(1, $returnInfo->msg);
         }
+
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
             $userModel->trans_password = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);

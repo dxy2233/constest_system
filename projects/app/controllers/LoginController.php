@@ -73,17 +73,16 @@ class LoginController extends BaseController
         }
 
         // 短信验证码
-        if (\Yii::$app->params['sendSms']) {
-            //手机验证码是否正确, 有效期只有5分钟
-            $returnInfo = ValidationCodeSmsService::checkValidateCode(
+        //手机验证码是否正确, 有效期只有5分钟
+        $returnInfo = ValidationCodeSmsService::checkValidateCode(
             $mobile,
             $vcode,
-            BSmsAuth::$TYPE_TEAM_LOGIN
+            BSmsAuth::$TYPE_USER_LOGIN
           );
-            if ($returnInfo->code != 0) {
-                return $this->respondJson(1, $returnInfo->msg);
-            }
+        if ($returnInfo->code != 0) {
+            return $this->respondJson(1, $returnInfo->msg);
         }
+
 
         $userModel = BUser::find()->where(['mobile' => $mobile])->one();
         //验证手机、是否存在

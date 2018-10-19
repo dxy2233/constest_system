@@ -232,11 +232,13 @@ class NoticeController extends BaseController
             if (empty($url)) {
                 return $this->respondJson(1, '链接地址不能为空');
             }
+            $notice->url = $url;
         } else {
             $detail = $this->pString('detail');
             if (empty($detail)) {
                 return $this->respondJson(1, '正文不能为空');
             }
+            $notice->detail = $detail;
         }
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');

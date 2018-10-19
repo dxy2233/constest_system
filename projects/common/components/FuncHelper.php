@@ -107,10 +107,11 @@ class FuncHelper
     /**
      * @param string $amount
      * @param int $precision
+     * @param bool $flag
      * @return string
      * info: 格式化货币小数，将amount格式化为amount.000....（舍去小数位数后）
      */
-    public static function formatAmount($amount = '', int $precision = 0)
+    public static function formatAmount($amount = '', int $precision = 0, $flag = false)
     {
         $walletPrecision = (int) \Yii::$app->params['wallet_precision'];
         if (!(bool) $precision) {
@@ -120,15 +121,21 @@ class FuncHelper
         if (empty($amount)) {
             $amount = 0;
         }
+
+        $flagStr = "";
+        if($flag) {
+            $flagStr = round($amount, 8) > 0 ? "+" : "";
+        }
+
         if ($precision >= 8) {
-            return substr(sprintf("%.8f", $amount), 0);
+            return $flagStr.substr(sprintf("%.8f", $amount), 0);
         }
 
         if ($precision <= 0) {
-            return (string) intval($amount);
+            return $flagStr.(string) intval($amount);
         }
 
-        return substr(sprintf("%.8f", $amount), 0, -8 + $precision);
+        return $flagStr.substr(sprintf("%.8f", $amount), 0, -8 + $precision);
     }
 
     /**
@@ -363,6 +370,9 @@ class FuncHelper
     public static function formateDate($time = null, $formate = 'Y-m-d H:i:s')
     {
         $time = $time ?? time();
+        if(!$time) {
+            return "";
+        }
         return date($formate, $time);
     }
 
@@ -757,14 +767,14 @@ class FuncHelper
      * @param integer $default
      * @return void
      */
-    public static function radixConvert($data, int $frombase = 8, int $tobase = 36,  int $default = 10000000000)
+    public static function radixConvert($data, int $frombase = 8, int $tobase = 36, int $default = 10000000000)
     {
         $dlen = strlen($default);
         if (is_int($data) && $data > 0) {
             $pad = str_pad($data, $dlen, $default, STR_PAD_LEFT);
             $convert = base_convert($pad, $frombase, $tobase);
             $data = strtoupper($convert);
-        } else if (is_string($data)) {
+        } elseif (is_string($data)) {
             echo $data;
             $convert = (int) base_convert($data, $tobase, $frombase);
             echo $convert;

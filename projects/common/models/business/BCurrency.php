@@ -4,19 +4,16 @@ namespace common\models\business;
 
 class BCurrency extends \common\models\Currency
 {
-    public static $OTC_STATUS_NO_JOIN = 0; // 不参与
-    public static $OTC_STATUS_JOIN = 1; // 参与
 
-    public static $CURRENCY_GFC = 'gfc'; // 贵分
     public static $CURRENCY_GRT = 'grt'; // 贵人通
-    public static $CURRENCY_BTC = 'btc'; // btc
-    public static $CURRENCY_ETH = 'eth'; // eth
+    public static $CURRENCY_BPT = 'bpt'; // 美食通
+    public static $CURRENCY_TT = 'tt'; // 茶通
 
     public static function getJingtumCurrency()
     {
         $arr = [
-            self::getCurrencyIdByCode(self::$CURRENCY_GFC),
             self::getCurrencyIdByCode(self::$CURRENCY_GRT),
+            self::getCurrencyIdByCode(self::$CURRENCY_BPT),
         ];
         return $arr;
     }
@@ -138,55 +135,6 @@ class BCurrency extends \common\models\Currency
     }
 
     /**
-     * 魔术方法
-     */
-    public function getFirst()
-    {
-        if (empty($this->id)) {
-            return ;
-        }
-
-        $currencyArr = BCurrency::find()->where(['id' => $this->id])->select('withdraw_max_amount')->asArray()->limit(1)->one();
-        if (empty($currencyArr)) {
-            return ;
-        }
-        $currencyJsonArr = json_decode($currencyArr['withdraw_max_amount'], true);
-
-        return $currencyJsonArr[1];
-    }
-
-    public function setFirst($first)
-    {
-        $this->first = $first;
-
-        return $this->first;
-    }
-    /**
-     * 魔术方法
-     */
-    public function getSecond()
-    {
-        if (empty($this->id)) {
-            return ;
-        }
-
-        $currencyArr = BCurrency::find()->where(['id' => $this->id])->select('withdraw_max_amount')->asArray()->limit(1)->one();
-        if (empty($currencyArr)) {
-            return ;
-        }
-        $currencyJsonArr = json_decode($currencyArr['withdraw_max_amount'], true);
-
-        return $currencyJsonArr[2];
-    }
-
-    public function setSecond($second)
-    {
-        $this->second = $second;
-
-        return $this->second;
-    }
-
-    /**
      * 用户钱包
      *  一对多
      * @return void
@@ -204,12 +152,11 @@ class BCurrency extends \common\models\Currency
     {
         return [
             [['summary'], 'string'],
-            [['status', 'sort', 'recharge_status', 'recharge_amount_precision', 'withdraw_status', 'withdraw_amount_precision', 'recharge_confirmation', 'withdraw_confirmation'
-                , 'otc_status'], 'integer'],
-            [['recharge_min_amount', 'withdraw_min_amount', 'first', 'second'], 'number'],
+            [['status', 'sort', 'recharge_status', 'recharge_amount_precision', 'withdraw_status', 'withdraw_amount_precision', 'recharge_confirmation', 'withdraw_confirmation'], 'integer'],
+            [['recharge_min_amount', 'withdraw_min_amount', 'withdraw_max_amount', 'withdraw_audit_amount', 'withdraw_day_amount'], 'number'],
             [['code', 'name'], 'string', 'max' => 20],
             [['status', 'name', 'code', 'recharge_status', 'recharge_amount_precision', 'withdraw_status', 'withdraw_amount_precision',
-                'recharge_min_amount', 'withdraw_min_amount', 'sort', 'first', 'second'], 'required'],
+                'recharge_min_amount', 'withdraw_min_amount', 'sort'], 'required'],
             [['code'], 'unique'],
         ];
     }
@@ -234,11 +181,8 @@ class BCurrency extends \common\models\Currency
             'withdraw_status' => '提现状态',
             'withdraw_min_amount' => '提现最小数量',
             'withdraw_amount_precision' => '提现数量精度',
-            'otc_status' => '法币交易， 0 不参与，1 参与',
             'create_time' => '添加时间',
             'update_time' => '修改时间',
-            'first' => '提现等级一',
-            'second' => '提现等级二',
         ];
     }
 }

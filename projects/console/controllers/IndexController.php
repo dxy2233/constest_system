@@ -8,15 +8,22 @@
 
 namespace console\controllers;
 
+use common\models\business\BSetting;
+use common\services\JobService;
 
-
-class IndexController extends BaseController {
+class IndexController extends BaseController
+{
 
     /**
      * 默认
      */
-    public function actionIndex(){
+    public function actionIndex()
+    {
         echo "welcome";
     }
 
+    public function actionBeginSettlement()
+    {
+        JobService::beginPut();
+    }
 }

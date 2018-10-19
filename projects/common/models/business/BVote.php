@@ -4,8 +4,11 @@ namespace common\models\business;
 
 class BVote extends \common\models\Vote
 {
-    // 可撤回投票类型
+    // 可赎回投票类型
     const IS_REVOKE = [1];
+
+    // 新增 赎回中状态
+    const STATUS_INACTIVE_ING = 2;
 
     const TYPE_ORDINARY = 1; // 普通投票
     const TYPE_PAY = 2; // 支付投票
@@ -31,7 +34,8 @@ class BVote extends \common\models\Vote
     {
         $arr = [
             static::STATUS_ACTIVE => \Yii::t('app', '投出'),
-            static::STATUS_INACTIVE => \Yii::t('app', '撤回'),
+            static::STATUS_INACTIVE => \Yii::t('app', '已赎回'),
+            static::STATUS_INACTIVE_ING => \Yii::t('app', '赎回中'),
         ];
         if ($key !== '') {
             return isset($arr[$key]) ? $arr[$key] : '';
@@ -42,7 +46,7 @@ class BVote extends \common\models\Vote
 
     /**
      * 用户关联
-     *  一对多
+     *  一对一
      * @return void
      */
     public function getUser()
@@ -52,13 +56,24 @@ class BVote extends \common\models\Vote
 
     /**
      * 节点关联
-     *  一对多
+     *  一对一
      * @return void
      */
     public function getNode()
     {
         return $this->hasOne(BNode::className(), ['id' => 'node_id']);
     }
+
+    /**
+     * 节点关联
+     *  一对多
+     * @return void
+     */
+    public function getHistorys()
+    {
+        return $this->hasMany(BHistory::className(), ['node_id' => 'node_id']);
+    }
+
     /**
     * 自定义 label
     * @return array

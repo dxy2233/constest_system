@@ -31,8 +31,7 @@
 
     <el-table :data="tableDataPage" style="margin:10px 0;">
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="wallet" label="钱包"/>
-      <el-table-column prop="walletId" label="币种"/>
+      <el-table-column prop="name" label="币种"/>
       <el-table-column prop="positionAmount" label="总额"/>
       <el-table-column prop="useAmount" label="可用"/>
       <el-table-column prop="frozenAmount" label="锁仓"/>
@@ -69,7 +68,6 @@
       </div>
       <el-table :data="lockTableDataPage" style="margin:10px 0;">
         <el-table-column prop="mobile" label="用户"/>
-        <el-table-column prop="wallet" label="钱包"/>
         <el-table-column prop="name" label="币种"/>
         <el-table-column prop="amount" label="数量"/>
         <el-table-column prop="remark" label="描述"/>
@@ -165,8 +163,8 @@ export default {
     // 导出excel
     addExcel() {
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['用户', '钱包', '币种', '总额', '可用', '锁仓']
-        const filterVal = ['mobile', 'wallet', 'walletId', 'positionAmount', 'useAmount', 'frozenAmount']
+        const tHeader = ['用户', '币种', '总额', '可用', '锁仓']
+        const filterVal = ['mobile', 'name', 'positionAmount', 'useAmount', 'frozenAmount']
         const list = this.tableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({
@@ -178,8 +176,8 @@ export default {
     },
     addExcelLock() {
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['用户', '钱包', '币种', '数量', '描述', '时间']
-        const filterVal = ['mobile', 'wallet', 'name', 'amount', 'remark', 'createTime']
+        const tHeader = ['用户', '币种', '数量', '描述', '时间']
+        const filterVal = ['mobile', 'name', 'amount', 'remark', 'createTime']
         const list = this.lockTableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({

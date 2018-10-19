@@ -94,7 +94,8 @@ a:hover {
 
 // 侧栏外层
 .fade-slide {
-  width: 650px;
+  // width: 650px;
+  width: 50%;
   height: 100%;
   padding: 20px;
   background: #fff;
@@ -144,12 +145,14 @@ a:hover {
 }
 .fade-enter {
   opacity: 0;
-  transform: translateX(650px);
+  // transform: translateX(650px);
+  transform: translateX(50%);
 }
 .fade-leave-active {
   transition: all 0.4s;
 }
 .fade-leave-to {
   opacity: 0;
-  transform: translateX(650px);
+  // transform: translateX(650px);
+  transform: translateX(50%);
 }

@@ -25,7 +25,7 @@
     </div>
     <br>
 
-    已选择<span style="color:#3e84e9;">2</span>项
+    已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
     <el-button size="small" style="margin-top:20px;" @click="closeAll">停用</el-button>
 
     <el-table
@@ -107,15 +107,15 @@
               <el-radio-button label="投票记录"/>
               <el-radio-button label="赎回记录"/>
             </el-radio-group>
-            <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.votelist">
+            <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.voteList">
               <el-table-column prop="mobile" label="手机号"/>
-              <el-table-column prop="votenumber" label="票数"/>
-              <el-table-column prop="createtime" label="投票时间"/>
+              <el-table-column prop="voteNumber" label="票数"/>
+              <el-table-column prop="createTime" label="投票时间"/>
             </el-table>
-            <el-table v-show="pollName=='赎回记录'" :data="nodeInfoVote.orderlist">
+            <el-table v-show="pollName=='赎回记录'" :data="nodeInfoVote.orderList">
               <el-table-column type="index" label="排名"/>
               <el-table-column prop="mobile" label="用户"/>
-              <el-table-column prop="votenumber" label="合计票数"/>
+              <el-table-column prop="voteNumber" label="合计票数"/>
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="享有权益" name="3">
@@ -509,6 +509,7 @@ export default {
     },
     // 批量停用
     closeAll() {
+      if (this.tableDataSelection.length < 1) return
       this.$confirm('确定停用吗?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',

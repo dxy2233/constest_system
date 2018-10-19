@@ -34,7 +34,7 @@ class Node extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'type_id', 'name', 'desc', 'scheme', 'create_time'], 'required'],
+            [['user_id', 'type_id'], 'required'],
             [['user_id', 'type_id', 'status', 'create_time', 'is_tenure'], 'integer'],
             [['desc', 'scheme'], 'string'],
             [['name', 'status_remark', 'logo'], 'string', 'max' => 255],
@@ -51,6 +51,9 @@ class Node extends \common\dzbase\DzModel
             'user_id' => Yii::t('app', '用户ID'),
             'type_id' => Yii::t('app', '节点类型ID'),
             'name' => Yii::t('app', '机构/名称'),
+            'grt' => Yii::t('app', '质压grt'),
+            'tt' => Yii::t('app', '质压tt'),
+            'bpt' => Yii::t('app', '质压bpt'),
             'desc' => Yii::t('app', '简介'),
             'scheme' => Yii::t('app', '建设方案'),
             'is_tenure' => Yii::t('app', '任职状态：0 不任职 1 任职 '),

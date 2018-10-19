@@ -133,7 +133,7 @@ class VoteController extends BaseController
         $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_VOTE])->orderBy('sort')->asArray()->all();
         foreach ($data as &$v) {
             $v['initialize'] = json_decode($v['initialize'], true);
-            if ($v['key'] == 'end_update_time') {
+            if (strstr($v['key'], 'time')) {
                 $v['value'] = date('Y-m-d H:i:s', $v['value']);
             }
         }

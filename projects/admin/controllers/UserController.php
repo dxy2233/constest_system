@@ -515,6 +515,29 @@ class UserController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
+        $old_data = BUser::find()->where(['mobile' => $mobile])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '手机已注册');
+        }
         $code = $this->pString('code');
+        $user = new BUser();
+        $user->mobile = $mobile;
+        $transaction = \Yii::$app->db->beginTransaction();
+        if (!$user->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
+        }
+        if ($code != '') {
+            $id = FuncHelper::radixConvert($code);
+            $user_recommend = new BUserRecommend();
+            $user_recommend->user_id = $user->id;
+            $user_recommend->parent_id = $id;
+            if (!$user_recommend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+            }
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '注册成功');
     }
 }

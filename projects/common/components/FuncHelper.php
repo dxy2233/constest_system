@@ -734,15 +734,16 @@ class FuncHelper
      * @param integer $default
      * @return void
      */
-    public static function radixConvert($data, int $frombase = 8, int $tobase = 36,  int $default = 10000000000)
+    public static function radixConvert($data, int $frombase = 8, int $tobase = 36, int $default = 10000000000)
     {
         $dlen = strlen($default);
         if (is_int($data) && $data > 0) {
             $pad = str_pad($data, $dlen, $default, STR_PAD_LEFT);
             $convert = base_convert($pad, $frombase, $tobase);
             $data = strtoupper($convert);
-        } else if (is_string($data)) {
-            $convert = base_convert($data, $tobase, $frombase);
+        } elseif (is_string($data)) {
+            $convert = (int)base_convert($data, $tobase, $frombase);
+            var_dump($convert);
             $data = $convert - $default;
         }
         return $data;

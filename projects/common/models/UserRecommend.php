@@ -28,7 +28,7 @@ class UserRecommend extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'parent_id', 'create_time'], 'required'],
+            [['user_id', 'parent_id'], 'required'],
             [['user_id', 'parent_id', 'create_time'], 'integer'],
         ];
     }

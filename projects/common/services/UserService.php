@@ -22,12 +22,11 @@ class UserService extends ServiceBase
      * @param integer $len
      * @return void
      */
-    public static function generateRemmendCode(int $len)
+    public static function generateRemmendCode(int $len = 6)
     {
-        $code = '';
-        $random = FuncHelper::random($len);
-        if (BUser::find()->where(['recommend_code' => $random])->exists()) {
-            $code = self::generateRemmendCode($len);
+        $code = FuncHelper::random($len);
+        if (BUser::find()->where(['recommend_code' => $code])->exists()) {
+            return self::generateRemmendCode($len);
         }
         return $code;
     }

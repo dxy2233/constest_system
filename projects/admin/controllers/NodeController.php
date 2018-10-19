@@ -2,6 +2,7 @@
 namespace admin\controllers;
 
 use common\services\AclService;
+use common\services\UserService;
 use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
@@ -21,6 +22,7 @@ use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRecommend;
 use common\models\business\BSetting;
 use common\models\business\BCurrency;
+use common\models\business\BUserRechargeWithdraw;
 use common\components\FuncHelper;
 
 /**
@@ -60,7 +62,12 @@ class NodeController extends BaseController
         }
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
         foreach ($data as &$v) {
-            $v['count'] = $people[$v['id']];
+            if (isset($people[$v['id']])) {
+                $v['count'] = $people[$v['id']];
+            } else {
+                $v['count'] = 0;
+            }
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -214,14 +221,9 @@ class NodeController extends BaseController
         }
         //假设排名为1
         $order = 1;
+        $rule_list = NodeService::getNodeRule($nodeId, $order);
 
-        // $type_data = BNodeType::find()->where(['id' => $data->type_id])->one();
-        // $rule_arr = json_decode($type_data->rule_list);
-        // if (count($rule_arr) == 0) {
-        //     return $this->respondJson(0, '获取成功', []);
-        // }
-        // $rule_data = BNodeRule::find()->where(['in','id',$rule_arr])->asArray()->all();
-        return $this->respondJson(0, '获取成功', []);
+        return $this->respondJson(0, '获取成功', $rule_list);
     }
 
     // 获取节点类型列表
@@ -249,7 +251,11 @@ class NodeController extends BaseController
         }
         $people = NodeService::getPeopleNum($id_arr, '', $endTime);
         foreach ($data as &$v) {
-            $v['count'] = $people[$v['id']];
+            if (isset($people[$v['id']])) {
+                $v['count'] = $people[$v['id']];
+            } else {
+                $v['count'] = 0;
+            }
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -320,10 +326,10 @@ class NodeController extends BaseController
         foreach ($rule_arr as $v) {
             $rule_obj = new BTypeRuleContrast();
             $rule_obj->type_id = $node->id;
-            $rule_obj->is_tenure = $v['isTenure'];
-            $rule_obj->min_order = $v['minOrder'];
-            $rule_obj->max_order = $v['maxOrder'];
-            $rule_obj->rule_id = $v['ruleId'];
+            $rule_obj->is_tenure = $v['is_tenure']?$v['is_tenure']:$v['isTenure'];
+            $rule_obj->min_order = $v['min_order']?$v['min_order']:$v['minOrder'];
+            $rule_obj->max_order = $v['max_order']?$v['max_order']:$v['maxOrder'];
+            $rule_obj->rule_id = $v['rule_id']?$v['rule_id']:$v['ruleId'];
             if (!$rule_obj->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '操作失败', $rule_obj->getFirstErrorText());
@@ -336,13 +342,9 @@ class NodeController extends BaseController
     public function actionGetRuleList()
     {
         $data = BNodeRule::find()->asArray()->all();
-        $return = array('isTenure'=>array(),'noTenure'=>array());
+        $return = [];
         foreach ($data as $v) {
-            if ($v['is_tenure'] == 1) {
-                $return['isTenure'][] = $v;
-            } else {
-                $return['noTenure'][] = $v;
-            }
+            $return[$v['is_tenure']][] = $v;
         }
         return $this->respondJson(0, '获取成功', $return);
     }
@@ -638,36 +640,76 @@ class NodeController extends BaseController
             return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
         }
 
-        $user_c = new BUserCurrency();
-        $user_c->user_id = $user->id;
-        $user_c->currency_id = $currency_id['tt'];
-        $user_c->position_amount = $tt;
-        $user_c->frozen_amount = $tt;
-        $user_c->use_amount = 0;
-        if (!$user_c->save()) {
+        // $user_c = new BUserCurrency();
+        // $user_c->user_id = $user->id;
+        // $user_c->currency_id = $currency_id['tt'];
+        // $user_c->position_amount = $tt;
+        // $user_c->frozen_amount = $tt;
+        // $user_c->use_amount = 0;
+        // if (!$user_c->save()) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        // }
+        // $user_c = new BUserCurrency();
+        // $user_c->user_id = $user->id;
+        // $user_c->currency_id = $currency_id['grt'];
+        // $user_c->position_amount = $grt;
+        // $user_c->frozen_amount = $grt;
+        // $user_c->use_amount = 0;
+        // if (!$user_c->save()) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        // }
+        // $user_c = new BUserCurrency();
+        // $user_c->user_id = $user->id;
+        // $user_c->currency_id = $currency_id['bpt'];
+        // $user_c->position_amount = $bpt;
+        // $user_c->frozen_amount = $bpt;
+        // $user_c->use_amount = 0;
+        // if (!$user_c->save()) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        // }
+
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['bpt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $bpt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        if (!$withdraw->save()) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
         }
-        $user_c = new BUserCurrency();
-        $user_c->user_id = $user->id;
-        $user_c->currency_id = $currency_id['grt'];
-        $user_c->position_amount = $grt;
-        $user_c->frozen_amount = $grt;
-        $user_c->use_amount = 0;
-        if (!$user_c->save()) {
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['tt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $tt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        if (!$withdraw->save()) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
         }
-        $user_c = new BUserCurrency();
-        $user_c->user_id = $user->id;
-        $user_c->currency_id = $currency_id['bpt'];
-        $user_c->position_amount = $bpt;
-        $user_c->frozen_amount = $bpt;
-        $user_c->use_amount = 0;
-        if (!$user_c->save()) {
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['grt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $grt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        if (!$withdraw->save()) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
         }
+        UserService::resetCurrency($user->id, $currency_id['grt']);
+        UserService::resetCurrency($user->id, $currency_id['tt']);
+        UserService::resetCurrency($user->id, $currency_id['bpt']);
 
         $transaction->commit();
         return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);

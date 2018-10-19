@@ -19,14 +19,16 @@ use common\models\business\BVoucherDetail;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BCurrency;
 use common\models\business\BUserRecommend;
+use common\models\business\BUserRechargeAddress;
 use common\components\FuncHelper;
+use common\models\business\Traits\UserCurrencyTrait;
 
 /**
  * Site controller
  */
 class UserController extends BaseController
 {
-    use \common\models\business\Traits\UserCurrencyTrait;
+    use UserCurrencyTrait;
     public function behaviors()
     {
         $parentBehaviors = parent::behaviors();
@@ -154,7 +156,7 @@ class UserController extends BaseController
         }
         return $this->respondJson(0, '获取成功', $identify);
     }
-
+    // 用户钱包信息
     public function actionGetCurrency()
     {
         $userId = $this->pInt('userId');
@@ -165,7 +167,7 @@ class UserController extends BaseController
         $currency_data = BUserCurrency::find()
         ->from(BUserCurrency::tableName()." A")
         ->select(['A.*','B.address','C.name'])
-        ->join('inner join', BUserRechargeAddress::tableName().' B', 'B.currency_id = A.currency_id && B.user_id = '.$userId)
+        ->join('left join', BUserRechargeAddress::tableName().' B', 'B.currency_id = A.currency_id && B.user_id = '.$userId)
         ->join('inner join', BCurrency::tableName().' C', 'C.id = A.currency_id')
         ->where(['A.user_id'=> $userId])->asArray()->all();
         if (!empty($currency_data)) {

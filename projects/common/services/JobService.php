@@ -24,6 +24,7 @@ class JobService extends ServiceBase
                 $id_arr[] = $v['id'];
             }
             $people = NodeService::getPeopleNum($id_arr, '', $endTime);
+            $history_id = date('YmdHi');
             foreach ($data as $v) {
                 $history = new BHistory();
                 $history->people_number = $people[$v['id']];
@@ -32,6 +33,7 @@ class JobService extends ServiceBase
                 $history->username = $v['username'];
                 $history->node_id = $v['id'];
                 $history->is_tenure = $v['is_tenure'];
+                $history->update_number = $history_id;
                 echo json_encode($history);
                 if (!$history->save()) {
                     echo $history->getFirstErrorText();

@@ -49,6 +49,7 @@ class History extends \common\dzbase\DzModel
             'node_name' => '节点名',
             'vote_number' => '票数',
             'people_number' => '支持人数',
+            'update_number' => '记录号',
             'is_tenure' => '0:未任职 1:已任职',
             'create_time' => 'Create Time',
         ];

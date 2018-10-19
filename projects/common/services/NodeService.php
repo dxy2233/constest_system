@@ -13,6 +13,9 @@ use common\models\business\BVote;
 use common\models\business\BUserWallet;
 use common\models\business\BUserAccessToken;
 use common\models\business\BUserRefreshToken;
+use common\models\business\BTypeRuleContrast;
+use common\models\business\BNodeRule;
+use common\models\business\BNotice;
 
 class NodeService extends ServiceBase
 {
@@ -131,13 +134,21 @@ class NodeService extends ServiceBase
         return $data;
     }
 
+
+    // 获取节点当前权益
     public static function getNodeRule(int $node_id, int $order)
     {
         $node = BNode::find()->where(['id' => $node_id])->one();
-        BTypeRuleContrast::find()
+        $find = BTypeRuleContrast::find()
         ->from(BTypeRuleContrast::tableName()." A")
         ->join('left join', BNodeRule::tableName().' B', 'A.rule_id = B.id')
-        ->where(['A.type_id' => $node->type_id])
-        ->andWhere(['or', ['A.is_tenure'=>]])
+        ->where(['A.type_id' => $node->type_id]);
+        if ($node->is_tenure == BNotice::STATUS_ACTIVE) {
+            $where = ['or', ['A.is_tenure'=> BTypeRuleContrast::$TYPE_ALL], ['A.is_tenure' => BTypeRuleContrast::$TYPE_TENURE], ['and', ['A.is_tenure' => BTypeRuleContrast::$TYPE_ORDER], ['<=', 'A.min_order', $order], ['>=', 'A.max_order', $order]]];
+        } else {
+            $where = ['or', ['A.is_tenure'=> BTypeRuleContrast::$TYPE_ALL], ['and', ['A.is_tenure' => BTypeRuleContrast::$TYPE_ORDER], ['<=', 'A.min_order', $order], ['>=', 'A.max_order', $order]]];
+        }
+        $data = $find->andWhere($where)->select(['A.id as aid','B.*'])->asArray()->all();
+        return $data;
     }
 }

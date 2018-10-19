@@ -8,6 +8,7 @@ use common\components\FuncHelper;
 use common\models\business\BVote;
 use common\services\SettingService;
 use common\models\business\BHistory;
+use common\models\business\BCurrency;
 
 class VoteController extends BaseController
 {
@@ -245,5 +246,70 @@ class VoteController extends BaseController
 
         return $this->respondJson(0, '赎回成功');
 
+    }
+
+    /**
+     * 投票方式显示
+     *
+     * @return void
+     */
+    public function actionTypes()
+    {
+        $userModel = $this->user;
+        $ordinaryPrice = SettingService::get('vote', 'ordinary_price');
+        $paymentPrice = SettingService::get('vote', 'payment_price');
+        $this->actionVoucherInfo();
+        $voucherNumber = $this->respondData['content']['count'];
+        // 返回容器
+        $data = [
+            [
+                'id' => BVote::TYPE_ORDINARY,
+                'name' => BVote::getType(BVote::TYPE_ORDINARY),
+                'scaling' => $ordinaryPrice->value . 'GRT=1票 可赎回',
+            ],
+            [
+                'id' => BVote::TYPE_PAY,
+                'name' => BVote::getType(BVote::TYPE_PAY),
+                'scaling' => '消耗' . $paymentPrice->value . 'GRT=10票',
+            ],
+            [
+                'id' => BVote::TYPE_VOUCHER,
+                'name' => BVote::getType(BVote::TYPE_VOUCHER),
+                'scaling' => '拥有数量 ' . $voucherNumber. '票',
+            ],
+        ];
+        
+
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    public function actionTypeInfo()
+    {
+        $data = [];
+        $type = $this->pInt('type', 1);
+        $userModel = $this->user;
+        $paymentPrice = SettingService::get('vote', 'payment_price');
+        $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
+        // 返回容器
+        $data['amount'] = 0;
+        $data['number'] = 0;
+        switch($type) {
+            case BVote::TYPE_ORDINARY:
+                $ordinaryPrice = 1 / (float) SettingService::get('vote', 'ordinary_price')->value;
+                $currencyId = BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
+                $userCurrencyModel = $userModel->getUserCurrency()
+                ->where(['currency_id' => $currencyId]);
+                $userCurrencyInfo = $userCurrencyModel->one();
+                if (!is_null($userCurrencyInfo)) {
+                    $data['amount'] = $userCurrencyInfo->use_amount;
+                    $data['number'] = $userCurrencyInfo->use_amount;
+                } 
+            break;
+            case BVote::TYPE_PAY:
+            break;
+            case BVote::TYPE_VOUCHER:
+            break;
+        }
+        return $this->respondJson(0, '获取成功', $data);
     }
 }

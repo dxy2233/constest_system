@@ -77,12 +77,11 @@ class LoginController extends BaseController
         $returnInfo = ValidationCodeSmsService::checkValidateCode(
             $mobile,
             $vcode,
-            BSmsAuth::$TYPE_TEAM_LOGIN
+            BSmsAuth::$TYPE_USER_LOGIN
           );
         if ($returnInfo->code != 0) {
             return $this->respondJson(1, $returnInfo->msg);
         }
-
 
         $userModel = BUser::find()->where(['mobile' => $mobile])->one();
         //验证手机、是否存在

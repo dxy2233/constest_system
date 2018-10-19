@@ -4,6 +4,9 @@ namespace common\models\business;
 
 class BVote extends \common\models\Vote
 {
+    // 可撤回投票类型
+    const IS_REVOKE = [1];
+
     const TYPE_ORDINARY = 1; // 普通投票
     const TYPE_PAY = 2; // 支付投票
     const TYPE_VOUCHER = 3; // 券投票
@@ -38,13 +41,23 @@ class BVote extends \common\models\Vote
     }
 
     /**
-     * 用户币种
+     * 用户关联
      *  一对多
      * @return void
      */
     public function getUser()
     {
         return $this->hasOne(BUser::className(), ['id' => 'user_id']);
+    }
+
+    /**
+     * 节点关联
+     *  一对多
+     * @return void
+     */
+    public function getNode()
+    {
+        return $this->hasOne(BNode::className(), ['id' => 'node_id']);
     }
     /**
     * 自定义 label

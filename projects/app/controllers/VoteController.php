@@ -151,4 +151,57 @@ class VoteController extends BaseController
         return $this->respondJson(0, '获取成功', $data);
         exit;
     }
+
+    /**
+     * 我的投票记录
+     *
+     * @return void
+     */
+    public function actionLogs()
+    {
+        // 返回容器
+        $data = [];
+        // 查询类型
+        $type = $this->pInt('type', 1);
+        $page = $this->pInt('page', 1);
+        $pageSize = $this->pInt('page_size', 15);
+        $userModel = $this->user;
+        $voteModel = $userModel->getVotes()
+        ->select(['v.*', 'n.name', 'nt.name as type_name'])
+        ->alias('v')
+        ->joinWith(['node n' => function($query) {
+            $query->joinWith(['nodeType nt']);
+        }]);
+        if ($type) {
+            // 默认为投出的
+           $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
+        } else {
+            $voteModel->active(BVote::STATUS_INACTIVE, 'v.');
+        }
+        $data['count'] = $voteModel->count();
+        $data['list'] = $voteModel->page($page, $pageSize)
+        ->asArray()
+        ->all();
+        // ->createCommand()->getRawSql();
+        foreach ($data['list'] as &$vote) {
+            $vote['undo_time'] = FuncHelper::formateDate($vote['undo_time']);
+            $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);
+            $vote['status_str'] = BVote::getStatus($vote['status']);
+            $vote['type_str'] = BVote::getType($vote['type']);
+            $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE);
+            unset($vote['node'], $vote['user_id'], $vote['node_id'], $vote['consume'], $vote['type'], $vote['status']);
+        }
+        // var_dump($voteList);exit;
+        return $this->respondJson(0, '获取成功', $data);
+
+    }
+    /**
+     * 我的投票赎回操作
+     *
+     * @return void
+     */
+    public function actionRevokeVote()
+    {
+
+    }
 }

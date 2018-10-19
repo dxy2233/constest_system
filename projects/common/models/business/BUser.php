@@ -93,12 +93,22 @@ class BUser extends \common\models\User
     }
     
     /**
-     * 用户的投票记录
+     * 用户的投票劵使用记录
      *
      * @return void
      */
     public function getVoucherDetails()
     {
         return $this->hasMany(BVoucherDetail::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * 用户的投票记录
+     *
+     * @return void
+     */
+    public function getVotes()
+    {
+        return $this->hasMany(BVote::className(), ['user_id' => 'id']);
     }
 }

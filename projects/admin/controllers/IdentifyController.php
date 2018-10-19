@@ -77,8 +77,8 @@ class IdentifyController extends BaseController
         }
         return $this->respondJson(0, '获取成功', $data);
     }
-
-    public function actionCheckNo()
+    // 审核不通过
+    public function actionExamineOff()
     {
     }
 }

@@ -564,6 +564,46 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
             }
         }
+
+        // 补全充值冻结信息
+        $currency_arr = BCurrency::find()->all();
+        $currency_id = [];
+        foreach ($currency_arr  as $v) {
+            $currency_id[$v['code']] = $v['id'];
+        }
+        $user_c_detail = new BUserCurrencyDetail();
+        $user_c_detail->user_id = $user->id;
+        $user_c_detail->currency_id = $currency_id['grt'];
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->amount = $grt;
+        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        if (!$user_c_detail->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
+        }
+        $user_c_detail = new BUserCurrencyDetail();
+        $user_c_detail->user_id = $user->id;
+        $user_c_detail->currency_id = $currency_id['tt'];
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->amount = $tt;
+        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        if (!$user_c_detail->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
+        }
+        $user_c_detail = new BUserCurrencyDetail();
+        $user_c_detail->user_id = $user->id;
+        $user_c_detail->currency_id = $currency_id['bpt'];
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->amount = $bpt;
+        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        if (!$user_c_detail->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
+        }
+
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
         $transaction->commit();
         return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);
     }

@@ -25,6 +25,12 @@ class BUserCurrencyDetail extends \common\models\UserCurrencyDetail
 
         return $arr;
     }
+
+
+    public static $TYPE_INCOME = 1;
+    public static $TYPE_WITHDRAW = 2;
+    public static $TYPE_VOTE = 4;
+    public static $TYPE_POUNDAGE = 5;
     /**
     * 自定义 label
     * @return array

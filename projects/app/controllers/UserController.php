@@ -57,20 +57,20 @@ class UserController extends BaseController
     public function actionAddRecommend()
     {
         $userModel = $this->user;
-        $code = $this->pString('code', false);
-        if (!preg_match('/^[A-Z0-9]{6}$/i', $code)) {
+        $reCode = $this->pString('re_code', false);
+        if (!preg_match('/^[A-Z0-9]{6}$/i', $reCode)) {
             return $this->respondJson(1, '推荐码格式错误');
         }
-        $parentId = FuncHelper::radixConvert($code);
+        
+        $parentId = UserService::validateRemmendCode($reCode);
+        if (is_null($parentId)) {
+            return $this->respondJson(1, '推荐人不存在');
+        }
         if ($parentId === $userModel->id) {
             return $this->respondJson(1, '推荐人不能是自己');
         }
         if (BUserRecommend::find()->where(['user_id' => $userModel->id])->exists()) {
             return $this->respondJson(1, '已添加推荐人');
-        }
-        $parentModel = BUser::findOne($parentId);
-        if (is_null($parentModel)) {
-            return $this->respondJson(1, '推荐人不存在');
         }
         $recommendModel = new BUserRecommend();
         $recommendModel->parent_id = (int) $parentId;

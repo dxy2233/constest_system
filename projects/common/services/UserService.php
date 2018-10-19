@@ -58,7 +58,9 @@ class UserService extends ServiceBase
         if ($user->status == BUser::STATUS_INACTIVE) {
             return new ReturnInfo(1, "账号状态异常");
         }
-
+        if (empty($user->pwd_salt)) {
+            $user->pwd_salt = md5(NOW_TIME . $user->mobile);
+        }
         $user->last_login_ip = NetUtil::getIp();
         $user->last_login_time = NOW_TIME;
         $user->update();
@@ -71,6 +73,32 @@ class UserService extends ServiceBase
         $accessToken->content['name'] = $user->username;
         $accessToken->content['mobile'] = $user->mobile;
         return new ReturnInfo(0, "登录成功", $accessToken->content);
+    }
+
+    /**
+     * 根据用户密码明文,生成密码hash值
+     * @param string $pwdSalt
+     * @param string $cleartextPwd
+     * @return string
+     */
+    public static function generateTransPwdHash($pwdSalt, $cleartextPwd)
+    {
+        return md5($cleartextPwd . $pwdSalt);
+    }
+
+    /**
+     * 验证用户密码是否正确
+     * @param $user
+     * @param $pwd
+     * @return bool
+     */
+    public static function validateTransPwd(User $user, $pwd)
+    {
+        if (self::generatePwdHash($user->pwd_salt, $pwd) == $user->trans_password) {
+            return true;
+        }
+
+        return false;
     }
     
     /**
@@ -89,6 +117,7 @@ class UserService extends ServiceBase
                     $userModel->$key = $value;
                 }
             }
+            $userModel->pwd_salt = md5(NOW_TIME . $userModel->mobile);
             // 注册账号为激活状态
             $userModel->status = Buser::STATUS_ACTIVE;
             if (!$userModel->save()) {

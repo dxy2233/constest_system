@@ -12,6 +12,7 @@ use common\components\FuncHelper;
 
 trait DzControllerTrait
 {
+    protected $respondData;
    
     /*
     * 安全参数
@@ -105,7 +106,8 @@ trait DzControllerTrait
         $msg = $msg === null ? '' : $msg;
         // 将变量转换为驼峰命名法
         $content = $camelize && !is_bool($content)? FuncHelper::keyCamelize($content) : $content;
-        return json_encode(array('code' => $errCode, 'msg' => $msg, 'content' => $content), JSON_UNESCAPED_UNICODE);
+        $this->respondData = array('code' => $errCode, 'msg' => $msg, 'content' => $content);
+        return json_encode($this->respondData, JSON_UNESCAPED_UNICODE);
     }
 
 

@@ -72,6 +72,7 @@ class UserService extends ServiceBase
         self::writeUserLog($user->id, BUserLog::$TYPE_LOGIN, BUserLog::$STATUS_SUCCESS, '登录成功', $user->last_login_ip);
         $accessToken->content['name'] = $user->username;
         $accessToken->content['mobile'] = $user->mobile;
+        $accessToken->content['is_node'] = (bool) $user->node;
         return new ReturnInfo(0, "登录成功", $accessToken->content);
     }
 

@@ -3,9 +3,11 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\VoteService;
 use common\components\FuncHelper;
 use common\models\business\BVote;
 use common\services\SettingService;
+use common\models\business\BHistory;
 
 class VoteController extends BaseController
 {
@@ -176,19 +178,19 @@ class VoteController extends BaseController
             // 默认为投出的
            $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
         } else {
-            $voteModel->active(BVote::STATUS_INACTIVE, 'v.');
+            // 赎回中以及赎回
+            $voteModel->where(['v.status' => [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]]);
         }
         $data['count'] = $voteModel->count();
         $data['list'] = $voteModel->page($page, $pageSize)
         ->asArray()
         ->all();
-        // ->createCommand()->getRawSql();
         foreach ($data['list'] as &$vote) {
             $vote['undo_time'] = FuncHelper::formateDate($vote['undo_time']);
             $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);
             $vote['status_str'] = BVote::getStatus($vote['status']);
             $vote['type_str'] = BVote::getType($vote['type']);
-            $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE);
+            $vote['is_revoke'] = in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]) ? false : in_array($vote['type'], BVote::IS_REVOKE);
             unset($vote['node'], $vote['user_id'], $vote['node_id'], $vote['consume'], $vote['type'], $vote['status']);
         }
         // var_dump($voteList);exit;
@@ -205,16 +207,16 @@ class VoteController extends BaseController
     {
         $voteId = $this->pInt('id', 1);
         $userModel = $this->user;
-        $voteModel = $userModel->getVotes()
-        ->active()
-        ->where(['type' => BVote::TYPE_ORDINARY]);
-        $vote = $voteModel->one();
-        if (is_null($vote)) {
-            return $this->respondJson(1, '该投票不存在或不能撤回');
-        }
-        var_dump($vote->create_time);exit;
-        return $this->respondJson(0, '获取结果', true);
 
+        $voteHas = VoteService::hasRevoke($userModel, $voteId);
+        if ($voteHas->code) {
+            return $this->respondJson($voteHas->code, $voteHas->msg, $voteHas->content);
+        }
+        if ($voteHas->content) {
+            return $this->respondJson(0, '获取结果', true);
+        } else {
+            return $this->respondJson(0, '获取结果', false);
+        }
     }
 
 
@@ -226,6 +228,20 @@ class VoteController extends BaseController
     public function actionRevokeVote()
     {
         $voteId = $this->pInt('id', 1);
+        $hasRevoke = $this->actionHasRevoke();
+        if (!$this->respondData['content']) {
+            return $this->respondJson(1, '暂时不能赎回');
+        }
+
+        $voteModel = BVote::findOne($voteId);
+        if (is_null($voteModel) || in_array($voteModel->status, [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
+            return $this->respondJson(1, '该投票状态不能更改');
+        }
+        // 赎回中状态
+        $voteModel->status = BVote::STATUS_INACTIVE_ING;
+        if (!$voteModel->save()) {
+            return $this->respondJson(1, '赎回失败', $voteModel->getFirstErrors());
+        }
 
         return $this->respondJson(0, '赎回成功');
 

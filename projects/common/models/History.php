@@ -34,9 +34,8 @@ class History extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['node_id', 'node_type', 'username', 'node_name', 'vote_number', 'people_number', 'is_tenure', 'update_number', 'create_time'], 'required'],
-            [['node_id', 'node_type', 'vote_number', 'people_number', 'is_tenure', 'update_number', 'create_time'], 'integer'],
-            [['username', 'node_name'], 'string', 'max' => 64],
+            [['node_id', 'username', 'node_name', 'vote_number', 'people_number', 'is_tenure'], 'required'],
+            [['node_id','vote_number', 'people_number', 'is_tenure', 'create_time'], 'integer'],
         ];
     }
 

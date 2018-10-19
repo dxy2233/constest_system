@@ -6,6 +6,10 @@ use common\components\FuncHelper;
 
 class BUserIdentify extends \common\models\UserIdentify
 {
+    const STATUS_INACTIVE = 0; //待审核
+    const STATUS_ACTIVE = 1; //正常
+    const STATUS_FAIL = 2; //认证失败
+
     public static function getStatus($key = '')
     {
         $arr = [

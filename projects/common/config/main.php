@@ -68,8 +68,13 @@ return [
         ],
         'queue' => [
             'class' => \yii\queue\file\Queue::class,
-            'path' => '@runtime/queue',
+            'path' => '@console/runtime/queue',
             // 驱动的其他选项
+            // 'class' => \yii\queue\db\Queue::class,
+            // 'db' => 'db', // DB 连接组件或它的配置
+            // 'tableName' => 'queue', // 表名
+            // 'channel' => 'default', // Queue channel key
+            // 'mutex' => \yii\mutex\MysqlMutex::class
         ],
     ],
 

@@ -13,6 +13,9 @@ use common\models\business\BVote;
 use common\models\business\BUserWallet;
 use common\models\business\BUserAccessToken;
 use common\models\business\BUserRefreshToken;
+use common\models\business\BTypeRuleContrast;
+use common\models\business\BNodeRule;
+use common\models\business\BNotice;
 
 class NodeService extends ServiceBase
 {
@@ -29,7 +32,7 @@ class NodeService extends ServiceBase
         ->join('left join', 'gr_user B', 'A.user_id = B.id')
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','sum(consume) as consume','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure'])
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure'])
         ->orderBy('sum(C.vote_number) desc');
         
         if ($searchName != '') {
@@ -128,6 +131,24 @@ class NodeService extends ServiceBase
         foreach ($res as $v) {
             $data[$v['node_id']] = $v['count'];
         }
+        return $data;
+    }
+
+
+    // 获取节点当前权益
+    public static function getNodeRule(int $node_id, int $order)
+    {
+        $node = BNode::find()->where(['id' => $node_id])->one();
+        $find = BTypeRuleContrast::find()
+        ->from(BTypeRuleContrast::tableName()." A")
+        ->join('left join', BNodeRule::tableName().' B', 'A.rule_id = B.id')
+        ->where(['A.type_id' => $node->type_id]);
+        if ($node->is_tenure == BNotice::STATUS_ACTIVE) {
+            $where = ['or', ['A.is_tenure'=> BTypeRuleContrast::$TYPE_ALL], ['A.is_tenure' => BTypeRuleContrast::$TYPE_TENURE], ['and', ['A.is_tenure' => BTypeRuleContrast::$TYPE_ORDER], ['<=', 'A.min_order', $order], ['>=', 'A.max_order', $order]]];
+        } else {
+            $where = ['or', ['A.is_tenure'=> BTypeRuleContrast::$TYPE_ALL], ['and', ['A.is_tenure' => BTypeRuleContrast::$TYPE_ORDER], ['<=', 'A.min_order', $order], ['>=', 'A.max_order', $order]]];
+        }
+        $data = $find->andWhere($where)->select(['A.id as aid','B.*'])->asArray()->all();
         return $data;
     }
 }

@@ -71,7 +71,7 @@ class ValidationCodeSmsService extends ServiceBase
         $type,
         $userId = 0,
         $frequencyMinutes = 1,
-        $frequencyDay = 5
+        $frequencyDay = 20
     ) {
         assert($mobile != null);
 

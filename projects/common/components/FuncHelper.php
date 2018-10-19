@@ -764,17 +764,11 @@ class FuncHelper
             $pad = str_pad($data, $dlen, $default, STR_PAD_LEFT);
             $convert = base_convert($pad, $frombase, $tobase);
             $data = strtoupper($convert);
-<<<<<<< HEAD
         } elseif (is_string($data)) {
-            $convert = (int)base_convert($data, $tobase, $frombase);
-            var_dump($convert);
-=======
-        } else if (is_string($data)) {
             echo $data;
             $convert = (int) base_convert($data, $tobase, $frombase);
             echo $convert;
 
->>>>>>> 1a5fde80f08b93273908967ba48ff4699c5a7ae4
             $data = $convert - $default;
         }
         return $data;

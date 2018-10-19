@@ -2,12 +2,11 @@
 
 namespace common\models\business;
 
-
-
 class BTypeRuleContrast extends \common\models\TypeRuleContrast
- {
-
-
+{
+    public static $TYPE_ORDER = 0;
+    public static $TYPE_TENURE = 1;
+    public static $TYPE_ALL = 2;
 
 
 
@@ -17,7 +16,7 @@ class BTypeRuleContrast extends \common\models\TypeRuleContrast
     */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(),[
+        return array_merge(parent::attributeLabels(), [
 
         ]);
     }

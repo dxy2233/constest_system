@@ -20,6 +20,8 @@ use common\models\business\BVoucherDetail;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRecommend;
 use common\models\business\BSetting;
+use common\models\business\BCurrency;
+use common\components\FuncHelper;
 
 /**
  * Site controller
@@ -139,7 +141,7 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['scheme'] = $data->scheme;
-        $return['logo'] = $data->logo;
+        $return['logo'] = FuncHelper::getImageUrl($data->logo);
         return $this->respondJson(0, '获取成功', $return);
     }
 
@@ -210,6 +212,9 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        //假设排名为1
+        $order = 1;
+
         // $type_data = BNodeType::find()->where(['id' => $data->type_id])->one();
         // $rule_arr = json_decode($type_data->rule_list);
         // if (count($rule_arr) == 0) {
@@ -521,7 +526,7 @@ class NodeController extends BaseController
         if ($user) {
             $old_node = BNode::find()->where(['user_id' => $user->id])->one();
             if ($old_node) {
-                return $this->respondJson(1, '此用户已用节点');
+                return $this->respondJson(1, '此用户已有节点');
             }
             $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
             if ($user_identify) {
@@ -553,7 +558,7 @@ class NodeController extends BaseController
         // 取出比例
         $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
         if ($code != '') {
-            $id = FuncHelper::radixConvert($code);
+            $id = UserService::validateRemmendCode($code);
             $user_recommend = new BUserRecommend();
             $user_recommend->user_id = $user->id;
             $user_recommend->parent_id = $id;
@@ -604,6 +609,66 @@ class NodeController extends BaseController
 
         $frozen = new BUserCurrencyFrozen();
         $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['bpt'];
+        $frozen->amount = $bpt;
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['grt'];
+        $frozen->amount = $grt;
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['tt'];
+        $frozen->amount = $tt;
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+
+        $user_c = new BUserCurrency();
+        $user_c->user_id = $user->id;
+        $user_c->currency_id = $currency_id['tt'];
+        $user_c->position_amount = $tt;
+        $user_c->frozen_amount = $tt;
+        $user_c->use_amount = 0;
+        if (!$user_c->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        }
+        $user_c = new BUserCurrency();
+        $user_c->user_id = $user->id;
+        $user_c->currency_id = $currency_id['grt'];
+        $user_c->position_amount = $grt;
+        $user_c->frozen_amount = $grt;
+        $user_c->use_amount = 0;
+        if (!$user_c->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        }
+        $user_c = new BUserCurrency();
+        $user_c->user_id = $user->id;
+        $user_c->currency_id = $currency_id['bpt'];
+        $user_c->position_amount = $bpt;
+        $user_c->frozen_amount = $bpt;
+        $user_c->use_amount = 0;
+        if (!$user_c->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        }
+
         $transaction->commit();
         return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);
     }
@@ -682,5 +747,22 @@ class NodeController extends BaseController
         } else {
             return $this->respondJson(1, $str.'失败', $data->getFirstErrorText());
         }
+    }
+
+    // 删除记录
+    public function actionDelOldData()
+    {
+        $nodeId = $this->pString('nodeId');
+        $user_id = explode(',', $nodeId);
+        $users = BNode::find()->where(['in','id',$user_id])->all();
+        if (empty($users)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($users as $user) {
+            $user->delete();
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '删除成功');
     }
 }

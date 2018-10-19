@@ -29,7 +29,7 @@ class NodeService extends ServiceBase
         ->join('left join', 'gr_user B', 'A.user_id = B.id')
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','sum(consume) as consume','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure'])
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure'])
         ->orderBy('sum(C.vote_number) desc');
         
         if ($searchName != '') {
@@ -129,5 +129,15 @@ class NodeService extends ServiceBase
             $data[$v['node_id']] = $v['count'];
         }
         return $data;
+    }
+
+    public static function getNodeRule(int $node_id, int $order)
+    {
+        $node = BNode::find()->where(['id' => $node_id])->one();
+        BTypeRuleContrast::find()
+        ->from(BTypeRuleContrast::tableName()." A")
+        ->join('left join', BNodeRule::tableName().' B', 'A.rule_id = B.id')
+        ->where(['A.type_id' => $node->type_id])
+        ->andWhere(['or', ['A.is_tenure'=>]])
     }
 }

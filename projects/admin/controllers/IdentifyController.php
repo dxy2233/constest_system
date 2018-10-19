@@ -80,5 +80,42 @@ class IdentifyController extends BaseController
     // 审核不通过
     public function actionExamineOff()
     {
+        $user_id = $this->pInt('user_id');
+        if (empty($user_id)) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        $remark = $this->pString('remark');
+        if (empty($remark)) {
+            return $this->respondJson(1, '原因不能为空');
+        }
+        $data = BUserIdentify::find()->where(['user_id' => $user_id])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $data->status = BUserIdentify::STATUS_FAIL;
+        $data->status_remark = $remark;
+        if (!$data->save()) {
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '审核成功');
+    }
+    // 审核通过
+    public function actionExamineOn()
+    {
+        $user_id = $this->pInt('user_id');
+        if (empty($user_id)) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+
+        $data = BUserIdentify::find()->where(['user_id' => $user_id])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $data->status = BUserIdentify::STATUS_ACTIVE;
+        $data->status_remark = '已通过';
+        if (!$data->save()) {
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '审核成功');
     }
 }

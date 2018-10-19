@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\UserService;
 use common\components\FuncHelper;
 use common\models\business\BUser;
 use common\services\SettingService;
@@ -41,14 +42,14 @@ class UserController extends BaseController
     public function actionRecommendCode()
     {
         $userModel = $this->user;
-        $userModel->id = 48;
-        $password = FuncHelper::random(6);
-        var_dump($userModel->id, $password);
-        $data['code'] = FuncHelper::radixConvert($userModel->id);
-        var_dump($data['code']);
-        $data['code'] = FuncHelper::radixConvert($data['code']);
-        var_dump($data['code']);exit;
-
+        if (!(bool) $userModel->recommend_code) {
+            $code = UserService::generateRemmendCode(6);
+            $userModel->recommend_code = $code;
+            if (!$userModel->save()) {
+                return $this->respondJson(1, '推荐码生成失败', $userModel->getFirstErrors());
+            }
+        }
+        $data['code'] = $userModel->recommend_code;
         $data['re_code'] = BUserRecommend::find()->where(['parent_id' => $userModel->id])->exists();
         return $this->respondJson(0, '获取成功', $data);
     }

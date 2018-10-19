@@ -38,8 +38,8 @@ class Node extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'type_id', 'name', 'grt', 'tt', 'bpt', 'desc', 'scheme', 'create_time'], 'required'],
-            [['user_id', 'type_id', 'grt', 'tt', 'bpt', 'status', 'is_tenure', 'create_time'], 'integer'],
+            [['user_id', 'type_id'], 'required'],
+            [['user_id', 'type_id', 'status', 'create_time', 'is_tenure'], 'integer'],
             [['desc', 'scheme'], 'string'],
             [['name', 'status_remark', 'logo'], 'string', 'max' => 255],
         ];

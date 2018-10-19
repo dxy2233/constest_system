@@ -8,6 +8,8 @@
 namespace common\task;
 
 use Yii\base\BaseObject;
+use common\services\JobService;
+use common\models\business\BSetting;
 
 class TestJob extends BaseObject implements \yii\queue\JobInterface
 {
@@ -16,14 +18,17 @@ class TestJob extends BaseObject implements \yii\queue\JobInterface
     
     public function execute($queue)
     {
-        file_put_contents($this->file, file_get_contents($this->url));
+        //JobService::beginPut();
+        $authUrl = 'http://admin.contest_system.local/vote/now-reload';
+        echo 'aaaa';
+        $html = file_get_contents($authUrl);
+        echo $html;
+        // $curl = new Curl();
+        // $response = $curl->get($authUrl);
     }
 }
 
 /**
  *
-        \Yii::$app->queue->delay(30)->push(new TestJob([
-            'url' => 'http://www.auslinkshop.com/themes/xyx/images/login-img.gif',
-            'file' => PROJECTS_ROOT . '/runtime/temp/login-img.gif',
-        ]));
+        \Yii::$app->queue->delay(10)->push(new TestJob([]));
  */

@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\UserService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BNode;
@@ -16,14 +17,18 @@ use common\models\business\BVoucher;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BVoucherDetail;
 use common\models\business\BUserCurrencyFrozen;
+use common\models\business\BCurrency;
 use common\models\business\BUserRecommend;
+use common\models\business\BUserRechargeAddress;
 use common\components\FuncHelper;
+use common\models\business\Traits\UserCurrencyTrait;
 
 /**
  * Site controller
  */
 class UserController extends BaseController
 {
+    use UserCurrencyTrait;
     public function behaviors()
     {
         $parentBehaviors = parent::behaviors();
@@ -77,170 +82,21 @@ class UserController extends BaseController
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
             $v['num'] = $vote['num'] == null ? 0 : $vote['num'];
+            $recommend = BUserRecommend::find()
+            ->from(BUserRecommend::tableName()." A")
+            ->select(['B.mobile'])
+            ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $v['id']])->asArray()->one();
+
+            if (empty($recommend)) {
+                $v['referee'] = '';
+            } else {
+                $v['referee'] = $recommend['mobile'];
+            }
         }
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
     }
-    // change
-    // public function actionGetOneUser()
-    // {
-    //     $userId = $this->pInt('userId');
-    //     $user = BUser::find()->where(['id' => $userId])->one();
-    //     if (empty($user)) {
-    //         return $this->respondJson(1, '不存在的用户');
-    //     }
-    //     // 通用信息
-    //     $info = [];
-    //     $info['username'] = $user->username;
-    //     $info['mobile'] = $user->mobile;
-    //     $node = BNode::find()
-    //     ->from(BNode::tableName()." A")
-    //     ->join('inner join', 'gr_node_type B', 'A.type_id = B.id')
-    //     ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $userId])->asArray()->one();
-    //     if ($node) {
-    //         $info['userType'] = $node['name'];
-    //         $info['nodeName'] = $node['nodeName'];
-    //     } else {
-    //         $info['userType'] = '普通用户';
-    //         $info['nodeName'] = '——';
-    //     }
-    //     $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['user_id' => $userId])->active(BNotice::STATUS_ACTIVE)->asArray()->one();
-    //     $info['num'] = $vote['num'] == null ? 0 : $vote['num'];
-    //     // 基础信息
-    //     $basic = [];
-    //     $basic['username'] = $user->username;
-    //     // 实名认证信息
-    //     $identify = [];
-    //     $userIdentify = BUserIdentify::find()->where(['user_id'=> $userId])->active(BNotice::STATUS_ACTIVE)->one();
-    //     if (!empty($userIdentify)) {
-    //         $identify['realName'] = $userIdentify->realname;
-    //         $identify['number'] = $userIdentify->number;
-    //         $identify['picFront'] = $userIdentify->pic_front;
-    //         $identify['picBack'] = $userIdentify->pic_back;
-    //     }
-    //     // 投票信息
-    //     $vote = [];
-    //     // 投票记录
-    //     $vote_log = BVote::find()->from(BVote::tableName()." A")
-    //     ->join('inner join', 'gr_node C', 'A.node_id = C.id')
-    //     ->join('inner join', 'gr_node_type B', 'C.type_id = B.id')
-    //     ->select(['C.name as nodeName','B.name as typeName','A.*'])->where(['A.user_id' => $userId])->asArray()->all();
-    //     $vote_vote = [];
-    //     if (count($vote_log)>0) {
-    //         foreach ($vote_log as $v) {
-    //             $vote_item =[];
-    //             $vote_item['nodeName'] = $v['nodeName'];
-    //             $vote_item['typeName'] = $v['typeName'];
-    //             $vote_item['type'] = BVote::getType($v['type']);
-    //             $vote_item['voteNumber'] = $v['vote_number'];
-    //             $vote_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
-    //             $vote_vote[] = $vote_item;
-    //         }
-    //     }
-    //     $vote['vote'] = $vote_vote;
-    //     // 赎回记录
-    //     $unvote_log = BVote::find()->from(BUnvote::tableName()." A")
-    //     ->join('inner join', 'gr_node C', 'A.node_id = C.id')
-    //     ->join('inner join', 'gr_node_type B', 'C.type_id = B.id')
-    //     ->select(['C.name as nodeName','B.name as typeName','A.*'])->where(['A.user_id' => $userId])->asArray()->all();
-    //     $vote_unvote = [];
-    //     if (count($unvote_log)>0) {
-    //         foreach ($unvote_log as $v) {
-    //             $vote_item =[];
-    //             $vote_item['nodeName'] =  $v['nodeName'];
-    //             $vote_item['typeName'] = $v['typeName'];
-    //             $vote_item['voteNumber'] = $v['vote_number'];
 
-    //             $vote_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
-    //             $vote_unvote[] = $vote_item;
-    //         }
-    //     }
-    //     $vote['unvote'] = $vote_unvote;
-    //     // 钱包
-    //     $wallet = [];
-    //     $wallet_data = BUserWallet::find()->where(['user_id' => $userId])->all();
-    //     foreach ($wallet_data  as $v) {
-    //         $wallet_item = [];
-    //         $wallet_item['name'] = $v['wallet'];
-    //         $wallet_item['address'] = $v['address'];
-    //         $wallet_item['list'] = [];
-    //         $currency = BUserCurrency::find()
-    //         ->from(BUserCurrency::tableName()." A")
-    //         ->join('inner join', 'gr_currency B', 'A.currency_id = B.id')
-    //         ->select(['A.*','B.name'])
-    //         ->where(['A.user_id' => $userId, 'A.wallet_id' => $v['id']])->asArray()->all();
-    //         foreach ($currency as $val) {
-    //             $c_item = [];
-    //             $c_item['name'] = $val['name'];
-    //             $c_item['positionAmount'] = $val['position_amount'];
-    //             $c_item['frozenAmount'] = $val['frozen_amount'];
-    //             $c_item['useAmount'] = $val['use_amount'];
-    //             $in_and_out_detail = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
-    //             foreach ($in_and_out_detail as $value) {
-    //                 $d_item = [];
-    //                 $d_item['remark'] = $value->remark;
-    //                 $d_item['amount'] = $value->amount;
-    //                 $d_item['effectTime'] = date('Y-m-d', $value->effect_time);
-    //                 $c_item['inAndOut'][] = $d_item;
-    //             }
-    //             $frozen_detail = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
-    //             foreach ($frozen_detail as $value) {
-    //                 $d_item = [];
-    //                 $d_item['remark'] = $value->remark;
-    //                 $d_item['amount'] = $value->amount;
-    //                 $d_item['effectTime'] = date('Y-m-d', $value->effect_time);
-    //                 $c_item['frozen'][] = $d_item;
-    //             }
-    //             $wallet_item['list'][] = $c_item;
-    //         }
-    //         $wallet[] = $wallet_item;
-    //     }
-    //     // 投票券
-    //     $voucher = [];
-    //     $voucher_data = BVoucher::find()
-    //     ->from(BVoucher::tableName()." A")
-    //     ->join('inner join', 'gr_node B', 'A.node_id = B.id')
-    //     ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
-    //     ->select(['A.*','B.name as nodeName','C.name as typeName'])
-    //     ->where(['A.user_id' => $userId])->asArray()->all();
-    //     foreach ($voucher_data as $v) {
-    //         $voucher_item = [];
-    //         $voucher_item['nodeName'] = $v['nodeName'];
-    //         $voucher_item['typeName'] = $v['typeName'];
-    //         $voucher_item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-    //         $voucher[] = $voucher_item;
-    //     }
-
-    //     // 推荐
-    //     $recommend = [];
-    //     $recommend_data = BUserRecommend::find()
-    //     ->from(BUserRecommend::tableName()." A")
-    //     ->join('inner join', 'gr_user D', 'A.user_id = D.id')
-    //     ->join('inner join', 'gr_node B', 'B.user_id = D.id')
-    //     ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
-        
-    //     ->select(['A.*','B.name as nodeName','C.name as typeName', 'D.username'])
-    //     ->where(['A.parent_id' => $userId])->asArray()->all();
-    //     foreach ($recommend_data as $v) {
-    //         $recommend_item = [];
-    //         $recommend_item['nodeName'] = $v['nodeName'];
-    //         $recommend_item['username'] = $v['username'];
-    //         $recommend_item['typeName'] = $v['typeName'];
-    //         $recommend_item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-    //         $recommend[] = $recommend_item;
-    //     }
-    //     $return = [
-    //       'info' => $info,
-    //       'basic' => $basic,
-    //       'identify' => $identify,
-    //       'vote' => $vote,
-    //       'wallet' => $wallet,
-    //       'voucher' => $voucher,
-    //       'recommend' => $recommend,
-    //     ];
-
-    //     return $this->respondJson(0, '获取成功', $return);
-    // }
 
     // 获取用户基本信息
     public function actionGetUserInfo()
@@ -267,6 +123,17 @@ class UserController extends BaseController
         }
         $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['user_id' => $userId])->active(BNotice::STATUS_ACTIVE)->asArray()->one();
         $info['num'] = $vote['num'] == null ? 0 : $vote['num'];
+        $recommend = BUserRecommend::find()
+            ->from(BUserRecommend::tableName()." A")
+            ->select(['B.mobile'])
+            ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $userId])->asArray()->one();
+
+        if (empty($recommend)) {
+            $info['referee'] = '';
+        } else {
+            $info['referee'] = $recommend['mobile'];
+        }
+        $info['recommend_code'] = UserService::generateRemmendCode($userId);
         return $this->respondJson(0, '获取成功', $info);
     }
 
@@ -284,10 +151,48 @@ class UserController extends BaseController
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;
-            $identify['picFront'] = $userIdentify->pic_front;
-            $identify['picBack'] = $userIdentify->pic_back;
+            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front);
+            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back);
         }
         return $this->respondJson(0, '获取成功', $identify);
+    }
+    // 用户钱包信息
+    public function actionGetCurrency()
+    {
+        $userId = $this->pInt('userId');
+        $user = BUser::find()->where(['id' => $userId])->one();
+        if (empty($user)) {
+            return $this->respondJson(1, '不存在的用户');
+        }
+        $currency_data = BUserCurrency::find()
+        ->from(BUserCurrency::tableName()." A")
+        ->select(['A.*','B.address','C.name'])
+        ->join('left join', BUserRechargeAddress::tableName().' B', 'B.currency_id = A.currency_id && B.user_id = '.$userId)
+        ->join('inner join', BCurrency::tableName().' C', 'C.id = A.currency_id')
+        ->where(['A.user_id'=> $userId])->asArray()->all();
+        if (!empty($currency_data)) {
+            foreach ($currency_data as &$v) {
+                $in_and_out_data = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
+                foreach ($in_and_out_data as $val) {
+                    $in_and_out = [];
+                    $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
+                    $in_and_out['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
+                    $in_and_out['amount'] = $val['amount'];
+                    $v['in_and_out'] = $in_and_out;
+                }
+                
+
+                $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
+                foreach ($in_and_out_data as $val) {
+                    $frozen = [];
+                    $frozen['type'] = UserCurrencyTrait::getType($val['type']);
+                    $frozen['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
+                    $frozen['amount'] = $val['amount'];
+                    $v['in_and_out'] = $frozen;
+                }
+            }
+        }
+        return $this->respondJson(0, '获取成功', $currency_data);
     }
 
 
@@ -340,57 +245,7 @@ class UserController extends BaseController
     }
 
     // 获取用户钱包信息
-    public function actionGetUserWallet()
-    {
-        $userId = $this->pInt('userId');
-        $user = BUser::find()->where(['id' => $userId])->one();
-        if (empty($user)) {
-            return $this->respondJson(1, '不存在的用户');
-        }
-        $wallet = [];
-        $wallet_data = BUserWallet::find()->where(['user_id' => $userId])->all();
-        foreach ($wallet_data  as $v) {
-            $wallet_item = [];
-            $wallet_item['id'] = $v['id'];
-            $wallet_item['name'] = $v['wallet'];
-            
-            $wallet_item['address'] = $v['address'];
-            $wallet_item['list'] = [];
-            $currency = BUserCurrency::find()
-            ->from(BUserCurrency::tableName()." A")
-            ->join('inner join', 'gr_currency B', 'A.currency_id = B.id')
-            ->select(['A.*','B.name'])
-            ->where(['A.user_id' => $userId, 'A.wallet_id' => $v['id']])->asArray()->all();
-            foreach ($currency as $val) {
-                $c_item = [];
-                $c_item['name'] = $val['name'];
-                $c_item['positionAmount'] = $val['position_amount'];
-                $c_item['frozenAmount'] = $val['frozen_amount'];
-                $c_item['useAmount'] = $val['use_amount'];
-                $c_item['inAndOut'] = [];
-                $c_item['frozen'] = [];
-                $in_and_out_detail = BUserCurrencyDetail::find()->active(BNotice::STATUS_ACTIVE)->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
-                foreach ($in_and_out_detail as $value) {
-                    $d_item = [];
-                    $d_item['remark'] = $value->remark;
-                    $d_item['amount'] = $value->amount;
-                    $d_item['effectTime'] = date('Y-m-d', $value->effect_time);
-                    $c_item['inAndOut'][] = $d_item;
-                }
-                $frozen_detail = BUserCurrencyFrozen::find()->active(BNotice::STATUS_ACTIVE)->where(['user_id' => $userId, 'currency_id' => $val['id']])->all();
-                foreach ($frozen_detail as $value) {
-                    $d_item = [];
-                    $d_item['remark'] = $value->remark;
-                    $d_item['amount'] = $value->amount;
-                    $d_item['effectTime'] = date('Y-m-d', $value->create_time);
-                    $c_item['frozen'][] = $d_item;
-                }
-                $wallet_item['list'][] = $c_item;
-            }
-            $wallet[] = $wallet_item;
-        }
-        return $this->respondJson(0, '获取成功', $wallet);
-    }
+
 
 
     // 获取用户投票券信息 change
@@ -558,23 +413,36 @@ class UserController extends BaseController
         }
     }
 
-    // 编辑钱包信息
-    public function actionEditWallet()
+    // 添加用户
+    public function actionCreateUser()
     {
-        $walletId = $this->pInt('walletId');
-        $wallet = BUserWallet::find()->where(['id' => $walletId])->one();
-        if (empty($wallet)) {
-            return $this->respondJson(1, '不存在的钱包ID');
+        $mobile = $this->pString('mobile');
+        if (empty($mobile)) {
+            return $this->respondJson(1, '手机不能为空');
         }
-        $address = $this->pString('address');
-        if (empty($address)) {
-            return $this->respondJson(1, '钱包地址不能为空');
+        $old_data = BUser::find()->where(['mobile' => $mobile])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '手机已注册');
         }
-        $wallet->address = $address;
-        if ($wallet->save()) {
-            return $this->respondJson(0, '修改成功');
-        } else {
-            return $this->respondJson(1, '修改失败', $wallet->getFirstErrorText());
+        $code = $this->pString('code');
+        $user = new BUser();
+        $user->mobile = $mobile;
+        $transaction = \Yii::$app->db->beginTransaction();
+        if (!$user->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
         }
+        if ($code != '') {
+            $id = UserService::validateRemmendCode($code);
+            $user_recommend = new BUserRecommend();
+            $user_recommend->user_id = $user->id;
+            $user_recommend->parent_id = $id;
+            if (!$user_recommend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+            }
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '注册成功');
     }
 }

@@ -2,6 +2,7 @@
 namespace admin\controllers;
 
 use common\services\AclService;
+use common\services\UserService;
 use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
@@ -19,6 +20,10 @@ use common\models\business\BUserCurrencyDetail;
 use common\models\business\BVoucherDetail;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRecommend;
+use common\models\business\BSetting;
+use common\models\business\BCurrency;
+use common\models\business\BUserRechargeWithdraw;
+use common\components\FuncHelper;
 
 /**
  * Site controller
@@ -57,7 +62,12 @@ class NodeController extends BaseController
         }
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
         foreach ($data as &$v) {
-            $v['count'] = $people[$v['id']];
+            if (isset($people[$v['id']])) {
+                $v['count'] = $people[$v['id']];
+            } else {
+                $v['count'] = 0;
+            }
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -138,7 +148,7 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['scheme'] = $data->scheme;
-        $return['logo'] = $data->logo;
+        $return['logo'] = FuncHelper::getImageUrl($data->logo);
         return $this->respondJson(0, '获取成功', $return);
     }
 
@@ -209,13 +219,11 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        // $type_data = BNodeType::find()->where(['id' => $data->type_id])->one();
-        // $rule_arr = json_decode($type_data->rule_list);
-        // if (count($rule_arr) == 0) {
-        //     return $this->respondJson(0, '获取成功', []);
-        // }
-        // $rule_data = BNodeRule::find()->where(['in','id',$rule_arr])->asArray()->all();
-        return $this->respondJson(0, '获取成功', []);
+        //假设排名为1
+        $order = 1;
+        $rule_list = NodeService::getNodeRule($nodeId, $order);
+
+        return $this->respondJson(0, '获取成功', $rule_list);
     }
 
     // 获取节点类型列表
@@ -243,7 +251,11 @@ class NodeController extends BaseController
         }
         $people = NodeService::getPeopleNum($id_arr, '', $endTime);
         foreach ($data as &$v) {
-            $v['count'] = $people[$v['id']];
+            if (isset($people[$v['id']])) {
+                $v['count'] = $people[$v['id']];
+            } else {
+                $v['count'] = 0;
+            }
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -314,10 +326,10 @@ class NodeController extends BaseController
         foreach ($rule_arr as $v) {
             $rule_obj = new BTypeRuleContrast();
             $rule_obj->type_id = $node->id;
-            $rule_obj->is_tenure = $v['isTenure'];
-            $rule_obj->min_order = $v['minOrder'];
-            $rule_obj->max_order = $v['maxOrder'];
-            $rule_obj->rule_id = $v['ruleId'];
+            $rule_obj->is_tenure = $v['is_tenure']?$v['is_tenure']:$v['isTenure'];
+            $rule_obj->min_order = $v['min_order']?$v['min_order']:$v['minOrder'];
+            $rule_obj->max_order = $v['max_order']?$v['max_order']:$v['maxOrder'];
+            $rule_obj->rule_id = $v['rule_id']?$v['rule_id']:$v['ruleId'];
             if (!$rule_obj->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '操作失败', $rule_obj->getFirstErrorText());
@@ -330,13 +342,9 @@ class NodeController extends BaseController
     public function actionGetRuleList()
     {
         $data = BNodeRule::find()->asArray()->all();
-        $return = array('isTenure'=>array(),'noTenure'=>array());
+        $return = [];
         foreach ($data as $v) {
-            if ($v['is_tenure'] == 1) {
-                $return['isTenure'][] = $v;
-            } else {
-                $return['noTenure'][] = $v;
-            }
+            $return[$v['is_tenure']][] = $v;
         }
         return $this->respondJson(0, '获取成功', $return);
     }
@@ -363,7 +371,7 @@ class NodeController extends BaseController
                 }
                 $node->name = $val['name'];
                 $node->content = $val['content'];
-                $node->is_tenure = $val['isTenure'];
+                $node->is_tenure = $val['is_tenure'];
                 if (!$node->save()) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '操作失败', $node->getFirstErrorText());
@@ -458,9 +466,22 @@ class NodeController extends BaseController
             return $this->respondJson(1, '不存在的节点');
         }
         $logo = $this->pString('logo', '');
+        if (empty($logo)) {
+            return $this->respondJson(1, 'logo不能为空');
+        }
         $name = $this->pString('name', '');
+        if (empty($name)) {
+            return $this->respondJson(1, '名称不能为空');
+        }
         $desc = $this->pString('desc', '');
+        if (empty($desc)) {
+            return $this->respondJson(1, '简介不能为空');
+        }
+
         $scheme = $this->pString('scheme', '');
+        if (empty($scheme)) {
+            return $this->respondJson(1, '建设方案不能为空');
+        }
         $data->logo = $logo;
         $data->name = $name;
         $data->desc = $desc;
@@ -471,5 +492,319 @@ class NodeController extends BaseController
         } else {
             return $this->respondJson(1, $str.'失败', $data->getFirstErrorText());
         }
+    }
+
+    // 添加节点
+    public function actionCreateUser()
+    {
+        $mobile = $this->pString('mobile');
+        if (empty($mobile)) {
+            return $this->respondJson(1, '手机不能为空');
+        }
+        $type_id = $this->pInt('type_id');
+        if (empty($type_id)) {
+            return $this->respondJson(1, '节点类型不能为空');
+        }
+        $is_tenure = $this->pInt('is_tenure');
+        if (empty($is_tenure)) {
+            return $this->respondJson(1, '节点身份不能为空');
+        }
+        $grt = $this->pInt('grt');
+        if (empty($grt)) {
+            return $this->respondJson(1, '质压GRT数量不能为空');
+        }
+        $tt = $this->pInt('tt');
+        if (empty($tt)) {
+            return $this->respondJson(1, '质压TT数量不能为空');
+        }
+        $bpt = $this->pInt('bpt');
+        if (empty($bpt)) {
+            return $this->respondJson(1, '质压BPT数量不能为空');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        $user = BUser::find()->where(['mobile' => $mobile])->one();
+        //实名认证信息
+        $identify = 0;
+        if ($user) {
+            $old_node = BNode::find()->where(['user_id' => $user->id])->one();
+            if ($old_node) {
+                return $this->respondJson(1, '此用户已有节点');
+            }
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
+            if ($user_identify) {
+                $identify = 1;
+            }
+        } else {
+            $user = new BUser();
+            $user->mobile = $mobile;
+            
+            if (!$user->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
+            }
+        }
+        
+        $node = new BNode();
+        $node->user_id = $user->id;
+        $node->type_id = $type_id;
+        $node->is_tenure = $is_tenure;
+        $node->grt = $grt;
+        $node->tt = $tt;
+        $node->bpt = $bpt;
+
+        if (!$node->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $node->getFirstErrorText());
+        }
+        $code = $this->pString('code');
+        // 取出比例
+        $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
+        if ($code != '') {
+            $id = UserService::validateRemmendCode($code);
+            $user_recommend = new BUserRecommend();
+            $user_recommend->user_id = $user->id;
+            $user_recommend->parent_id = $id;
+            $user_recommend->node_id = $node->id;
+            $user_recommend->amount = $grt * $setting->value;
+            if (!$user_recommend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+            }
+        }
+
+        // 补全充值冻结信息
+        $currency_arr = BCurrency::find()->all();
+        $currency_id = [];
+        foreach ($currency_arr  as $v) {
+            $currency_id[$v['code']] = $v['id'];
+        }
+        $user_c_detail = new BUserCurrencyDetail();
+        $user_c_detail->user_id = $user->id;
+        $user_c_detail->currency_id = $currency_id['grt'];
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->amount = $grt;
+        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        if (!$user_c_detail->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
+        }
+        $user_c_detail = new BUserCurrencyDetail();
+        $user_c_detail->user_id = $user->id;
+        $user_c_detail->currency_id = $currency_id['tt'];
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->amount = $tt;
+        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        if (!$user_c_detail->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
+        }
+        $user_c_detail = new BUserCurrencyDetail();
+        $user_c_detail->user_id = $user->id;
+        $user_c_detail->currency_id = $currency_id['bpt'];
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->amount = $bpt;
+        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        if (!$user_c_detail->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
+        }
+
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['bpt'];
+        $frozen->amount = $bpt;
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['grt'];
+        $frozen->amount = $grt;
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['tt'];
+        $frozen->amount = $tt;
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+
+        // $user_c = new BUserCurrency();
+        // $user_c->user_id = $user->id;
+        // $user_c->currency_id = $currency_id['tt'];
+        // $user_c->position_amount = $tt;
+        // $user_c->frozen_amount = $tt;
+        // $user_c->use_amount = 0;
+        // if (!$user_c->save()) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        // }
+        // $user_c = new BUserCurrency();
+        // $user_c->user_id = $user->id;
+        // $user_c->currency_id = $currency_id['grt'];
+        // $user_c->position_amount = $grt;
+        // $user_c->frozen_amount = $grt;
+        // $user_c->use_amount = 0;
+        // if (!$user_c->save()) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        // }
+        // $user_c = new BUserCurrency();
+        // $user_c->user_id = $user->id;
+        // $user_c->currency_id = $currency_id['bpt'];
+        // $user_c->position_amount = $bpt;
+        // $user_c->frozen_amount = $bpt;
+        // $user_c->use_amount = 0;
+        // if (!$user_c->save()) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
+        // }
+
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['bpt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $bpt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['tt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $tt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['grt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $grt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        UserService::resetCurrency($user->id, $currency_id['grt']);
+        UserService::resetCurrency($user->id, $currency_id['tt']);
+        UserService::resetCurrency($user->id, $currency_id['bpt']);
+
+        $transaction->commit();
+        return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);
+    }
+
+
+    public function actionSetIdentify()
+    {
+        $user_id = $this->pInt('user_id');
+        if (empty($user_id)) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        $realname = $this->pString('realname');
+        if (empty($realname)) {
+            return $this->respondJson(1, '用户姓名不能为空');
+        }
+        $number = $this->pString('identify');
+        if (empty($number)) {
+            return $this->respondJson(1, '身份证号不能为空');
+        }
+        $pic_front = $this->pString('pic_front');
+        if (empty($pic_front)) {
+            return $this->respondJson(1, '证件图片正面不能为空');
+        }
+        $pic_back = $this->pString('pic_back');
+        if (empty($pic_back)) {
+            return $this->respondJson(1, '证件图片背面不能为空');
+        }
+        $identify = new BUserIdentify();
+        $identify->user_id = $user_id;
+        $identify->realname = $realname;
+        $identify->number = (string)$number;
+        $identify->pic_front = $pic_front;
+        $identify->pic_back = $pic_back;
+        $identify->type = 1;
+        $identify->status = BNotice::STATUS_INACTIVE;
+        if (!$identify->save()) {
+            return $this->respondJson(1, '提交失败', $identify->getFirstErrorText());
+        }
+        return $this->respondJson(0, '提交成功', ['user_id' => $user_id]);
+    }
+
+    public function actionCreateNode()
+    {
+        $user_id = $this->pInt('user_id');
+        if (empty($user_id)) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        $logo = $this->pString('logo', '');
+        if (empty($logo)) {
+            return $this->respondJson(1, 'logo不能为空');
+        }
+        $name = $this->pString('name', '');
+        if (empty($name)) {
+            return $this->respondJson(1, '名称不能为空');
+        }
+        $desc = $this->pString('desc', '');
+        if (empty($desc)) {
+            return $this->respondJson(1, '简介不能为空');
+        }
+
+        $scheme = $this->pString('scheme', '');
+        if (empty($scheme)) {
+            return $this->respondJson(1, '建设方案不能为空');
+        }
+        $data = BNode::find()->where(['user_id' => $user_id])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '此用户还没有节点');
+        }
+        $data->logo = $logo;
+        $data->name = $name;
+        $data->desc = $desc;
+        $data->scheme = $scheme;
+        $str = '添加';
+        if ($data->save()) {
+            return $this->respondJson(0, $str.'成功');
+        } else {
+            return $this->respondJson(1, $str.'失败', $data->getFirstErrorText());
+        }
+    }
+
+    // 删除记录
+    public function actionDelOldData()
+    {
+        $nodeId = $this->pString('nodeId');
+        $user_id = explode(',', $nodeId);
+        $users = BNode::find()->where(['in','id',$user_id])->all();
+        if (empty($users)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($users as $user) {
+            $user->delete();
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '删除成功');
     }
 }

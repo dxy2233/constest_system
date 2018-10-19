@@ -9,6 +9,7 @@ use common\components\FuncHelper;
 use common\models\business\BUser;
 use common\models\business\BSmsAuth;
 use common\models\business\BUserWallet;
+use common\models\business\BUserRecommend;
 use common\models\business\BUserAccessToken;
 use common\services\ValidationCodeSmsService;
 
@@ -45,6 +46,7 @@ class LoginController extends BaseController
     {
         $type = $this->pInt('type');
         $mobile = $this->pString('mobile');
+        $reCode = $this->pString('re_code');
         $vcode = $this->pString('vcode');
         if (!$mobile) {
             return $this->respondJson(1, "手机号不能为空");
@@ -86,9 +88,12 @@ class LoginController extends BaseController
         $userModel = BUser::find()->where(['mobile' => $mobile])->one();
         //验证手机、是否存在
         if (!is_object($userModel)) {
+            $random = UserService::generateRemmendCode(6);
+            // BUser::find()->where(['mobile' => $mobile])->one();
             $user = [
                 'username' => $mobile,
                 'mobile' => $mobile,
+                'recommend_code' => $random,
             ];
             // 如果用户不存在则创建用户
             $createUser = UserService::createUser($user);
@@ -96,6 +101,14 @@ class LoginController extends BaseController
                 return $this->respondJson($createUser->code, $createUser->msg, $createUser->content);
             }
             $userModel = $createUser->content;
+            // 添加推荐关系
+            if (!is_null($reCode)) {
+                if ($code = UserService::validateRemmendCode($reCode)) {
+                    $recommend = new BUserRecommend();
+                    $recommend->parent_id = $code;
+                    $recommend->link('user', $userModel);
+                }
+            }
         }
         // 处理登录触发事件
         $result = UserService::login($userModel);

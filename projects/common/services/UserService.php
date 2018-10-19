@@ -17,6 +17,38 @@ use common\models\business\BUserRefreshToken;
 class UserService extends ServiceBase
 {
     /**
+     * 生成用户推荐码
+     *
+     * @param integer $len
+     * @return void
+     */
+    public static function generateRemmendCode(int $len)
+    {
+        $code = '';
+        $random = FuncHelper::random($len);
+        if (BUser::find()->where(['recommend_code' => $random])->exists()) {
+            $code = self::generateRemmendCode($len);
+        }
+        return $code;
+    }
+
+    /**
+     * 生成用户推荐码
+     *
+     * @param integer $len
+     * @return void
+     */
+    public static function validateRemmendCode($data)
+    {
+        $userModel = BUser::find()->where(['recommend_code' => $data])->one();
+        if (is_null($userModel)) {
+            return false;
+        } else {
+            return $userModel->id;
+        }
+    }
+
+    /**
      * 用户登录
      *
      * @param BUser $user
@@ -60,20 +92,7 @@ class UserService extends ServiceBase
             }
             // 注册账号为激活状态
             $userModel->status = Buser::STATUS_ACTIVE;
-            if ($userModel->save()) {
-                // 保存成功写入钱包地址
-                if (isset($data['wallet_address'])) {
-                    $userWallet = new BUserWallet();
-                    $defaultWallet = FuncHelper::getDefaultWallet();
-                    $userWallet->wallet = isset($data['wallet_code']) ? $data['wallet_code'] : $defaultWallet['code'];
-                    $userWallet->address = $data['wallet_address'];
-                    $userWallet->link('user', $userModel);
-                    // 数据更新失败
-                    if (empty($userWallet->id)) {
-                        throw new ErrorException($userWallet->getFirstError());
-                    }
-                }
-            } else {
+            if (!$userModel->save()) {
                 throw new ErrorException($userModel->getFirstError());
             }
             $transaction->commit();
@@ -194,6 +213,7 @@ class UserService extends ServiceBase
             exit;
         }
     }
+
     /**
      * 用户注销登录
      */

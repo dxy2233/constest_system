@@ -41,7 +41,14 @@ class UserController extends BaseController
     public function actionRecommendCode()
     {
         $userModel = $this->user;
+        $userModel->id = 48;
+        $password = FuncHelper::random(6);
+        var_dump($userModel->id, $password);
         $data['code'] = FuncHelper::radixConvert($userModel->id);
+        var_dump($data['code']);
+        $data['code'] = FuncHelper::radixConvert($data['code']);
+        var_dump($data['code']);exit;
+
         $data['re_code'] = BUserRecommend::find()->where(['parent_id' => $userModel->id])->exists();
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -87,9 +94,7 @@ class UserController extends BaseController
         $data['count'] = $recommendModel->count();
         $data['list'] = $recommendModel
         ->page($page, $pageSize)
-        ->createCommand()->getRawSql();
-        // ->asArray()->all();
-        var_dump($data['list']);exit;
+        ->asArray()->all();
         foreach ($data['list'] as &$recommend) {
             $recommend['create_time'] = FuncHelper::formateDate($recommend['create_time']);
             $recommend['mobile'] = substr_replace($recommend['mobile'], '****', 3, 4);

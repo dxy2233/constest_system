@@ -405,6 +405,29 @@ class FuncHelper
         return $password;
     }
 
+
+    /**
+     * 生成随机字符
+     *
+     * @param integer $length 字符长度设定
+     * @param boolean $strtoupper 是否大写 默认大写输出
+     * @return void
+     */
+    public static function random(int $length = 6, bool $strtoupper = true)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= $chars[ mt_rand(0, strlen($chars) - 1) ];
+        }
+
+        if ($strtoupper) {
+            $string = strtoupper($string);
+        }
+
+        return $string;
+    }
+
     /**
      * @param array $arr
      * @param string $key_str
@@ -742,7 +765,10 @@ class FuncHelper
             $convert = base_convert($pad, $frombase, $tobase);
             $data = strtoupper($convert);
         } else if (is_string($data)) {
-            $convert = base_convert($data, $tobase, $frombase);
+            echo $data;
+            $convert = (int) base_convert($data, $tobase, $frombase);
+            echo $convert;
+
             $data = $convert - $default;
         }
         return $data;

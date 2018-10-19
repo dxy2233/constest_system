@@ -170,24 +170,6 @@ class RechargeService extends ServiceBase {
                     $address = "";
                 }
             }
-        } elseif ($currencyId == BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_BTC)) {
-            $address = CurrencyBtcService::getInstance()->createAddress();
-
-        } elseif ($currencyId == BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_ETH)) {
-            $ethAccount = CurrencyEthService::getInstance()->createAddress();
-            $address = $ethAccount['address'];
-            // eth账号生成成功
-            if (!empty($address)) {
-                // 添加钱包
-                $ethWallet = new BWalletEth();
-                $ethWallet->address = $address;
-                $ethWallet->secret = $ethAccount['pwd'];
-                $ethWallet->create_time = NOW_TIME;
-                if (!$ethWallet->insert()) {
-                    // 添加失败
-                    $address = '';
-                }
-            }
         } else {
             $address = "";
         }
@@ -203,7 +185,7 @@ class RechargeService extends ServiceBase {
     /**
      * 充币操作
      */
-    public static function handle($currencyId, $address, $tag = "", $amount, $transaction_id = "") {
+    public static function handle($currencyId, $address, $tag = "", $amount, $transaction_id = "", $source_address = "") {
         $userRechargeAddress = BUserRechargeAddress::find()->where(['currency_id' => $currencyId, 'address' => $address])->one();
         if($transaction_id) {
             $userRechargeWithdrawOne = BUserRechargeWithdraw::find()->where(['currency_id' => $currencyId, 'transaction_id' => $transaction_id, 'type' => BUserRechargeWithdraw::$TYPE_RECHARGE])->one();
@@ -216,7 +198,7 @@ class RechargeService extends ServiceBase {
             //事务开始
             $transaction = \Yii::$app->db->beginTransaction();
             try {
-                $rechargePoundage = BSetting::get('recharge_poundage');
+                $rechargePoundage = 0;//BSetting::get('recharge_poundage');
 
                 //添加订单
                 $newUserRechargeWithdraw = new BUserRechargeWithdraw();
@@ -229,6 +211,7 @@ class RechargeService extends ServiceBase {
                 if($rechargePoundage > 0) {
                     $newUserRechargeWithdraw->poundage = abs(round($amount*$rechargePoundage, 8));
                 }
+                $newUserRechargeWithdraw->source_address = $source_address;
                 $newUserRechargeWithdraw->destination_address = $address;
                 $newUserRechargeWithdraw->tag = $tag;
                 $newUserRechargeWithdraw->remark = "充币";
@@ -246,7 +229,7 @@ class RechargeService extends ServiceBase {
                 $newUserCurrencyDetail = new BUserCurrencyDetail();
                 $newUserCurrencyDetail->currency_id = $currencyId;
                 $newUserCurrencyDetail->user_id = $userRechargeAddress->user_id;
-                $newUserCurrencyDetail->type = BUserCurrencyDetail::$TYPE_RECHARGE_WITHDRAW;
+                $newUserCurrencyDetail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
                 $newUserCurrencyDetail->relate_table = 'user_recharge_withdraw';
                 $newUserCurrencyDetail->relate_id = $userRechargeWithdrawId;
                 $newUserCurrencyDetail->amount = $amount;

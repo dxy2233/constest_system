@@ -2,6 +2,11 @@
 
 namespace app\controllers;
 
+use common\models\business\BUserRechargeAddress;
+use common\models\business\BUserRechargeWithdraw;
+use common\services\RechargeService;
+use common\services\ValidationCodeSmsService;
+use common\services\WithdrawService;
 use yii\helpers\ArrayHelper;
 use common\services\UserService;
 use common\components\FuncHelper;
@@ -36,48 +41,21 @@ class WalletController extends BaseController
     }
 
     /**
-     * 钱包列表
+     * 钱包
      *
      * @return void
      */
     public function actionIndex()
     {
-        // 返回容器
-        $data = [];
-        $walletId = $this->pInt('id', false);
-        $userModel = $this->user;
-        $userWallet = $userModel->getUserWallet();
-        // 全局控制钱包开关
-        $isOpen = (bool) SettingService::get('wallet', 'is_open')->value;
-        if (!$isOpen) {
-            return $this->respondJson(1, "钱包未开启");
-        }
-        $userWallet->select(['id', 'name', 'address', 'is_main'])
-        ->orderBy(['is_main' => SORT_DESC]);
-        if ((bool) $walletId) {
-            $wallet = $userWallet->filterWhere(['id' => $walletId])->one();
-            if (!is_null($wallet)) {
-                $wallet->is_main = $wallet->isMainText;
-            } else {
-                return $this->respondJson(1, '获取失败');
-            }
-            return $this->respondJson(0, '获取成功', $wallet);
-        }
-        // 全局设置显示主钱包
-        if ((bool) SettingService::get('wallet', 'only_main')->value) {
-            $data[] = $userWallet->one();
-        } else {
-            $data = $userWallet->all();
-        }
-        
-        foreach ($data as $key => &$wallet) {
-            if (!is_object($wallet)) {
-                $wallet = [];
-                continue;
-            }
-            $wallet->is_main = $wallet->isMainText;
-        }
-        return $this->respondJson(0, '获取成功', $data);
+//        var_dump(FuncHelper::sendSocketMsg('msg','single', 'user', 35, ['id'=>11, 'status'=>"ssss"]));
+//        var_dump(WithdrawService::withdrawCurrencyCheck(24,1)) ;
+//        var_dump( JingTumService::getInstance()->queryPayments("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY" , "1", "10")) ;
+//        var_dump( JingTumService::getInstance()->addUserBalanceFormMain("jNnCJNbvrctbriJRSfwGg2BydGph2tmDuu","Trans20181018002",0.3,"test",JingTumService::ASSETS_TYPE_GRT)) ;
+//        var_dump( JingTumService::getInstance()->queryBalance("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY")) ;
+//        $resJingTum = JingTumService::getInstance()->queryPayments("j4oRzJ88L37Qnig8ftGtDrmbKxyaXR7G1d" , 1, 10);
+//        var_dump($resJingTum);
+//        var_dump( JingTumService::getInstance()->mainBalance()) ;
+//        UserService::resetCurrency(51, 1);
     }
 
     /**
@@ -87,27 +65,27 @@ class WalletController extends BaseController
      */
     public function actionCurrency()
     {
-        $walletId = $this->pInt('id', false);
-        if (!$walletId) {
-            return $this->respondJson(1, '钱包不能为空');
-        }
         $userId = $this->user->id;
-        $userCurrencys = BUserCurrency::find()
-        ->select(['c.name', 'c.code', 'uc.currency_id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
-        ->alias('uc')
-        ->joinWith(['currency c'])
-        ->where(['uc.user_id' => $userId, 'uc.wallet_id' => $walletId])
-        ->active(BUserCurrency::STATUS_ACTIVE, 'c.')
-        ->orderBy('c.sort')
-        ->asArray()
-        // ->createCommand()->getRawSql();
-        ->all();
+        $userCurrencys = BCurrency::find()
+            ->from(BCurrency::tableName().' c')
+            ->select(['c.name', 'c.code', 'c.id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
+            ->leftJoin(
+                BUserCurrency::tableName().' uc',
+                'c.id = uc.currency_id '
+                .' and uc.user_id = '.$userId
+            )
+            ->where(['c.status' => BCurrency::STATUS_ACTIVE])
+            ->orderBy('c.sort desc, c.id asc')
+            ->asArray()
+//             ->createCommand()->getRawSql();var_dump($userCurrencys);return;
+            ->all();
+
         foreach ($userCurrencys as $key => &$currency) {
-            $currency['code'] = strtoupper($currency['code']);
+            $currency['code'] = $currency['code'];
+            $currency['name'] = $currency['name'];
             $currency['position_amount'] = FuncHelper::formatAmount($currency['position_amount']);
             $currency['frozen_amount'] = FuncHelper::formatAmount($currency['frozen_amount']);
             $currency['use_amount'] = FuncHelper::formatAmount($currency['use_amount']);
-            unset($currency['currency']);
         }
         return $this->respondJson(0, '获取成功', $userCurrencys);
     }
@@ -119,21 +97,30 @@ class WalletController extends BaseController
             return $this->respondJson(1, '货币不能为空');
         }
         $userId = $this->user->id;
-        $userCurrency = BUserCurrency::find()
-        ->select(['c.name', 'c.code', 'uc.currency_id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
-        ->alias('uc')
-        ->joinWith(['currency c'])
-        ->where(['uc.user_id' => $userId, 'uc.currency_id' => $currencyId])
-        ->active(BUserCurrency::STATUS_ACTIVE, 'c.')
-        ->orderBy('c.sort')
-        ->asArray()
-        ->one();
-        
+
+        $userCurrency = BCurrency::find()
+            ->from(BCurrency::tableName().' c')
+            ->select(['c.name', 'c.code', 'c.id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
+            ->leftJoin(
+                BUserCurrency::tableName().' uc',
+                'c.id = uc.currency_id '
+                .' and uc.user_id = '.$userId
+            )
+            ->where(['c.status' => BCurrency::STATUS_ACTIVE, 'c.id' => $currencyId])
+            ->orderBy('c.sort desc, c.id asc')
+            ->asArray()
+//             ->createCommand()->getRawSql();var_dump($userCurrencys);return;
+            ->limit(1)
+            ->one();
+
+        if(!$userCurrency) {
+            return $this->respondJson(1, '货币不存在');
+        }
+
         $userCurrency['position_amount'] = FuncHelper::formatAmount($userCurrency['position_amount']);
         $userCurrency['frozen_amount'] = FuncHelper::formatAmount($userCurrency['frozen_amount']);
         $userCurrency['use_amount'] = FuncHelper::formatAmount($userCurrency['use_amount']);
-        $userCurrency['code'] = strtoupper($userCurrency['code']);
-        FuncHelper::arrayForget($userCurrency, 'currency');
+
         return $this->respondJson(0, '获取成功', $userCurrency);
     }
 
@@ -148,6 +135,10 @@ class WalletController extends BaseController
         $type = $this->pInt('type', 1);
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
+        $data = [
+            'page' => $page,
+            'page_size' => $pageSize
+        ];
         if (!$currencyId) {
             return $this->respondJson(1, '货币不能为空');
         }
@@ -159,11 +150,11 @@ class WalletController extends BaseController
         ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType])
         ->active();
         $data['count'] = $currencyModel->count();
-        $data['list'] = $currencyModel->page($page, $pageSize)->asArray()->all();
+        $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
-            $val['amount'] = FuncHelper::formatAmount($val['amount']);
-            $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
-            $val['status_str'] = BUserCurrencyDetail::getStatus($val['status']);
+            $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
+            $val['effect_time'] = FuncHelper::formateDate($val['effect_time'], 0, true);
+            $val['status_str'] = BUserCurrencyDetail::getStatus($val['status'], 0, true);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -178,6 +169,10 @@ class WalletController extends BaseController
         $status = $this->pInt('type', false);
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
+        $data = [
+            'page' => $page,
+            'page_size' => $pageSize
+        ];
         if (!$currencyId) {
             return $this->respondJson(1, '货币不能为空');
         }
@@ -191,12 +186,12 @@ class WalletController extends BaseController
             $currencyModel->active($status);
         }
         $data['count'] = $currencyModel->count();
-        $data['list'] = $currencyModel->page($page, $pageSize)->asArray()->all();
+        $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
             if ($val['status'] == BUserCurrencyFrozen::STATUS_FROZEN) {
-                $val['amount'] = FuncHelper::formatAmount($val['amount'] * -1);
+                $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
             } else {
-                $val['amount'] = FuncHelper::formatAmount($val['amount']);
+                $val['amount'] = FuncHelper::formatAmount($val['amount'] * -1, 0, true);
             }
             $val['unfrozen_time'] = FuncHelper::formateDate($val['unfrozen_time']);
             $val['create_time'] = FuncHelper::formateDate($val['create_time']);
@@ -207,141 +202,195 @@ class WalletController extends BaseController
     }
 
     /**
-     * 创建钱包
-     *
-     * @return void
+     * @return string
+     * 充值地址
      */
-    public function actionCreate()
+    public function actionRechargeAddress()
     {
-        $userModel = $this->user;
-        if (empty($userModel->trans_password)) {
-            return $this->respondJson(1, '支付密码不存在');
+        $currencyId = $this->pInt('id', 0);
+        if (!$currencyId) {
+            return $this->respondJson(1, '货币不能为空');
         }
-        $defaultWallet = FuncHelper::getDefaultWallet();
-        $walletModel = $userModel->getUserWallet()
-        ->where(['wallet' => $defaultWallet['code']]);
-        if ($walletModel->exists()) {
-            return $this->respondJson(1, '钱包已存在');
+
+        $currency = BCurrency::find()->where(['id' => $currencyId])->one();
+        if (empty($currency) || $currency->recharge_status == BCurrency::$RECHARGE_STATUS_OFF) {
+            return $this->respondJson(1, "此货币不可充币");
         }
-        $jinTumService = JingTumService::getInstance();
-        $wallet = $jinTumService->createNewWallet()->content;
-        if (empty($wallet)) {
-            return $this->respondJson(1, '创建失败');
+
+        $userId = $this->user->id;
+        $returnInfo = RechargeService::getAddress($currencyId, $userId);
+        if ($returnInfo->code) {
+            return $this->respondJson(1, $returnInfo->msg);
         }
-        // 激活钱包
-        // $initWallet = $jinTumService->initializeWallet($wallet['address']);
-        // 查询钱包资产 暂不使用，原因：激活后不能及时查看钱包资产 需要 15-10秒左右时间
-        // $currencyList = $jinTumService->queryBalance($wallet['address']);
-        
-        $transaction = \Yii::$app->db->beginTransaction();
-        try {
-            // 钱包激活
-            $jinTumService->initializeWallet($wallet['address']);
-            // if ((bool) $initWallet->code) {
-            //     throw new \Exception('init wallet fail');
-            // }
-            // 钱包入库
-            $userWallet = new BUserWallet();
-            $userWallet->is_main = $defaultWallet['default'];
-            $userWallet->name = $defaultWallet['name'];
-            $userWallet->wallet = $defaultWallet['code'];
-            $userWallet->address = $wallet['address'];
-            $userWallet->secret = $wallet['secret'];
-            $userWallet->link('user', $userModel);
-            if (!(bool) $userWallet->id) {
-                throw new \Exception('钱包添加失败');
-            }
-            foreach ($defaultWallet['balances'] as $balances) {
-                $currencyModel = BCurrency::find()->where(['code' => strtolower($balances['currency'])]);
-                if ($currencyModel->exists()) {
-                    $currencyModel = $currencyModel->select('id')->one();
-                } else {
-                    $currencyModel = new BCurrency();
-                    $currencyModel->code = strtolower($balances['currency']);
-                    $currencyModel->save(false);
-                }
-                $userCurrencyModel = new BUserCurrency();
-                $userCurrencyModel->user_id = $userModel->id;
-                $userCurrencyModel->wallet_id = $userWallet->id;
-                $userCurrencyModel->link('currency', $currencyModel);
-            }
-            $transaction->commit();
-            return $this->respondJson(0, '钱包创建成功');
-        } catch (\Exception $e) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '钱包创建失败', $e->getMessage());
-        }
+        $respondContent = [
+            'address' => $returnInfo->content['address']
+        ];
+        return $this->respondJson(0, "获取成功", $respondContent);
     }
+
+    /**
+     * @return string
+     * 充值刷新
+     */
+    public function actionRechargeRefresh()
+    {
+        $currencyId = $this->pInt('id', 0);
+        if (!$currencyId) {
+            return $this->respondJson(1, '货币不能为空');
+        }
+
+        $userId = $this->user->id;
+        $rechargeAddress = BUserRechargeAddress::find()
+            ->where(['user_id' => $userId, 'currency_id' => $currencyId])
+            ->limit(1)
+            ->one();
+        if(!$rechargeAddress) {
+            return $this->respondJson(1, '钱包地址不存在');
+        }
+        $address = $rechargeAddress->address;
+        $isRefresh = false;
+
+        //井通下的货币
+        $currencyJingtum = BCurrency::getJingtumCurrency();
+        //井通下的货币充值刷新
+        if(in_array($currencyId, $currencyJingtum)) {
+            $page = 1;
+            $pageSize = 10;
+            $isUpdate = true; // 拉取交易记录自动更新交易数据
+            $record = JingTumService::getInstance()->pullTransRecord($address, $page, $pageSize, $isUpdate);
+            if($record['new_record']) {
+                $isRefresh = true;
+            }
+        }
+
+        return $this->respondJson(0, '刷新成功', ['is_refresh' => $isRefresh]);
+    }
+
 
     public function actionTransfer()
     {
-        $currencyId = $this->pInt('id', false);
+        $currencyId = $this->pInt('id');
         $userModel = $this->user;
         if (!$currencyId) {
             return $this->respondJson(1, '转出货币不能为空');
         }
         $amount = $this->pFloat('amount', 0);
-        if (!$amount) {
-            return $this->respondJson(1, '转出数量不能为空');
+        if ($amount <= 0) {
+            return $this->respondJson(1, '转出数量必须大于0');
         }
-        $receive = $this->pString('receive', false);
-        if (!$receive) {
+        $address = $this->pString('address');
+        if (!$address) {
             return $this->respondJson(1, '转出地址不能为空');
         }
         $remark = $this->pString('remark', '');
-        $userCurrencyModel = BUserCurrency::findOne(['user_id' => $userModel->id, 'currency_id' => $currencyId]);
-        // 获取设置中币种相关设置
-        $code = strtolower($userCurrencyModel->currency->code);
-        $settingCurrency = 'currency_'.$code;
+
+        // 获取设置中相关设置
+        $settingCurrency = 'currency';
         $isIdentify = (bool) SettingService::get($settingCurrency, 'is_identify')->value;
         if ($isIdentify && !(bool) $userModel->is_identified) {
             return $this->respondJson(1, '未实名认证');
         }
+
+        $currency = BCurrency::find()->where(['id' => $currencyId])->one();
+
+        //货币状态
+        if ($currency->status != BCurrency::$CURRENCY_STATUS_ON) {
+            return $this->respondJson(1, '该货币已下架');
+        }
+        //货币提现状态
+        if ($currency->withdraw_status == BCurrency::$RECHARGE_STATUS_OFF) {
+            return $this->respondJson(1, '该货币暂不支持提币');
+        }
         // 单笔最小数量
-        $minAmount = (float) SettingService::get($settingCurrency, 'min_amount')->value;
+        $minAmount = $currency->withdraw_min_amount;
         if ($amount < $minAmount) {
             return $this->respondJson(1, '单笔最小转账数量 '.$minAmount);
         }
-        // 每日累计转账数量
-        $secondMax = (float) SettingService::get($settingCurrency, 'one_second_max')->value;
-        if ($amount > $secondMax) {
-            return $this->respondJson(1, '每日单次最高转账数量 '.$secondMax);
+        // 单笔最大数量
+        $maxAmount = $currency->withdraw_max_amount;
+        if ($amount > $maxAmount) {
+            return $this->respondJson(1, '单笔最大转账数量 '.$maxAmount);
         }
-        $use_amount = floatval($userCurrencyModel->use_amount);
+
+        // 重算用户持仓
+        UserService::resetCurrency($userModel->id, $currencyId);
+        $userCurrencyModel = BUserCurrency::findOne(['user_id' => $userModel->id, 'currency_id' => $currencyId]);
+        if (!$userCurrencyModel) {
+            return $this->respondJson(1, '用户资产不足');
+        }
+
+        $use_amount = $userCurrencyModel->use_amount;
         if ($amount > $use_amount) {
             return $this->respondJson(1, '转出数量不能大于可用数量');
         }
         // 每日累计转账数量
-        $dayMax = (float) SettingService::get($settingCurrency, 'one_day_max')->value;
+        $dayMax = $currency->withdraw_day_amount;
         if ($dayMax > 0) {
-            $beginToday = mktime(0, 0, 0, date('m'), date('d'), date('Y'));
-            $endToday = mktime(0, 0, 0, date('m'), date('d')+1, date('Y'))-1;
-            $currencyDetail = BUserCurrencyDetail::find()
-            ->where(['currency_id' => $currencyId, 'user_id' => $userModel->id, 'type' => BUserCurrencyDetail::$TYPE_WITHDRAW])
-            ->andWhere(['<=', 'create_time', $endToday])
-            ->andWhere(['>=', 'create_time', $beginToday])
-            ->sum('amount');
-            if ((float) $currencyDetail > $dayMax) {
+            $beginToday = strtotime(date("Y-m-d"));
+            $endToday = $beginToday + 86399;
+            $withdrawDay = BUserRechargeWithdraw::find()
+                ->where(['currency_id' => $currencyId, 'user_id' => $userModel->id, 'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW])
+                ->andWhere(['<>', 'status', BUserRechargeWithdraw::$STATUS_EFFECT_FAIL])
+                ->andWhere(['<=', 'create_time', $endToday])
+                ->andWhere(['>=', 'create_time', $beginToday])
+                ->sum('amount');
+            if ($withdrawDay >= $dayMax) {
                 return $this->respondJson(1, '每日累计转账数量 '.$dayMax);
             }
         }
+
+        // 验证地址
+        $addressCheck = WithdrawService::withdrawAddressCheck($address, $currencyId);
+        if ($addressCheck === false) {
+            return $this->respondJson(1, "转出地址不正确");
+        }
         
         // 短信验证码
-        if (\Yii::$app->params['sendSms']) {
-            $vcode = $this->pString('vcode');
-
-            //手机验证码是否正确, 有效期只有5分钟
-            $returnInfo = ValidationCodeSmsService::checkValidateCode(
-                $userModel->mobile,
-                $vcode,
-                BSmsAuth::$TYPE_TRANSFER_GET
-            );
-            if ($returnInfo->code != 0) {
-                return $this->respondJson(1, $returnInfo->msg);
-            }
+        $vcode = $this->pString('vcode');
+        if (!$vcode) {
+            return $this->respondJson(1, '验证码不能为空');
         }
-        // 后续补充转账操作
+        //手机验证码是否正确, 有效期只有5分钟
+        $returnInfo = ValidationCodeSmsService::checkValidateCode(
+            $userModel->mobile,
+            $vcode,
+            BSmsAuth::$TYPE_TRANSFER_GET
+        );
+        if ($returnInfo->code != 0) {
+            return $this->respondJson(1, $returnInfo->msg);
+        }
 
-        return $this->respondJson(0, '转账成功');
+        //支付密码验证
+        $pass = $this->pString('pass');
+        if (!$pass) {
+            return $this->respondJson(1, '支付密码不能为空');
+        }
+        $passCheck = FuncHelper::validatePassWordHash($pass, $userModel->trans_password);
+        if (!$passCheck) {
+            return $this->respondJson(1, "支付密码不正确");
+        }
+
+        //转账操作
+        $time = time();
+        $poundage = 0;
+        $data = [
+            'currency_id' => $currencyId,
+            'user_id' => $userModel->id,
+            'amount' => $amount, // 总数量
+            'poundage' => $poundage, // 手续费
+            'destination_address' => $address, // 接收方地址
+            'tag' => "", // 地址标签
+            'remark' => $remark,
+            'status' => BUserRechargeWithdraw::$STATUS_EFFECT_WAIT,
+            'create_time' => $time,
+            'update_time' => $time,
+        ];
+
+        $sign = WithdrawService::withdrawCurrencyApply($data);
+        if ($sign === false) {
+            return $this->respondJson(1, '提交失败');
+        }
+
+        return $this->respondJson(0, '提交成功');
     }
 }

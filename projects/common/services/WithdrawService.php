@@ -81,11 +81,13 @@ class WithdrawService extends ServiceBase
 
             // 提交
             $transaction->commit();
-            return true;
+
+            return new FuncResult(0, '提交成功', $withdrawLastId);
         } catch (Exception $e) {
             // 回滚
             $transaction->rollBack();
-            return false;
+
+            return new FuncResult(1, '提交失败');
         }
     }
 
@@ -107,7 +109,7 @@ class WithdrawService extends ServiceBase
 
         $transaction = \Yii::$app->db->beginTransaction();
         try{
-            $adminId = $adminId !== '' ? \Yii::$app->user->id : intval($adminId);
+            $adminId = $adminId === '' ? \Yii::$app->user->id : intval($adminId);
             $time = time();
 
             // 修改user-recharge-withdraw状态
@@ -221,7 +223,7 @@ class WithdrawService extends ServiceBase
             if(!empty($transactionId)) {
                 // 修改提现订单transactionId
                 $sign = BUserRechargeWithdraw::updateAll(
-                    ['transaction_id' => $transactionId, 'update_time' => $time],
+                    ['source_address' => \Yii::$app->params['JTAddress'], 'transaction_id' => $transactionId, 'update_time' => $time],
                     ['=', 'id', $id]
                 );
                 if ($sign === 0) { throw new ErrorException('user-recharge-withdraw table data update is fail'); }

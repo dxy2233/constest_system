@@ -12,9 +12,8 @@
     <el-button size="small" type="primary" style="margin-top:20px;" @click="allDelete">删除</el-button>
 
     <el-table
-      ref="notiveTable"
       :data="tableDataPage"
-      style="width: 100%;margin:10px 0;"
+      style="margin:10px 0;"
       @selection-change="handleSelectionChange"
       @row-click="clickRow">
       <el-table-column type="selection" width="55"/>

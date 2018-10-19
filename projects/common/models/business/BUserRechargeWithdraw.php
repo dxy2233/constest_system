@@ -2,38 +2,102 @@
 
 namespace common\models\business;
 
+use common\models\business\BUser;
+
 class BUserRechargeWithdraw extends \common\models\UserRechargeWithdraw
 {
-    const STATUS_WAIT = 0; //待审核
-    const STATUS_ON = 1; //正常
-    const STATUS_ERROR = 2; //失败
-    const STATUS_NO = 3; //未通过
+    public $startTime;
+    public $endTime;
 
-    public static function getStatus($key = 0)
+    public static $TYPE_RECHARGE = 1; //充币
+    public static $TYPE_WITHDRAW = 2; //提币
+    public static function getType($key = '')
     {
         $arr = [
-            self::STATUS_WAIT => \Yii::t('app', '待审核'),
-            self::STATUS_ON => \Yii::t('app', '已审核'),
-            self::STATUS_WAIT => \Yii::t('app', '待审核'),
-            self::STATUS_NO => \Yii::t('app', '未通过'),
+            self::$TYPE_RECHARGE => \Yii::t('app', '充币'),
+            self::$TYPE_WITHDRAW => \Yii::t('app', '提币'),
         ];
-        if ($key !== "") {
-            return isset($arr[$key]) ? $arr[$key] : "";
+        if ($key !== '') {
+            return isset($arr[$key]) ? $arr[$key] : '';
         }
-
         return $arr;
+    }
+
+    public static $STATUS_EFFECT_WAIT = 0; // 待确认
+    public static $STATUS_EFFECT_SUCCESS = 1; // 操作成功
+    public static $STATUS_EFFECT_FAIL = 2; // 操作失败
+    public static function getStatus($key = '')
+    {
+        $arr = [
+            self::$STATUS_EFFECT_WAIT => \Yii::t('app', '待确认'),
+            self::$STATUS_EFFECT_SUCCESS => \Yii::t('app', '操作成功'),
+            self::$STATUS_EFFECT_FAIL => \Yii::t('app', '操作失败'),
+        ];
+        if ($key !== '') {
+            return isset($arr[$key]) ? $arr[$key] : '';
+        } else {
+            return $arr;
+        }
     }
 
 
 
+
     /**
-    * 自定义 label
-    * @return array
-    */
+     * @inheritdoc
+     */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(), [
+        return [
+            'id' => '货币记录ID',
+            'order_number' => '订单号',
+            'currency_id' => '货币',
+            'user_id' => '用户名',
+            'mobile' => '手机号码',
+            'type' => '类型',
+            'amount' => '数量',
+            'poundage' => '手续费',
+            'source_address' => '发送方地址',
+            'destination_address' => '接收方地址',
+            'remark' => '备注',
+            'status' => '状态',
+            'status_remark' => '状态备注',
+            'audit_admin_id' => '操作人',
+            'audit_time' => '操作时间',
+            'create_time' => '添加时间',
+            'update_time' => '修改时间',
+        ];
+    }
 
-        ]);
+    /**
+     * 转化时间格式
+     */
+    public function getCreateTimeText()
+    {
+        return date('Y-m-d H:i:s', $this->create_time);
+    }
+    
+    /**
+     * 转化时间格式
+     */
+    public function getUpdateTimeText()
+    {
+        return date('Y-m-d H:i:s', $this->update_time);
+    }
+
+    /** 获取用户
+     * 多对一关系
+     */
+    public function getUser()
+    {
+        return $this->hasOne(BUser::className(), ['id' => 'user_id']);
+    }
+
+    /** 获取用户
+     * 多对一关系
+     */
+    public function getCurrency()
+    {
+        return $this->hasOne(BCurrency::className(), ['id' => 'currency_id']);
     }
 }

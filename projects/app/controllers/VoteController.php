@@ -195,6 +195,29 @@ class VoteController extends BaseController
         return $this->respondJson(0, '获取成功', $data);
 
     }
+
+    /**
+     * 判断投票是否能赎回
+     *
+     * @return void
+     */
+    public function actionHasRevoke()
+    {
+        $voteId = $this->pInt('id', 1);
+        $userModel = $this->user;
+        $voteModel = $userModel->getVotes()
+        ->active()
+        ->where(['type' => BVote::TYPE_ORDINARY]);
+        $vote = $voteModel->one();
+        if (is_null($vote)) {
+            return $this->respondJson(1, '该投票不存在或不能撤回');
+        }
+        var_dump($vote->create_time);exit;
+        return $this->respondJson(0, '获取结果', true);
+
+    }
+
+
     /**
      * 我的投票赎回操作
      *
@@ -202,6 +225,9 @@ class VoteController extends BaseController
      */
     public function actionRevokeVote()
     {
+        $voteId = $this->pInt('id', 1);
+
+        return $this->respondJson(0, '赎回成功');
 
     }
 }

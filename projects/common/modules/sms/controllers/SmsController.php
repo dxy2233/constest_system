@@ -129,19 +129,17 @@ class SmsController extends BaseController
             return $this->respondJson(1, '验证码不能为空');
         }
 
-        // 短信验证码
-        if (\Yii::$app->params['sendSms']) {
-            //手机验证码是否正确, 有效期只有5分钟
-            $returnInfo = ValidationCodeSmsService::checkValidateCode(
-                $userModel->mobile,
-                $vcode,
-                BSmsAuth::$TYPE_PAY_PASSWORD,
-                false
-            );
-            if ($returnInfo->code != 0) {
-                return $this->respondJson(1, $returnInfo->msg, false);
-            }
+        //手机验证码是否正确, 有效期只有5分钟
+        $returnInfo = ValidationCodeSmsService::checkValidateCode(
+            $userModel->mobile,
+            $vcode,
+            BSmsAuth::$TYPE_PAY_PASSWORD,
+            false
+        );
+        if ($returnInfo->code != 0) {
+            return $this->respondJson(1, $returnInfo->msg, false);
         }
+
         return $this->respondJson(0, '验证成功', true);
     }
 }

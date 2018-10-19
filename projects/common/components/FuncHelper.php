@@ -405,6 +405,29 @@ class FuncHelper
         return $password;
     }
 
+
+    /**
+     * 生成随机字符
+     *
+     * @param integer $length 字符长度设定
+     * @param boolean $strtoupper 是否大写 默认大写输出
+     * @return void
+     */
+    public static function random(int $length = 6, bool $strtoupper = true)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= $chars[ mt_rand(0, strlen($chars) - 1) ];
+        }
+
+        if ($strtoupper) {
+            $string = strtoupper($string);
+        }
+
+        return $string;
+    }
+
     /**
      * @param array $arr
      * @param string $key_str
@@ -723,5 +746,31 @@ class FuncHelper
     {
         $data = $separator. str_replace($separator, " ", $data);
         return ltrim(str_replace(" ", "", ucwords($data)), $separator);
+    }
+
+    /**
+     * 进制转换
+     *
+     * @param [type] $data
+     * @param integer $frombase
+     * @param integer $tobase
+     * @param integer $default
+     * @return void
+     */
+    public static function radixConvert($data, int $frombase = 8, int $tobase = 36,  int $default = 10000000000)
+    {
+        $dlen = strlen($default);
+        if (is_int($data) && $data > 0) {
+            $pad = str_pad($data, $dlen, $default, STR_PAD_LEFT);
+            $convert = base_convert($pad, $frombase, $tobase);
+            $data = strtoupper($convert);
+        } else if (is_string($data)) {
+            echo $data;
+            $convert = (int) base_convert($data, $tobase, $frombase);
+            echo $convert;
+
+            $data = $convert - $default;
+        }
+        return $data;
     }
 }

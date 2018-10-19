@@ -17,6 +17,37 @@ use common\models\business\BUserRefreshToken;
 class UserService extends ServiceBase
 {
     /**
+     * 生成用户推荐码
+     *
+     * @param integer $len
+     * @return void
+     */
+    public static function generateRemmendCode(int $len = 6)
+    {
+        $code = FuncHelper::random($len);
+        if (BUser::find()->where(['recommend_code' => $code])->exists()) {
+            return self::generateRemmendCode($len);
+        }
+        return $code;
+    }
+
+    /**
+     * 生成用户推荐码
+     *
+     * @param integer $len
+     * @return void
+     */
+    public static function validateRemmendCode($data)
+    {
+        $userModel = BUser::find()->where(['recommend_code' => $data])->one();
+        if (is_null($userModel)) {
+            return false;
+        } else {
+            return $userModel->id;
+        }
+    }
+
+    /**
      * 用户登录
      *
      * @param BUser $user
@@ -27,7 +58,9 @@ class UserService extends ServiceBase
         if ($user->status == BUser::STATUS_INACTIVE) {
             return new ReturnInfo(1, "账号状态异常");
         }
-
+        if (empty($user->pwd_salt)) {
+            $user->pwd_salt = md5(NOW_TIME . $user->mobile);
+        }
         $user->last_login_ip = NetUtil::getIp();
         $user->last_login_time = NOW_TIME;
         $user->update();
@@ -39,10 +72,33 @@ class UserService extends ServiceBase
         self::writeUserLog($user->id, BUserLog::$TYPE_LOGIN, BUserLog::$STATUS_SUCCESS, '登录成功', $user->last_login_ip);
         $accessToken->content['name'] = $user->username;
         $accessToken->content['mobile'] = $user->mobile;
-        $defaultWallet = FuncHelper::getDefaultWallet();
-        $userWallet = $user->getUserWallet()->select(['address', 'wallet'])->where(['wallet' => $defaultWallet['code']])->asArray()->all();
-        $accessToken->content['wallet_address'] = $userWallet;
         return new ReturnInfo(0, "登录成功", $accessToken->content);
+    }
+
+    /**
+     * 根据用户密码明文,生成密码hash值
+     * @param string $pwdSalt
+     * @param string $cleartextPwd
+     * @return string
+     */
+    public static function generateTransPwdHash($pwdSalt, $cleartextPwd)
+    {
+        return md5($cleartextPwd . $pwdSalt);
+    }
+
+    /**
+     * 验证用户密码是否正确
+     * @param $user
+     * @param $pwd
+     * @return bool
+     */
+    public static function validateTransPwd(User $user, $pwd)
+    {
+        if (self::generatePwdHash($user->pwd_salt, $pwd) == $user->trans_password) {
+            return true;
+        }
+
+        return false;
     }
     
     /**
@@ -61,22 +117,10 @@ class UserService extends ServiceBase
                     $userModel->$key = $value;
                 }
             }
+            $userModel->pwd_salt = md5(NOW_TIME . $userModel->mobile);
             // 注册账号为激活状态
             $userModel->status = Buser::STATUS_ACTIVE;
-            if ($userModel->save()) {
-                // 保存成功写入钱包地址
-                if (isset($data['wallet_address'])) {
-                    $userWallet = new BUserWallet();
-                    $defaultWallet = FuncHelper::getDefaultWallet();
-                    $userWallet->wallet = isset($data['wallet_code']) ? $data['wallet_code'] : $defaultWallet['code'];
-                    $userWallet->address = $data['wallet_address'];
-                    $userWallet->link('user', $userModel);
-                    // 数据更新失败
-                    if (empty($userWallet->id)) {
-                        throw new ErrorException($userWallet->getFirstError());
-                    }
-                }
-            } else {
+            if (!$userModel->save()) {
                 throw new ErrorException($userModel->getFirstError());
             }
             $transaction->commit();
@@ -197,6 +241,7 @@ class UserService extends ServiceBase
             exit;
         }
     }
+
     /**
      * 用户注销登录
      */

@@ -25,7 +25,7 @@
     </div>
     <br>
 
-    已选择<span style="color:#3e84e9;">2</span>项
+    已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
     <el-button size="small" style="margin-top:20px;" @click="closeAll">停用</el-button>
 
     <el-table
@@ -107,15 +107,15 @@
               <el-radio-button label="投票记录"/>
               <el-radio-button label="赎回记录"/>
             </el-radio-group>
-            <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.votelist">
+            <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.voteList">
               <el-table-column prop="mobile" label="手机号"/>
-              <el-table-column prop="votenumber" label="票数"/>
-              <el-table-column prop="createtime" label="投票时间"/>
+              <el-table-column prop="voteNumber" label="票数"/>
+              <el-table-column prop="createTime" label="投票时间"/>
             </el-table>
-            <el-table v-show="pollName=='赎回记录'" :data="nodeInfoVote.orderlist">
+            <el-table v-show="pollName=='赎回记录'" :data="nodeInfoVote.orderList">
               <el-table-column type="index" label="排名"/>
               <el-table-column prop="mobile" label="用户"/>
-              <el-table-column prop="votenumber" label="合计票数"/>
+              <el-table-column prop="voteNumber" label="合计票数"/>
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="享有权益" name="3">
@@ -193,13 +193,13 @@
         </el-radio-group>
         <div v-show="dialogSetRightType=='任职'">
           <div class="right-checkbox">
-            <el-checkbox v-for="(item,index) in dialogSetRuleList.istenure" :key="index" v-model="item.checked">
+            <el-checkbox v-for="(item,index) in dialogSetRuleList.isTenure" :key="index" v-model="item.checked">
               {{ item.name }}
             </el-checkbox>
           </div>
         </div>
         <div v-show="dialogSetRightType=='排名权益'">
-          <div v-for="(item,index) in dialogSetRuleList.notenure" :key="index" class="right-checkbox">
+          <div v-for="(item,index) in dialogSetRuleList.noTenure" :key="index" class="right-checkbox">
             <div class="row">
               <el-checkbox v-model="item.checked" style="flex:3;">{{ item.name }}</el-checkbox>
               <span>排名</span>
@@ -227,7 +227,7 @@
       <div v-show="dialogRightName=='任职权益'">
         <div class="rigth-edit">
           <div class="row"><div>权益</div><div>描述</div></div>
-          <div v-for="(item,index) in dialogSetRuleList.istenure" :key="index" class="row">
+          <div v-for="(item,index) in dialogSetRuleList.isTenure" :key="index" class="row">
             <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
             <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
             <i class="el-icon-circle-close-outline" @click="deleteRule(true, index)"/>
@@ -240,7 +240,7 @@
       <div v-show="dialogRightName=='排名权益'">
         <div class="rigth-edit">
           <div class="row"><div>权益</div><div>描述</div></div>
-          <div v-for="(item,index) in dialogSetRuleList.notenure" :key="index" class="row">
+          <div v-for="(item,index) in dialogSetRuleList.noTenure" :key="index" class="row">
             <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
             <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
             <i class="el-icon-circle-close-outline" @click="deleteRule(false, index)"/>
@@ -509,6 +509,7 @@ export default {
     },
     // 批量停用
     closeAll() {
+      if (this.tableDataSelection.length < 1) return
       this.$confirm('确定停用吗?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -522,6 +523,10 @@ export default {
           Message({ message: res.msg, type: 'success' })
           getNodeList(null, null, null, this.allType[this.typeIndex].id).then(res => {
             this.tableData = res.content
+            this.tableData.forEach((item, index, arry) => {
+              Object.assign(item, { index: index + 1 })
+            })
+            this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
           })
         })
       })
@@ -554,24 +559,24 @@ export default {
         getRuleList().then(res => {
           this.dialogSetRuleList = res.content
         }).then(() => {
-          this.dialogSetRuleList.istenure.forEach((item, index, arry) => {
-            for (var i = 0; i < this.dialogSetData.rulelist.length; i++) {
-              if (this.dialogSetData.rulelist[i].ruleId === item.id) {
+          this.dialogSetRuleList.isTenure.forEach((item, index, arry) => {
+            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
                 arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.rulelist[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.rulelist[i].minOrder
+                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
               } else {
                 arry[index].maxOrder = 0
                 arry[index].minOrder = 0
               }
             }
           })
-          this.dialogSetRuleList.notenure.forEach((item, index, arry) => {
-            for (var i = 0; i < this.dialogSetData.rulelist.length; i++) {
-              if (this.dialogSetData.rulelist[i].ruleId === item.id) {
+          this.dialogSetRuleList.noTenure.forEach((item, index, arry) => {
+            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
                 arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.rulelist[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.rulelist[i].minOrder
+                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
               } else {
                 arry[index].maxOrder = 1
                 arry[index].minOrder = 1
@@ -592,24 +597,24 @@ export default {
     // 删除权益
     deleteRule(type, index) {
       if (type) {
-        this.dialogSetRuleList.istenure.splice(index, 1)
+        this.dialogSetRuleList.isTenure.splice(index, 1)
       } else {
-        this.dialogSetRuleList.notenure.splice(index, 1)
+        this.dialogSetRuleList.noTenure.splice(index, 1)
       }
     },
     // 增加权益
     addRule(type) {
       if (type) {
-        this.dialogSetRuleList.istenure.push({ name: '', content: '', isTenure: '1' })
+        this.dialogSetRuleList.isTenure.push({ name: '', content: '', isTenure: '1' })
       } else {
-        this.dialogSetRuleList.notenure.push({ name: '', content: '', isTenure: '0' })
+        this.dialogSetRuleList.noTenure.push({ name: '', content: '', isTenure: '0' })
       }
     },
     // 上传权益列表
     saveRuleList() {
       var temData = [[], []]
-      temData[0] = this.dialogSetRuleList.istenure
-      temData[1] = this.dialogSetRuleList.notenure
+      temData[0] = this.dialogSetRuleList.isTenure
+      temData[1] = this.dialogSetRuleList.noTenure
       pushRuleList(temData).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.dialogRight = false
@@ -618,19 +623,19 @@ export default {
     // 上传节点设置
     saveNodeSet() {
       var temList = []
-      this.dialogSetRuleList.istenure.forEach((item, index, arry) => {
+      this.dialogSetRuleList.isTenure.forEach((item, index, arry) => {
         if (item.checked) {
           arry[index].ruleId = item.id
           temList.push(arry[index])
         }
       })
-      this.dialogSetRuleList.notenure.forEach((item, index, arry) => {
+      this.dialogSetRuleList.noTenure.forEach((item, index, arry) => {
         if (item.checked) {
           arry[index].ruleId = item.id
           temList.push(arry[index])
         }
       })
-      this.dialogSetData.rulelist = temList
+      this.dialogSetData.ruleList = temList
       pushNodeSet(this.dialogSetData).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.dialogSet = false

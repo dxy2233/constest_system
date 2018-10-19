@@ -8,6 +8,7 @@ use common\components\FuncHelper;
 use common\services\SettingService;
 use common\models\business\BSmsAuth;
 use common\models\business\BUserLog;
+use common\services\ValidationCodeSmsService;
 
 class PayController extends BaseController
 {
@@ -62,7 +63,7 @@ class PayController extends BaseController
         }
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
-            $userModel->trans_password = FuncHelper::encryptPassWordHash($payPass);
+            $userModel->trans_password = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);
         } else {
             return $this->respondJson(1, '支付密码长度不够');
         }
@@ -91,17 +92,15 @@ class PayController extends BaseController
         if ($payPass !== $rePass) {
             return $this->respondJson(1, '两次支付密码不一致');
         }
-        $validateOldPass = FuncHelper::validatePassWordHash($oldpass, $userModel->trans_password);
-        if (!$validateOldPass) {
+        if (!UserService::validateTransPwd($userModel, $oldpass)) {
             return $this->respondJson(1, '原密码错误');
         }
-        $validateOldPass = FuncHelper::validatePassWordHash($payPass, $userModel->trans_password);
-        if ($validateOldPass) {
+        if (UserService::validateTransPwd($userModel, $payPass)) {
             return $this->respondJson(1, '旧密码新密码不能一致');
         }
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
-            $userModel->trans_password = FuncHelper::encryptPassWordHash($payPass);
+            $userModel->trans_password = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);
         } else {
             return $this->respondJson(1, '支付密码长度不够');
         }
@@ -143,7 +142,7 @@ class PayController extends BaseController
 
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
-            $userModel->trans_password = FuncHelper::encryptPassWordHash($payPass);
+            $userModel->trans_password = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);
         } else {
             return $this->respondJson(1, '支付密码长度不够');
         }
@@ -166,7 +165,12 @@ class PayController extends BaseController
             return $this->respondJson(1, '支付密码不能为空');
         }
         $userModel = $this->user;
-        $pass = FuncHelper::validatePassWordHash($payPass, $userModel->trans_password);
-        return $this->respondJson(0, '校验结果', $pass);
+        // 验证用户交易密码是否一致
+        $transPwdEncryption = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);
+        $result = false;
+        if ($userModel->trans_password == $transPwdEncryption) {
+            $result = true;
+        }
+        return $this->respondJson(0, '校验结果', $result);
     }
 }

@@ -165,7 +165,6 @@ class RechargeService extends ServiceBase {
                             $address = "";
                         }
                     }
-
                 } else {
                     $address = "";
                 }
@@ -179,7 +178,6 @@ class RechargeService extends ServiceBase {
         } else {
             return new ReturnInfo(1, "生成失败");
         }
-
     }
 
     /**
@@ -276,7 +274,6 @@ class RechargeService extends ServiceBase {
 //                echo $e->getMessage();
                 return new ReturnInfo(1, "操作失败");
             }
-
         } else {
             return new ReturnInfo(2, "no user recharge address");
         }

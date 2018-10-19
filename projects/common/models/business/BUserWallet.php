@@ -27,6 +27,16 @@ class BUserWallet extends \common\models\UserWallet
     }
 
     /**
+     * 用户钱包->货币
+     *  一对多
+     * @return void
+     */
+    public function getCurrencys()
+    {
+        return $this->hasMany(BCurrency::className(), ['id' => 'wallet_id']);
+    }
+
+    /**
      * 用户钱包->用户货币 和上面不一样
      *  一对多
      * @return void

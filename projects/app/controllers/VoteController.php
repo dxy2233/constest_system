@@ -83,7 +83,7 @@ class VoteController extends BaseController
     }
 
     /**
-     * 我的投票劵数量
+     * 我的投票劵获取和使用列表
      *
      * @return void
      */
@@ -129,8 +129,105 @@ class VoteController extends BaseController
                 unset($voucherDetail['node_id']);
             }
         }
-        // 未完待续 数据结构修改
-        // var_dump($voucherModel->sum('voucher_num - use_voucher'));
         return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 我的投票劵信息
+     *
+     * @return void
+     */
+    public function actionVoucherInfo()
+    {
+        $userModel = $this->user;
+        $voucher = $userModel->getVouchers()
+        ->select(['SUM(vh.voucher_num) voucher_num', 'SUM(vd.amount) use_amount', 'vh.user_id'])
+        ->alias('vh')
+        ->joinWith(['user u' => function($query) {
+            $query->joinWith(['voucherDetails vd']);
+        }])
+        ->one();
+        $data['count'] = (int) $voucher->voucher_num - $voucher->use_amount;
+        return $this->respondJson(0, '获取成功', $data);
+        exit;
+    }
+
+    /**
+     * 我的投票记录
+     *
+     * @return void
+     */
+    public function actionLogs()
+    {
+        // 返回容器
+        $data = [];
+        // 查询类型
+        $type = $this->pInt('type', 1);
+        $page = $this->pInt('page', 1);
+        $pageSize = $this->pInt('page_size', 15);
+        $userModel = $this->user;
+        $voteModel = $userModel->getVotes()
+        ->select(['v.*', 'n.name', 'nt.name as type_name'])
+        ->alias('v')
+        ->joinWith(['node n' => function($query) {
+            $query->joinWith(['nodeType nt']);
+        }]);
+        if ($type) {
+            // 默认为投出的
+           $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
+        } else {
+            $voteModel->active(BVote::STATUS_INACTIVE, 'v.');
+        }
+        $data['count'] = $voteModel->count();
+        $data['list'] = $voteModel->page($page, $pageSize)
+        ->asArray()
+        ->all();
+        // ->createCommand()->getRawSql();
+        foreach ($data['list'] as &$vote) {
+            $vote['undo_time'] = FuncHelper::formateDate($vote['undo_time']);
+            $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);
+            $vote['status_str'] = BVote::getStatus($vote['status']);
+            $vote['type_str'] = BVote::getType($vote['type']);
+            $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE);
+            unset($vote['node'], $vote['user_id'], $vote['node_id'], $vote['consume'], $vote['type'], $vote['status']);
+        }
+        // var_dump($voteList);exit;
+        return $this->respondJson(0, '获取成功', $data);
+
+    }
+
+    /**
+     * 判断投票是否能赎回
+     *
+     * @return void
+     */
+    public function actionHasRevoke()
+    {
+        $voteId = $this->pInt('id', 1);
+        $userModel = $this->user;
+        $voteModel = $userModel->getVotes()
+        ->active()
+        ->where(['type' => BVote::TYPE_ORDINARY]);
+        $vote = $voteModel->one();
+        if (is_null($vote)) {
+            return $this->respondJson(1, '该投票不存在或不能撤回');
+        }
+        var_dump($vote->create_time);exit;
+        return $this->respondJson(0, '获取结果', true);
+
+    }
+
+
+    /**
+     * 我的投票赎回操作
+     *
+     * @return void
+     */
+    public function actionRevokeVote()
+    {
+        $voteId = $this->pInt('id', 1);
+
+        return $this->respondJson(0, '赎回成功');
+
     }
 }

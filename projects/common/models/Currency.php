@@ -32,6 +32,7 @@ class Currency extends \common\dzbase\DzModel
     public function rules()
     {
         return [
+            [['wallet_id', 'code'], 'required'],
             [['summary'], 'string'],
             [['status', 'sort', 'is_address_tag', 'recharge_status', 'recharge_amount_precision', 'recharge_confirmation', 'withdraw_status',
                 'withdraw_amount_precision', 'withdraw_confirmation', 'create_time', 'update_time'], 'integer'],

@@ -124,6 +124,8 @@ class WalletController extends BaseController
         return $this->respondJson(0, '获取成功', $userCurrency);
     }
 
+    // public function actionCurrency
+
     /**
      * 货币收入明细
      *

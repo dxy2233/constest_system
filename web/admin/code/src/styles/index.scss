@@ -75,7 +75,9 @@ a:hover {
 
 .app-container {
   padding: 20px;
-  min-height: calc(100vh - 50px);
+  // min-height: calc(100vh - 50px);
+  height: calc(100vh - 50px);
+  overflow-y: auto;
 }
 
 // 页面标题同行右侧按钮
@@ -92,14 +94,15 @@ a:hover {
 
 // 侧栏外层
 .fade-slide {
-  width: 650px;
+  // width: 650px;
+  width: 50%;
   height: 100%;
   padding: 20px;
   background: #fff;
   border-left: 1px solid #ddd;
   z-index: 100;
-  position: absolute;
-  top: 0;
+  position: fixed;
+  top: 50px;
   right: 0;
   overflow-y: auto;
   .title {
@@ -142,12 +145,14 @@ a:hover {
 }
 .fade-enter {
   opacity: 0;
-  transform: translateX(650px);
+  // transform: translateX(650px);
+  transform: translateX(50%);
 }
 .fade-leave-active {
   transition: all 0.4s;
 }
 .fade-leave-to {
   opacity: 0;
-  transform: translateX(650px);
+  // transform: translateX(650px);
+  transform: translateX(50%);
 }

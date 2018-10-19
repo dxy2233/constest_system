@@ -45,7 +45,7 @@ class User extends DzModel implements IdentityInterface
         return [
             [['mobile'], 'required'],
             [['is_identified', 'status', 'last_login_time', 'create_time', 'update_time'], 'integer'],
-            [['username', 'nickname', 'password', 'email'], 'string', 'max' => 50],
+            [['username', 'nickname', 'password', 'email', 'recommend_code'], 'string', 'max' => 50],
             [['realname', 'mobile', 'last_login_ip'], 'string', 'max' => 20],
             [['pwd_salt'], 'string', 'max' => 32],
             [['equipment_number', 'trans_password'], 'string', 'max' => 128],
@@ -71,6 +71,7 @@ class User extends DzModel implements IdentityInterface
             'status' => Yii::t('app', '状态，0 冻结，1 正常'),
             'last_login_ip' => Yii::t('app', '最后登录IP'),
             'last_login_time' => Yii::t('app', '最后登录时间'),
+            'recommend_code' => Yii::t('app', '推荐码'),
             'equipment_number' => Yii::t('app', '设备号'),
             'create_time' => Yii::t('app', '添加时间'),
             'update_time' => Yii::t('app', '修改时间'),

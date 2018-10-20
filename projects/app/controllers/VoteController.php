@@ -3,11 +3,13 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
 use common\models\business\BVote;
 use common\services\SettingService;
 use common\models\business\BHistory;
+use common\models\business\BCurrency;
 
 class VoteController extends BaseController
 {
@@ -43,16 +45,8 @@ class VoteController extends BaseController
         // 容器
         $data = [];
         
-        // 刷新时间获取，更新时间
-        $endUpdate = SettingService::get('vote', 'end_update_time');
-        if (!is_object($endUpdate) && empty($endUpdate->value)) {
-            return $this->respondJson(1, "投票更新时间未设定");
-        }
-        $updateTime = (int) $endUpdate->value;
-        $data['countTime'] = FuncHelper::formateDate($updateTime);
         $voteModel = BVote::find()
         ->select(['user_id', 'node_id', 'create_time', 'type', 'status'])
-        ->where(['<=', 'create_time', $updateTime])
         ->with('user')
         ->active();
         if ($voteShowType === 'pay') {
@@ -244,6 +238,168 @@ class VoteController extends BaseController
         }
 
         return $this->respondJson(0, '赎回成功');
+
+    }
+
+    /**
+     * 投票方式显示
+     *
+     * @return void
+     */
+    public function actionTypes()
+    {
+        $userModel = $this->user;
+        $ordinaryPrice = SettingService::get('vote', 'ordinary_price');
+        $paymentPrice = SettingService::get('vote', 'payment_price');
+        $this->actionVoucherInfo();
+        $voucherNumber = $this->respondData['content']['count'];
+        // 返回容器
+        $data = [
+            [
+                'id' => BVote::TYPE_ORDINARY,
+                'name' => BVote::getType(BVote::TYPE_ORDINARY),
+                'scaling' => $ordinaryPrice->value . 'GRT=1票 可赎回',
+            ],
+            [
+                'id' => BVote::TYPE_PAY,
+                'name' => BVote::getType(BVote::TYPE_PAY),
+                'scaling' => '消耗' . $paymentPrice->value . 'GRT=10票',
+            ],
+            [
+                'id' => BVote::TYPE_VOUCHER,
+                'name' => BVote::getType(BVote::TYPE_VOUCHER),
+                'scaling' => '拥有数量 ' . $voucherNumber. '票',
+            ],
+        ];
+        
+
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 投票类型具体参数
+     *
+     * @return void
+     */
+    public function actionTypeInfo()
+    {
+        $data = [];
+        $type = $this->pInt('id', 1);
+        $userModel = $this->user;
+        $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
+        // 返回容器
+        $data['amount'] = 0;
+        $data['number'] = 0;
+        $scaling = 1;
+        if ($type === BVote::TYPE_ORDINARY) {
+            $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
+        } else if($type === BVote::TYPE_PAY) {
+            $scaling = (float) SettingService::get('vote', 'payment_price')->value;
+        } else {
+            $this->actionVoucherInfo();
+            $voucherNumber = $this->respondData['content']['count'];
+            $data['amount'] = $voucherNumber;
+            $data['number'] = $voucherNumber;
+            return $this->respondJson(0, '获取成功', $data);
+        }
+        
+        $currencyId = BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
+        $userCurrencyModel = $userModel->getUserCurrency()
+        ->where(['currency_id' => $currencyId]);
+        $userCurrencyInfo = $userCurrencyModel->one();
+        if (!is_null($userCurrencyInfo)) {
+            $useAmount = floatval($userCurrencyInfo->use_amount);
+            $data['amount'] = $useAmount;
+            $data['number'] = $useAmount / $scaling;
+        }
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 投票提交
+     *
+     * @return void
+     */
+    public function actionSubmit()
+    {
+        $rank = VoteService::getNodeRanking(1, 1);
+        var_dump($rank);exit;
+        $userModel = $this->user;
+        $nodeId = $this->pInt('node_id', false);
+        if (!$nodeId) {
+            return $this->respondJson(1, '节点不能为空');
+        }
+        $type = $this->pInt('type', false);
+        if (!$type) {
+            return $this->respondJson(1, '投票方式不能为空');
+        }
+        $number = $this->pInt('number', 0);
+        if ($number <= 0) {
+            return $this->respondJson(1, '投票数量不能为小于等于0');
+        }
+        $payPass = $this->pInt('pass', false);
+        if (!$payPass) {
+            return $this->respondJson(1, '支付密码不能为空');
+        }
+        // 验证用户交易密码是否一致
+        $transPwdEncryption = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);
+        if ($userModel->trans_password !== $transPwdEncryption) {
+            return $this->respondJson(1, '支付密码错误');
+        }
+        if (in_array($type, [BVote::TYPE_ORDINARY, BVote::TYPE_PAY])) {
+            $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
+            $currencyId = (int) BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
+            // 消费货币是先进行资金重算
+            UserService::resetCurrency($userModel->id, $currencyId);
+            $userCurrencyModel = $userModel->getUserCurrency()
+            ->where(['currency_id' => $currencyId]);
+            $userCurrencyInfo = $userCurrencyModel->one();
+            if (is_null($userCurrencyInfo)) {
+                return $this->respondJson(1, '没有可用的货币');
+            }
+            if ($type === BVote::TYPE_ORDINARY) {
+                $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
+            } else if($type === BVote::TYPE_PAY) {
+                $scaling = (float) SettingService::get('vote', 'payment_price')->value;
+            }
+            $useAmount = floatval($userCurrencyInfo->use_amount) / $scaling;
+            if ($useAmount < $number) {
+                return $this->respondJson(1, '货币量不足');
+            }
+            $currencyAmount = $number * $scaling;
+            $voteRes = [
+                'vote_number' => $number,
+                'amount' => $currencyAmount,
+                'currency_id' => $currencyId,
+                'node_id' => $nodeId,
+            ];
+            $voteAction = VoteService::currencyVote($userModel, $voteRes, BVote::TYPE_ORDINARY);
+            if ($voteAction->code) {
+                return $this->respondJson(1, '投票失败');
+            }
+        } else {
+            $this->actionVoucherInfo();
+            $voucherNumber = $this->respondData['content']['count'];
+            if ($voucherNumber < $number) {
+                return $this->respondJson(1, '投票劵不足');
+            }
+            $voteRes = [
+                'vote_number' => $number,
+                'node_id' => $nodeId,
+            ];
+            $voteAction = VoteService::voucherVote($userModel, $voteRes);
+            if ($voteAction->code) {
+                return $this->respondJson(1, '投票失败');
+            }
+        }
+        $data = [
+            'node_id' => $nodeId,
+            'user_id' => $userModel->id,
+            'vote_number' => $number,
+        ];
+        // 缓存投票排名
+        VoteService::cachePushRanking($nodeId, $userModel->id, $number);
+        return $this->respondJson(0, '投票成功');
 
     }
 }

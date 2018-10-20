@@ -78,6 +78,7 @@ class FuncHelper
         //     $imgAddress[2] = $imagePath;
         //     $imagePath = implode($imgAddress);
         // }
+        $imagePath = str_replace(\Yii::$app->params['imgAddress'], '', $imagePath);
         if ($imagePath) {
             $imagePath = \Yii::$app->params['imgAddress'].$imagePath;
         }
@@ -123,7 +124,7 @@ class FuncHelper
         }
 
         $flagStr = "";
-        if($flag) {
+        if ($flag) {
             $flagStr = round($amount, 8) > 0 ? "+" : "";
         }
 
@@ -370,7 +371,7 @@ class FuncHelper
     public static function formateDate($time = null, $formate = 'Y-m-d H:i:s')
     {
         $time = $time ?? time();
-        if(!$time) {
+        if (!$time) {
             return "";
         }
         return date($formate, $time);

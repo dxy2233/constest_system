@@ -103,6 +103,16 @@ class BUser extends \common\models\User
     }
 
     /**
+     * 用户的投票劵使用记录
+     *
+     * @return void
+     */
+    public function getUserRechargeAddress()
+    {
+        return $this->hasOne(BUserRechargeAddress::className(), ['user_id' => 'id']);
+    }
+
+    /**
      * 用户的投票记录
      *
      * @return void

@@ -28,26 +28,26 @@ class BUserCurrencyDetail extends \common\models\UserCurrencyDetail
 
 
 
-    public static $TYPE_INCOME = 1;
-    public static $TYPE_WITHDRAW = 2;
-    public static $TYPE_PLEDGE = 3;
-    public static $TYPE_VOTE = 4;
-    public static $TYPE_POUNDAGE = 5;
+    // public static $TYPE_INCOME = 1;
+    // public static $TYPE_WITHDRAW = 2;
+    // public static $TYPE_PLEDGE = 3;
+    // public static $TYPE_VOTE = 4;
+    // public static $TYPE_POUNDAGE = 5;
 
-    public static function getType(int $key = null)
-    {
-        $arr = [
-            static::$TYPE_INCOME => \Yii::t('app', '收款'),
-            static::$TYPE_WITHDRAW => \Yii::t('app', '提现'),
-            static::$TYPE_VOTE => \Yii::t('app', '投票'),
-            static::$TYPE_POUNDAGE => \Yii::t('app', '手续费'),
-        ];
-        if (!is_null($key)) {
-            return isset($arr[$key]) ? $arr[$key] : null;
-        }
+    // public static function getType(int $key = null)
+    // {
+    //     $arr = [
+    //         static::$TYPE_INCOME => \Yii::t('app', '收款'),
+    //         static::$TYPE_WITHDRAW => \Yii::t('app', '提现'),
+    //         static::$TYPE_VOTE => \Yii::t('app', '投票'),
+    //         static::$TYPE_POUNDAGE => \Yii::t('app', '手续费'),
+    //     ];
+    //     if (!is_null($key)) {
+    //         return isset($arr[$key]) ? $arr[$key] : null;
+    //     }
 
-        return $arr;
-    }
+    //     return $arr;
+    // }
     /**
     * 自定义 label
     * @return array

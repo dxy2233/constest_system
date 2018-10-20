@@ -138,9 +138,10 @@ class NodeController extends BaseController
         }
 
         $nodeModel = BNode::find()
-        ->select(['id', 'name', 'desc', 'logo', 'scheme', 'is_tenure'])
-        ->active()
-        ->with('votes')
+        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.scheme', 'n.is_tenure', 'nt.name as type_name', 'n.type_id'])
+        ->alias('n')
+        ->joinWith(['nodeType nt'])
+        ->active(BNode::STATUS_ACTIVE, 'n.')
         ->one();
         if (!is_object($nodeModel)) {
             return $this->respondJson(1, '节点不存在或已关闭');
@@ -156,6 +157,7 @@ class NodeController extends BaseController
         $nodeList['vote_number'] = $votesCount['vote_number'] ?? '0';
         $nodeList['logo'] = $nodeModel->logoText;
         $nodeList['is_tenure'] = $nodeModel->isTenureText;
+        $nodeList['type_name'] = $nodeModel->type_name;
         return $this->respondJson(0, '获取成功', $nodeList);
     }
 

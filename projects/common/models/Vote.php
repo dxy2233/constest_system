@@ -32,7 +32,7 @@ class Vote extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'node_id', 'vote_number', 'consume', 'type', 'create_time'], 'required'],
+            [['user_id', 'node_id', 'vote_number', 'type', 'create_time'], 'required'],
             [['user_id', 'node_id', 'vote_number', 'type', 'status', 'create_time'], 'integer'],
             [['consume'], 'number'],
         ];

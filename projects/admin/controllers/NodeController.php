@@ -22,6 +22,7 @@ use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRecommend;
 use common\models\business\BSetting;
 use common\models\business\BCurrency;
+use common\models\business\BHistory;
 use common\models\business\BUserRechargeWithdraw;
 use common\components\FuncHelper;
 
@@ -55,7 +56,14 @@ class NodeController extends BaseController
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
         $page = $this->pInt('page', 0);
-        $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type);
+        $order = $this->pString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.create_time'];
+            $order = $order_arr[$order];
+        } else {
+            $order = '';
+        }
+        $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
         foreach ($data as $v) {
             $id_arr[] = $v['id'];
@@ -82,13 +90,23 @@ class NodeController extends BaseController
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
         $page = $this->pInt('page', 0);
-        $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status);
+        $order = $this->pString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.create_time'];
+            $order = $order_arr[$order];
+        } else {
+            $order = '';
+        }
+        $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
         foreach ($data as $v) {
             $item = [];
             $item['username'] = $v['username'];
             $item['name'] = $v['name'];
-            $item['consume'] = $v['consume'];
+            $item['bpt'] = $v['bpt'];
+            $item['tt'] = $v['tt'];
+            $item['grt'] = $v['grt'];
+            $item['type_name'] = $v['type_name'];
             $item['status'] = BNode::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $return[] = $item;
@@ -167,8 +185,8 @@ class NodeController extends BaseController
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;
-            $identify['picFront'] = $userIdentify->pic_front;
-            $identify['picBack'] = $userIdentify->pic_back;
+            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front);
+            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back);
         }
         return $this->respondJson(0, '获取成功', $identify);
     }
@@ -244,18 +262,10 @@ class NodeController extends BaseController
             $endTime = date('Y-m-d H:i:s');
         }
         $page = $this->pInt('page', 1);
-        $data = NodeService::getList($page, '', '', $endTime, $type);
-        $id_arr = [];
-        foreach ($data as $v) {
-            $id_arr[] = $v['id'];
-        }
-        $people = NodeService::getPeopleNum($id_arr, '', $endTime);
+        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
+        $data = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type])->page($page)->asArray()->all();
         foreach ($data as &$v) {
-            if (isset($people[$v['id']])) {
-                $v['count'] = $people[$v['id']];
-            } else {
-                $v['count'] = 0;
-            }
+            $v['count'] = $v['people_number'];
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -303,9 +313,17 @@ class NodeController extends BaseController
         if ($is_candidate > 0 && empty($max_candidate)) {
             return $this->respondJson(1, '候选数量必须大于0');
         }
-        $min_money = $this->pInt('minMoney');
-        if (empty($tenure_num)) {
-            return $this->respondJson(1, '质押资产必须大于0');
+        $grt = $this->pInt('grt');
+        if (empty($grt)) {
+            return $this->respondJson(1, '质押grt必须大于0');
+        }
+        $tt = $this->pInt('tt');
+        if (empty($tt)) {
+            return $this->respondJson(1, '质押tt必须大于0');
+        }
+        $bpt = $this->pInt('bpt');
+        if (empty($bpt)) {
+            return $this->respondJson(1, '质押bpt必须大于0');
         }
         $node->is_examine = $is_examine;
         $node->is_candidate = $is_candidate;
@@ -313,7 +331,9 @@ class NodeController extends BaseController
         $node->is_order = $is_order;
         $node->tenure_num = $tenure_num;
         $node->max_candidate = $max_candidate;
-        $node->min_money = $min_money;
+        $node->grt = $grt;
+        $node->tt = $tt;
+        $node->bpt = $bpt;
         $transaction = \Yii::$app->db->beginTransaction();
         if (!$node->save()) {
             $transaction->rollBack();
@@ -326,10 +346,10 @@ class NodeController extends BaseController
         foreach ($rule_arr as $v) {
             $rule_obj = new BTypeRuleContrast();
             $rule_obj->type_id = $node->id;
-            $rule_obj->is_tenure = $v['is_tenure']?$v['is_tenure']:$v['isTenure'];
-            $rule_obj->min_order = $v['min_order']?$v['min_order']:$v['minOrder'];
-            $rule_obj->max_order = $v['max_order']?$v['max_order']:$v['maxOrder'];
-            $rule_obj->rule_id = $v['rule_id']?$v['rule_id']:$v['ruleId'];
+            $rule_obj->is_tenure = isset($v['is_tenure'])?$v['is_tenure']:$v['isTenure'];
+            $rule_obj->min_order = isset($v['min_order'])?$v['min_order']:$v['minOrder'];
+            $rule_obj->max_order = isset($v['max_order'])?$v['max_order']:$v['maxOrder'];
+            $rule_obj->rule_id =isset($v['rule_id'])?$v['rule_id']:$v['ruleId'];
             if (!$rule_obj->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '操作失败', $rule_obj->getFirstErrorText());
@@ -506,9 +526,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '节点类型不能为空');
         }
         $is_tenure = $this->pInt('is_tenure');
-        if (empty($is_tenure)) {
-            return $this->respondJson(1, '节点身份不能为空');
-        }
+
         $grt = $this->pInt('grt');
         if (empty($grt)) {
             return $this->respondJson(1, '质压GRT数量不能为空');
@@ -570,6 +588,15 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
             }
+            $voucher = new BVoucher();
+            $voucher->user_id = $id;
+            $voucher->node_id = $node->id;
+            $voucher->voucher_num = $grt * $setting->value;
+            if (!$voucher->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '注册失败', $voucher->getFirstErrorText());
+            }
+            UserService::resetVoucher($id);
         }
 
         // 补全充值冻结信息
@@ -581,7 +608,7 @@ class NodeController extends BaseController
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['grt'];
-        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $grt;
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
@@ -591,7 +618,7 @@ class NodeController extends BaseController
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['tt'];
-        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $tt;
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
@@ -601,7 +628,7 @@ class NodeController extends BaseController
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['bpt'];
-        $user_c_detail->type = BUserCurrencyDetail::$TYPE_INCOME;
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $bpt;
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
@@ -614,7 +641,7 @@ class NodeController extends BaseController
         $frozen->currency_id = $currency_id['bpt'];
         $frozen->amount = $bpt;
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
@@ -624,7 +651,7 @@ class NodeController extends BaseController
         $frozen->currency_id = $currency_id['grt'];
         $frozen->amount = $grt;
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
@@ -634,7 +661,7 @@ class NodeController extends BaseController
         $frozen->currency_id = $currency_id['tt'];
         $frozen->amount = $tt;
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_PLEDGE;
+        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
@@ -710,6 +737,7 @@ class NodeController extends BaseController
         UserService::resetCurrency($user->id, $currency_id['grt']);
         UserService::resetCurrency($user->id, $currency_id['tt']);
         UserService::resetCurrency($user->id, $currency_id['bpt']);
+        
 
         $transaction->commit();
         return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);

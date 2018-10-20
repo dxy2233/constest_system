@@ -11,7 +11,7 @@ return [
     // 密码加密/解密串 // 使用 yii 安全助手生成 Yii::$app->getSecurity()->generateRandomString();
     'authCodeKey' => '2QST9d46soiQpf2Hug8igL0ja0RdOYTk',
 
-    'imgAddress' => 'http://static.atshuyi.com/',
+    'imgAddress' => 'http://static.atshuyi.com/contest_system',
 
     'oss'=> [
         'ossServer' => 'http://oss-cn-hangzhou.aliyuncs.com', //服务器外网地址，深圳为 http://oss-cn-shenzhen.aliyuncs.com
@@ -19,7 +19,7 @@ return [
         'AccessKeyId' => 'LTAIv0R9FpkaZA7k', //阿里云给的AccessKeyId
         'AccessKeySecret' => 'khia0Pp7dzRqybJEXAtuUJk7gmwGj4', //阿里云给的AccessKeySecret
         'Bucket' => 'atshuyi', //创建的空间名
-        'project' => 'meeting'
+        'project' => 'contest_system'
     ],
 
     //短信通道

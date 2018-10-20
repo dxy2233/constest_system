@@ -383,7 +383,6 @@ class VoteController extends BaseController
             if ($voteAction->code) {
                 return $this->respondJson(1, '投票失败');
             }
-
         } else {
             $this->actionVoucherInfo();
             $voucherNumber = $this->respondData['content']['count'];

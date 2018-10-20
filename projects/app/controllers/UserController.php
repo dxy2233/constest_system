@@ -3,7 +3,9 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\NodeService;
 use common\services\UserService;
+use common\services\VoteService;
 use common\components\FuncHelper;
 use common\models\business\BUser;
 use common\services\SettingService;
@@ -115,9 +117,25 @@ class UserController extends BaseController
      */
     public function actionNodeRuleInfo()
     {
+        // 返回容器
+        $data = [];
         $userModel = $this->user;
         $nodeModel = $userModel->node;
+        $nodeTypeModel = $nodeModel->nodeType;
+        $ranking = VoteService::getNodeRanking($nodeModel->type_id, $nodeModel->id);
         // var_dump($nodeModel);
-        return $this->respondJson(0, '获取成功');
+        $nodeRule = NodeService::getNodeRule($nodeModel->id, $ranking);
+        $rules = [];
+        foreach ($nodeRule as $key => $rule) {
+            $rules[$key]['name'] = $rule['name'];
+            $rules[$key]['content'] = $rule['content'];
+            $rules[$key]['is_tenure'] = (bool) $rule['is_tenure'];
+        }
+        $data['name'] = $nodeModel->name;
+        $data['type_name'] = $nodeTypeModel->name;
+        $data['type'] = $nodeModel->type_id;
+        // $data['is_tenure'] = $nodeModel->isTenureText;
+        $data['rules'] = $rules;
+        return $this->respondJson(0, '获取成功', $data);
     }
 }

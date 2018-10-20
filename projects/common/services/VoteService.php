@@ -3,12 +3,14 @@
 namespace common\services;
 
 use yii\base\ErrorException;
+use yii\helpers\ArrayHelper;
 use common\components\FuncResult;
+use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BVote;
+use common\models\business\BVoucherDetail;
 use common\models\business\BWalletJingtum;
 use common\models\business\BUserCurrencyDetail;
-use common\models\business\BVoucherDetail;
 
 class VoteService extends ServiceBase
 {
@@ -149,42 +151,128 @@ class VoteService extends ServiceBase
         }
     }
 
+    public static function getNodeRanking(int $nodeType = 0, int $nodeId = 0)
+    {
+        $cacheKey = 'ranking';
+        $cache = \Yii::$app->cache;
+        if (empty($nodeType) && empty($nodeId)) {
+            return 0;
+        }
+        $ranking = [];
+        if ($cache->exists($cacheKey)) {
+            $ranking = $cache->get($cacheKey);
+        } else {
+            $nodeModel = BNode::find()
+            ->alias('n')
+            ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
+            ->active(BNode::STATUS_ACTIVE, 'n.')
+            ->joinWith(['votes v' => function($query) {
+                $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
+            }])
+            ->where(['n.type_id' => $nodeType])
+            ->groupBy('n.id')
+            ->orderBy(['vote_number' => SORT_DESC]);
+            $nodeModel->cache(true);
+            $nodeQuery = $nodeModel->createCommand();
+            // echo ($nodeQuery->getRawSql());exit;
+            $nodeList = $nodeQuery->queryAll();
+            // 获取节点user 去重统计
+            $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
+            $voteUser = \common\services\NodeService::getPeopleNum($nodeIds);
+            foreach ($nodeList as $key => &$node) {
+                $node['logo'] = FuncHelper::getImageUrl($node['logo']);
+                $node['is_tenure'] = (bool) $node['is_tenure'];
+                $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;
+            }
+            
+            ArrayHelper::multisort($nodeList, 'vote_number');
+            $nodeData = [];
+            foreach ($nodeList as $key => $node) {
+                $nodeData[$key + 1] = $node;
+            }
+            $ranking[$nodeType] = $nodeData;
+            $cache->set($cacheKey, $ranking);
+        }
+
+        $rank = 0;
+        foreach ($ranking[$nodeType] as $key => $node) {
+            if ($node['id'] == $nodeId) {
+                $rank = $key;
+            }
+        }
+        return !$nodeId ? $ranking[$nodeType] : $rank;
+    }
+
     /**
      * 蒋投票缓存到排名中
      *
      * @param array $data
      * @return void
      */
-    public static function cacheAddRanking(array $data = [])
+    public static function cachePushRanking(int $nodeId = 0, int $userId = 0, int $voteNumber = 0) :array
     {
+        $cacheKey = 'ranking';
         $cache = \Yii::$app->cache;
-        if (empty($data)) {
+        if (empty($nodeId) || empty($userId)) {
+            return [];
+        }
+
+        $nodeModel = BNode::findOne($nodeId);
+        $nodeTypeModel = $nodeModel->nodeType;
+        if (is_null($nodeModel) || is_null($nodeTypeModel)) {
             return false;
         }
-        // $res = [
-        //     'node_id' => [
-        //         'people_number' => 
-        //     ]
-        // ]
-        // $data['node_id'] = 12;
-        $nodeUsers = $cache->multiGet([$data['node_id']]);
-        var_dump($nodeUsers);exit;
-        $nodeCacheList = $cache->multiGet([$data['node_id']]);
-        $nodeCache = $nodeCacheList[$data['node_id']];
-        if ($nodeCache) {
-            $nodeCache['people_number'] += 1; 
-            $nodeCache['vote_number'] += $data['vote_number']; 
+        $ranking = [];
+        // 初始化数组
+        $ranking[$nodeTypeModel->id] = [];
+        if ($cache->exists($cacheKey)) {
+            $ranking = $cache->get($cacheKey);
+        }
+        // 判断节点类型数组是否存在
+        if (!isset($ranking[$nodeTypeModel->id])) {
+            $ranking[$nodeTypeModel->id] = [];
+        }
+        $nodeTypes = $ranking[$nodeTypeModel->id];
+        $peopleNumbers = NodeService::getPeopleNum([$nodeModel->id]);
+        $baseInfo = [
+            'id' => $nodeModel->id,
+            'type_id' => $nodeTypeModel->id,
+            'desc' => $nodeModel->desc,
+            'type_name' => $nodeTypeModel->name,
+            'is_tenure' => (bool) $nodeModel->is_tenure,
+            'logo' => $nodeModel->logoText
+        ];
+        if (empty($nodeTypes)) {
+            $baseInfo['baseInfo']['vote_number'] = $voteNumber;
+            $baseInfo['baseInfo']['people_number'] =  $peopleNumbers[$nodeModel->id];
+           
+            $nodeTypes[] = $baseInfo;
         } else {
-            $nodeCache['people_number'] = 1; 
-            $nodeCache['vote_number'] = $data['vote_number']; 
+            // 循环重算
+            foreach ($nodeTypes as $key => &$node) {
+                if ($node['id'] == $nodeModel->id) {
+                    $node = array_merge($node, $baseInfo);
+                    // 进行数据变更
+                    if (isset($node['vote_number'])) {
+                        $node['vote_number'] = (int) $node['vote_number'] + $voteNumber;
+                    } else {
+                        $node['vote_number'] = (int) $voteNumber;
+                    }
+                    if ($node['vote_number'] < 0) {
+                        $node['vote_number'] = 0;
+                    }
+                    $node['people_number'] = $peopleNumbers[$nodeModel->id];
+                }
+            }
         }
 
-
-        var_dump($data, $nodeCacheList, $nodeCache);exit;
-        // $cache->multiSet([
-        //     $data['node_id'] => [
-        //         $userModel->id
-        //     ]
-        // ]);
+        ArrayHelper::multisort($nodeTypes, 'vote_number');
+        $nodeData = [];
+        foreach ($nodeTypes as $key => $node) {
+            $nodeData[$key + 1] = $node;
+        }
+        $ranking[$nodeTypeModel->id] = $nodeData;
+        $cache->set($cacheKey, $ranking);
+        return $ranking;
     }
 }

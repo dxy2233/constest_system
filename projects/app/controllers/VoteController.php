@@ -45,16 +45,8 @@ class VoteController extends BaseController
         // 容器
         $data = [];
         
-        // 刷新时间获取，更新时间
-        $endUpdate = SettingService::get('vote', 'end_update_time');
-        if (!is_object($endUpdate) && empty($endUpdate->value)) {
-            return $this->respondJson(1, "投票更新时间未设定");
-        }
-        $updateTime = (int) $endUpdate->value;
-        $data['countTime'] = FuncHelper::formateDate($updateTime);
         $voteModel = BVote::find()
         ->select(['user_id', 'node_id', 'create_time', 'type', 'status'])
-        ->where(['<=', 'create_time', $updateTime])
         ->with('user')
         ->active();
         if ($voteShowType === 'pay') {
@@ -330,7 +322,8 @@ class VoteController extends BaseController
      */
     public function actionSubmit()
     {
-        
+        $rank = VoteService::getNodeRanking(1, 1);
+        var_dump($rank);exit;
         $userModel = $this->user;
         $nodeId = $this->pInt('node_id', false);
         if (!$nodeId) {
@@ -353,14 +346,6 @@ class VoteController extends BaseController
         if ($userModel->trans_password !== $transPwdEncryption) {
             return $this->respondJson(1, '支付密码错误');
         }
-        
-        $data = [
-            'node_id' => $nodeId,
-            'user_id' => $userModel->id,
-            'vote_number' => $number,
-        ];
-        // 缓存投票排名
-        VoteService::cacheAddRanking($data);exit;
         if (in_array($type, [BVote::TYPE_ORDINARY, BVote::TYPE_PAY])) {
             $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
             $currencyId = (int) BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
@@ -413,8 +398,7 @@ class VoteController extends BaseController
             'vote_number' => $number,
         ];
         // 缓存投票排名
-        VoteService::cacheAddRanking($data);
-
+        VoteService::cachePushRanking($nodeId, $userModel->id, $number);
         return $this->respondJson(0, '投票成功');
 
     }

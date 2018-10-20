@@ -5,6 +5,7 @@ namespace common\services;
 use common\models\business\BUserCurrency;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BUserCurrencyFrozen;
+use common\models\User;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 use common\components\NetUtil;
@@ -101,7 +102,7 @@ class UserService extends ServiceBase
      */
     public static function validateTransPwd(User $user, $pwd)
     {
-        if (self::generatePwdHash($user->pwd_salt, $pwd) == $user->trans_password) {
+        if (self::generateTransPwdHash($user->pwd_salt, $pwd) == $user->trans_password) {
             return true;
         }
 

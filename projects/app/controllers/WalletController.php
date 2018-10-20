@@ -48,10 +48,10 @@ class WalletController extends BaseController
     public function actionIndex()
     {
 //        var_dump(FuncHelper::sendSocketMsg('msg','single', 'user', 35, ['id'=>11, 'status'=>"ssss"]));
-//        var_dump(WithdrawService::withdrawCurrencyCheck(24,1)) ;
+//        var_dump(WithdrawService::withdrawCurrencyAudit(24,2,'身份不正确')) ;
 //        var_dump( JingTumService::getInstance()->queryPayments("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY" , "1", "10")) ;
 //        var_dump( JingTumService::getInstance()->addUserBalanceFormMain("jNnCJNbvrctbriJRSfwGg2BydGph2tmDuu","Trans20181018002",0.3,"test",JingTumService::ASSETS_TYPE_GRT)) ;
-//        var_dump( JingTumService::getInstance()->queryBalance("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY")) ;
+//        var_dump( JingTumService::getInstance()->queryBalance("j3q98BEzVKGp6deZM5RdPoXREDtNuoJw7H")) ;
 //        $resJingTum = JingTumService::getInstance()->queryPayments("j4oRzJ88L37Qnig8ftGtDrmbKxyaXR7G1d" , 1, 10);
 //        var_dump($resJingTum);
 //        var_dump( JingTumService::getInstance()->mainBalance()) ;
@@ -100,7 +100,15 @@ class WalletController extends BaseController
 
         $userCurrency = BCurrency::find()
             ->from(BCurrency::tableName().' c')
-            ->select(['c.name', 'c.code', 'c.id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
+            ->select(['c.name', 'c.code', 'c.id',
+                'c.recharge_status',
+                'c.withdraw_status',
+                'c.withdraw_min_amount',
+                'c.withdraw_max_amount',
+                'c.withdraw_audit_amount',
+                'c.withdraw_day_amount',
+                'c.withdraw_amount_precision',
+                'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
             ->leftJoin(
                 BUserCurrency::tableName().' uc',
                 'c.id = uc.currency_id '
@@ -294,6 +302,9 @@ class WalletController extends BaseController
         }
 
         $currency = BCurrency::find()->where(['id' => $currencyId])->one();
+        if (!$currency) {
+            return $this->respondJson(1, '转出货币不存在');
+        }
 
         //货币状态
         if ($currency->status != BCurrency::$CURRENCY_STATUS_ON) {
@@ -306,12 +317,12 @@ class WalletController extends BaseController
         // 单笔最小数量
         $minAmount = $currency->withdraw_min_amount;
         if ($amount < $minAmount) {
-            return $this->respondJson(1, '单笔最小转账数量 '.$minAmount);
+            return $this->respondJson(1, '单笔最小转账数量'.floatval($minAmount));
         }
         // 单笔最大数量
         $maxAmount = $currency->withdraw_max_amount;
         if ($amount > $maxAmount) {
-            return $this->respondJson(1, '单笔最大转账数量 '.$maxAmount);
+            return $this->respondJson(1, '单笔最大转账数量'.floatval($maxAmount));
         }
 
         // 重算用户持仓
@@ -323,21 +334,22 @@ class WalletController extends BaseController
 
         $use_amount = $userCurrencyModel->use_amount;
         if ($amount > $use_amount) {
-            return $this->respondJson(1, '转出数量不能大于可用数量');
+            return $this->respondJson(1, '转出数量不能大于可用数量'.floatval($use_amount));
         }
         // 每日累计转账数量
+        $beginToday = strtotime(date("Y-m-d"));
+        $endToday = $beginToday + 86399;
+        $withdrawDay = BUserRechargeWithdraw::find()
+            ->where(['currency_id' => $currencyId, 'user_id' => $userModel->id, 'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW])
+            ->andWhere(['<>', 'status', BUserRechargeWithdraw::$STATUS_EFFECT_FAIL])
+            ->andWhere(['<=', 'create_time', $endToday])
+            ->andWhere(['>=', 'create_time', $beginToday])
+            ->sum('amount');
+
         $dayMax = $currency->withdraw_day_amount;
         if ($dayMax > 0) {
-            $beginToday = strtotime(date("Y-m-d"));
-            $endToday = $beginToday + 86399;
-            $withdrawDay = BUserRechargeWithdraw::find()
-                ->where(['currency_id' => $currencyId, 'user_id' => $userModel->id, 'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW])
-                ->andWhere(['<>', 'status', BUserRechargeWithdraw::$STATUS_EFFECT_FAIL])
-                ->andWhere(['<=', 'create_time', $endToday])
-                ->andWhere(['>=', 'create_time', $beginToday])
-                ->sum('amount');
-            if ($withdrawDay >= $dayMax) {
-                return $this->respondJson(1, '每日累计转账数量 '.$dayMax);
+            if (round($withdrawDay+$amount,8) > $dayMax) {
+                return $this->respondJson(1, '今日已转账'.floatval($withdrawDay).'，每日累计转账限制数量为'.floatval($dayMax));
             }
         }
 
@@ -346,7 +358,14 @@ class WalletController extends BaseController
         if ($addressCheck === false) {
             return $this->respondJson(1, "转出地址不正确");
         }
-        
+        $rechargeAddress = BUserRechargeAddress::find()
+            ->where(['user_id' => $userModel->id, 'currency_id' => $currencyId])
+            ->limit(1)
+            ->one();
+        if(!empty($rechargeAddress) && $rechargeAddress->address == $address) {
+            return $this->respondJson(1, '转出地址不能为自己钱包地址');
+        }
+
         // 短信验证码
         $vcode = $this->pString('vcode');
         if (!$vcode) {
@@ -367,7 +386,10 @@ class WalletController extends BaseController
         if (!$pass) {
             return $this->respondJson(1, '支付密码不能为空');
         }
-        $passCheck = FuncHelper::validatePassWordHash($pass, $userModel->trans_password);
+        if (!$userModel->trans_password) {
+            return $this->respondJson(1, '未设置支付密码');
+        }
+        $passCheck = UserService::validateTransPwd($userModel, $pass);
         if (!$passCheck) {
             return $this->respondJson(1, "支付密码不正确");
         }
@@ -388,10 +410,19 @@ class WalletController extends BaseController
             'update_time' => $time,
         ];
 
-        $sign = WithdrawService::withdrawCurrencyApply($data);
-        if ($sign === false) {
+        $res = WithdrawService::withdrawCurrencyApply($data);
+        if ($res->code != 0) {
             return $this->respondJson(1, '提交失败');
         }
+        $withdrawId = $res->content;
+
+        //日累计金额小于限制金额自动审核
+        $auditMax = $currency->withdraw_audit_amount;
+        if (round($withdrawDay+$amount,8) <= $auditMax) {
+            //审核
+            WithdrawService::withdrawCurrencyAudit($withdrawId, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS,'', 0);
+        }
+
 
         return $this->respondJson(0, '提交成功');
     }

@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { getList, getDetail } from '@/api/verified'
+import { getList, getDetail, passVerified, failVerified } from '@/api/verified'
 import { Message } from 'element-ui'
 import { pagination } from '@/utils'
 
@@ -88,6 +88,10 @@ export default {
         return 2
       }
     }
+    // cc() {
+    //   if (!this.tableData[0]) return false
+    //   if (this.tableData[0].hasOwnProperty('createTime')) return true
+    // }
   },
   created() {
     getList(this.checkTypetoNum).then(res => {

@@ -6,6 +6,9 @@ use common\components\FuncHelper;
 
 class BNode extends \common\models\Node
 {
+    // 新增额外表字段(节点类型名称)
+    public $type_name;
+
     // 定义首页默展示 10 个节点
     const INDEX_NUMBER = 10;
 

@@ -183,3 +183,34 @@ export function getHistory(type, endTime, page) {
     }
   })
 }
+
+// 添加节点第一步
+export function addNodeOne({ ...data }) {
+  return request({
+    url: '/node/create-user',
+    method: 'post',
+    data: {
+      ...data
+    }
+  })
+}
+// 添加节点第二步
+export function addNodeTwo({ ...data }) {
+  return request({
+    url: '/node/set-identify',
+    method: 'post',
+    data: {
+      ...data
+    }
+  })
+}
+// 添加节点第三步
+export function addNodeThree({ ...data }) {
+  return request({
+    url: '/node/create-node',
+    method: 'post',
+    data: {
+      ...data
+    }
+  })
+}

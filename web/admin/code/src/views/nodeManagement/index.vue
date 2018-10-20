@@ -7,6 +7,7 @@
     </el-radio-group>
     <el-button style="float:right;" @click="openNodeSet">节点设置</el-button>
     <el-button style="float:right;margin-right:10px;" @click="openHistory">历史排名</el-button>
+    <el-button style="float:right;" @click="dialogAddNode=true">增加节点</el-button>
     <el-button style="float:right;" @click="addExcel">导出excel</el-button>
     <br>
 
@@ -29,9 +30,8 @@
     <el-button size="small" style="margin-top:20px;" @click="closeAll">停用</el-button>
 
     <el-table
-      ref="multipleTable"
       :data="tableDataPage"
-      style="width: 100%;margin:10px 0;"
+      style="margin:10px 0;"
       @selection-change="handleSelectionChange"
       @row-click="clickRow">
       <el-table-column type="selection" width="55"/>
@@ -39,11 +39,9 @@
       <el-table-column prop="name" label="节点名称"/>
       <el-table-column prop="voteNumber" label="票数"/>
       <el-table-column prop="count" label="支持人数"/>
-      <el-table-column label="质押资产">
-        <template slot-scope="scope">
-          {{ scope.row.consume }}GRT
-        </template>
-      </el-table-column>
+      <el-table-column prop="grt" label="质押GRT"/>
+      <el-table-column prop="bpt" label="质押BPT"/>
+      <el-table-column prop="tt" label="质押TT"/>
       <el-table-column prop="createTime" label="加入时间"/>
       <el-table-column label="状态">
         <template slot-scope="scope">
@@ -94,13 +92,13 @@
           </el-tab-pane>
           <el-tab-pane label="实名信息" name="1">
             <p>
-              <span style="margin-right:150px;">姓名：{{ nodeInfoIdentify.realname }}</span>
+              <span style="margin-right:150px;">姓名：{{ nodeInfoIdentify.realName }}</span>
               <span>身份证号：{{ nodeInfoIdentify.number }}</span>
             </p>
             <p>手持身份证正面</p>
-            <img :src="nodeInfoIdentify.picfront" alt="">
+            <img :src="nodeInfoIdentify.picFront" alt="">
             <p>手持身份证背面</p>
-            <img :src="nodeInfoIdentify.picback" alt="">
+            <img :src="nodeInfoIdentify.picBack" alt="">
           </el-tab-pane>
           <el-tab-pane label="投票明细" name="2">
             <el-radio-group v-model="pollName" class="radioTabs">
@@ -250,7 +248,7 @@
           <i class="el-icon-circle-plus-outline" @click="addRule(false)"> 添加一行</i>
         </div>
       </div>
-      <span slot="footer" class="dialog-footer">
+      <span slot="footer">
         <el-button type="primary" @click="saveRuleList">保 存</el-button>
         <el-button @click="dialogRight = false">取 消</el-button>
       </span>
@@ -292,13 +290,121 @@
         layout="total, prev, pager, next, jumper"
         @current-change="changeHistoryPage"/>
     </el-dialog>
+
+    <el-dialog :visible.sync="dialogAddNode" title="添加节点">
+      <el-steps :active="step" finish-status="success">
+        <el-step title="基本信息"/>
+        <el-step title="实名认证"/>
+        <el-step title="节点信息"/>
+      </el-steps>
+      <div v-show="step==0" style="margin-top:30px;">
+        <el-form :label-position="'top'" :model="stepfirstData">
+          <el-form-item label="手机号" required>
+            <el-input v-model="stepfirstData.mobile"/>
+          </el-form-item>
+          <el-form-item label="推荐人（推荐码）">
+            <el-input v-model="stepfirstData.code"/>
+          </el-form-item>
+          <el-form-item label="节点类型" required>
+            <el-select v-model="stepfirstData.type_id" placeholder="请选择">
+              <el-option
+                v-for="item in allType"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"/>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="节点身份" required>
+            <el-select v-model="stepfirstData.is_tenure" placeholder="请选择">
+              <el-option
+                v-for="item in tenureData"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"/>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="质押GRT数量" required>
+            <el-input v-model="stepfirstData.grt"/>
+          </el-form-item>
+          <el-form-item label="质押TT数量" required>
+            <el-input v-model="stepfirstData.tt"/>
+          </el-form-item>
+          <el-form-item label="质押BPT数量" required>
+            <el-input v-model="stepfirstData.bpt"/>
+          </el-form-item>
+        </el-form>
+      </div>
+      <div v-show="step==1" style="margin-top:30px;">
+        <el-form :label-position="'top'" :model="stepSecondData">
+          <el-form-item label="姓名" required>
+            <el-input v-model="stepSecondData.realname"/>
+          </el-form-item>
+          <el-form-item label="身份证号" required>
+            <el-input v-model="stepSecondData.identify"/>
+          </el-form-item>
+          <el-form-item label="手持身份证正面照" required>
+            <el-upload
+              :show-file-list="false"
+              :on-success="addNodeImgF"
+              :data="{type:'identify'}"
+              action="http://admin.contest_system.local/upload/upload/image"
+              name="image_file"
+              class="avatar-uploader">
+              <img v-if="stepSecondData.pic_front" :src="stepSecondData.pic_front" class="avatar">
+              <i v-else class="el-icon-plus avatar-uploader-icon"/>
+            </el-upload>
+          </el-form-item>
+          <el-form-item label="手持身份证背面照" required>
+            <el-upload
+              :show-file-list="false"
+              :on-success="addNodeImgB"
+              :data="{type:'identify'}"
+              action="http://admin.contest_system.local/upload/upload/image"
+              name="image_file"
+              class="avatar-uploader">
+              <img v-if="stepSecondData.pic_back" :src="stepSecondData.pic_back" class="avatar">
+              <i v-else class="el-icon-plus avatar-uploader-icon"/>
+            </el-upload>
+          </el-form-item>
+        </el-form>
+      </div>
+      <div v-show="step==2||step==3">
+        <el-form :label-position="'top'" :model="stepThirdData">
+          <el-form-item label="节点logo" required>
+            <el-upload
+              :show-file-list="false"
+              :on-success="addNodeImgLogo"
+              :data="{type:'logo'}"
+              action="http://admin.contest_system.local/upload/upload/image"
+              name="image_file"
+              class="avatar-uploader">
+              <img v-if="stepThirdData.logo" :src="stepThirdData.logo" class="avatar">
+              <i v-else class="el-icon-plus avatar-uploader-icon"/>
+            </el-upload>
+          </el-form-item>
+          <el-form-item label="机构/个人名称" required>
+            <el-input v-model="stepThirdData.name"/>
+          </el-form-item>
+          <el-form-item label="机构/个人简介" required>
+            <el-input v-model="stepThirdData.desc"/>
+          </el-form-item>
+          <el-form-item label="社区建设方案" required>
+            <el-input v-model="stepThirdData.scheme"/>
+          </el-form-item>
+        </el-form>
+      </div>
+      <span slot="footer">
+        <el-button v-show="step<2" type="primary" @click="addStep">下一步</el-button>
+        <el-button v-show="step==2" type="primary" @click="sureAdd">确认添加</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getNodeList, getNodeType, getNodeBase, getNodeIdentify, getNodeVote, getNodeRule,
   onTenure, offTenure, stopNode, onNode, updataBase, getNodeSet, getRuleList, pushRuleList,
-  getHistory, pushNodeSet } from '@/api/nodePage'
+  getHistory, pushNodeSet, addNodeOne, addNodeTwo, addNodeThree } from '@/api/nodePage'
 import { Message } from 'element-ui'
 import { parseTime, pagination } from '@/utils'
 
@@ -345,7 +451,36 @@ export default {
       dialogHistoryDataPage: [],
       dialogHistorySearch: '',
       dialogHistoryType: '',
-      historyCurrentPage: 1
+      historyCurrentPage: 1,
+      dialogAddNode: false,
+      step: 0,
+      tenureData: [
+        { value: 1, label: '任职' },
+        { value: 0, label: '候选' }
+      ],
+      stepfirstData: {
+        mobile: '',
+        code: '',
+        type_id: '',
+        is_tenure: '',
+        grt: '',
+        tt: '',
+        bpt: ''
+      },
+      stepSecondData: {
+        user_id: '',
+        realname: '',
+        identify: '',
+        pic_front: '',
+        pic_back: ''
+      },
+      stepThirdData: {
+        user_id: '',
+        logo: '',
+        name: '',
+        desc: '',
+        scheme: ''
+      }
     }
   },
   computed: {
@@ -404,6 +539,10 @@ export default {
     changeNodeType(val) {
       getNodeList(null, null, null, this.allType[this.typeIndex].id).then(res => {
         this.tableData = res.content
+        this.tableData.forEach((item, index, arry) => {
+          Object.assign(item, { index: index + 1 })
+        })
+        this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
       })
     },
     // 主表格搜索
@@ -678,11 +817,50 @@ export default {
         })
       }
     },
+    // 添加节点1,2步
+    addStep() {
+      if (this.step === 0) {
+        addNodeOne(this.stepfirstData).then(res => {
+          Message({ message: res.msg, type: 'success' })
+          this.stepSecondData.user_id = res.content.userId
+          this.stepThirdData.user_id = res.content.userId
+          this.isSecond = res.content.isIdentify
+          if (res.content.isIdentify === 0) this.step = 1
+          else if (res.content.isIdentify === 1) this.step = 2
+        })
+      } else if (this.step === 1) {
+        addNodeTwo(this.stepSecondData).then(res => {
+          Message({ message: res.msg, type: 'success' })
+          this.step = 2
+        })
+      }
+    },
+    // 身份证正面回调
+    addNodeImgF(res, file) {
+      this.stepSecondData.pic_front = res.content
+    },
+    // 身份证背面回调
+    addNodeImgB(res, file) {
+      this.stepSecondData.pic_back = res.content
+    },
+    // LOGO回调
+    addNodeImgLogo(res, file) {
+      this.stepThirdData.logo = res.content
+    },
+    // 添加节点最后一步
+    sureAdd() {
+      this.step = 3
+      addNodeThree(this.stepThirdData).then(res => {
+        this.dialogAddNode = false
+        Message({ message: res.msg, type: 'success' })
+        this.step = 0
+      })
+    },
     // 导出excel
     addExcel() {
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['排名', '节点名称', '票数', '支持人数', '质押资产', '加入时间', '状态']
-        const filterVal = ['index', 'name', 'voteNumber', 'count', 'consume', 'createTime', 'status']
+        const tHeader = ['排名', '节点名称', '票数', '支持人数', '质押GRT', '质押BPT', '质押TT', '加入时间', '状态']
+        const filterVal = ['index', 'name', 'voteNumber', 'count', 'grt', 'bpt', 'tt', 'createTime', 'status']
         const list = this.tableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({
@@ -811,5 +989,29 @@ export default {
   i:hover {
     cursor: pointer;
   }
+}
+
+.avatar-uploader /deep/.el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader /deep/.el-upload:hover {
+  border-color: #409EFF;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
 }
 </style>

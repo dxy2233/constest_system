@@ -1,133 +1,291 @@
 <template>
-  <div class="app-container">
-    <h4 style="display:inline-block;">财务流水</h4>
-    <el-button class="btn-right" @click="addExcel">导出excel</el-button>
+  <div class="app-container" @click.self="showInfo=false">
+    <el-radio-group v-model="checkType" class="radioTabs" @change="changeCheckType">
+      <el-radio-button label="待审核"/>
+      <el-radio-button label="已通过"/>
+      <el-radio-button label="未通过"/>
+    </el-radio-group>
+    <el-button class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
     <br>
 
-    <el-input v-model="search" placeholder="用户/节点名称" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
-    <div style="float:right;margin-top:20px;">
-      <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;">
-        <el-option
-          v-for="(item,index) in allMoneyType"
-          :key="index"
-          :label="item.name"
-          :value="item.id"/>
-      </el-select>
-      <el-select v-model="dataType" clearable placeholder="全部" style="width:100px;">
-        <el-option
-          v-for="(item,index) in allAmount"
-          :key="index"
-          :label="item.label"
-          :value="item.value"/>
-      </el-select>
-      <el-date-picker
-        v-model="date"
-        type="datetimerange"
-        range-separator="至"
-        start-placeholder="开始日期"
-        end-placeholder="结束日期"
-        format="yyyy 年 MM 月 dd 日 HH：mm"
-        value-format="yyyy-MM-dd HH:mm"
-        style="width:500px;"/>
-      <el-button @click="searchTableData">查询</el-button>
-    </div>
+    <el-input v-model="search" placeholder="姓名/手机号/身份证号" suffix-icon="el-icon-search" style="width:200px;"/>
+    <el-button style="float:right;" @click="searchData">查询</el-button>
+    <el-date-picker
+      v-model="date"
+      type="datetimerange"
+      range-separator="至"
+      start-placeholder="开始日期"
+      end-placeholder="结束日期"
+      format="yyyy 年 MM 月 dd 日 HH：mm"
+      value-format="yyyy-MM-dd HH:mm"
+      style="width:500px;float:right;"/>
+    <span style="float:right;line-height:2.5;padding:0 5px;">申请时间</span>
+    <el-select v-model="moneyType" placeholder="币种" style="float:right;">
+      <el-option
+        v-for="item in allMoneyType"
+        :key="item.id"
+        :label="item.name"
+        :value="item.id"/>
+    </el-select>
     <br>
 
-    <el-table :data="tableDataPage" style="margin:10px 0;">
-      <el-table-column prop="id" label="流水号"/>
-      <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="wallet" label="钱包"/>
+    已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
+    <el-button size="small" style="margin-top:20px;" @click="allDoomPass">通过</el-button>
+
+    <el-table
+      :data="tableDataPage"
+      style="margin:10px 0;"
+      @selection-change="handleSelectionChange"
+      @row-click="clickRow">
+      <el-table-column type="selection" width="55"/>
+      <el-table-column prop="orderNumber" label="流水号"/>
       <el-table-column prop="name" label="币种"/>
-      <el-table-column prop="type2" label="收支"/>
-      <el-table-column prop="type" label="类型"/>
+      <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="amount" label="数量"/>
-      <el-table-column prop="status" label="状态"/>
-      <el-table-column prop="createTime" label="时间"/>
+      <el-table-column prop="type" label="类型"/>
+      <el-table-column prop="remark" label="备注"/>
+      <el-table-column label="状态">
+        <template slot-scope="scope">
+          {{ checkType }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="createTime" label="申请时间"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
       :total="total"
-      :page-size="20"
-      layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      :page-size="pageSize"
+      layout="total, prev, pager, next, jumper"/>
+
+    <transition name="fade">
+      <div v-show="showInfo" class="fade-slide">
+        <div class="title" style="margin-bottom:50px;">
+          <img src="@/assets/img/user.jpg" alt="">
+          <span class="name">{{ rowInfo.realname }}<br><span>{{ checkType }}</span></span>
+          <i class="el-icon-close btn" @click="showInfo=false"/>
+          <el-button v-show="checkType=='待审核'" type="primary" class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
+          <el-button v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
+        </div>
+        <p><span>流水号</span>{{ rowInfo.orderNumber }}</p>
+        <p><span>币种</span>{{ rowInfo.name }}<span>类型</span>{{ rowInfo.type }}</p>
+        <p><span>数量</span>{{ rowInfo.amount }}<span>备注</span>{{ rowInfo.remark }}</p>
+        <p><span>对方钱包地址</span>{{ rowInfo.destinationAddress }}</p>
+        <p><span>申请时间</span>{{ rowInfo.createTime }}</p>
+      </div>
+    </transition>
+
+    <el-dialog :visible.sync="dialogSet" title="转账设置">
+      <p>转账需完成实名认证<el-switch v-model="form.is_identify" active-value="1" inactive-value="0" style="float:right;"/></p>
+      <el-tabs v-model="setType" @tab-click="changeTabs">
+        <el-tab-pane
+          v-for="(item,index) in allMoneyType"
+          :key="index"
+          :label="item.name"
+          :name="item.id">
+          <el-form>
+            <el-form-item label="单笔最小转账数量">
+              <el-input v-model="form.withdraw_min_amount">
+                <template slot="append">{{ item.code }}</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="大于该值转账需审核">
+              <el-input v-model="form.withdraw_max_amount">
+                <template slot="append">{{ item.code }}</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日单次最高转账数量">
+              <el-input v-model="form.withdraw_audit_amount">
+                <template slot="append">{{ item.code }}</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日累计转账数量">
+              <el-input v-model="form.withdraw_day_amount">
+                <template slot="append">{{ item.code }}</template>
+              </el-input>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+      </el-tabs>
+      <span slot="footer">
+        <el-button type="primary" @click="saveSet">确认修改</el-button>
+        <el-button @click="dialogSet = false">取 消</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getRuningList, getMoneyType } from '@/api/assets'
-import { parseTime, pagination } from '@/utils'
+import { getList, editSet, passTrial, failTrial, getSetValue } from '@/api/transfer'
+import { getMoneyType } from '@/api/assets'
+import { Message } from 'element-ui'
+import { pagination } from '@/utils'
 
 export default {
   name: 'Transfer',
   data() {
     return {
+      checkType: '待审核',
       search: '',
-      allMoneyType: [],
-      moneyType: '',
-      allAmount: [
-        { value: 1, label: '收入' },
-        { value: 2, label: '支出' }
-      ],
-      dataType: '',
       date: '',
       tableData: [],
-      tableDataPage: [],
-      currentPage: 1
+      tableDataSelection: [],
+      currentPage: 1,
+      pageSize: 20,
+      allMoneyType: [],
+      moneyType: '',
+      showInfo: false,
+      rowInfo: [],
+      dialogSet: false,
+      setType: '',
+      form: {
+        is_identify: '',
+        withdraw_min_amount: '',
+        withdraw_max_amount: '',
+        withdraw_audit_amount: '',
+        withdraw_day_amount: ''
+      }
     }
   },
   computed: {
     total() {
       return this.tableData.length
+    },
+    tableDataPage() {
+      return pagination(this.tableData, this.currentPage, this.pageSize)
+    },
+    checkTypetoNum() {
+      if (this.checkType === '待审核') {
+        return 0
+      } else if (this.checkType === '已通过') {
+        return 1
+      } else if (this.checkType === '未通过') {
+        return 3
+      }
     }
   },
   created() {
-    getRuningList().then(res => {
+    getList(this.checkTypetoNum).then(res => {
       this.tableData = res.content.list
-      this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
     })
     getMoneyType().then(res => {
       this.allMoneyType = res.content
     })
   },
   methods: {
-    // 变页数
-    changePage(page) {
-      this.tableDataPage = pagination(this.tableData, page, 20)
-    },
-    // 主表格搜索
-    searchTableData() {
-      getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1]).then(res => {
+    // 切换审核数据类型
+    changeCheckType() {
+      this.showInfo = false
+      getList(this.checkTypetoNum).then(res => {
         this.tableData = res.content.list
-        this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
       })
     },
-    // 导出excel
-    addExcel() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['流水号', '用户', '钱包', '币种', '收支', '类型', '数量', '状态', '时间']
-        const filterVal = ['id', 'mobile', 'wallet', 'name', 'type2', 'type', 'amount', 'status', 'createTime']
-        const list = this.tableData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '财务流水'
+    // 选择table
+    handleSelectionChange(val) {
+      this.tableDataSelection = val
+    },
+    // 搜索
+    searchData() {
+      getList(this.checkTypetoNum, this.moneyType, this.search, null, this.date[0], this.date[1]).then(res => {
+        this.tableData = res.content.list
+      })
+    },
+    // 点击表格行
+    clickRow(row) {
+      this.rowInfo = row
+      this.showInfo = true
+    },
+    // 通过
+    doomPass() {
+      passTrial(this.rowInfo.id).then(res => {
+        this.showInfo = false
+        Message({ message: res.msg, type: 'success' })
+        getList(this.checkTypetoNum).then(res => {
+          this.tableData = res.content.list
         })
       })
     },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
-        } else {
-          return v[j]
-        }
-      }))
+    // 批量通过
+    allDoomPass() {
+      if (this.tableDataSelection.length < 1) return
+      this.$confirm('确定全部通过吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        let allId = ''
+        this.tableDataSelection.map((item, index, items) => {
+          allId = allId + ',' + item.id
+        })
+        passTrial(allId.replace(',', '')).then(res => {
+          this.showInfo = false
+          Message({ message: res.msg, type: 'success' })
+          getList(this.checkTypetoNum).then(res => {
+            this.tableData = res.content.list
+          })
+        })
+      })
+    },
+    // 不通过
+    doomFail() {
+      this.$prompt('请填写不通过原因', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }).then(({ value }) => {
+        failTrial(this.rowInfo.id, value).then(res => {
+          this.showInfo = false
+          Message({ message: res.msg, type: 'success' })
+          getList(this.checkTypetoNum).then(res => {
+            this.tableData = res.content.list
+          })
+        })
+      })
+    },
+    // 转账设置
+    openTransferSet() {
+      this.dialogSet = true
+      this.setType = this.allMoneyType[0].id
+      getSetValue(this.setType).then(res => {
+        this.form = res.content
+      })
+    },
+    // 切换转账设置类型
+    changeTabs(val) {
+      getSetValue(val.name).then(res => {
+        this.form = res.content
+      })
+    },
+    // 保存转账设置
+    saveSet() {
+      editSet({ ...this.form, currency_id: this.setType }).then(res => {
+        Message({ message: res.msg, type: 'success' })
+      })
     }
   }
 }
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
+.btn-right {
+  margin-top: -39px;
+}
 
+.image {
+  display: block;
+  width: 150px;
+  height: 150px;
+  border: 1px solid #ddd;
+}
+
+.fade-slide {
+  p {
+    padding-bottom: 20px;
+    span {
+      color: #888;
+      padding-right: 20px;
+    }
+    span:nth-child(2) {
+      padding-left: 60px;
+    }
+  }
+}
 </style>

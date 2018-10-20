@@ -158,7 +158,7 @@
     </el-dialog>
 
     <el-dialog :visible.sync="dialogSet" title="节点设置" class="dialog-set">
-      <el-radio-group v-model="dialogSetType">
+      <el-radio-group v-model="dialogSetType" @change="changeSetType">
         <el-radio-button v-for="(item,index) in allType" :key="index" :label="item.name"/>
       </el-radio-group>
       <el-button style="float:right;" @click="openRule">权益设置</el-button>
@@ -179,25 +179,41 @@
           <p>当前候选数量 {{ this_maxCandidate }}</p>
         </div>
         <div>
-          <p>质押资产</p>
-          <el-input v-model="dialogSetData.minMoney" placeholder="请输入内容" style="width:80%;"/> GRT
+          <p>质押GRT</p>
+          <el-input v-model="dialogSetData.grt" placeholder="请输入内容" style="width:80%;"/> GRT
+        </div>
+        <div>
+          <p>质押BPT</p>
+          <el-input v-model="dialogSetData.bpt" placeholder="请输入内容" style="width:80%;"/> BPT
+        </div>
+        <div>
+          <p>质押TT</p>
+          <el-input v-model="dialogSetData.tt" placeholder="请输入内容" style="width:80%;"/> TT
         </div>
       </div>
       <h3 style="padding:20px 0 0;">享有权益</h3>
       <div class="right">
         <el-radio-group v-model="dialogSetRightType">
           <el-radio-button label="任职"/>
+          <el-radio-button label="候选人"/>
           <el-radio-button label="排名权益"/>
         </el-radio-group>
         <div v-show="dialogSetRightType=='任职'">
           <div class="right-checkbox">
-            <el-checkbox v-for="(item,index) in dialogSetRuleList.isTenure" :key="index" v-model="item.checked">
+            <el-checkbox v-for="(item,index) in dialogSetRuleList[0]" :key="index" v-model="item.checked">
+              {{ item.name }}
+            </el-checkbox>
+          </div>
+        </div>
+        <div v-show="dialogSetRightType=='候选人'">
+          <div class="right-checkbox">
+            <el-checkbox v-for="(item,index) in dialogSetRuleList[1]" :key="index" v-model="item.checked">
               {{ item.name }}
             </el-checkbox>
           </div>
         </div>
         <div v-show="dialogSetRightType=='排名权益'">
-          <div v-for="(item,index) in dialogSetRuleList.noTenure" :key="index" class="right-checkbox">
+          <div v-for="(item,index) in dialogSetRuleList[2]" :key="index" class="right-checkbox">
             <div class="row">
               <el-checkbox v-model="item.checked" style="flex:3;">{{ item.name }}</el-checkbox>
               <span>排名</span>
@@ -220,32 +236,46 @@
     <el-dialog :visible.sync="dialogRight" title="权益设置" class="dialog-right">
       <el-radio-group v-model="dialogRightName" class="radioTabs">
         <el-radio-button label="任职权益"/>
+        <el-radio-button label="候选人权益"/>
         <el-radio-button label="排名权益"/>
       </el-radio-group>
       <div v-show="dialogRightName=='任职权益'">
         <div class="rigth-edit">
           <div class="row"><div>权益</div><div>描述</div></div>
-          <div v-for="(item,index) in dialogSetRuleList.isTenure" :key="index" class="row">
+          <div v-for="(item,index) in dialogSetRuleList[0]" :key="index" class="row">
             <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
             <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
-            <i class="el-icon-circle-close-outline" @click="deleteRule(true, index)"/>
+            <i class="el-icon-circle-close-outline" @click="deleteRule(0, index)"/>
           </div>
         </div>
         <div class="add">
-          <i class="el-icon-circle-plus-outline" @click="addRule(true)"> 添加一行</i>
+          <i class="el-icon-circle-plus-outline" @click="addRule(0)"> 添加一行</i>
+        </div>
+      </div>
+      <div v-show="dialogRightName=='候选人权益'">
+        <div class="rigth-edit">
+          <div class="row"><div>权益</div><div>描述</div></div>
+          <div v-for="(item,index) in dialogSetRuleList[1]" :key="index" class="row">
+            <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
+            <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
+            <i class="el-icon-circle-close-outline" @click="deleteRule(1, index)"/>
+          </div>
+        </div>
+        <div class="add">
+          <i class="el-icon-circle-plus-outline" @click="addRule(1)"> 添加一行</i>
         </div>
       </div>
       <div v-show="dialogRightName=='排名权益'">
         <div class="rigth-edit">
           <div class="row"><div>权益</div><div>描述</div></div>
-          <div v-for="(item,index) in dialogSetRuleList.noTenure" :key="index" class="row">
+          <div v-for="(item,index) in dialogSetRuleList[2]" :key="index" class="row">
             <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
             <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
-            <i class="el-icon-circle-close-outline" @click="deleteRule(false, index)"/>
+            <i class="el-icon-circle-close-outline" @click="deleteRule(2, index)"/>
           </div>
         </div>
         <div class="add">
-          <i class="el-icon-circle-plus-outline" @click="addRule(false)"> 添加一行</i>
+          <i class="el-icon-circle-plus-outline" @click="addRule(2)"> 添加一行</i>
         </div>
       </div>
       <span slot="footer">
@@ -298,14 +328,14 @@
         <el-step title="节点信息"/>
       </el-steps>
       <div v-show="step==0" style="margin-top:30px;">
-        <el-form :label-position="'top'" :model="stepfirstData">
-          <el-form-item label="手机号" required>
+        <el-form ref="addNodeForm1" :label-position="'top'" :model="stepfirstData">
+          <el-form-item prop="mobile" label="手机号" required>
             <el-input v-model="stepfirstData.mobile"/>
           </el-form-item>
-          <el-form-item label="推荐人（推荐码）">
+          <el-form-item prop="code" label="推荐人（推荐码）">
             <el-input v-model="stepfirstData.code"/>
           </el-form-item>
-          <el-form-item label="节点类型" required>
+          <el-form-item prop="type_id" label="节点类型" required>
             <el-select v-model="stepfirstData.type_id" placeholder="请选择">
               <el-option
                 v-for="item in allType"
@@ -314,7 +344,7 @@
                 :value="item.id"/>
             </el-select>
           </el-form-item>
-          <el-form-item label="节点身份" required>
+          <el-form-item prop="is_tenure" label="节点身份" required>
             <el-select v-model="stepfirstData.is_tenure" placeholder="请选择">
               <el-option
                 v-for="item in tenureData"
@@ -323,26 +353,26 @@
                 :value="item.value"/>
             </el-select>
           </el-form-item>
-          <el-form-item label="质押GRT数量" required>
+          <el-form-item prop="grt" label="质押GRT数量" required>
             <el-input v-model="stepfirstData.grt"/>
           </el-form-item>
-          <el-form-item label="质押TT数量" required>
+          <el-form-item prop="tt" label="质押TT数量" required>
             <el-input v-model="stepfirstData.tt"/>
           </el-form-item>
-          <el-form-item label="质押BPT数量" required>
+          <el-form-item prop="bpt" label="质押BPT数量" required>
             <el-input v-model="stepfirstData.bpt"/>
           </el-form-item>
         </el-form>
       </div>
       <div v-show="step==1" style="margin-top:30px;">
-        <el-form :label-position="'top'" :model="stepSecondData">
-          <el-form-item label="姓名" required>
+        <el-form ref="addNodeForm2" :label-position="'top'" :model="stepSecondData">
+          <el-form-item prop="realname" label="姓名" required>
             <el-input v-model="stepSecondData.realname"/>
           </el-form-item>
-          <el-form-item label="身份证号" required>
+          <el-form-item prop="identify" label="身份证号" required>
             <el-input v-model="stepSecondData.identify"/>
           </el-form-item>
-          <el-form-item label="手持身份证正面照" required>
+          <el-form-item prop="pic_front" label="手持身份证正面照" required>
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgF"
@@ -354,7 +384,7 @@
               <i v-else class="el-icon-plus avatar-uploader-icon"/>
             </el-upload>
           </el-form-item>
-          <el-form-item label="手持身份证背面照" required>
+          <el-form-item prop="pic_back" label="手持身份证背面照" required>
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgB"
@@ -369,8 +399,8 @@
         </el-form>
       </div>
       <div v-show="step==2||step==3">
-        <el-form :label-position="'top'" :model="stepThirdData">
-          <el-form-item label="节点logo" required>
+        <el-form ref="addNodeForm3" :label-position="'top'" :model="stepThirdData">
+          <el-form-item prop="logo" label="节点logo" required>
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgLogo"
@@ -382,13 +412,13 @@
               <i v-else class="el-icon-plus avatar-uploader-icon"/>
             </el-upload>
           </el-form-item>
-          <el-form-item label="机构/个人名称" required>
+          <el-form-item prop="name" label="机构/个人名称" required>
             <el-input v-model="stepThirdData.name"/>
           </el-form-item>
-          <el-form-item label="机构/个人简介" required>
+          <el-form-item prop="desc" label="机构/个人简介" required>
             <el-input v-model="stepThirdData.desc"/>
           </el-form-item>
-          <el-form-item label="社区建设方案" required>
+          <el-form-item prop="scheme" label="社区建设方案" required>
             <el-input v-model="stepThirdData.scheme"/>
           </el-form-item>
         </el-form>
@@ -513,6 +543,14 @@ export default {
       let tem = 0
       this.allType.map((item, index) => {
         if (this.dialogHistoryType === item.name) tem = item.id
+      })
+      return tem
+    },
+    // 当前节点设置类型id
+    setTypeId() {
+      let tem = 0
+      this.allType.map((item, index) => {
+        if (this.dialogSetType === item.name) tem = item.id
       })
       return tem
     }
@@ -690,7 +728,7 @@ export default {
     },
     // 打开节点设置
     openNodeSet() {
-      getNodeSet(this.allType[0].id).then(res => {
+      getNodeSet(this.setTypeId).then(res => {
         this.dialogSetData = res.content
         this.this_tenureNum = res.content.tenureNum
         this.this_maxCandidate = res.content.maxCandidate
@@ -698,7 +736,7 @@ export default {
         getRuleList().then(res => {
           this.dialogSetRuleList = res.content
         }).then(() => {
-          this.dialogSetRuleList.isTenure.forEach((item, index, arry) => {
+          this.dialogSetRuleList[0].forEach((item, index, arry) => {
             for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
               if (this.dialogSetData.ruleList[i].ruleId === item.id) {
                 arry[index].checked = true
@@ -710,7 +748,69 @@ export default {
               }
             }
           })
-          this.dialogSetRuleList.noTenure.forEach((item, index, arry) => {
+          this.dialogSetRuleList[1].forEach((item, index, arry) => {
+            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+                arry[index].checked = true
+                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
+              } else {
+                arry[index].maxOrder = 0
+                arry[index].minOrder = 0
+              }
+            }
+          })
+          this.dialogSetRuleList[2].forEach((item, index, arry) => {
+            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+                arry[index].checked = true
+                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
+              } else {
+                arry[index].maxOrder = 1
+                arry[index].minOrder = 1
+              }
+            }
+          })
+          this.dialogSet = true
+        })
+      })
+    },
+    // 切换节点设置的类型
+    changeSetType(val) {
+      getNodeSet(this.setTypeId).then(res => {
+        this.dialogSetData = res.content
+        this.this_tenureNum = res.content.tenureNum
+        this.this_maxCandidate = res.content.maxCandidate
+      }).then(() => {
+        getRuleList().then(res => {
+          this.dialogSetRuleList = res.content
+        }).then(() => {
+          this.dialogSetRuleList[0].forEach((item, index, arry) => {
+            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+                arry[index].checked = true
+                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
+              } else {
+                arry[index].maxOrder = 0
+                arry[index].minOrder = 0
+              }
+            }
+          })
+          this.dialogSetRuleList[1].forEach((item, index, arry) => {
+            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+                arry[index].checked = true
+                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
+              } else {
+                arry[index].maxOrder = 0
+                arry[index].minOrder = 0
+              }
+            }
+          })
+          this.dialogSetRuleList[2].forEach((item, index, arry) => {
             for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
               if (this.dialogSetData.ruleList[i].ruleId === item.id) {
                 arry[index].checked = true
@@ -735,25 +835,30 @@ export default {
     },
     // 删除权益
     deleteRule(type, index) {
-      if (type) {
-        this.dialogSetRuleList.isTenure.splice(index, 1)
+      if (type === 0) {
+        this.dialogSetRuleList[0].splice(index, 1)
+      } else if (type === 1) {
+        this.dialogSetRuleList[1].splice(index, 1)
       } else {
-        this.dialogSetRuleList.noTenure.splice(index, 1)
+        this.dialogSetRuleList[2].splice(index, 1)
       }
     },
     // 增加权益
     addRule(type) {
-      if (type) {
-        this.dialogSetRuleList.isTenure.push({ name: '', content: '', isTenure: '1' })
+      if (type === 0) {
+        this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '0' })
+      } else if (type === 1) {
+        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '0' })
       } else {
-        this.dialogSetRuleList.noTenure.push({ name: '', content: '', isTenure: '0' })
+        this.dialogSetRuleList[2].push({ name: '', content: '', isTenure: '1' })
       }
     },
     // 上传权益列表
     saveRuleList() {
-      var temData = [[], []]
-      temData[0] = this.dialogSetRuleList.isTenure
-      temData[1] = this.dialogSetRuleList.noTenure
+      var temData = [[], [], []]
+      temData[0] = this.dialogSetRuleList[0]
+      temData[1] = this.dialogSetRuleList[1]
+      temData[2] = this.dialogSetRuleList[2]
       pushRuleList(temData).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.dialogRight = false
@@ -827,11 +932,13 @@ export default {
           this.isSecond = res.content.isIdentify
           if (res.content.isIdentify === 0) this.step = 1
           else if (res.content.isIdentify === 1) this.step = 2
+          this.$refs['addNodeForm1'].resetFields()
         })
       } else if (this.step === 1) {
         addNodeTwo(this.stepSecondData).then(res => {
           Message({ message: res.msg, type: 'success' })
           this.step = 2
+          this.$refs['addNodeForm2'].resetFields()
         })
       }
     },
@@ -854,6 +961,7 @@ export default {
         this.dialogAddNode = false
         Message({ message: res.msg, type: 'success' })
         this.step = 0
+        this.$refs['addNodeForm3'].resetFields()
       })
     },
     // 导出excel
@@ -927,7 +1035,11 @@ export default {
   }
   .rule {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    > div {
+      margin-right: 20px;
+    }
   }
   .right-checkbox {
     display: flex;

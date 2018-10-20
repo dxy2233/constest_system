@@ -44,16 +44,16 @@ export function getUserVote(userId) {
     }
   })
 }
-// tabs钱包信息
-// export function getUserWallet(userId) {
-//   return request({
-//     url: '/user/get-user-wallet',
-//     method: 'post',
-//     data: {
-//       userId
-//     }
-//   })
-// }
+// tabs资产信息
+export function getUserWallet(userId) {
+  return request({
+    url: '/user/get-currency',
+    method: 'post',
+    data: {
+      userId
+    }
+  })
+}
 // tabs投票券信息
 export function getUserVoucher(userId) {
   return request({
@@ -97,7 +97,7 @@ export function thawUser(userId) {
 }
 
 // 编辑用户名
-export function addUser(userId, name) {
+export function editUser(userId, name) {
   return request({
     url: '/user/edit-user',
     method: 'post',
@@ -108,8 +108,20 @@ export function addUser(userId, name) {
   })
 }
 
+// 新增用户
+export function addUser(mobile, code) {
+  return request({
+    url: '/user/create-user',
+    method: 'post',
+    data: {
+      mobile,
+      code
+    }
+  })
+}
+
 // 编辑钱包地址
-export function addWallet(walletId, address) {
+export function editWallet(walletId, address) {
   return request({
     url: '/user/edit-wallet',
     method: 'post',

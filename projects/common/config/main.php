@@ -24,6 +24,9 @@ return [
         ],
         'validate' => [
             'class' => 'common\modules\validate\Module',
+        ],
+        'site' => [
+            'class' => 'common\modules\site\Module',
         ]
     ],
     'components' => [

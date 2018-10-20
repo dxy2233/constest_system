@@ -12,6 +12,7 @@ use common\models\business\BUserWallet;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRechargeWithdraw;
+use common\models\business\BCurrency;
 use common\task\TestJob;
 
 /**
@@ -36,49 +37,72 @@ class WithdrawController extends BaseController
         return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
     // 修改设置
-    public function actionSetNotice()
+    public function actionSetVote()
     {
-        $currency_code = $this->pString('currencyCode');
-        if (empty($currency_code)) {
-            return $this->respondJson(1, '币种代码不能为空');
+        $currency_id = $this->pString('currency_id');
+        if (empty($currency_id)) {
+            return $this->respondJson(1, '币种ID不能为空');
         }
-        $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_CURRENCY.'_'.$currency_code])->all();
-        if (empty($data)) {
-            return $this->respondJson(1, '币种代码不存在');
+        $withdraw_min_amount = $this->pFloat('withdraw_min_amount');
+        if (empty($withdraw_min_amount)) {
+            return $this->respondJson(1, '提现最小数量不能为空');
         }
+        $withdraw_max_amount = $this->pFloat('withdraw_max_amount');
+        if (empty($withdraw_max_amount)) {
+            return $this->respondJson(1, '提现最大数量不能为空');
+        }
+        $withdraw_audit_amount = $this->pFloat('withdraw_audit_amount');
+        if (empty($withdraw_audit_amount)) {
+            return $this->respondJson(1, '提现审核大于数量不能为空');
+        }
+        $withdraw_day_amount = $this->pFloat('withdraw_day_amount');
+        if (empty($withdraw_day_amount)) {
+            return $this->respondJson(1, '提现日限制数量不能为空');
+        }
+        $is_identify = $this->pFloat('is_identify');
+        $currency = BCurrency::find()->where(['id' => $currency_id])->one();
+        if (empty($currency)) {
+            return $this->respondJson(1, '币种不存在');
+        }
+        $currency->withdraw_min_amount = $withdraw_min_amount;
+        $currency->withdraw_max_amount = $withdraw_max_amount;
+        $currency->withdraw_audit_amount = $withdraw_audit_amount;
+        $currency->withdraw_day_amount = $withdraw_day_amount;
+        $setting = BSetting::find()->where(['key' => 'is_identify'])->one();
+        $setting->value = $is_identify;
         $transaction = \Yii::$app->db->beginTransaction();
-        foreach ($data as $v) {
-            $post_item = $this->pString($v->key, '');
-            if ($post_item == '') {
-                continue;
-            }
-            $v->value = $post_item;
-            
-            if (!$v->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, "操作失败", $v->getFirstErrorText());
-            }
+        if (!$setting->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, "操作失败", $setting->getFirstErrorText());
         }
-
+        if (!$currency->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, "操作失败", $currency->getFirstErrorText());
+        }
         $transaction->commit();
+
         return $this->respondJson(0, "操作成功");
     }
 
     // 获取设置项
     public function actionGetSettingList()
     {
-        $currency_code = $this->pString('currencyCode');
-        if (empty($currency_code)) {
-            return $this->respondJson(1, '币种代码不能为空');
+        $currency_id = $this->pString('currency_id');
+        if (empty($currency_id)) {
+            return $this->respondJson(1, '币种ID不能为空');
         }
-        $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_CURRENCY.'_'.$currency_code])->orderBy('sort')->asArray()->all();
-        if (empty($data)) {
-            return $this->respondJson(1, '币种代码不存在');
+        $currency = BCurrency::find()->where(['id' => $currency_id])->one();
+        if (empty($currency)) {
+            return $this->respondJson(1, '币种不存在');
         }
-        foreach ($data as &$v) {
-            $v['initialize'] = json_decode($v['initialize'], true);
-        }
-        return $this->respondJson(0, "获取成功", $data, false);
+        $return  = [];
+        $return['withdraw_min_amount'] = $currency->withdraw_min_amount;
+        $return['withdraw_max_amount'] = $currency->withdraw_max_amount;
+        $return['withdraw_audit_amount'] = $currency->withdraw_audit_amount;
+        $return['withdraw_day_amount'] = $currency->withdraw_day_amount;
+        $is_identify = BSetting::find()->where(['key' => 'is_identify'])->one();
+        $return['is_identify'] = $is_identify->value;
+        return $this->respondJson(0, "获取成功", $return, false);
     }
 
     public function actionIndex()
@@ -88,14 +112,15 @@ class WithdrawController extends BaseController
         $currency_id = $this->pInt('currencyId');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
-        $setting = BSetting::find()->where(['key' => 'max_amount'])->one();
-        $min = $setting->value;
+
         $page = $this->pInt('page', 1);
-        $data = UserRechargeWithdraw::find()
-        ->from(UserRechargeWithdraw::tableName()." A")
+        $find = BUserRechargeWithdraw::find()
+        ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->andWhere(['>=', 'A.amount', $min])
-        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id');
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.id'])
+        ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
         if ($searchName != '') {
             $find->andWhere(['like', 'B.mobile', $searchName]);
         }
@@ -109,11 +134,17 @@ class WithdrawController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
+
         $count = $find->count();
         $find->page($page);
 
         $data = $find->asArray()->all();
         //echo $find->createCommand()->getRawSql();
+        foreach ($data as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['type'] = BUserRechargeWithdraw::getType($v['type']);
+            $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
+        }
         $return = [];
         $return['count'] = $count;
         $return['list'] = $data;
@@ -126,7 +157,7 @@ class WithdrawController extends BaseController
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
         }
-        $data = UserRechargeWithdraw::find()->where(['id' => $id])->one();
+        $data = BUserRechargeWithdraw::find()->where(['id' => $id])->one();
         if (empty($data)) {
             return $this->respondJson(1, '数据不存在');
         }
@@ -149,7 +180,7 @@ class WithdrawController extends BaseController
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
         }
-        $data = UserRechargeWithdraw::find()->where(['id' => $id])->one();
+        $data = BUserRechargeWithdraw::find()->where(['id' => $id])->one();
         if (empty($data)) {
             return $this->respondJson(1, '数据不存在');
         }

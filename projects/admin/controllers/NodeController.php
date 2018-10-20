@@ -56,7 +56,14 @@ class NodeController extends BaseController
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
         $page = $this->pInt('page', 0);
-        $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type);
+        $order = $this->pString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.create_time'];
+            $order = $order_arr[$order];
+        } else {
+            $order = '';
+        }
+        $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
         foreach ($data as $v) {
             $id_arr[] = $v['id'];
@@ -83,13 +90,23 @@ class NodeController extends BaseController
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
         $page = $this->pInt('page', 0);
-        $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status);
+        $order = $this->pString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.create_time'];
+            $order = $order_arr[$order];
+        } else {
+            $order = '';
+        }
+        $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
         foreach ($data as $v) {
             $item = [];
             $item['username'] = $v['username'];
             $item['name'] = $v['name'];
-            $item['consume'] = $v['consume'];
+            $item['bpt'] = $v['bpt'];
+            $item['tt'] = $v['tt'];
+            $item['grt'] = $v['grt'];
+            $item['type_name'] = $v['type_name'];
             $item['status'] = BNode::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $return[] = $item;

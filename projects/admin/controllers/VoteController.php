@@ -55,6 +55,11 @@ class VoteController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
+        $order = $this->pString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.vote_number', 2 => 'A.type', 3 => 'A.create_time'];
+            $find->orderBy($order_arr[$order]. ' DESC');
+        }
         $count = $find->count();
         $page = $this->pInt('page', 1);
         if ($page != 0) {
@@ -85,7 +90,7 @@ class VoteController extends BaseController
             if ($post_item == '') {
                 continue;
             }
-            if (strstr($v->key, 'count_time')) {
+            if (strstr($v->key, 'time')) {
                 $post_item = strtotime($post_item);
             }
             // if ($v->key == 'count_time') {
@@ -127,8 +132,6 @@ class VoteController extends BaseController
 
     public function actionNowReload()
     {
-        echo UserService::generateRemmendCode(50);
-        exit;
         JobService::beginPut(1);
     }
     public function actionGetSettingList()

@@ -36,3 +36,14 @@ export function checkFail(nodeId, remark) {
     }
   })
 }
+
+// 删除记录
+export function deleteNote(nodeId) {
+  return request({
+    url: '/node/del-old-data',
+    method: 'post',
+    data: {
+      nodeId
+    }
+  })
+}

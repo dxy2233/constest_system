@@ -16,6 +16,7 @@ use common\models\business\BUserRefreshToken;
 use common\models\business\BTypeRuleContrast;
 use common\models\business\BNodeRule;
 use common\models\business\BNotice;
+use common\models\business\BNodeType;
 
 class NodeService extends ServiceBase
 {
@@ -27,26 +28,27 @@ class NodeService extends ServiceBase
      * @param BUser $user
      * @return void
      */
-    public static function getList(int $page = 0, string $searchName = '', string $str_time = '', string $end_time = '', int $type = 0, int $status = 0)
+    public static function getList(int $page = 0, string $searchName = '', string $str_time = '', string $end_time = '', int $type = 0, int $status = 0, $order = '')
     {
         $find = BNode::find()
         ->from(BNode::tableName()." A")
         ->join('left join', 'gr_user B', 'A.user_id = B.id')
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
+        ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure'])
-        ->orderBy('sum(C.vote_number) desc');
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure','D.name as type_name']);
+        // ->orderBy('sum(C.vote_number) desc');
         
         if ($searchName != '') {
             $find->andWhere(['or',['like','A.name',$searchName],['like','B.username',$searchName]]);
         }
         
         if ($str_time != '') {
-            $find->startTime($str_time, 'C.create_time');
+            $find->startTime($str_time, 'A.create_time');
         }
         
         if ($end_time != '') {
-            $find->endTime($end_time, 'C.create_time');
+            $find->endTime($end_time, 'A.create_time');
         }
 
         if ($type != '') {
@@ -58,6 +60,10 @@ class NodeService extends ServiceBase
         }
         $count = $find->count();
         
+        if ($order != '') {
+            $find->orderBy($order. ' desc');
+        }
+
         if ($page != 0) {
             $find->page($page);
         }

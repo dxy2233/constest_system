@@ -8,20 +8,21 @@
 
 namespace common\services;
 
+use yii\db\Exception;
+use yii\base\ErrorException;
+use yii\helpers\ArrayHelper;
 use common\components\FuncHelper;
 use common\components\FuncResult;
-use common\models\business\BCurrency;
 use common\models\business\BUser;
+use common\models\business\BUserLog;
+use common\models\business\BCurrency;
+use common\models\business\BWalletSent;
+use common\models\business\BUserIdentify;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BUserCurrencyFrozen;
-use common\models\business\BUserIdentify;
-use common\models\business\BUserLog;
-use common\models\business\BUserRechargeWithdraw;
+use common\models\business\BUserRechargeAddress;
 use common\models\business\BUserWithdrawAddress;
-use common\models\business\BWalletSent;
-use yii\base\ErrorException;
-use yii\db\Exception;
-use yii\helpers\ArrayHelper;
+use common\models\business\BUserRechargeWithdraw;
 
 class WithdrawService extends ServiceBase
 {
@@ -350,17 +351,6 @@ class WithdrawService extends ServiceBase
                 $sign = $walletSent->insert();
                 $walletSentId = $walletSent->id;
                 if ($sign) {
-                    //账户余额是否足够
-                    $mainBalanceRes = JingTumService::getInstance()->mainBalance(strtoupper($currency->code));
-                    if ($mainBalanceRes->code == 0 && !empty($mainBalanceRes->content)) {
-                        $mainBalance = $mainBalanceRes->content;
-                    } else {
-                        $mainBalance = 0;
-                    }
-
-                    if (round($mainBalance - $amount, 8) < 0) {
-                        throw new ErrorException('wallet no amount');
-                    }
                     $resWalletSent = JingTumService::getInstance()->addMainBalanceFormUser($privateKey, $jingtumAddress, $transactionNumber, $amount, $walletSentRemark, strtoupper($currency->code));
                     if ($resWalletSent->code == 0) {
                         $transactionId = $resWalletSent->content['hash'];
@@ -394,6 +384,106 @@ class WithdrawService extends ServiceBase
         }
     }
 
+    /**
+     * 投票赎回
+     *
+     * @param array $revoke
+     * @return void
+     */
+    public static function withdrawRevokeVote(array $res)
+    {
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $time = time();
+            $relate_table = isset($res['relate_table']) ? $res['relate_table'] : 'vote';
+            // 解冻
+            $sign = BUserCurrencyFrozen::updateAll(
+                ['status' => BUserCurrencyFrozen::STATUS_THAW, 'update_time' => $time, 'unfrozen_time' => $time],
+                ['user_id' => $res['user_id'], 'currency_id' => $res['currency_id'], 'type' => BUserCurrencyFrozen::$TYPE_VOTE, 'relate_id' => $res['id'], 'status' => BUserCurrencyFrozen::STATUS_FROZEN]
+            );
+            if ($sign === 0) {
+                throw new ErrorException('user-currency-frozen table data update is fail');
+            }
+            //执行钱包币种ID
+            $currencyJingtum = BCurrency::getJingtumCurrency();
+
+            if (in_array($res['currency_id'], $currencyJingtum)) {
+                $transactionNumber = FuncHelper::generateWalletSentTransNum();
+                $amount = $res['amount'];
+                if (isset($res['destination_address'])) {
+                    $jingtumAddress = $res['destination_address'];
+                } else {
+                    $userAddressModel = BUserRechargeAddress::find()->where(['user_id' => $res['user_id'], 'currency_id' => $res['currency_id']])->limit(1)->one();
+                    if (is_null($userAddressModel)) {
+                        throw new ErrorException('user address no found');
+                    }
+                    $jingtumAddress = $userAddressModel->address;
+                }
+                $walletSentRemark = '';
+                $currency = BCurrency::find()->where(['id' => $res['currency_id']])->limit(1)->one();
+                if (!$currency) {
+                    throw new ErrorException('no currency code');
+                }
+
+                $walletSent = new BWalletSent();
+                $walletSent->currency_id = $res['currency_id'];
+                $walletSent->transaction_number = $transactionNumber;
+                $walletSent->type = BWalletSent::$TYPE_WITHDRAW;
+                $walletSent->relate_table = $relate_table;
+                $walletSent->relate_id = $res['id'];
+                $walletSent->amount = $amount;
+                $walletSent->source_address = \Yii::$app->params['JTAddress'];
+                $walletSent->destination_address = $jingtumAddress;
+                $walletSent->remark = $walletSentRemark;
+                $walletSent->status = BWalletSent::$STATUS_WAIT;
+                $walletSent->create_time = $time;
+                $walletSent->update_time = $time;
+                $sign = $walletSent->insert();
+                $walletSentId = $walletSent->id;
+                if ($sign) {
+                    //账户余额是否足够
+                    $mainBalanceRes = JingTumService::getInstance()->mainBalance(strtoupper($currency->code));
+                    if ($mainBalanceRes->code == 0 && !empty($mainBalanceRes->content)) {
+                        $mainBalance = $mainBalanceRes->content;
+                    } else {
+                        $mainBalance = 0;
+                    }
+
+                    if (round($mainBalance - $amount, 8) < 0) {
+                        throw new ErrorException('wallet no amount');
+                    }
+                    $resWalletSent = JingTumService::getInstance()->addUserBalanceFormMain($jingtumAddress, $transactionNumber, $amount, $walletSentRemark, strtoupper($currency->code));
+                    if ($resWalletSent->code == 0) {
+                        $transactionId = $resWalletSent->content['hash'];
+                        BWalletSent::updateAll([
+                            'transaction_id' => $resWalletSent->content['hash'],
+                            'response_data' => json_encode($resWalletSent->content['responseData']),
+                            'status' => BWalletSent::$STATUS_SUCCESS,
+                            'update_time' => $time,
+                        ], ['id' => $walletSentId]);
+                    } else {
+                        //todo 在事务里将不会记录失败的记录
+                        throw new ErrorException('wallet trans fail');
+                    }
+                } else {
+                    throw new ErrorException('trans insert fail');
+                }
+            }
+
+            // 重算用户持仓
+            $sign = UserService::resetCurrency($res['user_id'], $res['currency_id']);
+            if ($sign === false) {
+                throw new ErrorException('reset user position fail');
+            }
+
+            $transaction->commit();
+
+            return new FuncResult(0, '状态更改成功');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return new FuncResult(1, $e->getMessage());
+        }
+    }
 
     /**
      * @param $userId

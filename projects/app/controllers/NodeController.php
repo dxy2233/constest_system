@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\NodeService;
 use common\components\FuncHelper;
 use common\models\business\BNode;
 use common\models\business\BVote;
@@ -61,32 +62,15 @@ class NodeController extends BaseController
         $pageSize = $this->pInt('page_size', 15);
         // 返回数据容器
         $data = [];
-        $nodeId = $this->pInt('id', 0);
-        if (empty($nodeId)) {
-            return $this->respondJson(1, '节点ID不能为空');
+        $nodeTypeId = $this->pInt('id', 0);
+        if (empty($nodeTypeId)) {
+            return $this->respondJson(1, '节点类型ID不能为空');
         }
         $isOpen = SettingService::get('vote', 'is_open');
         if (!is_object($isOpen) && !(bool) $isOpen->value) {
             return $this->respondJson(1, "投票未启用");
         }
-        $nodeTypeModel = BNodeType::findOne($nodeId);
-        if (!is_object($nodeTypeModel)) {
-            return $this->respondJson(1, '节点不存在');
-        }
-        
-        if (!(bool) $nodeTypeModel->is_order) {
-            return $this->respondJson(1, '节点排名关闭');
-        }
 
-        $nodeModel = $nodeTypeModel->getNodes()
-        ->alias('n')
-        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
-        ->active(BNode::STATUS_ACTIVE, 'n.')
-        ->joinWith(['votes v' => function($query) {
-            $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
-        }])
-        ->groupBy('n.id')
-        ->orderBy(['vote_number' => SORT_DESC]);
         // 不传递page 则为首页
         if (!$page) {
             $nodeNumberModel = (int) SettingService::get('node', 'index_node_number')->value;
@@ -94,27 +78,10 @@ class NodeController extends BaseController
             if ($nodeNumberModel) {
                 $nodeNumber = intval($nodeNumberModel);
             }
-            $nodeModel->limit($nodeNumber);
+            $data = NodeService::getNodeList($nodeTypeId, 1, $nodeNumber);
         } else {
-            $data['count'] = $nodeModel->count();
-            $nodeModel->page($page, $pageSize);
-        }
-        $nodeModel->cache(true);
-        $nodeQuery = $nodeModel->createCommand();
-        // echo ($nodeQuery->getRawSql());exit;
-        $nodeList = $nodeQuery->queryAll();
-        // 获取节点user 去重统计
-        $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
-        $voteUser = \common\services\NodeService::getPeopleNum($nodeIds);
-        foreach ($nodeList as $key => &$node) {
-            $node['logo'] = FuncHelper::getImageUrl($node['logo']);
-            $node['is_tenure'] = (bool) $node['is_tenure'];
-            $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;
-        }
-        if (!$page) {
-            $data = $nodeList;
-        } else {
-            $data['list'] = $nodeList;
+            $data['list'] = NodeService::getNodeList($nodeTypeId, $page, $pageSize);
+            $data['count'] = NodeService::$number;
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -140,7 +107,7 @@ class NodeController extends BaseController
         $nodeModel = BNode::find()
         ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.scheme', 'n.is_tenure', 'nt.name as type_name', 'n.type_id'])
         ->alias('n')
-        ->joinWith(['nodeType nt'])
+        ->joinWith(['nodeType nt'], false)
         ->active(BNode::STATUS_ACTIVE, 'n.')
         ->one();
         if (!is_object($nodeModel)) {

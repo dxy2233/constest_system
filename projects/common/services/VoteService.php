@@ -11,6 +11,7 @@ use common\models\business\BVote;
 use common\models\business\BVoucherDetail;
 use common\models\business\BWalletJingtum;
 use common\models\business\BUserCurrencyDetail;
+use common\models\business\BUserCurrencyFrozen;
 
 class VoteService extends ServiceBase
 {
@@ -151,128 +152,47 @@ class VoteService extends ServiceBase
         }
     }
 
-    public static function getNodeRanking(int $nodeType = 0, int $nodeId = 0)
+    /**
+     * 获取可赎回投票
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public static function getRevokeList(int $userId = 0)
     {
-        $cacheKey = 'ranking';
-        $cache = \Yii::$app->cache;
-        if (empty($nodeType) && empty($nodeId)) {
-            return 0;
+        $voteModel = BVote::find()
+        ->active(BVote::STATUS_INACTIVE_ING)
+        ->where(['undo_time' => 0, 'type' => BVote::TYPE_ORDINARY]);
+        if ($userId) {
+            $voteModel->andWhere(['user_id' => $userId]);
         }
-        $ranking = [];
-        if ($cache->exists($cacheKey)) {
-            $ranking = $cache->get($cacheKey);
-        } else {
-            $nodeModel = BNode::find()
-            ->alias('n')
-            ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
-            ->active(BNode::STATUS_ACTIVE, 'n.')
-            ->joinWith(['votes v' => function($query) {
-                $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
-            }])
-            ->where(['n.type_id' => $nodeType])
-            ->groupBy('n.id')
-            ->orderBy(['vote_number' => SORT_DESC]);
-            $nodeModel->cache(true);
-            $nodeQuery = $nodeModel->createCommand();
-            // echo ($nodeQuery->getRawSql());exit;
-            $nodeList = $nodeQuery->queryAll();
-            // 获取节点user 去重统计
-            $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
-            $voteUser = \common\services\NodeService::getPeopleNum($nodeIds);
-            foreach ($nodeList as $key => &$node) {
-                $node['logo'] = FuncHelper::getImageUrl($node['logo']);
-                $node['is_tenure'] = (bool) $node['is_tenure'];
-                $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;
-            }
-            
-            ArrayHelper::multisort($nodeList, 'vote_number');
-            $nodeData = [];
-            foreach ($nodeList as $key => $node) {
-                $nodeData[$key + 1] = $node;
-            }
-            $ranking[$nodeType] = $nodeData;
-            $cache->set($cacheKey, $ranking);
-        }
-
-        $rank = 0;
-        foreach ($ranking[$nodeType] as $key => $node) {
-            if ($node['id'] == $nodeId) {
-                $rank = $key;
-            }
-        }
-        return !$nodeId ? $ranking[$nodeType] : $rank;
+        return $voteModel->all();
     }
 
     /**
-     * 蒋投票缓存到排名中
+     * 赎回操作
      *
-     * @param array $data
+     * @param integer $userId
      * @return void
      */
-    public static function cachePushRanking(int $nodeId = 0, int $userId = 0, int $voteNumber = 0) :array
+    public static function revokeAction(int $userId, int $voteId)
     {
-        $cacheKey = 'ranking';
-        $cache = \Yii::$app->cache;
-        if (empty($nodeId) || empty($userId)) {
-            return [];
+        if ($userId <= 0) {
+            return new FuncResult(1, '输入正确用户ID');
         }
-
-        $nodeModel = BNode::findOne($nodeId);
-        $nodeTypeModel = $nodeModel->nodeType;
-        if (is_null($nodeModel) || is_null($nodeTypeModel)) {
-            return false;
+        $frozenModel = BUserCurrencyFrozen::find()
+        ->active(BUserCurrencyFrozen::STATUS_FROZEN)
+        ->where(['type' => BUserCurrencyFrozen::$TYPE_VOTE, 'relate_id' => $voteId])
+        ->one();
+        if (is_null($frozenModel)) {
+            return new FuncResult(1, '未查询到冻结信息');
         }
-        $ranking = [];
-        // 初始化数组
-        $ranking[$nodeTypeModel->id] = [];
-        if ($cache->exists($cacheKey)) {
-            $ranking = $cache->get($cacheKey);
-        }
-        // 判断节点类型数组是否存在
-        if (!isset($ranking[$nodeTypeModel->id])) {
-            $ranking[$nodeTypeModel->id] = [];
-        }
-        $nodeTypes = $ranking[$nodeTypeModel->id];
-        $peopleNumbers = NodeService::getPeopleNum([$nodeModel->id]);
-        $baseInfo = [
-            'id' => $nodeModel->id,
-            'type_id' => $nodeTypeModel->id,
-            'desc' => $nodeModel->desc,
-            'type_name' => $nodeTypeModel->name,
-            'is_tenure' => (bool) $nodeModel->is_tenure,
-            'logo' => $nodeModel->logoText
-        ];
-        if (empty($nodeTypes)) {
-            $baseInfo['baseInfo']['vote_number'] = $voteNumber;
-            $baseInfo['baseInfo']['people_number'] =  $peopleNumbers[$nodeModel->id];
-           
-            $nodeTypes[] = $baseInfo;
-        } else {
-            // 循环重算
-            foreach ($nodeTypes as $key => &$node) {
-                if ($node['id'] == $nodeModel->id) {
-                    $node = array_merge($node, $baseInfo);
-                    // 进行数据变更
-                    if (isset($node['vote_number'])) {
-                        $node['vote_number'] = (int) $node['vote_number'] + $voteNumber;
-                    } else {
-                        $node['vote_number'] = (int) $voteNumber;
-                    }
-                    if ($node['vote_number'] < 0) {
-                        $node['vote_number'] = 0;
-                    }
-                    $node['people_number'] = $peopleNumbers[$nodeModel->id];
-                }
-            }
-        }
-
-        ArrayHelper::multisort($nodeTypes, 'vote_number');
-        $nodeData = [];
-        foreach ($nodeTypes as $key => $node) {
-            $nodeData[$key + 1] = $node;
-        }
-        $ranking[$nodeTypeModel->id] = $nodeData;
-        $cache->set($cacheKey, $ranking);
-        return $ranking;
+        $revokeData['id'] = $voteId;
+        $revokeData['user_id'] = $userId;
+        $revokeData['currency_id'] = $frozenModel->currency_id;
+        $revokeData['amount'] = $frozenModel->amount;
+        $revokeData['relate_table'] = $frozenModel->relate_table;
+        return WithdrawService::withdrawRevokeVote($revokeData);
     }
+
 }

@@ -57,26 +57,27 @@ class BNotice extends \common\models\Notice
             return new FuncResult(1, "公告未启用");
         }
 
-        $setting = SettingService::get('notice', 'show_count');
+        $showCount = (int) SettingService::get('notice', 'show_count')->value;
         $query = self::find()
         ->select(['id', 'title', 'desc', 'type', 'image', 'url', 'click', 'sort', 'create_time'])
         ->active()
         ->hasStartAndEndTime();
         if ($isIndex) {
-            $query->limit($setting->value);
+            $query->limit($showCount);
         } else {
             $count = $query->count();
             $query->page($page, $pageSize);
         }
         
-        // ->createCommand()->getRawSql();
+        // $sql = $query->createCommand()->getRawSql();
+        // var_dump($sql);exit;
         // ->orderBy([
         //     'sort' => SORT_ASC,
         //     'create_time' => SORT_DESC,
         // ])
         
         $noticeList = $query->asArray()->all();
-        ArrayHelper::multisort($noticeList, ['sort', 'create_time'], [SORT_ASC, SORT_DESC]);
+        ArrayHelper::multisort($noticeList, ['is_top', 'create_time'], [SORT_ASC, SORT_DESC]);
         foreach ($noticeList as $key => &$notice) {
             $notice['image'] = FuncHelper::getImageUrl($notice['image']);
             unset($notice['create_time']);

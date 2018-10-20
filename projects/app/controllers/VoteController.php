@@ -330,6 +330,7 @@ class VoteController extends BaseController
      */
     public function actionSubmit()
     {
+        
         $userModel = $this->user;
         $nodeId = $this->pInt('node_id', false);
         if (!$nodeId) {
@@ -352,6 +353,14 @@ class VoteController extends BaseController
         if ($userModel->trans_password !== $transPwdEncryption) {
             return $this->respondJson(1, '支付密码错误');
         }
+        
+        $data = [
+            'node_id' => $nodeId,
+            'user_id' => $userModel->id,
+            'vote_number' => $number,
+        ];
+        // 缓存投票排名
+        VoteService::cacheAddRanking($data);exit;
         if (in_array($type, [BVote::TYPE_ORDINARY, BVote::TYPE_PAY])) {
             $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
             $currencyId = (int) BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
@@ -373,13 +382,13 @@ class VoteController extends BaseController
                 return $this->respondJson(1, '货币量不足');
             }
             $currencyAmount = $number * $scaling;
-            $votoRes = [
+            $voteRes = [
                 'vote_number' => $number,
                 'amount' => $currencyAmount,
                 'currency_id' => $currencyId,
                 'node_id' => $nodeId,
             ];
-            $voteAction = VoteService::currencyVote($userModel, $votoRes, BVote::TYPE_ORDINARY);
+            $voteAction = VoteService::currencyVote($userModel, $voteRes, BVote::TYPE_ORDINARY);
             if ($voteAction->code) {
                 return $this->respondJson(1, '投票失败');
             }
@@ -389,7 +398,23 @@ class VoteController extends BaseController
             if ($voucherNumber < $number) {
                 return $this->respondJson(1, '投票劵不足');
             }
+            $voteRes = [
+                'vote_number' => $number,
+                'node_id' => $nodeId,
+            ];
+            $voteAction = VoteService::voucherVote($userModel, $voteRes);
+            if ($voteAction->code) {
+                return $this->respondJson(1, '投票失败');
+            }
         }
+        $data = [
+            'node_id' => $nodeId,
+            'user_id' => $userModel->id,
+            'vote_number' => $number,
+        ];
+        // 缓存投票排名
+        VoteService::cacheAddRanking($data);
+
         return $this->respondJson(0, '投票成功');
 
     }

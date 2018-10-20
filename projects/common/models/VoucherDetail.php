@@ -31,8 +31,8 @@ class VoucherDetail extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'node_id', 'vote_id', 'voucher_id', 'amount', 'create_time'], 'required'],
-            [['user_id', 'node_id', 'vote_id', 'voucher_id', 'amount', 'create_time'], 'integer'],
+            [['user_id', 'node_id', 'vote_id', 'amount', 'create_time'], 'required'],
+            [['user_id', 'node_id', 'vote_id', 'amount', 'create_time'], 'integer'],
         ];
     }
 

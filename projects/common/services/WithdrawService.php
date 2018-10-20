@@ -262,16 +262,17 @@ class WithdrawService extends ServiceBase
 
     /**
      * @param $res
+     * @param $hasFrozen
      * @return array
      * @throws \yii\db\Exception
-     * info : 前台货币消费（投票）
+     * info : 前台货币消费（投票）/ 两种类型 （直接划币|冻结划币）
      */
-    public static function withdrawCurrencyTrans(array $res, bool $hasFrozen = false)
+    public static function withdrawCurrencyVote(array $res, bool $isFrozen = true)
     {
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             $time = time();
-            $relate_table = isset($res['user_recharge']) ? $res['user_recharge'] : 'trans_voto';
+            $relate_table = isset($res['relate_table']) ? $res['relate_table'] : 'vote';
             // 增加明细
             $currencyData = [
                 'user_id' => $res['user_id'],
@@ -281,7 +282,17 @@ class WithdrawService extends ServiceBase
                 'create_time' => $time,
                 'update_time' => $time,
             ];
-            if ($hasFrozen) {
+            if ($isFrozen) {
+                // 冻结用户资金
+                $userFrozen = new BUserCurrencyFrozen();
+                $userFrozen->setAttributes($currencyData);
+                $userFrozen->type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
+                $userFrozen->amount = round($data['amount'], 8); // 总数量
+                $userFrozen->remark = BUserCurrencyFrozen::getType($currencyDetail->status) ?? '投票';
+                $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
+                $sign = $userFrozen->save();
+                if (!$sign) {throw new ErrorException('user_currency_frozen table data is not inserted successfully');}
+            } else {
                 // 投票明细
                 $currencyDetail = new BUserCurrencyDetail();
                 $currencyDetail->setAttributes($currencyData);
@@ -292,21 +303,6 @@ class WithdrawService extends ServiceBase
                 $currencyDetail->amount = -$res['amount'];
                 $sign = $currencyDetail->save();
                 if (!$sign) { throw new ErrorException('user-currency-detail table data create is fail'); }
-            } else {
-                // 冻结用户资金
-                $userFrozen = new BUserCurrencyFrozen();
-                $userFrozen->user_id = $data['user_id'];
-                $userFrozen->currency_id = $data['currency_id'];
-                $userFrozen->type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
-                $userFrozen->relate_table = 'user_recharge_withdraw';
-                $userFrozen->relate_id = $withdrawLastId;
-                $userFrozen->amount = round($data['amount'], 8); // 总数量
-                $userFrozen->remark = '提币';
-                $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
-                $userFrozen->create_time = $data['create_time'];
-                $userFrozen->update_time = $data['update_time'];
-                $sign = $userFrozen->save();
-                if (!$sign) {throw new ErrorException('user_currency_frozen table data is not inserted successfully');}
             }
             // 手续费明细
             if ($res['poundage'] > 0) {
@@ -323,7 +319,7 @@ class WithdrawService extends ServiceBase
                 }
             }
 
-            //执行钱包投票
+            //执行钱包币种ID
             $currencyJingtum = BCurrency::getJingtumCurrency();
 
             if (in_array($res['currency_id'], $currencyJingtum)) {

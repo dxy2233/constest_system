@@ -48,23 +48,32 @@ class UserController extends BaseController
 
     public function actionIndex()
     {
-        $find = BUser::find();
+        $find = BUser::find()
+        ->from(BUser::tableName()." A")
+        ->select(['A.*','sum(B.vote_number) as num'])
+        ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
         $page = $this->pInt('page');
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
-            $find->andWhere(['like','username',$searchName]);
+            $find->andWhere(['like','A.username',$searchName]);
         }
         $str_time = $this->pString('str_time');
         if ($str_time != '') {
-            $find->startTime($str_time, 'create_time');
+            $find->startTime($str_time, 'A.create_time');
         }
         $end_time = $this->pString('end_time');
         if ($end_time != '') {
-            $find->endTime($end_time, 'create_time');
+            $find->endTime($end_time, 'A.create_time');
         }
         $count = $find->count();
+        $order = $this->pString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
+            $find->orderBy($order_arr[$order]. ' DESC');
+        }
+        //echo $find->createCommand()->getRawSql();
         $list = $find->page($page)->asArray()->all();
         foreach ($list as &$v) {
             $node = BNode::find()
@@ -81,7 +90,6 @@ class UserController extends BaseController
             $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['user_id' => $v['id']])->active(BNotice::STATUS_ACTIVE)->asArray()->one();
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
-            $v['num'] = $vote['num'] == null ? 0 : $vote['num'];
             $recommend = BUserRecommend::find()
             ->from(BUserRecommend::tableName()." A")
             ->select(['B.mobile'])
@@ -133,7 +141,7 @@ class UserController extends BaseController
         } else {
             $info['referee'] = $recommend['mobile'];
         }
-        $info['recommend_code'] = UserService::generateRemmendCode($userId);
+        $info['recommend_code'] = $user->recommend_code;
         return $this->respondJson(0, '获取成功', $info);
     }
 
@@ -178,17 +186,15 @@ class UserController extends BaseController
                     $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
                     $in_and_out['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
                     $in_and_out['amount'] = $val['amount'];
-                    $v['in_and_out'] = $in_and_out;
+                    $v['in_and_out'][] = $in_and_out;
                 }
-                
-
                 $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
                 foreach ($in_and_out_data as $val) {
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
                     $frozen['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
                     $frozen['amount'] = $val['amount'];
-                    $v['in_and_out'] = $frozen;
+                    $v['frozen'][] = $frozen;
                 }
             }
         }

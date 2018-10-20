@@ -11,6 +11,7 @@ use common\models\business\BUser;
 use common\models\business\BUserWallet;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BUserCurrencyFrozen;
+use common\models\business\BUserRechargeWithdraw;
 use common\task\TestJob;
 
 /**
@@ -133,12 +134,12 @@ class WithdrawController extends BaseController
         if (empty($remark)) {
             return $this->respondJson(1, '原因不能为空');
         }
-        $data->status = UserRechargeWithdraw::STATUS_NO;
-        $data->status_remark = $remark;
-        if (!$data->save()) {
-            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS, $remark);
+        if ($return->code == 0) {
+            return $this->respondJson(0, '审核成功');
+        } else {
+            return $this->respondJson(1, '审核失败');
         }
-        return $this->respondJson(0, '审核成功');
     }
 
     // 审核成功
@@ -152,11 +153,11 @@ class WithdrawController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '数据不存在');
         }
-        $data->status = UserRechargeWithdraw::STATUS_ON;
-        $data->status_remark = '已成功';
-        if (!$data->save()) {
-            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS);
+        if ($return->code == 0) {
+            return $this->respondJson(0, '审核成功');
+        } else {
+            return $this->respondJson(1, '审核失败');
         }
-        return $this->respondJson(0, '审核成功');
     }
 }

@@ -30,8 +30,8 @@ class Voucher extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'node_id', 'voucher_num', 'use_voucher', 'create_time'], 'required'],
-            [['user_id', 'node_id', 'voucher_num', 'use_voucher', 'create_time'], 'integer'],
+            [['user_id', 'node_id', 'voucher_num'], 'required'],
+            [['user_id', 'node_id', 'voucher_num', 'create_time'], 'integer'],
         ];
     }
 
@@ -45,7 +45,6 @@ class Voucher extends \common\dzbase\DzModel
             'user_id' => '用户ID',
             'node_id' => '赠送节点ID',
             'voucher_num' => '券总量',
-            'use_voucher' => '可用数量',
             'create_time' => 'Create Time',
         ];
     }

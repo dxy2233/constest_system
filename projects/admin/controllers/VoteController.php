@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\UserService;
 use common\services\JobService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BSetting;
@@ -126,6 +127,8 @@ class VoteController extends BaseController
 
     public function actionNowReload()
     {
+        echo UserService::generateRemmendCode(50);
+        exit;
         JobService::beginPut(1);
     }
     public function actionGetSettingList()

@@ -15,6 +15,9 @@ use common\models\business\BUser;
 use common\models\business\BUserLog;
 use common\models\business\BUserWallet;
 use common\models\business\BUserAccessToken;
+use common\models\business\BVoucherDetail;
+use common\models\business\BUserVoucher;
+use common\models\business\BVoucher;
 use common\models\business\BUserRefreshToken;
 
 class UserService extends ServiceBase
@@ -272,6 +275,58 @@ class UserService extends ServiceBase
             $sign = BUserCurrency::updateAll(
                 ['position_amount' => $positionAmount, 'frozen_amount' => $frozenAmount, 'use_amount' => $useAmount, 'update_time' => $time],
                 ['user_id' => $userId, 'currency_id' => $currencyId]
+            );
+            //数据无变化，影响行数为0也是执行成功的
+            if ($sign === false) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    public static function resetVoucher($userId)
+    {
+        $positionAmount = BVoucher::find()
+            ->where(['user_id' => $userId])
+            ->sum('voucher_num');
+        $effectAmount = BVoucherDetail::find()
+            ->where(['user_id' => $userId]) // 已生效
+            ->sum('amount');
+
+        $positionAmount = $positionAmount ? round($positionAmount, 8) : 0;
+        $effectAmount = $effectAmount ? round($effectAmount, 8) : 0;
+
+        $useAmount = round($positionAmount - $effectAmount, 8);
+
+        //可用数量小于0时，发生数据错误，返回false
+        //屏蔽不作判断返回，数据异常也保存，避免异常后数据无法真实重置
+//        if ($useAmount < 0 || $positionAmount < $useAmount) {
+//            return false;
+//        }
+
+        $userCurrencyRes = BUserVoucher::find()
+            ->where(['user_id' => $userId])
+            ->one();
+
+        $time = time();
+        if (empty($userCurrencyRes)) {
+            // 添加
+            $userCurrency = new BUserVoucher();
+            $userCurrency->user_id = $userId;
+            $userCurrency->position_amount = $positionAmount;
+            $userCurrency->surplus_amount = $useAmount;
+            $userCurrency->use_amount= $effectAmount;
+            $sign = $userCurrency->insert();
+            if (!$sign) {
+                return false;
+            }
+        } else {
+            // 修改
+            $sign = BUserVoucher::updateAll(
+                ['position_amount' => $positionAmount, 'surplus_amount' => $useAmount, 'use_amount' => $effectAmount],
+                ['user_id' => $userId]
             );
             //数据无变化，影响行数为0也是执行成功的
             if ($sign === false) {

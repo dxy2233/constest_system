@@ -39,14 +39,14 @@ class UserService extends ServiceBase
     }
 
     /**
-     * 生成用户推荐码
+     * 验证用户推荐码
      *
      * @param integer $len
      * @return void
      */
-    public static function validateRemmendCode($data)
+    public static function validateRemmendCode(string $code)
     {
-        $userModel = BUser::find()->where(['recommend_code' => $data])->one();
+        $userModel = BUser::find()->where(['recommend_code' => $code])->one();
         if (is_null($userModel)) {
             return false;
         } else {

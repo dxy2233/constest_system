@@ -1,0 +1,86 @@
+@import "variable.styl"
+@import "mixin.styl"
+
+body, html
+  line-height: 1
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif
+  user-select: none
+  -webkit-tap-highlight-color: transparent
+  background: $color-background
+  color: $color-text-base
+  font-size $font-size-small
+  width 100%
+  height 100%
+  overflow hidden
+  ipt-pr(#959DA6)
+  .vux-header
+    position fixed
+    left 0
+    top 0
+    right 0
+    background $color-background-sub
+    border-bottom 1px solid #DBDBDB
+    box-sizing border-box
+    .header-left-icon
+      font-size 20px
+    &.w-header
+      background $color-background
+      border-color $color-background
+    .vux-header-title
+      color $color-text-base
+      font-size $font-size-medium
+    .vux-header-left, .vux-header-right a
+      color $color-text-base
+    .vux-header-left .left-arrow:before
+      border-color $color-text-base
+  .h-main
+    padding-top 50px
+  .weui-btn_warn
+    background-color $color-theme
+    &.weui-btn_loading
+      background-color $color-sub-theme
+  .weui-toast_text .weui-toast__content
+    padding 10px 5px
+    line-height 25px
+
+
+//ipt-pr(#B4B5BC)
+.pay-tool-keyboard
+  position absolute
+  left 0
+  right 0
+  bottom 0
+  ul {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    li {
+      width: 33.3333%;
+      line-height: 60px
+      text-align: center;
+      border-right: 1px solid #aeaeae;
+      border-bottom: 1px solid #aeaeae;
+      font-size: 18px
+      font-weight: bold;
+      box-sizing border-box
+      &:nth-child(1), &:nth-child(2), &:nth-child(3) {
+        border-top: 1px solid #eee;
+      }
+      &:nth-child(3), &:nth-child(6), &:nth-child(9), &:nth-child(12) {
+        border-right: none;
+      }
+      &:nth-child(10), &:nth-child(11), &:nth-child(12) {
+        border-bottom: none;
+      }
+      &:nth-child(10), &:nth-child(12), &:active {
+        background-color: #d1d4dd;
+      }
+      &:nth-child(12):active {
+        background-color: #fff;
+      }
+    }
+  }
+@media only screen and (max-width: 320px)
+  .psw-field .pay-tool-keyboard ul li
+    line-height 50px
+

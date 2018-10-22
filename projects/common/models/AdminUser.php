@@ -4,7 +4,7 @@ namespace common\models;
 
 use common\dzbase\DzModel;
 use yii\web\IdentityInterface;
-use common\models\business\BUserAccessToken;
+use common\models\business\BAdminAccessToken;
 
 /**
  * This is the model class for table "{{%admin_user}}".
@@ -111,7 +111,7 @@ class AdminUser extends DzModel implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        $accessToken = BUserAccessToken::find()
+        $accessToken = BAdminAccessToken::find()
         ->where(['access_token' => $token,'client_id' => \Yii::$app->controller->module->id])
         ->andWhere(['>=', 'expire_time', NOW_TIME])
         ->one();

@@ -44,7 +44,7 @@ class VoteController extends BaseController
         ->select(['A.*','B.mobile','C.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
-            $find->andWhere(['or',['like', 'B.mobile',$searchName],['C.name','like', $searchName]]);
+            $find->andWhere(['or',['like', 'B.mobile',$searchName],['like','C.name', $searchName]]);
         }
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');

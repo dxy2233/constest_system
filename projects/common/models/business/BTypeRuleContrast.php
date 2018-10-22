@@ -4,9 +4,9 @@ namespace common\models\business;
 
 class BTypeRuleContrast extends \common\models\TypeRuleContrast
 {
-    public static $TYPE_ORDER = 0;
+    public static $TYPE_ORDER = 2;
     public static $TYPE_TENURE = 1;
-    public static $TYPE_ALL = 2;
+    public static $TYPE_ALL = 0;
 
 
 

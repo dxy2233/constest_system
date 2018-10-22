@@ -281,8 +281,16 @@ class NodeController extends BaseController
             return $this->respondJson(1, 'ID不能为空');
         }
         $data = BNodeType::find()->where(['id' => $type_id])->asArray()->one();
+        
         if (!$data) {
             return $this->respondJson(1, '节点类型不存在');
+        }
+        $tenure = BNode::find()->where(['type_id' => $type_id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        if(empty($tenure)){
+            $data['allCount'] = $data['allTenure'] = 0;
+        }else{
+            $data['allTenure'] = $tenure['allTenure'];
+            $data['allCount'] = $tenure['allCount'];
         }
         $rule = BTypeRuleContrast::find()->select(['min_order','max_order','rule_id'])->where(['type_id' => $type_id])->asArray()->all();
         

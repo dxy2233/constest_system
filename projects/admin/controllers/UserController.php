@@ -93,6 +93,7 @@ class UserController extends BaseController
             $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['user_id' => $v['id']])->active(BNotice::STATUS_ACTIVE)->asArray()->one();
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
+            $v['status'] = BUser::getStatus($v['status']);
             $recommend = BUserRecommend::find()
             ->from(BUserRecommend::tableName()." A")
             ->select(['B.mobile'])

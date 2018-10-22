@@ -6,6 +6,22 @@ use yii\behaviors\TimestampBehavior;
 
 class BUser extends \common\models\User
 {
+    public static $STATUS_ON = 1;
+    public static $STATUS_OFF = 0;
+
+    public static function getStatus($key = '')
+    {
+        $arr = [
+            self::$STATUS_ON => \Yii::t('app', '正常'),
+            self::$STATUS_OFF => \Yii::t('app', '冻结'),
+        ];
+        if ($key !== "") {
+            return isset($arr[$key]) ? $arr[$key] : "";
+        }
+
+        return $arr;
+    }
+
     // 需要事务的操作
     public function transactions()
     {

@@ -239,7 +239,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        $order = VoteService::getNodeRanking($data->type_id, $nodeId);
+        $order = NodeService::getNodeRanking($data->type_id, $nodeId);
         $rule_list = NodeService::getNodeRule($nodeId, $order);
 
         return $this->respondJson(0, '获取成功', $rule_list);
@@ -511,10 +511,12 @@ class NodeController extends BaseController
         if (empty($scheme)) {
             return $this->respondJson(1, '建设方案不能为空');
         }
+        $is_tenure = $this->pInt('is_tenure', '');
         $data->logo = $logo;
         $data->name = $name;
         $data->desc = $desc;
         $data->scheme = $scheme;
+        $data->is_tenure = $is_tenure;
         $str = '编辑';
         if ($data->save()) {
             return $this->respondJson(0, $str.'成功');
@@ -578,6 +580,7 @@ class NodeController extends BaseController
         $node->grt = $grt;
         $node->tt = $tt;
         $node->bpt = $bpt;
+        $node->status = BNode::STATUS_ON;
 
         if (!$node->save()) {
             $transaction->rollBack();
@@ -676,36 +679,6 @@ class NodeController extends BaseController
             return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
         }
 
-        // $user_c = new BUserCurrency();
-        // $user_c->user_id = $user->id;
-        // $user_c->currency_id = $currency_id['tt'];
-        // $user_c->position_amount = $tt;
-        // $user_c->frozen_amount = $tt;
-        // $user_c->use_amount = 0;
-        // if (!$user_c->save()) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
-        // }
-        // $user_c = new BUserCurrency();
-        // $user_c->user_id = $user->id;
-        // $user_c->currency_id = $currency_id['grt'];
-        // $user_c->position_amount = $grt;
-        // $user_c->frozen_amount = $grt;
-        // $user_c->use_amount = 0;
-        // if (!$user_c->save()) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
-        // }
-        // $user_c = new BUserCurrency();
-        // $user_c->user_id = $user->id;
-        // $user_c->currency_id = $currency_id['bpt'];
-        // $user_c->position_amount = $bpt;
-        // $user_c->frozen_amount = $bpt;
-        // $user_c->use_amount = 0;
-        // if (!$user_c->save()) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败', $user_c->getFirstErrorText());
-        // }
 
         $withdraw = new BUserRechargeWithdraw();
         $withdraw ->currency_id = $currency_id['bpt'];

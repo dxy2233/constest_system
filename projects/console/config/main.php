@@ -43,6 +43,13 @@ return [
                     'logVars' => [],
                     'logFile' => '@console/runtime/logs/vote.log'
                 ],
+                [
+                    'class'  => 'yii\log\FileTarget',
+                    'levels' => ['error', 'warning', 'info'],
+                    'categories'=> ['history'],
+                    'logVars' => [],
+                    'logFile' => '@console/runtime/logs/history.log'
+                ],
             ],
         ],
     ],

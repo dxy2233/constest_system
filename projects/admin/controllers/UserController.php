@@ -436,6 +436,15 @@ class UserController extends BaseController
                 return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
             }
         }
+        $user_voucher = new BUserVoucher();
+        $user_voucher->user_id = $user->id;
+        $user_voucher->position_amount = 0;
+        $user_voucher->surplus_amount = 0;
+        $user_voucher->use_amount = 0;
+        if (!$user_voucher->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_voucher->getFirstErrorText());
+        }
         $transaction->commit();
         return $this->respondJson(0, '注册成功');
     }

@@ -264,6 +264,9 @@ class NodeController extends BaseController
         }
         $page = $this->pInt('page', 1);
         $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
+        if (empty($history)) {
+            return $this->respondJson(0, '获取成功', []);
+        }
         $data = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type])->page($page)->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
@@ -367,7 +370,7 @@ class NodeController extends BaseController
     public function actionGetRuleList()
     {
         $data = BNodeRule::find()->asArray()->all();
-        $return = [];
+        $return = [0 => [], 1 => [], 2 => []];
         foreach ($data as $v) {
             $return[$v['is_tenure']][] = $v;
         }

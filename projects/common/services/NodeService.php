@@ -39,6 +39,7 @@ class NodeService extends ServiceBase
         ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure','D.name as type_name']);
         // ->orderBy('sum(C.vote_number) desc');
         
+        
         if ($searchName != '') {
             $find->andWhere(['or',['like','A.name',$searchName],['like','B.mobile',$searchName]]);
         }
@@ -52,11 +53,11 @@ class NodeService extends ServiceBase
         }
 
         if ($type != '') {
-            $find->where(['A.type_id' => $type]);
+            $find->andWhere(['A.type_id' => $type]);
         }
 
         if ($status != '') {
-            $find->where(['A.status' => $status]);
+            $find->andWhere(['A.status' => $status]);
         }
         $count = $find->count();
         
@@ -73,7 +74,7 @@ class NodeService extends ServiceBase
                 $v['vote_number'] = 0;
             }
         }
-        //echo $find->createCommand()->getRawSql();
+        
         return $data;
     }
     

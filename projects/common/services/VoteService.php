@@ -5,6 +5,7 @@ namespace common\services;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 use common\components\FuncResult;
+use common\components\FuncHelper;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BVote;
@@ -140,7 +141,7 @@ class VoteService extends ServiceBase
             $voucherDetailModel->amount = $data['vote_number'];
             $voucherDetailModel->create_time = NOW_TIME;
             if (!$voucherDetailModel->save()) {
-            throw new ErrorException('投票详情插入失败', $voucherDetailModel->getFirstError());
+                throw new ErrorException('投票详情插入失败', $voucherDetailModel->getFirstError());
             }
             $transaction->commit();
             return new FuncResult(0, '投票成功');
@@ -166,7 +167,7 @@ class VoteService extends ServiceBase
             ->alias('n')
             ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
             ->active(BNode::STATUS_ACTIVE, 'n.')
-            ->joinWith(['votes v' => function($query) {
+            ->joinWith(['votes v' => function ($query) {
                 $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
             }])
             ->where(['n.type_id' => $nodeType])

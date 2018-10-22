@@ -140,7 +140,7 @@ class UserController extends BaseController
             ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $userId])->asArray()->one();
 
         if (empty($recommend)) {
-            $info['referee'] = '';
+            $info['referee'] = '-';
         } else {
             $info['referee'] = $recommend['mobile'];
         }
@@ -418,8 +418,11 @@ class UserController extends BaseController
             return $this->respondJson(1, '手机已注册');
         }
         $code = $this->pString('code');
+        $recommend_code = UserService::generateRemmendCode(6);
         $user = new BUser();
         $user->mobile = $mobile;
+        $user->recommend_code = $recommend_code;
+        
         $user->username = $mobile;
         $transaction = \Yii::$app->db->beginTransaction();
         if (!$user->save()) {

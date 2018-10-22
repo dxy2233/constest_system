@@ -286,9 +286,9 @@ class NodeController extends BaseController
             return $this->respondJson(1, '节点类型不存在');
         }
         $tenure = BNode::find()->where(['type_id' => $type_id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
-        if(empty($tenure)){
+        if (empty($tenure)) {
             $data['allCount'] = $data['allTenure'] = 0;
-        }else{
+        } else {
             $data['allTenure'] = $tenure['allTenure'];
             $data['allCount'] = $tenure['allCount'];
         }
@@ -426,8 +426,13 @@ class NodeController extends BaseController
         if (empty($node)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+        $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
+        if ($now_count >= $setting->max_candidate) {
+            return $this->respondJson(1, '任职数量已达上限');
+        }
         $node->is_tenure = BNotice::STATUS_ACTIVE;
-
+        
         if (!$node->save()) {
             return $this->respondJson(1, '任职失败', $node->getFirstErrorText());
         }
@@ -583,7 +588,11 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
             }
         }
-        
+        $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
+        $setting = BNodeType::find()->where(['id' => $type_id])->one();
+        if ($now_count >= $setting->max_people) {
+            return $this->respondJson(1, '候选数量已达上限');
+        }
         $node = new BNode();
         $node->user_id = $user->id;
         $node->type_id = $type_id;

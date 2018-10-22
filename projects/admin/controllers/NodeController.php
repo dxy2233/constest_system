@@ -642,6 +642,7 @@ class NodeController extends BaseController
         $user_c_detail->currency_id = $currency_id['grt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $grt;
+        $user_c_detail->remark = '充值';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
@@ -652,6 +653,7 @@ class NodeController extends BaseController
         $user_c_detail->currency_id = $currency_id['tt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $tt;
+        $user_c_detail->remark = '充值';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
@@ -662,6 +664,7 @@ class NodeController extends BaseController
         $user_c_detail->currency_id = $currency_id['bpt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $bpt;
+        $user_c_detail->remark = '充值';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
@@ -672,6 +675,7 @@ class NodeController extends BaseController
         $frozen->user_id = $user->id;
         $frozen->currency_id = $currency_id['bpt'];
         $frozen->amount = $bpt;
+        $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
         $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
@@ -682,6 +686,7 @@ class NodeController extends BaseController
         $frozen->user_id = $user->id;
         $frozen->currency_id = $currency_id['grt'];
         $frozen->amount = $grt;
+        $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
         $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
@@ -692,6 +697,7 @@ class NodeController extends BaseController
         $frozen->user_id = $user->id;
         $frozen->currency_id = $currency_id['tt'];
         $frozen->amount = $tt;
+        $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
         $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {

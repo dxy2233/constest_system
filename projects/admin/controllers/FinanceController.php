@@ -146,8 +146,8 @@ class FinanceController extends BaseController
     // 财务流水
     public function actionGetFinanceList()
     {
-        $in_arr = array(3);
-        $out_arr =array(1,2);
+        $in_arr = BUserCurrencyDetail::getTypeRevenue();
+        $out_arr = BUserCurrencyDetail::getTypePay();
         $find = BUserCurrencyDetail::find()
         ->from(BUserCurrencyDetail::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')

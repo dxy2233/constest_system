@@ -191,7 +191,7 @@ class UserController extends BaseController
                     $in_and_out = [];
                     $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
                     $in_and_out['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
-                    $in_and_out['amount'] = $val['amount'];
+                    $in_and_out['amount'] = ($val['amount'] > 0) ? '+'.$val['amount'] : $val['amount'];
                     $v['in_and_out'][] = $in_and_out;
                 }
                 $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
@@ -199,9 +199,21 @@ class UserController extends BaseController
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
                     $frozen['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
-                    $frozen['amount'] = $val['amount'];
+                    $frozen['amount'] = ($val['amount'] > 0) ? '-'.$val['amount'] : '+'.abs($val['amount']);
                     $v['frozen'][] = $frozen;
                 }
+            }
+        } else {
+            $currency = BCurrency::find()->where(['status' => BNotice::STATUS_ACTIVE])->all();
+            foreach ($currency as $v) {
+                $user_currency = new BUserCurrency();
+                $user_currency->user_id = $userId;
+                $user_currency->currency_id = $v['id'];
+                $user_currency->position_amount = 0;
+                $user_currency->frozen_amount = 0;
+                $user_currency->use_amount = 0;
+                $user_currency->save();
+                $currency_data[] = array('address'=>'','currency_id'=>$v['id'],'in_and_out'=>[],'frozen'=>[]);
             }
         }
         return $this->respondJson(0, '获取成功', $currency_data);

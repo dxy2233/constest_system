@@ -32,9 +32,10 @@ class Vote extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'node_id', 'vote_number', 'type', 'create_time'], 'required'],
+            [['user_id', 'node_id', 'vote_number', 'type', 'create_time', 'unit_code'], 'required'],
             [['user_id', 'node_id', 'vote_number', 'type', 'status', 'create_time'], 'integer'],
             [['consume'], 'number'],
+            [['unit_code'], 'string', 'max' => 50],
         ];
     }
 
@@ -53,6 +54,7 @@ class Vote extends \common\dzbase\DzModel
             'consume' => Yii::t('app', '消耗'),
             'type' => Yii::t('app', '投票类型'),
             'status' => Yii::t('app', '状态 1：正常 0：已赎回'),
+            'unit_code' => Yii::t('app', '消费单位'),
             'undo_time' => Yii::t('app', '撤消时间'),
             'create_time' => Yii::t('app', '创建时间'),
         ];

@@ -103,6 +103,7 @@ class NodeService extends ServiceBase
         ->asArray()
         ->all();
         $data = [];
+        ArrayHelper::multisort($res, 'people_number', SORT_DESC);
         foreach ($res as $v) {
             $data[$v['node_id']] = $v['people_number'];
         }

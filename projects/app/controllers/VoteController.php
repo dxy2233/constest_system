@@ -138,16 +138,10 @@ class VoteController extends BaseController
     public function actionVoucherInfo()
     {
         $userModel = $this->user;
-        $voucher = $userModel->getVouchers()
-        ->select(['SUM(vh.voucher_num) voucher_num', 'SUM(vd.amount) use_amount', 'vh.user_id'])
-        ->alias('vh')
-        ->joinWith(['user u' => function ($query) {
-            $query->joinWith(['voucherDetails vd'], false);
-        }], false)
-        ->one();
-        $data['count'] = (int) $voucher->voucher_num - $voucher->use_amount;
+        UserService::resetVoucher($userModel->id);
+        $userVoucher = $userModel->userVoucher;
+        $data['count'] = (int) $userVoucher->surplus_amount;
         return $this->respondJson(0, '获取成功', $data);
-        exit;
     }
 
     /**
@@ -234,6 +228,9 @@ class VoteController extends BaseController
             return $this->respondJson(1, '该投票状态不能更改');
         }
 
+        // 赎回时间设定 
+        $remokeTime = (int) SettingService::get('vote', 'remoke_time')->value;
+        $voteModel->undo_time = NOW_TIME + remokeTime;
         // 赎回中状态
         $voteModel->status = BVote::STATUS_INACTIVE_ING;
         if (!$voteModel->save()) {
@@ -311,7 +308,7 @@ class VoteController extends BaseController
         ->where(['currency_id' => $currencyId]);
         $userCurrencyInfo = $userCurrencyModel->one();
         if (!is_null($userCurrencyInfo)) {
-            $useAmount = floatval($userCurrencyInfo->use_amount);
+            $useAmount = round($userCurrencyInfo->use_amount, 8);
             $data['amount'] = $useAmount;
             $data['number'] = $useAmount / $scaling;
         }
@@ -363,7 +360,7 @@ class VoteController extends BaseController
             } elseif ($type === BVote::TYPE_PAY) {
                 $scaling = (float) SettingService::get('vote', 'payment_price')->value;
             }
-            $useAmount = floatval($userCurrencyInfo->use_amount) / $scaling;
+            $useAmount = round($userCurrencyInfo->use_amount / $scaling, 8);
             if ($useAmount < $number) {
                 return $this->respondJson(1, '货币量不足');
             }
@@ -373,6 +370,7 @@ class VoteController extends BaseController
                 'amount' => $currencyAmount,
                 'currency_id' => $currencyId,
                 'node_id' => $nodeId,
+                'unit_code' => $voteCurrencyCode,
             ];
             $voteAction = VoteService::currencyVote($userModel, $voteRes, $type);
             if ($voteAction->code) {
@@ -387,6 +385,7 @@ class VoteController extends BaseController
             $voteRes = [
                 'vote_number' => $number,
                 'node_id' => $nodeId,
+                'unit_code' => 'voucher',
             ];
             $voteAction = VoteService::voucherVote($userModel, $voteRes);
             if ($voteAction->code) {

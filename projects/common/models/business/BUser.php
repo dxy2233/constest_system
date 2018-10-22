@@ -83,6 +83,16 @@ class BUser extends \common\models\User
     }
 
     /**
+     * 用户的投票劵资产
+     *
+     * @return void
+     */
+    public function getUserVoucher()
+    {
+        return $this->hasOne(BUserVoucher::className(), ['user_id' => 'id']);
+    }
+
+    /**
      * 用户节点
      *
      * @return void

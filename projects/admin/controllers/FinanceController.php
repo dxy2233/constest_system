@@ -43,7 +43,7 @@ class FinanceController extends BaseController
         ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
-            $find->andWhere(['B.mobile','like',$searchName]);
+            $find->andWhere(['like', 'B.mobile',$searchName]);
         }
         $currency_id = $this->pInt('currency_id', 0);
         if ($currency_id != 0) {
@@ -156,7 +156,7 @@ class FinanceController extends BaseController
         ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
-            $find->andWhere(['B.mobile','like',$searchName]);
+            $find->andWhere(['like','B.mobile',$searchName]);
         }
         $currency_id = $this->pInt('currency_id', 0);
         if ($currency_id != 0) {

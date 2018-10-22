@@ -40,7 +40,7 @@ class NodeService extends ServiceBase
         // ->orderBy('sum(C.vote_number) desc');
         
         if ($searchName != '') {
-            $find->andWhere(['or',['like','A.name',$searchName],['like','B.username',$searchName]]);
+            $find->andWhere(['or',['like','A.name',$searchName],['like','B.mobile',$searchName]]);
         }
         
         if ($str_time != '') {

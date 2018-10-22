@@ -420,6 +420,7 @@ class UserController extends BaseController
         $code = $this->pString('code');
         $user = new BUser();
         $user->mobile = $mobile;
+        $user->username = $mobile;
         $transaction = \Yii::$app->db->beginTransaction();
         if (!$user->save()) {
             $transaction->rollBack();

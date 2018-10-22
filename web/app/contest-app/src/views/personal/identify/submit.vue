@@ -34,7 +34,7 @@
           <div class="claim">
             <divider>照片拍摄要求</divider>
             <ul class="claim-list">
-              <li v-for="(item,index) in claimList">
+              <li v-for="(item,index) in claimList" :key="index">
                 <img :src="'/static/images/identify/claim_'+index+'.png'" alt="">
                 <!--<img src="/static/images/identify/claim_0.png" alt="">-->
                 <span>{{item}}</span>

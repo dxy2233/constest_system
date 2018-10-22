@@ -11,7 +11,7 @@
         </div>
         <div class="bottom">
           <p>
-            <span>姓名</span><span v-html="identifyMsg.remark"></span>
+            <span>姓名</span><span v-html="identifyMsg.realname"></span>
           </p>
           <p>
             <span>身份证</span><span v-html="identifyMsg.number"></span>

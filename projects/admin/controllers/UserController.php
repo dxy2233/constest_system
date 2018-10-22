@@ -207,6 +207,27 @@ class UserController extends BaseController
         return $this->respondJson(0, '获取成功', $currency_data);
     }
 
+    public function actionEditWallet()
+    {
+        $id = $this->pInt('walletId');
+        if (empty($id)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $address = $this->pString('address');
+        if (empty($address)) {
+            return $this->respondJson(1, '地址不能为空');
+        }
+        $data = BUserRechargeAddress::find()->where(['id' => $id])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '地址ID不存在');
+        }
+        $data->address = $address;
+        if (!$data->save()) {
+            return $this->respondJson(1, "操作失败", $data->getFirstErrorText());
+        } else {
+            return $this->respondJson(0, '修改成功');
+        }
+    }
 
     // 获取用户投票信息
     public function actionGetUserVote()

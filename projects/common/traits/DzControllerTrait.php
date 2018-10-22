@@ -9,6 +9,7 @@
 namespace common\traits;
 
 use common\components\FuncHelper;
+use Yii;
 
 trait DzControllerTrait
 {
@@ -19,8 +20,9 @@ trait DzControllerTrait
     */
     final protected function pFloat($name, $default = null)
     {
-        if (isset($_POST[$name])) {
-            return floatval($_POST[$name]);
+        $return = Yii::$app->request->post($name, $default);
+        if (!empty($return)) {
+            return floatval($return);
         }
         if ($default !== null) {
             return $default;
@@ -30,8 +32,9 @@ trait DzControllerTrait
 
     final protected function pInt($name, $default = null)
     {
-        if (isset($_POST[$name])) {
-            return intval($_POST[$name]);
+        $return = Yii::$app->request->post($name, $default);
+        if (!empty($return)) {
+            return intval($return);
         }
         if ($default !== null) {
             return $default;
@@ -41,8 +44,9 @@ trait DzControllerTrait
 
     final protected function pString($name, $default = null)
     {
-        if (isset($_POST[$name])) {
-            return trim($_POST[$name]);
+        $return = Yii::$app->request->post($name, $default);
+        if (!empty($return)) {
+            return trim($return);
         }
         if ($default !== null) {
             return $default;
@@ -52,39 +56,37 @@ trait DzControllerTrait
 
     final protected function gFloat($name, $default = null)
     {
-        if (isset($_GET[$name])) {
-            return floatval($_GET[$name]);
+        $return = Yii::$app->request->get($name, $default);
+        if (!empty($return)) {
+            return floatval($return);
         }
         if ($default !== null) {
             return $default;
         }
-
         return 0;
     }
 
     final protected function gInt($name, $default = null)
     {
-        if (isset($_GET[$name])) {
-            return intval($_GET[$name]);
+        $return = Yii::$app->request->get($name, $default);
+        if (!empty($return)) {
+            return intval($return);
         }
-
         if ($default !== null) {
             return $default;
         }
-
         return 0;
     }
 
     final protected function gString($name, $default = null)
     {
-        if (isset($_GET[$name]) && $_GET[$name]) {
-            return trim($_GET[$name]);
+        $return = Yii::$app->request->get($name, $default);
+        if (!empty($return)) {
+            return trim($return);
         }
-
         if ($default !== null) {
             return $default;
         }
-
         return null;
     }
 

@@ -2,17 +2,11 @@
 
 namespace common\models\business;
 
-class BUserVoucher extends \common\models\UserVoucher
+class BAdminAccessToken extends \common\models\AdminAccessToken
 {
-
-    /**
-     * 用户
-     *  一对一
-     * @return void
-     */
-    public function getUser()
+    public function generateAccessToken()
     {
-        return $this->hasOne(BUser::className(), ['id' => 'user_id']);
+        return \Yii::$app->security->generateRandomString();
     }
 
 

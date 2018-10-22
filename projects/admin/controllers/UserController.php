@@ -16,6 +16,7 @@ use common\models\business\BUserCurrency;
 use common\models\business\BVoucher;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BVoucherDetail;
+use common\models\business\BNodeType;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BCurrency;
 use common\models\business\BUserRecommend;
@@ -50,7 +51,8 @@ class UserController extends BaseController
     {
         $find = BUser::find()
         ->from(BUser::tableName()." A")
-        ->select(['A.*','sum(B.vote_number) as num'])
+        ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
+        ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
         $page = $this->pInt('page');
@@ -75,6 +77,7 @@ class UserController extends BaseController
         }
         //echo $find->createCommand()->getRawSql();
         $list = $find->page($page)->asArray()->all();
+        //var_dump($list);
         foreach ($list as &$v) {
             $node = BNode::find()
             ->from(BNode::tableName()." A")
@@ -174,7 +177,7 @@ class UserController extends BaseController
         }
         $currency_data = BUserCurrency::find()
         ->from(BUserCurrency::tableName()." A")
-        ->select(['A.*','B.address','C.name'])
+        ->select(['A.id', 'A.currency_id', 'A.position_amount', 'A.frozen_amount', 'A.use_amount','B.address','C.name'])
         ->join('left join', BUserRechargeAddress::tableName().' B', 'B.currency_id = A.currency_id && B.user_id = '.$userId)
         ->join('inner join', BCurrency::tableName().' C', 'C.id = A.currency_id')
         ->where(['A.user_id'=> $userId])->asArray()->all();
@@ -215,7 +218,7 @@ class UserController extends BaseController
         $vote_log = BVote::find()->from(BVote::tableName()." A")
         ->join('inner join', 'gr_node C', 'A.node_id = C.id')
         ->join('inner join', 'gr_node_type B', 'C.type_id = B.id')
-        ->select(['C.name as nodeName','B.name as typeName','A.*'])->where(['A.user_id' => $userId])->asArray()->all();
+        ->select(['C.name as nodeName','B.name as typeName','A.type', 'A.vote_number', 'A.create_time'])->where(['A.user_id' => $userId])->asArray()->all();
         $vote_vote = [];
         if (count($vote_log)>0) {
             foreach ($vote_log as $v) {
@@ -233,7 +236,7 @@ class UserController extends BaseController
         $unvote_log = BVote::find()->from(BVote::tableName()." A")
         ->join('inner join', 'gr_node C', 'A.node_id = C.id')
         ->join('inner join', 'gr_node_type B', 'C.type_id = B.id')
-        ->select(['C.name as nodeName','B.name as typeName','A.*'])->where(['A.user_id' => $userId, 'A.status' => BNotice::STATUS_INACTIVE])->asArray()->all();
+        ->select(['C.name as nodeName','B.name as typeName','A.undo_time', 'A.vote_number'])->where(['A.user_id' => $userId, 'A.status' => BNotice::STATUS_INACTIVE])->asArray()->all();
         $vote_unvote = [];
         if (count($unvote_log)>0) {
             foreach ($unvote_log as $v) {
@@ -265,9 +268,9 @@ class UserController extends BaseController
         $voucher = [];
         $voucher_data = BVoucher::find()
         ->from(BVoucher::tableName()." A")
-        ->join('inner join', 'gr_node B', 'A.node_id = B.id')
-        ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
-        ->select(['A.*','B.name as nodeName','C.name as typeName'])
+        ->join('inner join', BNode::tableName().' B', 'A.node_id = B.id')
+        ->join('inner join', BNodeType::tableName().' C', 'B.type_id = C.id')
+        ->select(['A.voucher_num', 'A.create_time','B.name as nodeName','C.name as typeName'])
         ->where(['A.user_id' => $userId])->asArray()->all();
         $all  = 0;
         foreach ($voucher_data as $v) {
@@ -275,7 +278,7 @@ class UserController extends BaseController
             $voucher_item['nodeName'] = $v['nodeName'];
             $voucher_item['typeName'] = $v['typeName'];
             $voucher_item['voucherNum'] = $v['voucher_num'];
-            $voucher_item['username'] = $user->username;
+            $voucher_item['username'] = $user->mobile;
             $voucher_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voucher[] = $voucher_item;
         }
@@ -283,14 +286,14 @@ class UserController extends BaseController
         ->from(BVoucherDetail::tableName()." A")
         ->join('inner join', 'gr_node B', 'A.node_id = B.id')
         ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
-        ->select(['A.*','B.name as nodeName','C.name as typeName'])
+        ->select(['A.amount', 'A.create_time','B.name as nodeName','C.name as typeName'])
         ->where(['A.user_id' => $userId])->asArray()->all();
         $voucher_detail = [];
         foreach ($voucher_detail_data as $v) {
             $voucher_item = [];
             $voucher_item['nodeName'] = $v['nodeName'];
             $voucher_item['typeName'] = $v['typeName'];
-            $voucher_item['username'] = $user->username;
+            $voucher_item['username'] = $user->mobile;
             $voucher_item['amount'] = $v['amount'];
             $voucher_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voucher_detail[] = $voucher_item;
@@ -305,9 +308,6 @@ class UserController extends BaseController
         
         $return['voucher_list'] = $voucher;
         $return['voucher_detail_list'] = $voucher_detail;
-
-
-
 
         return $this->respondJson(0, '获取成功', $return);
     }
@@ -330,7 +330,7 @@ class UserController extends BaseController
         ->join('inner join', 'gr_node B', 'B.user_id = D.id')
         ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
         
-        ->select(['A.*','B.name as nodeName','C.name as typeName', 'D.username'])
+        ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
         ->where(['A.parent_id' => $userId])->asArray()->all();
         foreach ($recommend_data as $v) {
             $recommend_item = [];
@@ -352,18 +352,12 @@ class UserController extends BaseController
         if (empty($users)) {
             return $this->respondJson(1, '不存在的用户');
         }
-        $transaction = \Yii::$app->db->beginTransaction();
-        foreach ($users as $user) {
-            // if ($user->status == BNotice::STATUS_INACTIVE) {
-            //     return $this->respondJson(1, '此用户已处于冻结状态');
-            // }
-            $user->status = BNotice::STATUS_INACTIVE;
-            if (!$user->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '冻结失败', $user->getFirstErrorText());
-            }
+        $res = BUser::updateAll(['status' => BNotice::STATUS_INACTIVE], ['in', 'id', $user_id]);
+
+        if ($res === 0) {
+            return $this->respondJson(1, '冻结失败');
         }
-        $transaction->commit();
+
         return $this->respondJson(0, '冻结成功');
     }
 
@@ -376,18 +370,12 @@ class UserController extends BaseController
         if (empty($users)) {
             return $this->respondJson(1, '不存在的用户');
         }
-        $transaction = \Yii::$app->db->beginTransaction();
-        foreach ($users as $user) {
-            // if ($user->status == BNotice::STATUS_ACTIVE) {
-            //     return $this->respondJson(1, '此用户处于非冻结状态');
-            // }
-            $user->status = BNotice::STATUS_ACTIVE;
-            if (!$user->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '解冻失败', $user->getFirstErrorText());
-            }
+        $res = BUser::updateAll(['status' => BNotice::STATUS_ACTIVE], ['in', 'id', $user_id]);
+
+        if ($res === 0) {
+            return $this->respondJson(1, '解冻失败');
         }
-        $transaction->commit();
+
         return $this->respondJson(0, '解冻成功');
     }
 
@@ -405,7 +393,6 @@ class UserController extends BaseController
             $user = new BUser();
             $str = '新增';
         }
-        
         $name = $this->pString('name');
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
@@ -433,6 +420,7 @@ class UserController extends BaseController
         $code = $this->pString('code');
         $user = new BUser();
         $user->mobile = $mobile;
+        $user->username = $mobile;
         $transaction = \Yii::$app->db->beginTransaction();
         if (!$user->save()) {
             $transaction->rollBack();
@@ -447,6 +435,15 @@ class UserController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
             }
+        }
+        $user_voucher = new BUserVoucher();
+        $user_voucher->user_id = $user->id;
+        $user_voucher->position_amount = 0;
+        $user_voucher->surplus_amount = 0;
+        $user_voucher->use_amount = 0;
+        if (!$user_voucher->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_voucher->getFirstErrorText());
         }
         $transaction->commit();
         return $this->respondJson(0, '注册成功');

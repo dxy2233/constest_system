@@ -2,6 +2,7 @@
 
 namespace common\services;
 
+use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BSmsTemplate;
 use common\models\SmsLog;
@@ -32,6 +33,7 @@ class SmsService extends ServiceBase
     public static function send($mobile, $params, $templateType, $userId = 0)
     {
         $content = BSmsTemplate::assembleContent($templateType, $params);
+        $content = "【".\Yii::$app->params['smsSig']."】".$content;
 
         //存入短信日志
         $sms = new SmsLog();
@@ -48,12 +50,50 @@ class SmsService extends ServiceBase
         }
 
         //实际发送
-        $sendResult = self::realSend($mobile, $params, $templateType);
-        $sms->ret_code = $sendResult->msg;
+        if(isset(\Yii::$app->params['smsType']) && \Yii::$app->params['smsType'] === "aliyun") {
+            $sendResult = self::realSend($mobile, $params, $templateType);
+            $sms->ret_code = $sendResult->msg;
+        } else if(isset(\Yii::$app->params['smsType']) && \Yii::$app->params['smsType'] === "cl") {
+            $sendResult = self::clSend($mobile, $content);
+            $sms->ret_code = $sendResult->msg ? $sendResult->msg : $sendResult->content;
+        } else {
+            $sendResult = new FuncResult(1, 'no sms service');
+            $sms->ret_code = $sendResult->msg;
+        }
+
         $sms->send_time = time();
         $sms->update();
 
         return $sendResult;
+    }
+
+    /**
+     * 创蓝253发送短信
+     * @param $mobile
+     * @param $content
+     * @return FuncResult
+     */
+    public static function clSend($mobile, $content)
+    {
+        $count = preg_match('/^1\d{10}$/', $mobile);
+        //国内电话自动加86
+        if($count == 1) {
+            $mobile = '86'.$mobile;
+        }
+
+        $url = 'http://intapi.253.com/send/json';
+        $post = array(
+            'account'  => \Yii::$app->params['smsKey'],
+            'password' => \Yii::$app->params['smsSecret'],
+            'msg' => $content,
+            'mobile' => $mobile
+        );
+
+        $res = FuncHelper::curlPost($url, $post);
+
+        $res = json_decode($res, true);
+
+        return new FuncResult($res['code'], $res['error'], $res['msgid']);
     }
 
 

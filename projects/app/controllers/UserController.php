@@ -92,8 +92,8 @@ class UserController extends BaseController
         ->select(['n.name', 'r.create_time', 'nt.name as type_name', 'r.node_id', 'p.mobile', 'r.parent_id'])
         ->where(['<>', 'r.node_id', 0])
         ->joinWith(['node n' => function ($query) {
-            $query->joinWith('nodeType nt');
-        }, 'parent p']);
+            $query->joinWith('nodeType nt', false);
+        }, 'parent p'], false);
         $data['count'] = $recommendModel->count();
         $data['list'] = $recommendModel
         ->page($page, $pageSize)
@@ -122,8 +122,9 @@ class UserController extends BaseController
         $userModel = $this->user;
         $nodeModel = $userModel->node;
         $nodeTypeModel = $nodeModel->nodeType;
-        $ranking = VoteService::getNodeRanking($nodeModel->type_id, $nodeModel->id);
-        // var_dump($nodeModel);
+        // 获取用户当前节点的排名
+        $ranking = NodeService::getNodeRanking($nodeModel->type_id, $nodeModel->id);
+        // 获取当前用户节点权益
         $nodeRule = NodeService::getNodeRule($nodeModel->id, $ranking);
         $rules = [];
         foreach ($nodeRule as $key => $rule) {

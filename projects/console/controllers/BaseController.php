@@ -26,13 +26,4 @@ class BaseController extends Controller
     {
         return Yii::$app->cache;
     }
-    /**
-     * 调用redis组件
-     *
-     * @return void
-     */
-    public static function redis()
-    {
-        return Yii::$app->redis;
-    }
 }

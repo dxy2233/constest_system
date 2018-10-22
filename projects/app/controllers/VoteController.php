@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\NodeService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
@@ -97,8 +98,9 @@ class VoteController extends BaseController
             $voucherModel->alias('vh')
             ->select(['vh.voucher_num', 'u.mobile', 'vh.node_id', 'vh.create_time'])
             ->joinWith(['node n' => function ($query) {
-                $query->joinWith(['user u']);
-            }]);
+                $query->joinWith(['user u'], false);
+            }], false);
+            $voucherModel->orderBy(['create_time' => SORT_DESC]);
             $data['count'] = $voucherModel->count();
             $data['list'] = $voucherModel
             ->page($page, $pageSize)
@@ -112,9 +114,9 @@ class VoteController extends BaseController
         } else {
             $voucherDetailModel = $userModel->getVoucherDetails()
             ->alias('vd')
-            ->joinWith(['node n'])
+            ->joinWith(['node n'], false)
             ->select(['n.name', 'vd.amount', 'vd.create_time', 'vd.node_id']);
-            
+            $voucherDetailModel->orderBy(['create_time' => SORT_DESC]);
             $data['count'] = $voucherDetailModel->count();
             $data['list'] = $voucherDetailModel
             ->page($page, $pageSize)
@@ -136,16 +138,10 @@ class VoteController extends BaseController
     public function actionVoucherInfo()
     {
         $userModel = $this->user;
-        $voucher = $userModel->getVouchers()
-        ->select(['SUM(vh.voucher_num) voucher_num', 'SUM(vd.amount) use_amount', 'vh.user_id'])
-        ->alias('vh')
-        ->joinWith(['user u' => function($query) {
-            $query->joinWith(['voucherDetails vd']);
-        }])
-        ->one();
-        $data['count'] = (int) $voucher->voucher_num - $voucher->use_amount;
+        UserService::resetVoucher($userModel->id);
+        $userVoucher = $userModel->userVoucher;
+        $data['count'] = (int) $userVoucher->surplus_amount;
         return $this->respondJson(0, '获取成功', $data);
-        exit;
     }
 
     /**
@@ -165,16 +161,17 @@ class VoteController extends BaseController
         $voteModel = $userModel->getVotes()
         ->select(['v.*', 'n.name', 'nt.name as type_name'])
         ->alias('v')
-        ->joinWith(['node n' => function($query) {
-            $query->joinWith(['nodeType nt']);
-        }]);
+        ->joinWith(['node n' => function ($query) {
+            $query->joinWith(['nodeType nt'], false);
+        }], false);
         if ($type) {
             // 默认为投出的
-           $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
+            $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
         } else {
             // 赎回中以及赎回
             $voteModel->where(['v.status' => [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]]);
         }
+        $voteModel->orderBy(['create_time' => SORT_DESC]);
         $data['count'] = $voteModel->count();
         $data['list'] = $voteModel->page($page, $pageSize)
         ->asArray()
@@ -185,11 +182,10 @@ class VoteController extends BaseController
             $vote['status_str'] = BVote::getStatus($vote['status']);
             $vote['type_str'] = BVote::getType($vote['type']);
             $vote['is_revoke'] = in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]) ? false : in_array($vote['type'], BVote::IS_REVOKE);
-            unset($vote['node'], $vote['user_id'], $vote['node_id'], $vote['consume'], $vote['type'], $vote['status']);
+            unset($vote['user_id'], $vote['node_id'], $vote['consume'], $vote['type'], $vote['status'], $vote['unit_code']);
         }
         // var_dump($voteList);exit;
         return $this->respondJson(0, '获取成功', $data);
-
     }
 
     /**
@@ -231,14 +227,18 @@ class VoteController extends BaseController
         if (is_null($voteModel) || in_array($voteModel->status, [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
             return $this->respondJson(1, '该投票状态不能更改');
         }
+
+        // 赎回时间设定 
+        $remokeTime = (int) SettingService::get('vote', 'remoke_time')->value;
+        $voteModel->undo_time = NOW_TIME + remokeTime;
         // 赎回中状态
         $voteModel->status = BVote::STATUS_INACTIVE_ING;
         if (!$voteModel->save()) {
             return $this->respondJson(1, '赎回失败', $voteModel->getFirstErrors());
         }
-
+        // 刷新节点投票排行
+        NodeService::RefreshPushRanking($voteModel->node_id);
         return $this->respondJson(0, '赎回成功');
-
     }
 
     /**
@@ -293,7 +293,7 @@ class VoteController extends BaseController
         $scaling = 1;
         if ($type === BVote::TYPE_ORDINARY) {
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
-        } else if($type === BVote::TYPE_PAY) {
+        } elseif ($type === BVote::TYPE_PAY) {
             $scaling = (float) SettingService::get('vote', 'payment_price')->value;
         } else {
             $this->actionVoucherInfo();
@@ -308,7 +308,7 @@ class VoteController extends BaseController
         ->where(['currency_id' => $currencyId]);
         $userCurrencyInfo = $userCurrencyModel->one();
         if (!is_null($userCurrencyInfo)) {
-            $useAmount = floatval($userCurrencyInfo->use_amount);
+            $useAmount = round($userCurrencyInfo->use_amount, 8);
             $data['amount'] = $useAmount;
             $data['number'] = $useAmount / $scaling;
         }
@@ -322,8 +322,6 @@ class VoteController extends BaseController
      */
     public function actionSubmit()
     {
-        $rank = VoteService::getNodeRanking(1, 1);
-        var_dump($rank);exit;
         $userModel = $this->user;
         $nodeId = $this->pInt('node_id', false);
         if (!$nodeId) {
@@ -359,10 +357,10 @@ class VoteController extends BaseController
             }
             if ($type === BVote::TYPE_ORDINARY) {
                 $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
-            } else if($type === BVote::TYPE_PAY) {
+            } elseif ($type === BVote::TYPE_PAY) {
                 $scaling = (float) SettingService::get('vote', 'payment_price')->value;
             }
-            $useAmount = floatval($userCurrencyInfo->use_amount) / $scaling;
+            $useAmount = round($userCurrencyInfo->use_amount / $scaling, 8);
             if ($useAmount < $number) {
                 return $this->respondJson(1, '货币量不足');
             }
@@ -372,8 +370,9 @@ class VoteController extends BaseController
                 'amount' => $currencyAmount,
                 'currency_id' => $currencyId,
                 'node_id' => $nodeId,
+                'unit_code' => $voteCurrencyCode,
             ];
-            $voteAction = VoteService::currencyVote($userModel, $voteRes, BVote::TYPE_ORDINARY);
+            $voteAction = VoteService::currencyVote($userModel, $voteRes, $type);
             if ($voteAction->code) {
                 return $this->respondJson(1, '投票失败');
             }
@@ -386,20 +385,15 @@ class VoteController extends BaseController
             $voteRes = [
                 'vote_number' => $number,
                 'node_id' => $nodeId,
+                'unit_code' => 'voucher',
             ];
             $voteAction = VoteService::voucherVote($userModel, $voteRes);
             if ($voteAction->code) {
                 return $this->respondJson(1, '投票失败');
             }
         }
-        $data = [
-            'node_id' => $nodeId,
-            'user_id' => $userModel->id,
-            'vote_number' => $number,
-        ];
-        // 缓存投票排名
-        VoteService::cachePushRanking($nodeId, $userModel->id, $number);
+        // 刷新节点投票排行
+        NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '投票成功');
-
     }
 }

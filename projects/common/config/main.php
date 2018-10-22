@@ -35,11 +35,11 @@ return [
         ],
         'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=localhost;dbname=gr_contest',
-            'username' => 'root',
-            'password' => 'trans.pwd',
-            'charset' => 'utf8',
-            'tablePrefix'=>'gr_',
+            'dsn'      => 'mysql:host=192.168.3.111;dbname=gr_contest',
+            'username' => 'app',
+            'password' => 'app',
+            'charset'  => 'utf8',
+            'tablePrefix'=>'gr_'
         ],
         'formatter' => [
             'dateFormat' => 'yyyy-MM-dd',

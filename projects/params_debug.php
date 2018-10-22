@@ -43,28 +43,6 @@ return [
 
     // 货币显示精度 0.000012 小数点位数
     'wallet_precision' => 6,
-    // 钱包列表 预设 钱包默认值 default = 1 为默认钱包 后面可更改为 保存到数据库 (废弃)
-    'wallet' => [
-        'GST' => [
-            'default' => true,
-            'code' => 'gst',
-            'name' => '贵生态钱包',
-            // 初始化钱包币种
-            'balances' => [
-                [
-                    'value' => '0',
-                    'currency' => 'GRT',
-                    'issuer' => '',
-                    'freezed' => '0',
-                ],
-            ],
-        ],
-        'BTC' => [
-            'default' => false,
-            'code' => 'btc',
-            'name' => '比特币',
-        ],
-    ],
 
     // 平台url
     'home_platform_url' => 'http://sys.vguiren.com',

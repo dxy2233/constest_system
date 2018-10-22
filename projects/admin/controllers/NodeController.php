@@ -370,7 +370,7 @@ class NodeController extends BaseController
     public function actionGetRuleList()
     {
         $data = BNodeRule::find()->asArray()->all();
-        $return = [0 => [], 1 => [], 2 => []];
+        //$return = [0 => [], 1 => [], 2 => []];
         foreach ($data as $v) {
             $return[$v['is_tenure']][] = $v;
         }

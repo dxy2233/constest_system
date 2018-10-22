@@ -1,7 +1,7 @@
 <template>
   <div class="app-container" @click.self="showUserInfo=false">
     <h4 style="display:inline-block;">用户管理</h4>
-    <el-button class="btn-right" @click="dialogAddUser=true">新增用户</el-button>
+    <el-button class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
     <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button>
     <br>
 
@@ -22,16 +22,15 @@
     <br>
 
     已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
-    <el-button size="small" type="primary" style="margin-top:20px;" @click="allFreeze">冻结</el-button>
+    <el-button :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain style="margin-top:20px;" @click="allFreeze">停用</el-button>
 
     <el-table
-      ref="userTable"
       :data="tableData"
-      style="width: 100%;margin:10px 0;"
+      style="margin:10px 0;"
       @selection-change="handleSelectionChange"
       @row-click="clickRow">
       <el-table-column type="selection" width="55"/>
-      <el-table-column prop="username" label="用户"/>
+      <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="userType" label="类型"/>
       <el-table-column prop="nodeName" label="拥有节点"/>
       <el-table-column prop="num" label="已投票数"/>
@@ -59,8 +58,8 @@
           <span class="name">{{ userInfoBase.mobile }}<br><span>用户</span></span>
           <i class="el-icon-close btn" @click="showUserInfo=false"/>
           <el-button type="primary" class="btn" style="margin: 0 10px;" @click="rowEdit">编辑</el-button>
-          <el-button v-show="rowInfo.status==1" type="danger" class="btn" @click="free">冻结</el-button>
-          <el-button v-show="rowInfo.status==0" type="danger" class="btn" @click="thaw">解冻</el-button>
+          <el-button v-show="rowInfo.status==1" type="danger" plain class="btn" @click="free">停用</el-button>
+          <el-button v-show="rowInfo.status==0" type="primary" plain class="btn" @click="thaw">启用</el-button>
         </div>
         <div class="info">
           <el-row :gutter="5" class="info-row">
@@ -73,7 +72,7 @@
             <el-col>
               <el-card shadow="never">
                 <div class="title">拥有节点</div>
-                {{ userInfoBase.username }}
+                {{ userInfoBase.nodeName }}
               </el-card>
             </el-col>
             <el-col>
@@ -352,7 +351,7 @@ export default {
     },
     // 冻结用户
     free() {
-      this.$confirm('确定冻结吗?', '提示', {
+      this.$confirm('确定停用吗?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -366,7 +365,7 @@ export default {
     },
     // 解冻用户
     thaw() {
-      this.$confirm('确定解冻吗?', '提示', {
+      this.$confirm('确定启用吗?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -381,7 +380,7 @@ export default {
     // 批量冻结
     allFreeze() {
       if (this.tableDataSelection.length < 1) return
-      this.$confirm('确定解冻吗?', '提示', {
+      this.$confirm('确定停用吗?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -440,7 +439,7 @@ export default {
     addExcel() {
       import('@/vendor/Export2Excel').then(excel => {
         const tHeader = ['用户', '类型', '拥有节点', '已投票数', '推荐人', '状态', '注册时间', '最近一次登录时间']
-        const filterVal = ['username', 'userType', 'nodeName', 'num', 'referee', 'status', 'createTime', 'lastLoginTime']
+        const filterVal = ['mobile', 'userType', 'nodeName', 'num', 'referee', 'status', 'createTime', 'lastLoginTime']
         const list = this.tableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({
@@ -477,7 +476,8 @@ export default {
       .row {
         display: flex;
         justify-content: space-between;
-        margin-top: 6px;
+        margin-top: 10px;
+        padding-bottom: 9px;
         border-bottom: 1px solid #ddd;
         span {
           flex: 1;

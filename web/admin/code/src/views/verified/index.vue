@@ -10,7 +10,7 @@
     <br>
 
     已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
-    <el-button size="small" style="margin-top:20px;" @click="allDoomPass">通过</el-button>
+    <el-button :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain style="margin-top:20px;" @click="allDoomPass">通过</el-button>
 
     <el-table
       :data="tableDataPage"
@@ -36,7 +36,7 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ rowInfo.realname }}<br><span>{{ checkType }}</span></span>
           <i class="el-icon-close btn" @click="showInfo=false"/>
-          <el-button v-show="checkType=='待审核'" type="primary" class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
+          <el-button v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
           <el-button v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
         </div>
         <p style="margin-top:50px;">

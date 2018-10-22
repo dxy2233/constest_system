@@ -93,31 +93,7 @@ class VoteController extends BaseController
             if (strstr($v->key, 'time')) {
                 $post_item = strtotime($post_item);
             }
-            // if ($v->key == 'count_time') {
-            //     //查询截止开关状态
-            //     $status = $this->pString('stop_vote', '');
-            //     //查询数据库设置
-            //     $old = BSetting::find()->where(['key' => 'stop_vote'])->one();
-            //     if (empty($status)) {
-            //         $status = $old->value;
-            //     }
-            //     if ($status == BNotice::STATUS_ACTIVE) {
-            //         // 上一次队列ID
-            //         $job_id = $old->remark;
-            //         // if ($job_id != 0) {
-            //         //     // 停止作业
-            //         //     $t = \Yii::$app->queue->remove($job_id);
-            //         // }
-            //         $time = $post_item - time();
-            //         // 添加队列
-            //         $this_id = \Yii::$app->queue->delay($time)->push(new TestJob([]));
-            //         // $old->remark = $this_id;
-            //         // if (!$old->save()) {
-            //         //     $transaction->rollBack();
-            //         //     return $this->respondJson(1, "操作失败", $old->getFirstErrorText());
-            //         // }
-            //     }
-            // }
+
             $v->value = $post_item;
             
             if (!$v->save()) {

@@ -589,9 +589,10 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
             }
-            $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON])->all();
+            $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON, 'recharge_status' => BCurrency::$RECHARGE_STATUS_ON])->all();
             foreach ($currency as $v) {
                 $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+                
                 if ($returnInfo->code) {
                     $transaction->rollBack();
                     return $this->respondJson(1, $returnInfo->msg);

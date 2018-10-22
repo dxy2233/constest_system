@@ -5,6 +5,7 @@ use common\services\AclService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\services\NodeService;
+use common\services\RechargeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BNode;
@@ -582,10 +583,19 @@ class NodeController extends BaseController
         } else {
             $user = new BUser();
             $user->mobile = $mobile;
+            $user->username = $mobile;
             
             if (!$user->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
+            }
+            $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON])->all();
+            foreach ($currency as $v) {
+                $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+                if ($returnInfo->code) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, $returnInfo->msg);
+                }
             }
         }
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();

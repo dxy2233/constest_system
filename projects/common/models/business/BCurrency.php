@@ -4,7 +4,6 @@ namespace common\models\business;
 
 class BCurrency extends \common\models\Currency
 {
-
     public static $CURRENCY_GRT = 'grt'; // 贵人通
     public static $CURRENCY_BPT = 'bpt'; // 美食通
     public static $CURRENCY_TT = 'tt'; // 茶通

@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\RechargeService;
 use common\services\UserService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
@@ -204,49 +205,20 @@ class UserController extends BaseController
                 }
             }
         } else {
-            $currency = BCurrency::find()->where(['status' => BNotice::STATUS_ACTIVE])->all();
+            $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON])->all();
             foreach ($currency as $v) {
-                $user_currency = new BUserCurrency();
-                $user_currency->user_id = $userId;
-                $user_currency->currency_id = $v['id'];
-                $user_currency->position_amount = 0;
-                $user_currency->frozen_amount = 0;
-                $user_currency->use_amount = 0;
-                $user_currency->save();
-                $currency_data[] = array('address'=>'','currency_id'=>$v['id'],'in_and_out'=>[],'frozen'=>[]);
+                $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+                if ($returnInfo->code) {
+                    return $this->respondJson(1, $returnInfo->msg);
+                }
+                $content = $returnInfo->content;
+                $currency_data[] = array('address'=>$content['address'],'currency_id'=>$v['id'],'in_and_out'=>[],'frozen'=>[],'name'=>$v['name']);
             }
         }
         return $this->respondJson(0, '获取成功', $currency_data);
     }
 
-    public function actionEditWallet()
-    {
-        $user_id = $this->pInt('user_id');
-        if (empty($user_id)) {
-            return $this->respondJson(1, '用户ID不能为空');
-        }
-        $currency_id = $this->pInt('currency_id');
-        if (empty($currency_id)) {
-            return $this->respondJson(1, '币种ID不能为空');
-        }
 
-        $address = $this->pString('address');
-        if (empty($address)) {
-            return $this->respondJson(1, '地址不能为空');
-        }
-        $data = BUserRechargeAddress::find()->where(['user_id' => $user_id, 'currency_id' => $currency_id])->one();
-        if (empty($data)) {
-            $data = new BUserRechargeAddress();
-            $data->user_id = $user_id;
-            $data->currency_id = $currency_id;
-        }
-        $data->address = $address;
-        if (!$data->save()) {
-            return $this->respondJson(1, "操作失败", $data->getFirstErrorText());
-        } else {
-            return $this->respondJson(0, '修改成功');
-        }
-    }
 
     // 获取用户投票信息
     public function actionGetUserVote()
@@ -440,7 +412,6 @@ class UserController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
         }
-        $user->mobile = $name;
         $user->username = $name;
         if ($user->save()) {
             return $this->respondJson(0, $str.'成功');
@@ -491,6 +462,14 @@ class UserController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_voucher->getFirstErrorText());
         }
+        $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON])->all();
+        foreach ($currency as $v) {
+            $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+            if ($returnInfo->code) {
+                return $this->respondJson(1, $returnInfo->msg);
+            }
+        }
+        
         $transaction->commit();
         return $this->respondJson(0, '注册成功');
     }

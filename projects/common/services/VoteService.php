@@ -4,8 +4,9 @@ namespace common\services;
 
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
-use common\components\FuncResult;
+use common\services\UserService;
 use common\components\FuncHelper;
+use common\components\FuncResult;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BVote;
@@ -70,6 +71,7 @@ class VoteService extends ServiceBase
                 $isFrozen = false;
                 $voteModel->consume = $data['amount'];
             }
+            $voteModel->unit_code = $data['unit_code'];
             $voteModel->create_time = NOW_TIME;
             $voteModel->user_id = $userModel->id;
             if (!$voteModel->save()) {
@@ -118,6 +120,7 @@ class VoteService extends ServiceBase
             $voteModel->type = BVote::TYPE_VOUCHER;
             $voteModel->status = BVote::STATUS_ACTIVE;
             $voteModel->vote_number = $data['vote_number'];
+            $voteModel->unit_code = $data['unit_code'];
             $voteModel->create_time = NOW_TIME;
             $voteModel->user_id = $userModel->id;
             if (!$voteModel->save()) {
@@ -132,6 +135,10 @@ class VoteService extends ServiceBase
             $voucherDetailModel->create_time = NOW_TIME;
             if (!$voucherDetailModel->save()) {
                 throw new ErrorException('投票详情插入失败', $voucherDetailModel->getFirstError());
+            }
+            // 重置用户投票券
+            if (!UserService::resetVoucher($userModel->user_id)) {
+                throw new ErrorException('投票券资产更新失败');
             }
             $transaction->commit();
             return new FuncResult(0, '投票成功');
@@ -152,7 +159,7 @@ class VoteService extends ServiceBase
     {
         $voteModel = BVote::find()
         ->active(BVote::STATUS_INACTIVE_ING)
-        ->where(['undo_time' => 0, 'type' => BVote::TYPE_ORDINARY]);
+        ->where(['type' => BVote::TYPE_ORDINARY]);
         if ($userId) {
             $voteModel->andWhere(['user_id' => $userId]);
         }

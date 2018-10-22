@@ -2,17 +2,11 @@
 
 namespace common\models\business;
 
-class BUserVoucher extends \common\models\UserVoucher
+class BAdminRefreshToken extends \common\models\AdminRefreshToken
 {
-
-    /**
-     * 用户
-     *  一对一
-     * @return void
-     */
-    public function getUser()
+    public function generateRefreshToken()
     {
-        return $this->hasOne(BUser::className(), ['id' => 'user_id']);
+        return \Yii::$app->security->generateRandomString();
     }
 
 

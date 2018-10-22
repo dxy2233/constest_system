@@ -420,6 +420,7 @@ class UserController extends BaseController
         $code = $this->pString('code');
         $user = new BUser();
         $user->mobile = $mobile;
+        $user->username = $mobile;
         $transaction = \Yii::$app->db->beginTransaction();
         if (!$user->save()) {
             $transaction->rollBack();
@@ -434,6 +435,15 @@ class UserController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
             }
+        }
+        $user_voucher = new BUserVoucher();
+        $user_voucher->user_id = $user->id;
+        $user_voucher->position_amount = 0;
+        $user_voucher->surplus_amount = 0;
+        $user_voucher->use_amount = 0;
+        if (!$user_voucher->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $user_voucher->getFirstErrorText());
         }
         $transaction->commit();
         return $this->respondJson(0, '注册成功');

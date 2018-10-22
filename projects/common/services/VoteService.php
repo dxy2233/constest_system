@@ -91,17 +91,14 @@ class VoteService extends ServiceBase
                 'type' => BUserCurrencyDetail::$TYPE_VOTE,
                 'amount' => $data['amount'], // 总数量
                 'poundage' => $poundage, // 手续费
-                'privateKey' => $privateKey, // 发送方私钥
-                'source_address' => $addressModel->address, // 发送方地址
                 'remark' => BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE),
                 'status' => BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS,
                 'status_remark' => '确认',
                 'create_time' => NOW_TIME,
                 'update_time' => NOW_TIME,
                 'user_recharge' => $isFrozen ? 'voto_frozen' : 'voto_trans',
-                'poundage' => $poundage, // 手续费
             ];
-            $currencyTrans = WithdrawService::withdrawCurrencyVote($res, $isFrozen);
+            $currencyTrans = self::bankrollVotes($res, $isFrozen);
             if ($currencyTrans->code) {
                 throw new ErrorException('划账失败 '.$currencyTrans->msg);
             }
@@ -192,7 +189,118 @@ class VoteService extends ServiceBase
         $revokeData['currency_id'] = $frozenModel->currency_id;
         $revokeData['amount'] = $frozenModel->amount;
         $revokeData['relate_table'] = $frozenModel->relate_table;
-        return WithdrawService::withdrawRevokeVote($revokeData);
+        return self::thawVote($revokeData);
+    }
+
+    
+    /**
+     * @param $res
+     * @param $hasFrozen
+     * @return array
+     * @throws \yii\db\Exception
+     * info : 前台货币消费（投票）/ 两种类型 
+     */
+    public static function bankrollVotes(array $res, bool $isFrozen = true)
+    {
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $time = time();
+            $relate_table = isset($res['relate_table']) ? $res['relate_table'] : 'vote';
+            // 增加明细
+            $currencyData = [
+                'user_id' => $res['user_id'],
+                'currency_id' => $res['currency_id'],
+                'relate_table' => $relate_table,
+                'relate_id' => $res['id'],
+                'create_time' => $time,
+                'update_time' => $time,
+            ];
+            if ($isFrozen) {
+                // 冻结用户资金
+                $userFrozen = new BUserCurrencyFrozen();
+                $userFrozen->setAttributes($currencyData);
+                $userFrozen->type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
+                $userFrozen->amount = round($data['amount'], 8); // 总数量
+                $userFrozen->remark = BUserCurrencyFrozen::getType($currencyDetail->status) ?? '投票';
+                $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
+                $sign = $userFrozen->save();
+                if (!$sign) {throw new ErrorException('user_currency_frozen table data is not inserted successfully');}
+            } else {
+                // 投票明细
+                $currencyDetail = new BUserCurrencyDetail();
+                $currencyDetail->setAttributes($currencyData);
+                $currencyDetail->type = BUserCurrencyDetail::$TYPE_VOTE; // 投票消费
+                $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+                $currencyDetail->effect_time = $time;
+                $currencyDetail->remark = BUserCurrencyDetail::getType($currencyDetail->status) ?? '投票';
+                $currencyDetail->amount = -$res['amount'];
+                $sign = $currencyDetail->save();
+                if (!$sign) { throw new ErrorException('user-currency-detail table data create is fail'); }
+            }
+            // 手续费明细
+            if ($res['poundage'] > 0) {
+                $currencyDetailPoundage = new BUserCurrencyDetail();
+                $currencyDetailPoundage->setAttributes($currencyData);
+                $currencyDetailPoundage->type = BUserCurrencyDetail::$TYPE_POUNDAGE; // 手续费
+                $currencyDetailPoundage->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+                $currencyDetailPoundage->effect_time = $time;
+                $currencyDetailPoundage->amount = -$res['poundage'];
+                $currencyDetailPoundage->remark = '手续费';
+                $sign = $currencyDetailPoundage->save();
+                if (!$sign) {
+                    throw new ErrorException('user-currency-detail table data create is fail');
+                }
+            }
+
+            // 重算用户持仓
+            $sign = UserService::resetCurrency($res['user_id'], $res['currency_id']);
+            if ($sign === false) {
+                throw new ErrorException('reset user position fail');
+            }
+
+            $transaction->commit();
+
+            return new FuncResult(0, '状态更改成功');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return new FuncResult(1, $e->getMessage());
+        }
+    }
+
+    /**
+     * 赎回投票
+     *  解冻资产
+     * @param array $revoke
+     * @return void
+     */
+    public static function thawVote(array $res)
+    {
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $time = time();
+            $relate_table = isset($res['relate_table']) ? $res['relate_table'] : 'vote';
+            // 解冻
+            $sign = BUserCurrencyFrozen::updateAll(
+                ['status' => BUserCurrencyFrozen::STATUS_THAW, 'update_time' => $time, 'unfrozen_time' => $time],
+                ['user_id' => $res['user_id'], 'currency_id' => $res['currency_id'], 'type' => BUserCurrencyFrozen::$TYPE_VOTE, 'relate_id' => $res['id'], 'status' => BUserCurrencyFrozen::STATUS_FROZEN]
+            );
+            if ($sign === 0) {
+                throw new ErrorException('user-currency-frozen table data update is fail');
+            }
+
+            // 重算用户持仓
+            $sign = UserService::resetCurrency($res['user_id'], $res['currency_id']);
+            if ($sign === false) {
+                throw new ErrorException('reset user position fail');
+            }
+
+            $transaction->commit();
+
+            return new FuncResult(0, '状态更改成功');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return new FuncResult(1, $e->getMessage());
+        }
     }
 
 }

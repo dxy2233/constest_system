@@ -11,14 +11,14 @@
       <div class="h-main">
         <div class="login-main">
           <h3 class="title">创建/登录糖果账号</h3>
-          <!--<img alt="" class="img-code" :src="imgCode.image_data" @click="getImgCode()">-->
+          <!--<img alt="" class="img-code" :src="imgCode.imageData" @click="getImgCode()">-->
           <group title="" class="login-form">
             <x-input @on-blur="existMobile" title="" placeholder="+86 请输入手机号" mask="99999999999"
                      v-model="loginForm.mobile"></x-input>
             <x-input title="" placeholder="图片验证码" v-model="loginForm.captcha_code">
               <div class="img-code-box" slot="right-full-height">
                 <img class="img-code"
-                     :src="imgCode.image_data">
+                     :src="imgCode.imageData" @click="getImgCode">
               </div>
             </x-input>
             <x-input title="" class="weui-vcode" placeholder="验证码" v-model="loginForm.vcode">
@@ -71,8 +71,8 @@
         colorTheme: colorTheme,
         colorSubTheme: colorSubTheme,
         imgCode: {
-          image_data: '',
-          image_code: ''
+          imageData: '',
+          imageCode: ''
         },
         wait: 0,
         reCodeShow: false,
@@ -131,7 +131,7 @@
       getLogin() {
         this.btnLoading = true
         http.post('/login', Object.assign({
-          image_code: this.imgCode.image_code,
+          imageCode: this.imgCode.imageCode,
           type: imgCodeType
         }, this.loginForm), (res) => {
           this.$vux.toast.show(res.msg)
@@ -181,7 +181,9 @@
           this.$vux.toast.show(clickMb)
           return
         }
-        this.getCode()
+        if (this.wait <= 0) {
+          this.getCode()
+        }
       },
       getCode() {
         this.wait = 60

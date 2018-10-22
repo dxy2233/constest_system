@@ -16,7 +16,7 @@
             <p>你还没有推荐过用户</p>
           </div>
           <ul class="list">
-            <li v-for="item in dataList">
+            <li v-for="item in dataList" :key="item.id">
               <h4>{{item.name}}</h4>
               <p>
                 <span>{{item.typeName}}</span>

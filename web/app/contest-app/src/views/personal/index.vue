@@ -153,7 +153,7 @@
           this.$router.push({
             path: `/login`
           })
-        }else {
+        } else {
           if (!!this.loginMsg.isNode) {
             this.getNodeInfo()
           }
@@ -177,6 +177,7 @@
       // this.pageInt()
     },
     activated() {
+      this.getIdentifyMsg()
       this.pageInt()
     },
     watch: {

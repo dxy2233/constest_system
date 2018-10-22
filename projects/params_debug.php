@@ -11,7 +11,7 @@ return [
     // 密码加密/解密串 // 使用 yii 安全助手生成 Yii::$app->getSecurity()->generateRandomString();
     'authCodeKey' => '2QST9d46soiQpf2Hug8igL0ja0RdOYTk',
 
-    'imgAddress' => 'http://static.atshuyi.com/contest_system',
+    'imgAddress' => 'http://static.vguiren.com/contest_system',
 
     'oss'=> [
         'ossServer' => 'http://oss-cn-hangzhou.aliyuncs.com', //服务器外网地址，深圳为 http://oss-cn-shenzhen.aliyuncs.com
@@ -67,5 +67,5 @@ return [
     ],
 
     // 平台url
-    'home_platform_url' => 'http://sys.vguiren.com',
+    'home_platform_url' => 'http://contest.vguiren.com',
 ];

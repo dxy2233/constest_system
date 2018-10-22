@@ -31,5 +31,7 @@ tests/_support/_generated
 # /vendor
 /.vagrant
 /.vscode
-/projects/debug.php
+projects/common/config/main.php
+projects/params.php
+projects/debug.php
 /projects/*/runtime/*

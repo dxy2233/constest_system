@@ -3,6 +3,7 @@ return [
     'charset' => 'utf-8',
     'language' => 'zh-CN',
     'timeZone' => 'Asia/Shanghai',
+    'bootstrap' => ['queue'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -12,6 +13,21 @@ return [
         'doc' => [
             'class' => 'common\modules\doc\Module',
         ],
+        'sms' => [
+            'class' => 'common\modules\sms\Module',
+        ],
+        'captcha' => [
+            'class' => 'common\modules\captcha\Module',
+        ],
+        'upload' => [
+            'class' => 'common\modules\upload\Module',
+        ],
+        'validate' => [
+            'class' => 'common\modules\validate\Module',
+        ],
+        'site' => [
+            'class' => 'common\modules\site\Module',
+        ]
     ],
     'components' => [
         'cache' => [
@@ -53,5 +69,16 @@ return [
             // for the mailer to send real emails.
             'useFileTransport' => true,
         ],
+        'queue' => [
+            'class' => \yii\queue\file\Queue::class,
+            'path' => '@console/runtime/queue',
+            // 驱动的其他选项
+            // 'class' => \yii\queue\db\Queue::class,
+            // 'db' => 'db', // DB 连接组件或它的配置
+            // 'tableName' => 'queue', // 表名
+            // 'channel' => 'default', // Queue channel key
+            // 'mutex' => \yii\mutex\MysqlMutex::class
+        ],
     ],
+
 ];

@@ -140,7 +140,7 @@ class VoteController extends BaseController
         foreach ($data as &$v) {
             $v['initialize'] = json_decode($v['initialize'], true);
             if (strstr($v['key'], 'time')) {
-                $v['value'] = date('Y-m-d H:i:s', $v['value']);
+                $v['value'] = date('Y-m-d H:i:s', (int)$v['value']);
             }
         }
         return $this->respondJson(0, "获取成功", $data, false);

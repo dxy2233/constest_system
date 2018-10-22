@@ -209,17 +209,24 @@ class UserController extends BaseController
 
     public function actionEditWallet()
     {
-        $id = $this->pInt('walletId');
-        if (empty($id)) {
-            return $this->respondJson(1, 'ID不能为空');
+        $user_id = $this->pInt('user_id');
+        if (empty($user_id)) {
+            return $this->respondJson(1, '用户ID不能为空');
         }
+        $currency_id = $this->pInt('currency_id');
+        if (empty($currency_id)) {
+            return $this->respondJson(1, '币种ID不能为空');
+        }
+
         $address = $this->pString('address');
         if (empty($address)) {
             return $this->respondJson(1, '地址不能为空');
         }
-        $data = BUserRechargeAddress::find()->where(['id' => $id])->one();
+        $data = BUserRechargeAddress::find()->where(['user_id' => $user_id, 'currency_id' => $currency_id])->one();
         if (empty($data)) {
-            return $this->respondJson(1, '地址ID不存在');
+            $data = new BUserRechargeAddress();
+            $data->user_id = $user_id;
+            $data->currency_id = $currency_id;
         }
         $data->address = $address;
         if (!$data->save()) {

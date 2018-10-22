@@ -261,7 +261,7 @@ class WithdrawService extends ServiceBase
         }
     }
 
-    /**
+    /** 接口 无用 （暂不删除）
      * @param $res
      * @param $hasFrozen
      * @return array
@@ -385,7 +385,7 @@ class WithdrawService extends ServiceBase
     }
 
     /**
-     * 投票赎回
+     * 投票赎回 接口 无用 （暂不删除）
      *
      * @param array $revoke
      * @return void

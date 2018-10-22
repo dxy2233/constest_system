@@ -36,7 +36,7 @@ class NodeService extends ServiceBase
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
         ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.username','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure','D.name as type_name']);
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure','D.name as type_name']);
         // ->orderBy('sum(C.vote_number) desc');
         
         if ($searchName != '') {

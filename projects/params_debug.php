@@ -24,9 +24,10 @@ return [
 
     //短信通道
     'sendSms'   => false,
-    'smsKey' => 'LTAIwX4mAZfjuTcj',
-    'smsSecret' => '0sqKwoMYQjQ2UG7rCnWzN4q3Q8jTDn',
-    'smsSig' => '贵人大数据',
+    'smsType' => 'cl', //短信平台类型：cl(253短信平台，默认值),aliyun
+    'smsKey' => 'CI4037761',
+    'smsSecret' => '2NIUGshyBv96b6',
+    'smsSig' => '共生态',
 
     // 图形验证码验证开关
     'imageCaptcha' => false,

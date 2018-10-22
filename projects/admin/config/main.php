@@ -13,6 +13,9 @@ return [
     'controllerNamespace' => APP_NAME . '\controllers',
     'layoutPath'=>'@admin/views/layouts/adminlte',
     'on beforeRequest' => function ($event) {
+        \yii\base\Event::on(\yii\db\BaseActiveRecord::className(), \yii\db\BaseActiveRecord::EVENT_AFTER_INSERT, ['common\services\AdminLogService', 'add']);
+        \yii\base\Event::on(\yii\db\BaseActiveRecord::className(), \yii\db\BaseActiveRecord::EVENT_AFTER_UPDATE, ['common\services\AdminLogService', 'update']);
+        \yii\base\Event::on(\yii\db\BaseActiveRecord::className(), \yii\db\BaseActiveRecord::EVENT_AFTER_DELETE, ['common\services\AdminLogService', 'delete']);
     },
     'components' => [
         /*模板定义*/

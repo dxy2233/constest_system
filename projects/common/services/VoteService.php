@@ -5,6 +5,7 @@ namespace common\services;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 use common\components\FuncResult;
+use common\components\FuncHelper;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BVote;

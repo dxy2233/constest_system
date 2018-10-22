@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\UserService;
+use common\services\VoteService;
 use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
@@ -101,7 +102,8 @@ class NodeController extends BaseController
         $return = [];
         foreach ($data as $v) {
             $item = [];
-            $item['username'] = $v['username'];
+            $item['id'] = $v['id'];
+            $item['mobile'] = $v['mobile'];
             $item['name'] = $v['name'];
             $item['bpt'] = $v['bpt'];
             $item['tt'] = $v['tt'];
@@ -154,7 +156,7 @@ class NodeController extends BaseController
         }
         return $this->respondJson(0, '审核成功');
     }
-
+    // 节点明细
     public function actionGetNodeData()
     {
         $nodeId = $this->pInt('nodeId');
@@ -237,8 +239,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        //假设排名为1
-        $order = 1;
+        $order = VoteService::getNodeRanking($data->type_id, $nodeId);
         $rule_list = NodeService::getNodeRule($nodeId, $order);
 
         return $this->respondJson(0, '获取成功', $rule_list);
@@ -339,6 +340,10 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '操作失败', $node->getFirstErrorText());
         }
+        
+        // $command = $node->createCommand();
+        // var_dump($command->sql);
+        // exit;
         $rule = $this->pString('rule', '');
         $rule_arr = json_decode($rule, true);
         // BTypeRuleContrast::find()->where(['type_id' => $node->id])->delete();
@@ -391,7 +396,7 @@ class NodeController extends BaseController
                 }
                 $node->name = $val['name'];
                 $node->content = $val['content'];
-                $node->is_tenure = $val['is_tenure'];
+                $node->is_tenure = $val['isTenure'];
                 if (!$node->save()) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '操作失败', $node->getFirstErrorText());

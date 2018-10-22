@@ -46,6 +46,7 @@ class VoteService extends ServiceBase
         ->exists();
         return new FuncResult(0, '校验结果', $historyModelExists);
     }
+
     /**
      * 货币投票
      *
@@ -74,16 +75,7 @@ class VoteService extends ServiceBase
                 throw new ErrorException('投票失败', $voteModel->getFirstError());
             }
             $poundage = (int) SettingService::get('vote', 'vote_poundage')->value;
-            // 发送方账户公钥
-            $addressModel = $userModel->userRechargeAddress;
-            if (is_null($addressModel)) {
-                throw new ErrorException('wallet address no found');
-            }
-            $privateKey = BWalletJingtum::find()->select(['secret'])->where(['address' => $addressModel->address])->scalar();
-            if (is_null($privateKey)) {
-                throw new ErrorException('wallet private no found');
-            }
-            $poundage = 0; // 手续费
+            
             $res = [
                 'id' => $voteModel->id,
                 'currency_id' => $data['currency_id'],
@@ -138,7 +130,7 @@ class VoteService extends ServiceBase
             $voucherDetailModel->amount = $data['vote_number'];
             $voucherDetailModel->create_time = NOW_TIME;
             if (!$voucherDetailModel->save()) {
-            throw new ErrorException('投票详情插入失败', $voucherDetailModel->getFirstError());
+                throw new ErrorException('投票详情插入失败', $voucherDetailModel->getFirstError());
             }
             $transaction->commit();
             return new FuncResult(0, '投票成功');
@@ -155,13 +147,17 @@ class VoteService extends ServiceBase
      * @param integer $userId
      * @return boolean
      */
-    public static function getRevokeList(int $userId = 0)
+    public static function getRevokeList(int $userId = 0, callable $callback = null)
     {
         $voteModel = BVote::find()
         ->active(BVote::STATUS_INACTIVE_ING)
         ->where(['undo_time' => 0, 'type' => BVote::TYPE_ORDINARY]);
         if ($userId) {
             $voteModel->andWhere(['user_id' => $userId]);
+        }
+        
+        if ($callback !== null && $callback instanceof \Closure) {
+            $voteModel = call_user_func($callback, $voteModel);
         }
         return $voteModel->all();
     }
@@ -198,7 +194,7 @@ class VoteService extends ServiceBase
      * @param $hasFrozen
      * @return array
      * @throws \yii\db\Exception
-     * info : 前台货币消费（投票）/ 两种类型 
+     * info : 前台货币消费（投票）/ 两种类型
      */
     public static function bankrollVotes(array $res, bool $isFrozen = true)
     {
@@ -220,11 +216,13 @@ class VoteService extends ServiceBase
                 $userFrozen = new BUserCurrencyFrozen();
                 $userFrozen->setAttributes($currencyData);
                 $userFrozen->type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
-                $userFrozen->amount = round($data['amount'], 8); // 总数量
-                $userFrozen->remark = BUserCurrencyFrozen::getType($currencyDetail->status) ?? '投票';
+                $userFrozen->amount = round($res['amount'], 8); // 总数量
+                $userFrozen->remark = BUserCurrencyFrozen::getType(BUserCurrencyFrozen::$TYPE_VOTE) ?? '投票';
                 $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
                 $sign = $userFrozen->save();
-                if (!$sign) {throw new ErrorException('user_currency_frozen table data is not inserted successfully');}
+                if (!$sign) {
+                    throw new ErrorException('user_currency_frozen table data is not inserted successfully');
+                }
             } else {
                 // 投票明细
                 $currencyDetail = new BUserCurrencyDetail();
@@ -232,10 +230,12 @@ class VoteService extends ServiceBase
                 $currencyDetail->type = BUserCurrencyDetail::$TYPE_VOTE; // 投票消费
                 $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
                 $currencyDetail->effect_time = $time;
-                $currencyDetail->remark = BUserCurrencyDetail::getType($currencyDetail->status) ?? '投票';
+                $currencyDetail->remark = BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE) ?? '投票';
                 $currencyDetail->amount = -$res['amount'];
                 $sign = $currencyDetail->save();
-                if (!$sign) { throw new ErrorException('user-currency-detail table data create is fail'); }
+                if (!$sign) {
+                    throw new ErrorException('user-currency-detail table data create is fail');
+                }
             }
             // 手续费明细
             if ($res['poundage'] > 0) {
@@ -263,6 +263,7 @@ class VoteService extends ServiceBase
             return new FuncResult(0, '状态更改成功');
         } catch (\Exception $e) {
             $transaction->rollBack();
+            var_dump($e->getMessage());
             return new FuncResult(1, $e->getMessage());
         }
     }
@@ -278,7 +279,6 @@ class VoteService extends ServiceBase
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             $time = time();
-            $relate_table = isset($res['relate_table']) ? $res['relate_table'] : 'vote';
             // 解冻
             $sign = BUserCurrencyFrozen::updateAll(
                 ['status' => BUserCurrencyFrozen::STATUS_THAW, 'update_time' => $time, 'unfrozen_time' => $time],
@@ -302,5 +302,4 @@ class VoteService extends ServiceBase
             return new FuncResult(1, $e->getMessage());
         }
     }
-
 }

@@ -32,24 +32,26 @@ class VoteController extends BaseController
      */
     public function actionRevoke()
     {
-        $revokeList = VoteService::getRevokeList();
+        $revokeList = VoteService::getRevokeList(0, function ($query) {
+            return $query->andWhere(['>=', 'create_time', NOW_TIME - self::REMOKE_TIME]);
+        });
         $count = 0;
         $success = 0;
         $fail = 0;
         foreach ($revokeList as $key => $revoke) {
-            // 投票时间加上设定的时间戳（判断当前时间是否大于相加时间戳，就需要执行解冻操作, 反之不处理)
-            $afterTime = (int) $revoke->create_time + self::REMOKE_TIME;
-            if ($afterTime >= NOW_TIME) {
-                $count++;
-                $result = VoteService::revokeAction($revoke->user_id, $revoke->id);
-                if ($result->code) {
-                    $fail++;
-                    echo $result->msg . PHP_EOL;
-                } else {
-                    $success++;
-                    echo 'success' . PHP_EOL;
-                }
+            $count++;
+            $result = VoteService::revokeAction($revoke->user_id, $revoke->id);
+            if ($result->code) {
+                $fail++;
+                echo $result->msg . PHP_EOL;
+            } else {
+                $success++;
+                echo 'success' . PHP_EOL;
             }
+            // 投票时间加上设定的时间戳（判断当前时间是否大于相加时间戳，就需要执行解冻操作, 反之不处理)
+            // $afterTime = (int) $revoke->create_time + self::REMOKE_TIME;
+            // if ($afterTime >= NOW_TIME) {
+            // }
         }
         echo 'Action count: '.$count.' success: '. $success . ' fail: '.$fail . PHP_EOL;
     }

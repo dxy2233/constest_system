@@ -6,10 +6,10 @@
       <el-radio-button label="全部"/>
     </el-radio-group>
     <el-button class="btn-right" @click="openAddNotice">公告发布</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="openSet">公告设置</el-button>
+    <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openSet">公告设置</el-button>
 
     已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
-    <el-button size="small" type="primary" style="margin-top:20px;" @click="allDelete">删除</el-button>
+    <el-button :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain style="margin-top:20px;" @click="allDelete">删除</el-button>
 
     <el-table
       :data="tableDataPage"
@@ -32,8 +32,8 @@
       </el-table-column>
       <el-table-column prop="isTop" label="排序">
         <template slot-scope="scope">
-          <el-button v-if="scope.row.isTop==1" type="text" @click="unpin(scope.row.id, scope.$index)">取消置顶</el-button>
-          <el-button v-else type="text" @click="topping(scope.row.id, scope.$index)">置顶</el-button>
+          <el-button v-if="scope.row.isTop==1" type="text" @click.native.stop="unpin(scope.row.id, scope.$index)">取消置顶</el-button>
+          <el-button v-else type="text" @click.native.stop="topping(scope.row.id, scope.$index)">置顶</el-button>
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="发布时间"/>
@@ -51,10 +51,10 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ rowInfo.title }}<br><span>{{ noticeType }}</span></span>
           <i class="el-icon-close btn" @click="showNoticeInfo=false"/>
-          <el-button type="danger" class="btn" style="margin:0 10px;" @click="noticeDelete">删除</el-button>
+          <el-button type="danger" plain class="btn" style="margin:0 10px;" @click="noticeDelete">删除</el-button>
           <el-button v-show="rowInfo.status==1" type="primary" class="btn" @click="ifShelf(false)">下架</el-button>
           <el-button v-show="rowInfo.status==0" type="primary" class="btn" @click="ifShelf(true)">上架</el-button>
-          <el-button type="primary" class="btn" @click="noticeEdit">编辑</el-button>
+          <el-button class="btn" @click="noticeEdit">编辑</el-button>
         </div>
         <p style="margin-top:40px;">展示图</p>
         <img :src="rowInfo.image" alt="" style="display:block;width:200px;height:200px;border:1px solid #ddd;">

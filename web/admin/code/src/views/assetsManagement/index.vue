@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">资产管理</h4>
-    <el-button class="btn-right" @click="openLock">锁仓记录</el-button>
+    <el-button class="btn-right" type="primary" @click="openLock">锁仓记录</el-button>
     <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button>
     <br>
 

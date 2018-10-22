@@ -2,7 +2,7 @@
   <div class="app-container">
     <h4 style="display:inline-block;">投票管理</h4>
     <el-button class="btn-right" @click="openVoteRank">投票排名</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="openVoteSet">投票设置</el-button>
+    <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openVoteSet">投票设置</el-button>
     <el-button class="btn-right" @click="addExcel">导出excel</el-button>
     <br>
 

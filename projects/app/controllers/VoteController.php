@@ -182,7 +182,7 @@ class VoteController extends BaseController
             $vote['status_str'] = BVote::getStatus($vote['status']);
             $vote['type_str'] = BVote::getType($vote['type']);
             $vote['is_revoke'] = in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]) ? false : in_array($vote['type'], BVote::IS_REVOKE);
-            unset($vote['node'], $vote['user_id'], $vote['node_id'], $vote['consume'], $vote['type'], $vote['status']);
+            unset($vote['user_id'], $vote['node_id'], $vote['consume'], $vote['type'], $vote['status'], $vote['unit_code']);
         }
         // var_dump($voteList);exit;
         return $this->respondJson(0, '获取成功', $data);

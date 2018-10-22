@@ -7,7 +7,7 @@
     </el-radio-group>
     <el-button style="float:right;" @click="openNodeSet">节点设置</el-button>
     <el-button style="float:right;margin-right:10px;" @click="openHistory">历史排名</el-button>
-    <el-button style="float:right;" @click="dialogAddNode=true">增加节点</el-button>
+    <el-button style="float:right;" type="primary" @click="dialogAddNode=true">新增节点</el-button>
     <el-button style="float:right;" @click="addExcel">导出excel</el-button>
     <br>
 
@@ -27,7 +27,7 @@
     <br>
 
     已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
-    <el-button size="small" style="margin-top:20px;" @click="closeAll">停用</el-button>
+    <el-button :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain style="margin-top:20px;" @click="closeAll">停用</el-button>
 
     <el-table
       :data="tableDataPage"
@@ -45,8 +45,8 @@
       <el-table-column prop="createTime" label="加入时间"/>
       <el-table-column label="状态">
         <template slot-scope="scope">
-          <el-button v-if="scope.row.status==1" size="mini" type="success" round>正常</el-button>
-          <el-button v-if="scope.row.status!=1" size="mini" type="danger" round>停用</el-button>
+          <el-button v-if="scope.row.status==1" type="text" style="color:#67c23a">正常</el-button>
+          <el-button v-if="scope.row.status!=1" type="text" style="color:#f56c6c">停用</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -63,11 +63,11 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ rowInfo.name }}<br><span>{{ nodeType }}</span></span>
           <i class="el-icon-close btn" @click="showNodeInfo=false"/>
-          <el-button v-show="rowInfo.status==1" type="primary" class="btn" style="margin:0 10px;" @click="closeNode">停用</el-button>
+          <el-button v-show="rowInfo.status==1" type="danger" plain class="btn" style="margin:0 10px;" @click="closeNode">停用</el-button>
           <el-button v-show="rowInfo.status==0" type="primary" class="btn" style="margin:0 10px;" @click="openNode">启用</el-button>
           <el-button type="primary" class="btn" @click="nodeBaseEdit">编辑</el-button>
           <el-button v-show="isCandidate&&rowInfo.isTenure==0" type="primary" class="btn" @click="openTenure">任职</el-button>
-          <el-button v-show="isCandidate&&rowInfo.isTenure==1" type="primary" class="btn" @click="closeTenure">卸任</el-button>
+          <el-button v-show="isCandidate&&rowInfo.isTenure==1" type="danger" plain class="btn" @click="closeTenure">卸任</el-button>
         </div>
         <div class="info">
           <el-row :gutter="5" class="info-row">
@@ -95,7 +95,7 @@
               <span style="margin-right:150px;">姓名：{{ nodeInfoIdentify.realName }}</span>
               <span>身份证号：{{ nodeInfoIdentify.number }}</span>
             </p>
-            <p>手持身份证正面</p>
+            <p style="padding-top:20px;">手持身份证正面</p>
             <img :src="nodeInfoIdentify.picFront" alt="">
             <p>手持身份证背面</p>
             <img :src="nodeInfoIdentify.picBack" alt="">
@@ -321,8 +321,8 @@
         @current-change="changeHistoryPage"/>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogAddNode" title="添加节点">
-      <el-steps :active="step" finish-status="success">
+    <el-dialog :visible.sync="dialogAddNode" title="新增节点">
+      <el-steps :active="step" finish-status="success" align-center>
         <el-step title="基本信息"/>
         <el-step title="实名认证"/>
         <el-step title="节点信息"/>
@@ -457,7 +457,9 @@ export default {
         { name: '用户', value: null },
         { name: '票数', value: null },
         { name: '投票人数', value: null },
-        { name: '资产质押', value: null }
+        { name: '质押GRT', value: null },
+        { name: '质押BPT', value: null },
+        { name: '质押TT', value: null }
       ],
       activeName: 0,
       nodeInfoBase: [], // 基本信息
@@ -606,10 +608,12 @@ export default {
       this.rowInfo = row
       this.showNodeInfo = true
       this.cardData[0].value = row.index
-      this.cardData[1].value = row.username
+      this.cardData[1].value = row.mobile
       this.cardData[2].value = row.voteNumber
       this.cardData[3].value = row.count
-      this.cardData[4].value = row.consume
+      this.cardData[4].value = row.grt
+      this.cardData[5].value = row.bpt
+      this.cardData[6].value = row.tt
       this.changeTabs({ name: this.activeName })
     },
     // 选项卡切换
@@ -728,52 +732,49 @@ export default {
     },
     // 打开节点设置
     openNodeSet() {
-      getNodeSet(this.setTypeId).then(res => {
-        this.dialogSetData = res.content
-        this.this_tenureNum = res.content.tenureNum
-        this.this_maxCandidate = res.content.maxCandidate
-      }).then(res => {
-        getRuleList().then(res => {
-          this.dialogSetRuleList = res.content
-        }).then(() => {
-          this.dialogSetRuleList[0].forEach((item, index, arry) => {
-            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-                arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              } else {
-                arry[index].maxOrder = 0
-                arry[index].minOrder = 0
-              }
+      Promise.all([getNodeSet(this.setTypeId), getRuleList()]).then(res => {
+        this.dialogSetData = res[0].content
+        this.this_tenureNum = res[0].content.tenureNum
+        this.this_maxCandidate = res[0].content.maxCandidate
+        this.dialogSetRuleList = res[1].content
+      }).then(() => {
+        this.dialogSetRuleList[0].forEach((item, index, arry) => {
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
+              arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+              arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
+            } else {
+              arry[index].maxOrder = 0
+              arry[index].minOrder = 0
             }
-          })
-          this.dialogSetRuleList[1].forEach((item, index, arry) => {
-            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-                arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              } else {
-                arry[index].maxOrder = 0
-                arry[index].minOrder = 0
-              }
-            }
-          })
-          this.dialogSetRuleList[2].forEach((item, index, arry) => {
-            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-                arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              } else {
-                arry[index].maxOrder = 1
-                arry[index].minOrder = 1
-              }
-            }
-          })
-          this.dialogSet = true
+          }
         })
+        this.dialogSetRuleList[1].forEach((item, index, arry) => {
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
+              arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+              arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
+            } else {
+              arry[index].maxOrder = 0
+              arry[index].minOrder = 0
+            }
+          }
+        })
+        this.dialogSetRuleList[2].forEach((item, index, arry) => {
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
+              arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+              arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
+            } else {
+              arry[index].maxOrder = 1
+              arry[index].minOrder = 1
+            }
+          }
+        })
+        this.dialogSet = true
       })
     },
     // 切换节点设置的类型
@@ -787,29 +788,31 @@ export default {
           this.dialogSetRuleList = res.content
         }).then(() => {
           this.dialogSetRuleList[0].forEach((item, index, arry) => {
+            arry[index].maxOrder = 0
+            arry[index].minOrder = 0
             for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
               if (this.dialogSetData.ruleList[i].ruleId === item.id) {
                 arry[index].checked = true
                 arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
                 arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              } else {
-                arry[index].maxOrder = 0
-                arry[index].minOrder = 0
               }
             }
           })
+          this.dialogSetRuleList[0].push({ })
+          this.dialogSetRuleList[0].pop({ })
           this.dialogSetRuleList[1].forEach((item, index, arry) => {
+            arry[index].maxOrder = 0
+            arry[index].minOrder = 0
             for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
               if (this.dialogSetData.ruleList[i].ruleId === item.id) {
                 arry[index].checked = true
                 arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
                 arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              } else {
-                arry[index].maxOrder = 0
-                arry[index].minOrder = 0
               }
             }
           })
+          this.dialogSetRuleList[1].push({ })
+          this.dialogSetRuleList[1].pop({ })
           this.dialogSetRuleList[2].forEach((item, index, arry) => {
             for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
               if (this.dialogSetData.ruleList[i].ruleId === item.id) {
@@ -822,6 +825,8 @@ export default {
               }
             }
           })
+          this.dialogSetRuleList[2].push({ })
+          this.dialogSetRuleList[2].pop({ })
           this.dialogSet = true
         })
       })
@@ -848,9 +853,9 @@ export default {
       if (type === 0) {
         this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '0' })
       } else if (type === 1) {
-        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '0' })
+        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '1' })
       } else {
-        this.dialogSetRuleList[2].push({ name: '', content: '', isTenure: '1' })
+        this.dialogSetRuleList[2].push({ name: '', content: '', isTenure: '2' })
       }
     },
     // 上传权益列表
@@ -867,13 +872,19 @@ export default {
     // 上传节点设置
     saveNodeSet() {
       var temList = []
-      this.dialogSetRuleList.isTenure.forEach((item, index, arry) => {
+      this.dialogSetRuleList[0].forEach((item, index, arry) => {
         if (item.checked) {
           arry[index].ruleId = item.id
           temList.push(arry[index])
         }
       })
-      this.dialogSetRuleList.noTenure.forEach((item, index, arry) => {
+      this.dialogSetRuleList[1].forEach((item, index, arry) => {
+        if (item.checked) {
+          arry[index].ruleId = item.id
+          temList.push(arry[index])
+        }
+      })
+      this.dialogSetRuleList[2].forEach((item, index, arry) => {
         if (item.checked) {
           arry[index].ruleId = item.id
           temList.push(arry[index])

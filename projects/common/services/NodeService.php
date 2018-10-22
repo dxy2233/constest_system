@@ -154,7 +154,7 @@ class NodeService extends ServiceBase
         ->filterWhere(['n.type_id' => $nodeType])
         ->groupBy('n.id');
         self::$number = $nodeModel->count();
-        $nodeModel->cache(true);
+        $nodeModel->cache(-1);
         if (!is_null($page)) {
             $nodeModel->page($page, $pageSize);
         }

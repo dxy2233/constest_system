@@ -12,6 +12,7 @@ use common\models\business\BVote;
 use common\models\business\BVoucherDetail;
 use common\models\business\BWalletJingtum;
 use common\models\business\BUserCurrencyDetail;
+use common\models\business\BUserCurrencyFrozen;
 
 class VoteService extends ServiceBase
 {
@@ -91,17 +92,14 @@ class VoteService extends ServiceBase
                 'type' => BUserCurrencyDetail::$TYPE_VOTE,
                 'amount' => $data['amount'], // 总数量
                 'poundage' => $poundage, // 手续费
-                'privateKey' => $privateKey, // 发送方私钥
-                'source_address' => $addressModel->address, // 发送方地址
                 'remark' => BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE),
                 'status' => BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS,
                 'status_remark' => '确认',
                 'create_time' => NOW_TIME,
                 'update_time' => NOW_TIME,
                 'user_recharge' => $isFrozen ? 'voto_frozen' : 'voto_trans',
-                'poundage' => $poundage, // 手续费
             ];
-            $currencyTrans = WithdrawService::withdrawCurrencyVote($res, $isFrozen);
+            $currencyTrans = self::bankrollVotes($res, $isFrozen);
             if ($currencyTrans->code) {
                 throw new ErrorException('划账失败 '.$currencyTrans->msg);
             }
@@ -152,128 +150,161 @@ class VoteService extends ServiceBase
         }
     }
 
-    public static function getNodeRanking(int $nodeType = 0, int $nodeId = 0)
+    /**
+     * 获取可赎回投票
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public static function getRevokeList(int $userId = 0)
     {
-        $cacheKey = 'ranking';
-        $cache = \Yii::$app->cache;
-        if (empty($nodeType) && empty($nodeId)) {
-            return 0;
+        $voteModel = BVote::find()
+        ->active(BVote::STATUS_INACTIVE_ING)
+        ->where(['undo_time' => 0, 'type' => BVote::TYPE_ORDINARY]);
+        if ($userId) {
+            $voteModel->andWhere(['user_id' => $userId]);
         }
-        $ranking = [];
-        if ($cache->exists($cacheKey)) {
-            $ranking = $cache->get($cacheKey);
-        } else {
-            $nodeModel = BNode::find()
-            ->alias('n')
-            ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
-            ->active(BNode::STATUS_ACTIVE, 'n.')
-            ->joinWith(['votes v' => function ($query) {
-                $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
-            }])
-            ->where(['n.type_id' => $nodeType])
-            ->groupBy('n.id')
-            ->orderBy(['vote_number' => SORT_DESC]);
-            $nodeModel->cache(true);
-            $nodeQuery = $nodeModel->createCommand();
-            // echo ($nodeQuery->getRawSql());exit;
-            $nodeList = $nodeQuery->queryAll();
-            // 获取节点user 去重统计
-            $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
-            $voteUser = \common\services\NodeService::getPeopleNum($nodeIds);
-            foreach ($nodeList as $key => &$node) {
-                $node['logo'] = FuncHelper::getImageUrl($node['logo']);
-                $node['is_tenure'] = (bool) $node['is_tenure'];
-                $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;
-            }
-            
-            ArrayHelper::multisort($nodeList, 'vote_number');
-            $nodeData = [];
-            foreach ($nodeList as $key => $node) {
-                $nodeData[$key + 1] = $node;
-            }
-            $ranking[$nodeType] = $nodeData;
-            $cache->set($cacheKey, $ranking);
-        }
-
-        $rank = 0;
-        foreach ($ranking[$nodeType] as $key => $node) {
-            if ($node['id'] == $nodeId) {
-                $rank = $key;
-            }
-        }
-        return !$nodeId ? $ranking[$nodeType] : $rank;
+        return $voteModel->all();
     }
 
     /**
-     * 蒋投票缓存到排名中
+     * 赎回操作
      *
-     * @param array $data
+     * @param integer $userId
      * @return void
      */
-    public static function cachePushRanking(int $nodeId = 0, int $userId = 0, int $voteNumber = 0) :array
+    public static function revokeAction(int $userId, int $voteId)
     {
-        $cacheKey = 'ranking';
-        $cache = \Yii::$app->cache;
-        if (empty($nodeId) || empty($userId)) {
-            return [];
+        if ($userId <= 0) {
+            return new FuncResult(1, '输入正确用户ID');
         }
+        $frozenModel = BUserCurrencyFrozen::find()
+        ->active(BUserCurrencyFrozen::STATUS_FROZEN)
+        ->where(['type' => BUserCurrencyFrozen::$TYPE_VOTE, 'relate_id' => $voteId])
+        ->one();
+        if (is_null($frozenModel)) {
+            return new FuncResult(1, '未查询到冻结信息');
+        }
+        $revokeData['id'] = $voteId;
+        $revokeData['user_id'] = $userId;
+        $revokeData['currency_id'] = $frozenModel->currency_id;
+        $revokeData['amount'] = $frozenModel->amount;
+        $revokeData['relate_table'] = $frozenModel->relate_table;
+        return self::thawVote($revokeData);
+    }
 
-        $nodeModel = BNode::findOne($nodeId);
-        $nodeTypeModel = $nodeModel->nodeType;
-        if (is_null($nodeModel) || is_null($nodeTypeModel)) {
-            return false;
-        }
-        $ranking = [];
-        // 初始化数组
-        $ranking[$nodeTypeModel->id] = [];
-        if ($cache->exists($cacheKey)) {
-            $ranking = $cache->get($cacheKey);
-        }
-        // 判断节点类型数组是否存在
-        if (!isset($ranking[$nodeTypeModel->id])) {
-            $ranking[$nodeTypeModel->id] = [];
-        }
-        $nodeTypes = $ranking[$nodeTypeModel->id];
-        $peopleNumbers = NodeService::getPeopleNum([$nodeModel->id]);
-        $baseInfo = [
-            'id' => $nodeModel->id,
-            'type_id' => $nodeTypeModel->id,
-            'desc' => $nodeModel->desc,
-            'type_name' => $nodeTypeModel->name,
-            'is_tenure' => (bool) $nodeModel->is_tenure,
-            'logo' => $nodeModel->logoText
-        ];
-        if (empty($nodeTypes)) {
-            $baseInfo['baseInfo']['vote_number'] = $voteNumber;
-            $baseInfo['baseInfo']['people_number'] =  $peopleNumbers[$nodeModel->id];
-           
-            $nodeTypes[] = $baseInfo;
-        } else {
-            // 循环重算
-            foreach ($nodeTypes as $key => &$node) {
-                if ($node['id'] == $nodeModel->id) {
-                    $node = array_merge($node, $baseInfo);
-                    // 进行数据变更
-                    if (isset($node['vote_number'])) {
-                        $node['vote_number'] = (int) $node['vote_number'] + $voteNumber;
-                    } else {
-                        $node['vote_number'] = (int) $voteNumber;
-                    }
-                    if ($node['vote_number'] < 0) {
-                        $node['vote_number'] = 0;
-                    }
-                    $node['people_number'] = $peopleNumbers[$nodeModel->id];
+    
+    /**
+     * @param $res
+     * @param $hasFrozen
+     * @return array
+     * @throws \yii\db\Exception
+     * info : 前台货币消费（投票）/ 两种类型
+     */
+    public static function bankrollVotes(array $res, bool $isFrozen = true)
+    {
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $time = time();
+            $relate_table = isset($res['relate_table']) ? $res['relate_table'] : 'vote';
+            // 增加明细
+            $currencyData = [
+                'user_id' => $res['user_id'],
+                'currency_id' => $res['currency_id'],
+                'relate_table' => $relate_table,
+                'relate_id' => $res['id'],
+                'create_time' => $time,
+                'update_time' => $time,
+            ];
+            if ($isFrozen) {
+                // 冻结用户资金
+                $userFrozen = new BUserCurrencyFrozen();
+                $userFrozen->setAttributes($currencyData);
+                $userFrozen->type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
+                $userFrozen->amount = round($data['amount'], 8); // 总数量
+                $userFrozen->remark = BUserCurrencyFrozen::getType($currencyDetail->status) ?? '投票';
+                $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
+                $sign = $userFrozen->save();
+                if (!$sign) {
+                    throw new ErrorException('user_currency_frozen table data is not inserted successfully');
+                }
+            } else {
+                // 投票明细
+                $currencyDetail = new BUserCurrencyDetail();
+                $currencyDetail->setAttributes($currencyData);
+                $currencyDetail->type = BUserCurrencyDetail::$TYPE_VOTE; // 投票消费
+                $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+                $currencyDetail->effect_time = $time;
+                $currencyDetail->remark = BUserCurrencyDetail::getType($currencyDetail->status) ?? '投票';
+                $currencyDetail->amount = -$res['amount'];
+                $sign = $currencyDetail->save();
+                if (!$sign) {
+                    throw new ErrorException('user-currency-detail table data create is fail');
                 }
             }
-        }
+            // 手续费明细
+            if ($res['poundage'] > 0) {
+                $currencyDetailPoundage = new BUserCurrencyDetail();
+                $currencyDetailPoundage->setAttributes($currencyData);
+                $currencyDetailPoundage->type = BUserCurrencyDetail::$TYPE_POUNDAGE; // 手续费
+                $currencyDetailPoundage->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+                $currencyDetailPoundage->effect_time = $time;
+                $currencyDetailPoundage->amount = -$res['poundage'];
+                $currencyDetailPoundage->remark = '手续费';
+                $sign = $currencyDetailPoundage->save();
+                if (!$sign) {
+                    throw new ErrorException('user-currency-detail table data create is fail');
+                }
+            }
 
-        ArrayHelper::multisort($nodeTypes, 'vote_number');
-        $nodeData = [];
-        foreach ($nodeTypes as $key => $node) {
-            $nodeData[$key + 1] = $node;
+            // 重算用户持仓
+            $sign = UserService::resetCurrency($res['user_id'], $res['currency_id']);
+            if ($sign === false) {
+                throw new ErrorException('reset user position fail');
+            }
+
+            $transaction->commit();
+
+            return new FuncResult(0, '状态更改成功');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return new FuncResult(1, $e->getMessage());
         }
-        $ranking[$nodeTypeModel->id] = $nodeData;
-        $cache->set($cacheKey, $ranking);
-        return $ranking;
+    }
+
+    /**
+     * 赎回投票
+     *  解冻资产
+     * @param array $revoke
+     * @return void
+     */
+    public static function thawVote(array $res)
+    {
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $time = time();
+            $relate_table = isset($res['relate_table']) ? $res['relate_table'] : 'vote';
+            // 解冻
+            $sign = BUserCurrencyFrozen::updateAll(
+                ['status' => BUserCurrencyFrozen::STATUS_THAW, 'update_time' => $time, 'unfrozen_time' => $time],
+                ['user_id' => $res['user_id'], 'currency_id' => $res['currency_id'], 'type' => BUserCurrencyFrozen::$TYPE_VOTE, 'relate_id' => $res['id'], 'status' => BUserCurrencyFrozen::STATUS_FROZEN]
+            );
+            if ($sign === 0) {
+                throw new ErrorException('user-currency-frozen table data update is fail');
+            }
+
+            // 重算用户持仓
+            $sign = UserService::resetCurrency($res['user_id'], $res['currency_id']);
+            if ($sign === false) {
+                throw new ErrorException('reset user position fail');
+            }
+
+            $transaction->commit();
+
+            return new FuncResult(0, '状态更改成功');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return new FuncResult(1, $e->getMessage());
+        }
     }
 }

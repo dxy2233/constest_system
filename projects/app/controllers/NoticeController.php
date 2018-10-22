@@ -49,7 +49,7 @@ class NoticeController extends BaseController
         ->where(['id' => $noticeId])
         ->one();
         if (!is_object($notice)) {
-            return $this->respondJson(0, '获取公告失败');
+            return $this->respondJson(1, '获取公告失败');
         }
         if ($notice->type === BNotice::TYPE_URL) {
             return $this->respondJson(0, '该公告为跳转链接');

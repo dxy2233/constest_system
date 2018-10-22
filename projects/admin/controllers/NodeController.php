@@ -421,6 +421,8 @@ class NodeController extends BaseController
             return $this->respondJson(1, '任职失败', $node->getFirstErrorText());
         }
     
+        // 刷新节点投票排行
+        NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '任职成功');
     }
 
@@ -437,6 +439,8 @@ class NodeController extends BaseController
             return $this->respondJson(1, '撤职失败', $node->getFirstErrorText());
         }
     
+        // 刷新节点投票排行
+        NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '撤职成功');
     }
 

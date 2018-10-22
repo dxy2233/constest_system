@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\NodeService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
@@ -97,8 +98,8 @@ class VoteController extends BaseController
             $voucherModel->alias('vh')
             ->select(['vh.voucher_num', 'u.mobile', 'vh.node_id', 'vh.create_time'])
             ->joinWith(['node n' => function ($query) {
-                $query->joinWith(['user u']);
-            }]);
+                $query->joinWith(['user u'], false);
+            }], false);
             $data['count'] = $voucherModel->count();
             $data['list'] = $voucherModel
             ->page($page, $pageSize)
@@ -112,7 +113,7 @@ class VoteController extends BaseController
         } else {
             $voucherDetailModel = $userModel->getVoucherDetails()
             ->alias('vd')
-            ->joinWith(['node n'])
+            ->joinWith(['node n'], false)
             ->select(['n.name', 'vd.amount', 'vd.create_time', 'vd.node_id']);
             
             $data['count'] = $voucherDetailModel->count();
@@ -140,8 +141,8 @@ class VoteController extends BaseController
         ->select(['SUM(vh.voucher_num) voucher_num', 'SUM(vd.amount) use_amount', 'vh.user_id'])
         ->alias('vh')
         ->joinWith(['user u' => function($query) {
-            $query->joinWith(['voucherDetails vd']);
-        }])
+            $query->joinWith(['voucherDetails vd'], false);
+        }], false)
         ->one();
         $data['count'] = (int) $voucher->voucher_num - $voucher->use_amount;
         return $this->respondJson(0, '获取成功', $data);
@@ -166,8 +167,8 @@ class VoteController extends BaseController
         ->select(['v.*', 'n.name', 'nt.name as type_name'])
         ->alias('v')
         ->joinWith(['node n' => function($query) {
-            $query->joinWith(['nodeType nt']);
-        }]);
+            $query->joinWith(['nodeType nt'], false);
+        }], false);
         if ($type) {
             // 默认为投出的
            $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
@@ -231,12 +232,14 @@ class VoteController extends BaseController
         if (is_null($voteModel) || in_array($voteModel->status, [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
             return $this->respondJson(1, '该投票状态不能更改');
         }
+
         // 赎回中状态
         $voteModel->status = BVote::STATUS_INACTIVE_ING;
         if (!$voteModel->save()) {
             return $this->respondJson(1, '赎回失败', $voteModel->getFirstErrors());
         }
-
+        // 刷新节点投票排行
+        NodeService::RefreshPushRanking($voteModel->node_id);
         return $this->respondJson(0, '赎回成功');
 
     }
@@ -322,8 +325,6 @@ class VoteController extends BaseController
      */
     public function actionSubmit()
     {
-        $rank = VoteService::getNodeRanking(1, 1);
-        var_dump($rank);exit;
         $userModel = $this->user;
         $nodeId = $this->pInt('node_id', false);
         if (!$nodeId) {
@@ -392,13 +393,8 @@ class VoteController extends BaseController
                 return $this->respondJson(1, '投票失败');
             }
         }
-        $data = [
-            'node_id' => $nodeId,
-            'user_id' => $userModel->id,
-            'vote_number' => $number,
-        ];
-        // 缓存投票排名
-        VoteService::cachePushRanking($nodeId, $userModel->id, $number);
+        // 刷新节点投票排行
+        NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '投票成功');
 
     }

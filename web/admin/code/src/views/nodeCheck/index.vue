@@ -18,17 +18,14 @@
       @selection-change="handleSelectionChange"
       @row-click="clickRow">
       <el-table-column type="selection" width="55"/>
-      <el-table-column prop="sss" label="节点名称"/>
-      <el-table-column prop="title" label="手机号"/>
-      <el-table-column prop="click" label="质押资产"/>
-      <el-table-column label="状态">
-        <template slot-scope="scope">
-          <div v-if="scope.row.status==1">上架</div>
-          <div v-else>下架</div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="updateTime" label="提交时间"/>
-      <el-table-column prop="updateTime" label="审核时间"/>
+      <el-table-column prop="name" label="节点名称"/>
+      <el-table-column prop="mobile" label="手机号"/>
+      <el-table-column prop="grt" label="质押GRT"/>
+      <el-table-column prop="bpt" label="质押BPT"/>
+      <el-table-column prop="tt" label="质押TT"/>
+      <el-table-column prop="status" label="状态"/>
+      <el-table-column prop="createTime" label="提交时间"/>
+      <!-- <el-table-column prop="updateTime" label="审核时间"/> -->
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
@@ -40,59 +37,28 @@
       <div v-show="showInfo" class="fade-slide">
         <div class="title">
           <img src="@/assets/img/user.jpg" alt="">
-          <span class="name">{{ rowInfo.title }}<br><span>{{ checkType }}</span></span>
+          <span class="name">{{ rowInfo.name }}<br><span>{{ checkType }}</span></span>
           <i class="el-icon-close btn" @click="showInfo=false"/>
-          <el-button type="danger" class="btn" style="margin:0 10px;">删除</el-button>
-          <el-button type="primary" class="btn">通过</el-button>
-          <el-button type="primary" class="btn">不通过</el-button>
-          <el-button type="primary" class="btn">删除记录</el-button>
+          <el-button v-show="noticeChecktoNum==2" type="primary" class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
+          <el-button v-show="noticeChecktoNum==2" type="primary" class="btn" @click="doomPass">通过</el-button>
+          <el-button v-show="noticeChecktoNum==4" type="primary" class="btn" @click="delteFailNote">删除记录</el-button>
         </div>
         <p style="color:#888;">logo</p>
-        <img :src="rowInfo.logo" alt="" style="display:block;width:100px;height:100px;border:1px solid #ddd;">
+        <img :src="rowDetail.logo" alt="" style="display:block;width:100px;height:100px;border:1px solid #ddd;">
         <p style="color:#888;margin-top:50px;">机构/个人名称</p>
-        <p>{{ rowInfo.name }}</p>
+        <p>{{ rowDetail.name }}</p>
         <p style="color:#888;margin-top:50px;">机构/个人简介</p>
-        <p>{{ rowInfo.desc }}</p>
+        <p>{{ rowDetail.desc }}</p>
         <p style="color:#888;margin-top:50px;">社区建设方案</p>
-        <p>{{ rowInfo.scheme }}</p>
+        <p>{{ rowDetail.scheme }}</p>
       </div>
     </transition>
-
-    <!-- <el-dialog :visible.sync="dialogEdit" title="节点编辑" class="node-edit">
-      <div class="item">
-        <div class="title">基本信息</div>
-        <img :src="nodeInfoBase.logo" alt="">
-        <el-upload
-          :show-file-list="false"
-          :on-success="handleAvatarSuccess"
-          :data="{type:'logo'}"
-          name="image_file"
-          action="http://admin.contest_system.local/upload/upload/image">
-          <el-button style="margin-top:30px;">更换logo</el-button>
-        </el-upload>
-      </div>
-      <div class="item">
-        <div class="title">机构/个人名称</div>
-        <el-input v-model="nodeInfoBase.name"/>
-      </div>
-      <div class="item">
-        <div class="title">机构/个人简介</div>
-        <el-input v-model="nodeInfoBase.desc" :rows="2" type="textarea"/>
-      </div>
-      <div class="item">
-        <div class="title">社区建设方案</div>
-        <el-input v-model="nodeInfoBase.scheme" :rows="2" type="textarea"/>
-      </div>
-      <span slot="footer">
-        <el-button type="primary" @click="editNodeBase">确 定</el-button>
-        <el-button @click="dialogEdit = false">取 消</el-button>
-      </span>
-    </el-dialog> -->
   </div>
 </template>
 
 <script>
-import { getCheckList, checkPass, checkFail } from '@/api/nodeCheck'
+import { getCheckList, checkPass, checkFail, deleteNote } from '@/api/nodeCheck'
+import { getNodeBase } from '@/api/nodePage'
 import { Message } from 'element-ui'
 import { pagination } from '@/utils'
 
@@ -107,7 +73,8 @@ export default {
       currentPage: 1,
       pageSize: 20,
       showInfo: false,
-      rowInfo: []
+      rowInfo: [],
+      rowDetail: []
     }
   },
   computed: {
@@ -153,9 +120,21 @@ export default {
     // 点击表格行
     clickRow(row) {
       this.rowInfo = row
-      this.showInfo = true
+      getNodeBase(row.id).then(res => {
+        this.rowDetail = res.content
+        this.showInfo = true
+      })
     },
     // 通过审核
+    doomPass() {
+      checkPass(this.rowInfo.id).then(res => {
+        Message({ message: res.msg, type: 'success' })
+        this.showInfo = false
+        getCheckList(this.noticeChecktoNum).then(res => {
+          this.tableData = res.content
+        })
+      })
+    },
     // 批量通过审核
     allPass() {
       if (this.tableDataSelection.length < 1) return
@@ -173,6 +152,31 @@ export default {
           getCheckList(this.noticeChecktoNum).then(res => {
             this.tableData = res.content
           })
+        })
+      })
+    },
+    // 不通过
+    doomFail() {
+      this.$prompt('请填写不通过原因', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }).then(({ value }) => {
+        checkFail(this.rowInfo.id, value).then(res => {
+          Message({ message: res.msg, type: 'success' })
+          this.showInfo = false
+          getCheckList(this.noticeChecktoNum).then(res => {
+            this.tableData = res.content
+          })
+        })
+      })
+    },
+    // 删除记录
+    delteFailNote() {
+      deleteNote(this.rowInfo.id).then(res => {
+        Message({ message: res.msg, type: 'success' })
+        this.showInfo = false
+        getCheckList(this.noticeChecktoNum).then(res => {
+          this.tableData = res.content
         })
       })
     }

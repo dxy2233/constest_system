@@ -16,7 +16,8 @@
         start-placeholder="开始日期"
         end-placeholder="结束日期"
         format="yyyy 年 MM 月 dd 日 HH:mm"
-        value-format="yyyy-MM-dd HH:mm"/>
+        value-format="yyyy-MM-dd HH:mm"
+        style="width:500px;"/>
       <el-button @click="searchTableData">查询</el-button>
     </div>
     <br>
@@ -35,7 +36,7 @@
       layout="total, prev, pager, next, jumper"
       @current-change="changePage"/>
 
-    <el-dialog :visible.sync="dialogSet" title="节点编辑" class="dialog-set">
+    <el-dialog :visible.sync="dialogSet" title="投票设置" class="dialog-set">
       <div v-for="(item,index) in dialogSetData" :key="index">
         <div v-if="item.type=='radio'" class="switch">
           <span>{{ item.name }}</span>
@@ -44,7 +45,7 @@
         <div v-if="item.type=='text'" class="txt">
           <span>{{ item.name }}{{ pushSetData[index][item.key] }}</span>
         </div>
-        <div v-if="item.type=='time'">
+        <div v-if="item.type=='time'" class="time">
           <span>{{ item.name }}</span>
           <el-date-picker
             v-model="pushSetData[index][item.key]"
@@ -281,16 +282,19 @@ export default {
   .switch {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-top: 20px;
   }
   .txt {
-    margin-bottom: 20px;
+    margin-top: 20px;
+  }
+  .time {
+    margin-top: 20px;
   }
   .item {
     margin-top: 20px;
     .title {
       display: inline-block;
-      width: 60px;
+      width: 90px;
     }
   }
 }

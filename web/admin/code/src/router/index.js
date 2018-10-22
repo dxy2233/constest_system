@@ -35,7 +35,7 @@ export const constantRouterMap = [
       path: 'user',
       name: 'UserManagement',
       component: () => import('@/views/userManagement/index'),
-      meta: { title: '用户管理', icon: 'menu' }
+      meta: { title: '用户管理', icon: '用户管理' }
     }]
   },
 
@@ -47,7 +47,7 @@ export const constantRouterMap = [
         path: '',
         name: 'NodeManagement',
         component: () => import('@/views/NodeManagement/index'),
-        meta: { title: '节点管理', icon: 'menu' }
+        meta: { title: '节点管理', icon: '节点-子流程' }
       }
     ]
   },
@@ -60,7 +60,7 @@ export const constantRouterMap = [
         path: '',
         name: 'PollManagement',
         component: () => import('@/views/PollManagement/index'),
-        meta: { title: '投票管理', icon: 'form' }
+        meta: { title: '投票管理', icon: '投票' }
       }
     ]
   },
@@ -73,7 +73,7 @@ export const constantRouterMap = [
         path: '',
         name: 'AssetsManagement',
         component: () => import('@/views/assetsManagement/index'),
-        meta: { title: '资产管理', icon: 'form' }
+        meta: { title: '资产管理', icon: '我的资产' }
       }
     ]
   },
@@ -86,7 +86,7 @@ export const constantRouterMap = [
         path: '',
         name: 'Finance',
         component: () => import('@/views/finance/index'),
-        meta: { title: '财务流水', icon: 'form' }
+        meta: { title: '财务流水', icon: '财务' }
       }
     ]
   },
@@ -99,7 +99,7 @@ export const constantRouterMap = [
         path: '',
         name: 'NoticeManagement',
         component: () => import('@/views/noticeManagement/index'),
-        meta: { title: '公告管理', icon: 'form' }
+        meta: { title: '公告管理', icon: '公告' }
       }
     ]
   },
@@ -125,7 +125,7 @@ export const constantRouterMap = [
         path: '',
         name: 'Verified',
         component: () => import('@/views/verified/index'),
-        meta: { title: '实名认证', icon: 'form' }
+        meta: { title: '实名认证', icon: '实名认证' }
       }
     ]
   },
@@ -138,7 +138,7 @@ export const constantRouterMap = [
         path: '',
         name: 'Transfer',
         component: () => import('@/views/transfer/index'),
-        meta: { title: '转账审核', icon: 'form' }
+        meta: { title: '转账审核', icon: '单笔转账' }
       }
     ]
   },

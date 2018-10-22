@@ -90,17 +90,19 @@ class UserController extends BaseController
                 $v['userType'] = '普通用户';
                 $v['nodeName'] = '——';
             }
-            $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['user_id' => $v['id']])->active(BNotice::STATUS_ACTIVE)->asArray()->one();
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
             $v['status'] = BUser::getStatus($v['status']);
+            if ($v['num'] == null) {
+                $v['num'] = 0;
+            }
             $recommend = BUserRecommend::find()
             ->from(BUserRecommend::tableName()." A")
             ->select(['B.mobile'])
             ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $v['id']])->asArray()->one();
 
             if (empty($recommend)) {
-                $v['referee'] = '';
+                $v['referee'] = '-';
             } else {
                 $v['referee'] = $recommend['mobile'];
             }

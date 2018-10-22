@@ -68,6 +68,11 @@ class NodeService extends ServiceBase
             $find->page($page);
         }
         $data = $find->asArray()->all();
+        foreach ($data as &$v) {
+            if ($v['vote_number'] == null) {
+                $v['vote_number'] = 0;
+            }
+        }
         //echo $find->createCommand()->getRawSql();
         return $data;
     }
@@ -128,7 +133,7 @@ class NodeService extends ServiceBase
      * 获取节点列表 以及节点投票信息
      *
      * @param integer $nodeType
-     * @param integer $page 
+     * @param integer $page
      * @param integer $pageSize 15
      * @param string $field people_number|vote_number
      * @param integer $sort SORT_DESC|SORT_ASC
@@ -142,7 +147,7 @@ class NodeService extends ServiceBase
         ->alias('n')
         ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
         ->active(BNode::STATUS_ACTIVE, 'n.')
-        ->joinWith(['votes v' => function($query) {
+        ->joinWith(['votes v' => function ($query) {
             $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
         }], false)
         ->filterWhere(['n.type_id' => $nodeType])
@@ -186,7 +191,7 @@ class NodeService extends ServiceBase
             $ranking = $cache->get($cacheKey);
         }
         
-        if(!isset($ranking[$nodeType])) {
+        if (!isset($ranking[$nodeType])) {
             $ranking[$nodeType] = self::getNodeList($nodeType);
             $cache->set($cacheKey, $ranking, 300);
         }
@@ -232,8 +237,6 @@ class NodeService extends ServiceBase
      */
     public static function old()
     {
-        
-        
         $ranking = [];
         // 初始化数组
         $ranking[$nodeTypeModel->id] = [];

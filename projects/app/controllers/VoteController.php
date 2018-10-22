@@ -100,6 +100,7 @@ class VoteController extends BaseController
             ->joinWith(['node n' => function ($query) {
                 $query->joinWith(['user u'], false);
             }], false);
+            $voucherModel->orderBy(['create_time' => SORT_DESC]);
             $data['count'] = $voucherModel->count();
             $data['list'] = $voucherModel
             ->page($page, $pageSize)
@@ -115,7 +116,7 @@ class VoteController extends BaseController
             ->alias('vd')
             ->joinWith(['node n'], false)
             ->select(['n.name', 'vd.amount', 'vd.create_time', 'vd.node_id']);
-            
+            $voucherDetailModel->orderBy(['create_time' => SORT_DESC]);
             $data['count'] = $voucherDetailModel->count();
             $data['list'] = $voucherDetailModel
             ->page($page, $pageSize)
@@ -140,7 +141,7 @@ class VoteController extends BaseController
         $voucher = $userModel->getVouchers()
         ->select(['SUM(vh.voucher_num) voucher_num', 'SUM(vd.amount) use_amount', 'vh.user_id'])
         ->alias('vh')
-        ->joinWith(['user u' => function($query) {
+        ->joinWith(['user u' => function ($query) {
             $query->joinWith(['voucherDetails vd'], false);
         }], false)
         ->one();
@@ -166,16 +167,17 @@ class VoteController extends BaseController
         $voteModel = $userModel->getVotes()
         ->select(['v.*', 'n.name', 'nt.name as type_name'])
         ->alias('v')
-        ->joinWith(['node n' => function($query) {
+        ->joinWith(['node n' => function ($query) {
             $query->joinWith(['nodeType nt'], false);
         }], false);
         if ($type) {
             // 默认为投出的
-           $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
+            $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
         } else {
             // 赎回中以及赎回
             $voteModel->where(['v.status' => [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]]);
         }
+        $voteModel->orderBy(['create_time' => SORT_DESC]);
         $data['count'] = $voteModel->count();
         $data['list'] = $voteModel->page($page, $pageSize)
         ->asArray()
@@ -190,7 +192,6 @@ class VoteController extends BaseController
         }
         // var_dump($voteList);exit;
         return $this->respondJson(0, '获取成功', $data);
-
     }
 
     /**
@@ -241,7 +242,6 @@ class VoteController extends BaseController
         // 刷新节点投票排行
         NodeService::RefreshPushRanking($voteModel->node_id);
         return $this->respondJson(0, '赎回成功');
-
     }
 
     /**
@@ -296,7 +296,7 @@ class VoteController extends BaseController
         $scaling = 1;
         if ($type === BVote::TYPE_ORDINARY) {
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
-        } else if($type === BVote::TYPE_PAY) {
+        } elseif ($type === BVote::TYPE_PAY) {
             $scaling = (float) SettingService::get('vote', 'payment_price')->value;
         } else {
             $this->actionVoucherInfo();
@@ -360,7 +360,7 @@ class VoteController extends BaseController
             }
             if ($type === BVote::TYPE_ORDINARY) {
                 $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
-            } else if($type === BVote::TYPE_PAY) {
+            } elseif ($type === BVote::TYPE_PAY) {
                 $scaling = (float) SettingService::get('vote', 'payment_price')->value;
             }
             $useAmount = floatval($userCurrencyInfo->use_amount) / $scaling;
@@ -374,7 +374,7 @@ class VoteController extends BaseController
                 'currency_id' => $currencyId,
                 'node_id' => $nodeId,
             ];
-            $voteAction = VoteService::currencyVote($userModel, $voteRes, BVote::TYPE_ORDINARY);
+            $voteAction = VoteService::currencyVote($userModel, $voteRes, $type);
             if ($voteAction->code) {
                 return $this->respondJson(1, '投票失败');
             }
@@ -396,6 +396,5 @@ class VoteController extends BaseController
         // 刷新节点投票排行
         NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '投票成功');
-
     }
 }

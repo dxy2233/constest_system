@@ -8,6 +8,7 @@
 
 namespace console\controllers;
 
+use Yii;
 use yii\helpers\ArrayHelper;
 use common\services\VoteService;
 use common\models\business\BSetting;
@@ -43,8 +44,10 @@ class VoteController extends BaseController
             $result = VoteService::revokeAction($revoke->user_id, $revoke->id);
             if ($result->code) {
                 $fail++;
+                Yii::error($result->msg, 'vote');
                 echo $result->msg . PHP_EOL;
             } else {
+                Yii::info($result->msg, 'vote');
                 $success++;
                 echo 'success' . PHP_EOL;
             }
@@ -53,6 +56,9 @@ class VoteController extends BaseController
             // if ($afterTime >= NOW_TIME) {
             // }
         }
-        echo 'Action count: '.$count.' success: '. $success . ' fail: '.$fail . PHP_EOL;
+        
+        $action = 'Action count: '.$count.' success: '. $success . ' fail: '.$fail . PHP_EOL;
+        Yii::info($action, 'vote');
+        echo $action;
     }
 }

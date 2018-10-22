@@ -63,7 +63,7 @@ class SmsController extends BaseController
             return $this->respondJson(1, '手机号码格式错误');
         }
         
-        $returnInfo = ValidationCodeSmsService::sendValidationCode($mobile, BSmsTemplate::$TYPE_USER_LOGIN, $userModel->id);
+        $returnInfo = ValidationCodeSmsService::sendValidationCode($mobile, BSmsTemplate::$TYPE_USER_LOGIN);
         if ($returnInfo->code != 0) {
             return $this->respondJson($returnInfo->code, $returnInfo->msg);
         }

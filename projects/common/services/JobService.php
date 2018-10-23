@@ -35,13 +35,18 @@ class JobService extends ServiceBase
         }
         $msg = [];
         $people = NodeService::getPeopleNum($id_arr, '', $endTime);
+
         $history_id = date('YmdHi');
         foreach ($data as $v) {
             $history = new BHistory();
-            $history->people_number = $people[$v['id']];
+            if (empty($people[$v['id']])) {
+                $history->people_number = 0;
+            } else {
+                $history->people_number = $people[$v['id']];
+            }
             $history->vote_number = $v['vote_number'];
             $history->node_name = $v['name'];
-            $history->username = $v['username'];
+            $history->username = $v['mobile'];
             $history->node_id = $v['id'];
             $history->is_tenure = $v['is_tenure'];
             $history->update_number = $history_id;
@@ -49,7 +54,6 @@ class JobService extends ServiceBase
                 $msg[] = $v->getFirstErrorText();
             }
         }
-            
         $data = BNode::find()->where(['is_tenure' => BNotice::STATUS_ACTIVE])->all();
         foreach ($data as $v) {
             $v->is_tenure = BNotice::STATUS_INACTIVE;

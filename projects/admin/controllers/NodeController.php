@@ -553,7 +553,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        $logo = $this->pString('logo', '');
+        $logo = $this->pImage('logo', '');
         if (empty($logo)) {
             return $this->respondJson(1, 'logo不能为空');
         }
@@ -931,11 +931,11 @@ class NodeController extends BaseController
             if (empty($number)) {
                 return $this->respondJson(1, '身份证号不能为空');
             }
-            $pic_front = $this->pString('pic_front');
+            $pic_front = $this->pImage('pic_front');
             if (empty($pic_front)) {
                 return $this->respondJson(1, '证件图片正面不能为空');
             }
-            $pic_back = $this->pString('pic_back');
+            $pic_back = $this->pImage('pic_back');
             if (empty($pic_back)) {
                 return $this->respondJson(1, '证件图片背面不能为空');
             }

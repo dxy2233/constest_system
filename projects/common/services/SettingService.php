@@ -23,7 +23,7 @@ class SettingService extends ServiceBase
      * @param string $group 为空获取所有设置项
      * @return void
      */
-    public static function getOld(string $group = null, string $key = null)
+    public static function get(string $group = null, string $key = null)
     {
         $cache = \Yii::$app->cache;
         $query = BSetting::find()->filterWhere(['group' => $group, 'key' => $key]);
@@ -40,7 +40,7 @@ class SettingService extends ServiceBase
      * @param string $key
      * @return void
      */
-    public static function get(string $group = null, string $key = null)
+    public static function getNew(string $group = null, string $key = null)
     {
         $cache = \Yii::$app->cache;
         if ($cache->exists(self::CACHE_KEY)) {

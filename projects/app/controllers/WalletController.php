@@ -319,12 +319,12 @@ class WalletController extends BaseController
         // 单笔最小数量
         $minAmount = $currency->withdraw_min_amount;
         if ($amount < $minAmount) {
-            return $this->respondJson(1, '单笔最小转账数量'.floatval($minAmount));
+            return $this->respondJson(1, '单笔最小转账数量 '.floatval($minAmount));
         }
         // 单笔最大数量
         $maxAmount = $currency->withdraw_max_amount;
         if ($amount > $maxAmount) {
-            return $this->respondJson(1, '单笔最大转账数量'.floatval($maxAmount));
+            return $this->respondJson(1, '单笔最大转账数量 '.floatval($maxAmount));
         }
 
         // 重算用户持仓

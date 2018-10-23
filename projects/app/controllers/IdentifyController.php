@@ -84,12 +84,14 @@ class IdentifyController extends BaseController
         $postData = \Yii::$app->request->post();
         $identify->load(['BUserIdentify' => $postData]);
         if (!$identify->validate()) {
-            return $this->respondJson(1, '验证失败', $identify->errors);
+            return $this->respondJson(1, $identify->getFirstError());
         }
         $identify->status = (int) SettingService::get('user', 'has_identify')->value;
         $identify->status_remark = BUserIdentify::getStatus($identify->status);
         $identify->user_id = $userModel->id;
-        $identify->save();
+        if (!$identify->save()) {
+            return $this->respondJson(1, $identify->getFirstError());
+        }
         $identify->pic_front = $identify->picFrontText;
         $identify->pic_back = $identify->picBackText;
         $identify = $identify->toArray();

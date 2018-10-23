@@ -66,7 +66,7 @@ class UserController extends BaseController
         }
         $reCode = strtoupper($reCode);
         $parentId = UserService::validateRemmendCode($reCode);
-        if (is_null($parentId)) {
+        if (!$parentId) {
             return $this->respondJson(1, '推荐人不存在');
         }
         if ($parentId === $userModel->id) {

@@ -12,7 +12,7 @@
                    style='background-image: url("/static/images/person-node.png")'>
       </router-link>-->
       <div class="node-brief">
-        <div v-if="loginMsg?loginMsg.isNode:false" class="node_0">
+        <div v-if="loginMsg?!loginMsg.isNode:false" class="node_0">
           <img src="/static/images/personal-node/bg.png" alt="" class="bg">
           <div class="node-content">
             <div class="left">
@@ -25,10 +25,10 @@
           </div>
         </div>
         <div v-else class="node_x">
-          <img :src="'/static/images/personal-node/bg'+nodeInfo.typeId+'.png'" alt="" class="bg">
+          <img :src="'/static/images/personal-node/bg'+nodeInfo.typeId||'1'+'.png'" alt="" class="bg">
           <router-link tag="div" class="node-content" to="/personal/node">
             <div class="img-box">
-              <img :src="'/static/images/personal-node/icon_'+nodeInfo.typeId+'.png'" alt="" class="img">
+              <img :src="'/static/images/personal-node/icon_'+nodeInfo.typeId||'1'+'.png'" alt="" class="img">
             </div>
             <div class="info">
               <h2>
@@ -154,6 +154,7 @@
             path: `/login`
           })
         } else {
+          // console.log(this.loginMsg.isNode)
           if (!!this.loginMsg.isNode) {
             this.getNodeInfo()
           }

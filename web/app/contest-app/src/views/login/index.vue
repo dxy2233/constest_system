@@ -1,16 +1,13 @@
 <template>
   <slide>
     <div class="login">
-      <!--<x-header class="w-header">
-        <x-icon slot="overwrite-left" type="ios-close-empty" size="35" @click.native="backPath"></x-icon>
-      </x-header>-->
       <app-header>
         <!--<x-icon slot="left" type="ios-close-empty" @cick="backPath"></x-icon>-->
-        <div slot="left" class="icon-close" @cick="backPath"></div>
+        <div slot="left" class="icon-close" @click="backPath"></div>
       </app-header>
       <div class="h-main">
         <div class="login-main">
-          <h3 class="title">创建/登录糖果账号</h3>
+          <h3 class="title">创建/登录共生态账号</h3>
           <!--<img alt="" class="img-code" :src="imgCode.imageData" @click="getImgCode()">-->
           <group title="" class="login-form">
             <x-input @on-blur="existMobile" title="" placeholder="+86 请输入手机号" mask="99999999999"
@@ -82,7 +79,15 @@
     },
     methods: {
       backPath() {
-        this.$router.back()
+        this.$router.go(-2)
+        // this.$router.back()
+        /*console.log(window.history.length)
+        if (window.history.length <= 1) {
+          this.$router.replace({path:'/'})
+          return false
+        } else {
+          this.$router.go(-1)
+        }*/
       },
       existMobile() {
         let clickMb = this.clickMobile(this.loginForm.mobile)
@@ -131,7 +136,7 @@
       getLogin() {
         this.btnLoading = true
         http.post('/login', Object.assign({
-          imageCode: this.imgCode.imageCode,
+          image_code: this.imgCode.imageCode,
           type: imgCodeType
         }, this.loginForm), (res) => {
           this.$vux.toast.show(res.msg)

@@ -38,6 +38,6 @@ class SettingController extends BaseController
      */
     public function actionIndex()
     {
-        SettingService::getKey('vote', 'is_open');
+        var_dump(SettingService::getKey('vote', 'is_open'));
     }
 }

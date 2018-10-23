@@ -297,6 +297,12 @@ class VoteService extends ServiceBase
                 throw new ErrorException('user-currency-frozen table data update is fail');
             }
 
+            $voteModel = BVote::findOne($res['id']);
+            $voteModel->status = BVote::STATUS_INACTIVE;
+            if (!$voteModel->save()) {
+                throw new ErrorException('vote table data update is fail');
+            }
+
             // 重算用户持仓
             $sign = UserService::resetCurrency($res['user_id'], $res['currency_id']);
             if ($sign === false) {

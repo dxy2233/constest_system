@@ -74,6 +74,7 @@ class WithdrawController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, "操作失败", $currency->getFirstErrorText());
         }
+        SettingService::refresh();
         $transaction->commit();
 
         return $this->respondJson(0, "操作成功");

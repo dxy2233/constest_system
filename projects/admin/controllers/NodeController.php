@@ -461,7 +461,7 @@ class NodeController extends BaseController
         $transaction->commit();
         return $this->respondJson(0, '操作成功');
     }
-
+    // 任职
     public function actionTenure()
     {
         $nodeId = $this->pString('nodeId');
@@ -484,7 +484,7 @@ class NodeController extends BaseController
         NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '任职成功');
     }
-
+    // 取消任职
     public function actionUnTenure()
     {
         $nodeId = $this->pString('nodeId');
@@ -678,7 +678,8 @@ class NodeController extends BaseController
             $user = new BUser();
             $user->mobile = $mobile;
             $user->username = $mobile;
-            
+            $recommend_code = UserService::generateRemmendCode(6);
+            $user->recommend_code = $recommend_code;
             if (!$user->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
@@ -717,14 +718,30 @@ class NodeController extends BaseController
         $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
         if ($code != '') {
             $id = UserService::validateRemmendCode($code);
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            $user_recommend->node_id = $node->id;
-            $user_recommend->amount = $grt * $setting->value;
-            if (!$user_recommend->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+            //判断是否已有推荐人
+            $old_recommend = BUserRecommend::find()->where(['user_id' => $user_id])->one();
+            if (!empty($old_recommend)) {
+                // 已有推荐人与输入推荐人不一致
+                if ($old_recommend->parent_id != $id) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
+                }
+                $old_recommend->node_id = $node->id;
+                $old_recommend->amount = $grt * $setting->value;
+                if (!$old_recommend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                }
+            } else {
+                $user_recommend = new BUserRecommend();
+                $user_recommend->user_id = $user->id;
+                $user_recommend->parent_id = $id;
+                $user_recommend->node_id = $node->id;
+                $user_recommend->amount = $grt * $setting->value;
+                if (!$user_recommend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                }
             }
             $voucher = new BVoucher();
             $voucher->user_id = $id;

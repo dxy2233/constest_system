@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <!--<router-link to="/home/notice-details/1">gogogogoog</router-link>-->
     <div class="home-main">
       <header>
         <h2>首页</h2>
@@ -13,13 +12,15 @@
         <swiper height="135px" class="notice-swiper" dots-position="left">
           <swiper-item v-for="(item, index) in swiperList" class="notice-swiper-item"
                        :key="index">
-            <router-link v-if="item.type==='1'" tag="div" class="img-box"
+            <!--v-if="item.type==='1'"-->
+            <router-link tag="div" class="img-box"
                          :style='{ backgroundImage: "url(" + item.image + ")"}'
                          :to="'/home/notice/dts'+item.id"></router-link>
-            <a v-else :href="item.url" target="_blank" class="img-box"></a>
+            <!--<div class="img-box" @click="goNoticeDts(item)"
+                 :style='{ backgroundImage: "url(" + item.image + ")"}'></div>-->
+            <!--<a v-else :href="item.url" target="_blank" class="img-box"></a>-->
           </swiper-item>
         </swiper>
-        <!--<p class="and-more">查看更多>></p>-->
         <router-link tag="p" to="/home/notice" class="and-more">查看更多>></router-link>
       </div>
       <div class="line"></div>
@@ -29,7 +30,6 @@
             {{tab.name}}
           </li>
         </ul>
-        <!--<span class="all-rank">全部排名</span>-->
         <router-link class="all-rank" to="/home/node" tag="span">全部排名</router-link>
         <div class="rank-list-box">
           <rank-list :list="nodeList"></rank-list>
@@ -38,7 +38,6 @@
         </div>
       </div>
     </div>
-    <!--<router-link to="/home/node-details">gogogogoog</router-link>-->
     <router-view></router-view>
   </div>
 
@@ -78,6 +77,12 @@
       }
     },
     methods: {
+      goNoticeDts(item) {
+        /*this.$router.push({
+          path: '/home/notice/dts' + item.id,
+          query: {type: item.type}
+        })*/
+      },
       jjj(id) {
         id = 1
         let aaa = '333'

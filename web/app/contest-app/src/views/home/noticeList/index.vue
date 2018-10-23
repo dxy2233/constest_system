@@ -24,9 +24,7 @@
           <ul class="list">
             <li v-for="(item,index) in dataList"
                 :style='{ backgroundImage: "url(" + item.image + ")"}'
-                style="height: 300px"
                 @click="lookDetails(item)">
-              {{item.title+' '+index}}
             </li>
           </ul>
         </scroller>
@@ -63,7 +61,7 @@
         }
         http.post('/notice', {
           page: this.page,
-          page_size: 1
+          page_size: 10
         }, (res) => {
           if (this.loadShow) this.loadShow = false
           if (res.code !== 0) {
@@ -98,13 +96,16 @@
         })
       },
       lookDetails(obj) {
-        if (obj.type === '1') {
+        /*if (obj.type === '1') {
           this.$router.push({
             path: `/home/notice/${obj.id}`
           })
         } else {//0 是外部
           window.location.href = obj.url
-        }
+        }*/
+        this.$router.push({
+          path: `/home/notice/dts${obj.id}`
+        })
       }
     },
     created() {

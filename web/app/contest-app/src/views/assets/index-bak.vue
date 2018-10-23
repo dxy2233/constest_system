@@ -69,7 +69,7 @@
     },
     methods: {
       openCollect() {
-        // this.$router.push({path: '/assets/collect', query:{stage: '345678'}})
+        // this.$router.push({path: '/assets/collect', query:{stage: '345678'}}) query
         this.$router.push({name: 'collect', params: {address: this.walletData.address}})
       },
       getWalletData() {

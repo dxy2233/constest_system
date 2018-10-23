@@ -7,7 +7,7 @@
     </el-radio-group>
     <el-button style="float:right;" @click="openNodeSet">节点设置</el-button>
     <el-button style="float:right;margin-right:10px;" @click="openHistory">历史排名</el-button>
-    <el-button style="float:right;" type="primary" @click="dialogAddNode=true">新增节点</el-button>
+    <el-button style="float:right;" type="primary" @click="dialogAddNode=true;step=0">新增节点</el-button>
     <el-button style="float:right;" @click="addExcel">导出excel</el-button>
     <br>
 
@@ -169,8 +169,8 @@
         <el-radio-button v-for="(item,index) in allType" :key="index" :label="item.name"/>
       </el-radio-group>
       <el-button style="float:right;" @click="dialogRight = true">权益设置</el-button>
-      <div class="row">节点审核功能<el-switch v-model="dialogSetData.isExamine" active-value="1" inactive-value="0"/></div>
-      <div class="row">候选人功能<el-switch v-model="dialogSetData.isCandidate" active-value="1" inactive-value="0"/></div>
+      <!-- <div class="row">节点审核功能<el-switch v-model="dialogSetData.isExamine" active-value="1" inactive-value="0"/></div> -->
+      <!-- <div class="row">候选人功能<el-switch v-model="dialogSetData.isCandidate" active-value="1" inactive-value="0"/></div> -->
       <div class="row">节点投票功能<el-switch v-model="dialogSetData.isVote" active-value="1" inactive-value="0"/></div>
       <div class="row">节点排名功能<el-switch v-model="dialogSetData.isOrder" active-value="1" inactive-value="0"/></div>
       <h3 style="padding:20px 0 0;">规则设置</h3>
@@ -335,14 +335,14 @@
         <el-step title="节点信息"/>
       </el-steps>
       <div v-show="step==0" style="margin-top:30px;">
-        <el-form ref="addNodeForm1" :model="addNodeData" label-width="140px">
-          <el-form-item prop="mobile" label="手机号" required>
-            <el-input v-model="addNodeData.mobile" @blur="chechAddMobile"/>
+        <el-form ref="addNodeForm1" :model="addNodeData" :rules="rules" label-width="140px">
+          <el-form-item prop="mobile" label="手机号">
+            <el-input v-model="addNodeData.mobile"/>
           </el-form-item>
           <el-form-item prop="code" label="推荐人（推荐码）">
             <el-input v-model="addNodeData.code"/>
           </el-form-item>
-          <el-form-item prop="type_id" label="节点类型" required>
+          <el-form-item prop="type_id" label="节点类型">
             <el-select v-model="addNodeData.type_id" placeholder="请选择">
               <el-option
                 v-for="item in allType"
@@ -351,7 +351,7 @@
                 :value="item.id"/>
             </el-select>
           </el-form-item>
-          <el-form-item prop="is_tenure" label="节点身份" required>
+          <el-form-item prop="is_tenure" label="节点身份">
             <el-select v-model="addNodeData.is_tenure" placeholder="请选择">
               <el-option
                 v-for="item in tenureData"
@@ -360,26 +360,26 @@
                 :value="item.value"/>
             </el-select>
           </el-form-item>
-          <el-form-item prop="grt" label="质押GRT数量" required>
-            <el-input v-model="addNodeData.grt"/>
+          <el-form-item prop="grt" label="质押GRT数量">
+            <el-input v-model.number="addNodeData.grt"/>
           </el-form-item>
-          <el-form-item prop="tt" label="质押TT数量" required>
-            <el-input v-model="addNodeData.tt"/>
+          <el-form-item prop="tt" label="质押TT数量">
+            <el-input v-model.number="addNodeData.tt"/>
           </el-form-item>
-          <el-form-item prop="bpt" label="质押BPT数量" required>
-            <el-input v-model="addNodeData.bpt"/>
+          <el-form-item prop="bpt" label="质押BPT数量">
+            <el-input v-model.number="addNodeData.bpt"/>
           </el-form-item>
         </el-form>
       </div>
       <div v-show="step==1" style="margin-top:30px;">
-        <el-form ref="addNodeForm2" :model="addNodeData" label-width="140px">
-          <el-form-item prop="realname" label="姓名" required>
+        <el-form ref="addNodeForm2" :model="addNodeData" :rules="rules" label-width="140px">
+          <el-form-item prop="realname" label="姓名">
             <el-input v-model="addNodeData.realname"/>
           </el-form-item>
-          <el-form-item prop="identify" label="身份证号" required>
+          <el-form-item prop="identify" label="身份证号">
             <el-input v-model="addNodeData.identify"/>
           </el-form-item>
-          <el-form-item prop="pic_front" label="手持身份证正面照" required>
+          <el-form-item prop="pic_front" label="手持身份证正面照">
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgF"
@@ -391,7 +391,7 @@
               <i v-else class="el-icon-plus avatar-uploader-icon"/>
             </el-upload>
           </el-form-item>
-          <el-form-item prop="pic_back" label="手持身份证背面照" required>
+          <el-form-item prop="pic_back" label="手持身份证背面照">
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgB"
@@ -406,8 +406,8 @@
         </el-form>
       </div>
       <div v-show="step==2||step==3" style="margin-top:30px;">
-        <el-form ref="addNodeForm3" :model="addNodeData" label-width="110px">
-          <el-form-item prop="logo" label="节点logo" required>
+        <el-form ref="addNodeForm3" :model="addNodeData" :rules="rules" label-width="110px">
+          <el-form-item prop="logo" label="节点logo">
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgLogo"
@@ -419,21 +419,22 @@
               <i v-else class="el-icon-plus avatar-uploader-icon"/>
             </el-upload>
           </el-form-item>
-          <el-form-item prop="name" label="机构/个人名称" required>
+          <el-form-item prop="name" label="机构/个人名称">
             <el-input v-model="addNodeData.name"/>
           </el-form-item>
-          <el-form-item prop="desc" label="机构/个人简介" required>
+          <el-form-item prop="desc" label="机构/个人简介">
             <el-input v-model="addNodeData.desc"/>
           </el-form-item>
-          <el-form-item prop="scheme" label="社区建设方案" required>
+          <el-form-item prop="scheme" label="社区建设方案">
             <el-input v-model="addNodeData.scheme"/>
           </el-form-item>
         </el-form>
       </div>
       <span slot="footer">
-        <el-button v-show="step<3" type="primary" @click="addStep">
+        <el-button v-show="step>0" type="primary" @click="step--">上一步</el-button>
+        <el-button type="primary" @click="addStep">
           <span v-show="step<2">下一步</span>
-          <span v-show="step==2">确认添加</span>
+          <span v-show="step>=2">确认添加</span>
         </el-button>
       </span>
     </el-dialog>
@@ -516,28 +517,51 @@ export default {
         desc: '',
         scheme: ''
       },
-      stepfirstData: {
-        mobile: '',
-        code: '',
-        type_id: '',
-        is_tenure: '',
-        grt: '',
-        tt: '',
-        bpt: ''
-      },
-      stepSecondData: {
-        user_id: '',
-        realname: '',
-        identify: '',
-        pic_front: '',
-        pic_back: ''
-      },
-      stepThirdData: {
-        user_id: '',
-        logo: '',
-        name: '',
-        desc: '',
-        scheme: ''
+      rules: {
+        mobile: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' },
+          { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+        ],
+        type_id: [
+          { required: true, message: '请选择节点类型', trigger: 'change' }
+        ],
+        is_tenure: [
+          { required: true, message: '请选择节点身份', trigger: 'change' }
+        ],
+        grt: [
+          { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+        ],
+        tt: [
+          { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+        ],
+        bpt: [
+          { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+        ],
+        realname: [
+          { required: true, message: '请输入姓名', trigger: 'blur' }
+        ],
+        identify: [
+          { pattern: /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$|^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/,
+            required: true, message: '请输入正确的身份证号', trigger: 'blur' }
+        ],
+        pic_front: [
+          { required: true, message: '请上传身份证', trigger: 'change' }
+        ],
+        pic_back: [
+          { required: true, message: '请上传身份证', trigger: 'change' }
+        ],
+        logo: [
+          { required: true, message: '请上传图片', trigger: 'change' }
+        ],
+        name: [
+          { required: true, message: '必填', trigger: 'blur' }
+        ],
+        desc: [
+          { required: true, message: '必填', trigger: 'blur' }
+        ],
+        scheme: [
+          { required: true, message: '必填', trigger: 'blur' }
+        ]
       }
     }
   },
@@ -945,18 +969,38 @@ export default {
     // 添加节点1,2步
     addStep() {
       if (this.step === 0) {
-        Promise.all([checkMobile(this.addNodeData.mobile), checkNode(this.addNodeData.type_id, this.addNodeData.is_tenure)]).then(res => {
-          if (res[0].content.isIdentify === 0 && res[1].code === 0) this.step = 1
-          if (res[0].content.isIdentify === 1 && res[1].code === 0) this.step = 2
+        this.$refs['addNodeForm1'].validate((valid) => {
+          if (valid) {
+            Promise.all([checkMobile(this.addNodeData.mobile), checkNode(this.addNodeData.type_id, this.addNodeData.is_tenure)]).then(res => {
+              if (res[0].content.isIdentify === 0 && res[1].code === 0) this.step = 1
+              if (res[0].content.isIdentify === 1 && res[1].code === 0) this.step = 2
+            })
+          } else {
+            console.log('error submit!!')
+            return false
+          }
         })
       } else if (this.step === 1) {
-        this.step = 2
+        this.$refs['addNodeForm2'].validate((valid) => {
+          if (valid) {
+            this.step = 2
+          } else {
+            console.log('error submit!!')
+            return false
+          }
+        })
       } else if (this.step === 2) {
-        this.step = 3
-        addNode(this.addNodeData).then(res => {
-          Message({ message: res.msg, type: 'success' })
-          this.dialogAddNode = false
-          this.step = 0
+        this.$refs['addNodeForm3'].validate((valid) => {
+          if (valid) {
+            addNode(this.addNodeData).then(res => {
+              this.step = 3
+              Message({ message: res.msg, type: 'success' })
+              this.dialogAddNode = false
+            })
+          } else {
+            console.log('error submit!!')
+            return false
+          }
         })
       }
     },

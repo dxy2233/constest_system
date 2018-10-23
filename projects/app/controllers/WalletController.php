@@ -165,8 +165,8 @@ class WalletController extends BaseController
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
-            $val['effect_time'] = FuncHelper::formateDate($val['effect_time'], 0, true);
             $val['status_str'] = BUserCurrencyDetail::getStatus($val['status'], 0, true);
+            $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

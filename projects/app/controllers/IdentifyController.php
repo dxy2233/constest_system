@@ -82,6 +82,8 @@ class IdentifyController extends BaseController
             return $this->respondJson(1, '不能再次提交');
         }
         $postData = \Yii::$app->request->post();
+        $postData['pic_front'] = $this->pImage('pic_front');
+        $postData['pic_back'] = $this->pImage('pic_back');
         $identify->load(['BUserIdentify' => $postData]);
         if (!$identify->validate()) {
             return $this->respondJson(1, $identify->getFirstError());

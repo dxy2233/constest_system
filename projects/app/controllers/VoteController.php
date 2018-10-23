@@ -85,11 +85,11 @@ class VoteController extends BaseController
     {
         // 返回容器
         $data = [];
-        $type = $this->pInt('type', 1);
+        $type = $this->pInt('type', 0);
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $userModel = $this->user;
-        // $voucherModel->sum('voucher_num - use_voucher');
+        // var_dump($type, (bool) $type);exit;
         if ((bool) $type) {
             $voucherModel = $userModel->getVouchers();
             $voucherModel->alias('vh')
@@ -225,7 +225,7 @@ class VoteController extends BaseController
             return $this->respondJson(1, '该投票状态不能更改');
         }
 
-        // 赎回时间设定 
+        // 赎回时间设定
         $remokeDay = (int) SettingService::get('vote', 'remoke_day')->value;
         $voteModel->undo_time = NOW_TIME + $remokeDay * 86400;
         // 赎回中状态

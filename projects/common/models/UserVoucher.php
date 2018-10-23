@@ -31,7 +31,7 @@ class UserVoucher extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'position_amount', 'surplus_amount', 'use_amount', 'create_time', 'update_time'], 'required'],
+            [['user_id', 'position_amount', 'surplus_amount', 'use_amount'], 'required'],
             [['user_id', 'position_amount', 'surplus_amount', 'use_amount', 'create_time', 'update_time'], 'integer'],
         ];
     }

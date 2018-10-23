@@ -43,7 +43,7 @@ class FinanceController extends BaseController
         ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
-            $find->andWhere(['B.mobile','like',$searchName]);
+            $find->andWhere(['like', 'B.mobile',$searchName]);
         }
         $currency_id = $this->pInt('currency_id', 0);
         if ($currency_id != 0) {
@@ -113,7 +113,7 @@ class FinanceController extends BaseController
         ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
-            $find->andWhere(['B.mobile','like',$searchName]);
+            $find->andWhere(['like','B.mobile',$searchName]);
         }
         $currency_id = $this->pInt('currency_id', 0);
         if ($currency_id != 0) {
@@ -146,8 +146,8 @@ class FinanceController extends BaseController
     // 财务流水
     public function actionGetFinanceList()
     {
-        $in_arr = array(3);
-        $out_arr =array(1,2);
+        $in_arr = BUserCurrencyDetail::getTypeRevenue();
+        $out_arr = BUserCurrencyDetail::getTypePay();
         $find = BUserCurrencyDetail::find()
         ->from(BUserCurrencyDetail::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
@@ -156,7 +156,7 @@ class FinanceController extends BaseController
         ->select(['A.*','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
-            $find->andWhere(['B.mobile','like',$searchName]);
+            $find->andWhere(['like','B.mobile',$searchName]);
         }
         $currency_id = $this->pInt('currency_id', 0);
         if ($currency_id != 0) {

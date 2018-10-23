@@ -5,6 +5,7 @@ use common\services\AclService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\services\NodeService;
+use common\services\RechargeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BNode;
@@ -76,7 +77,8 @@ class NodeController extends BaseController
             } else {
                 $v['count'] = 0;
             }
-            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -264,6 +266,9 @@ class NodeController extends BaseController
         }
         $page = $this->pInt('page', 1);
         $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
+        if (empty($history)) {
+            return $this->respondJson(0, '获取成功', []);
+        }
         $data = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type])->page($page)->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
@@ -278,8 +283,16 @@ class NodeController extends BaseController
             return $this->respondJson(1, 'ID不能为空');
         }
         $data = BNodeType::find()->where(['id' => $type_id])->asArray()->one();
+        
         if (!$data) {
             return $this->respondJson(1, '节点类型不存在');
+        }
+        $tenure = BNode::find()->where(['type_id' => $type_id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        if (empty($tenure)) {
+            $data['allCount'] = $data['allTenure'] = 0;
+        } else {
+            $data['allTenure'] = $tenure['allTenure'];
+            $data['allCount'] = $tenure['allCount'];
         }
         $rule = BTypeRuleContrast::find()->select(['min_order','max_order','rule_id'])->where(['type_id' => $type_id])->asArray()->all();
         
@@ -367,7 +380,7 @@ class NodeController extends BaseController
     public function actionGetRuleList()
     {
         $data = BNodeRule::find()->asArray()->all();
-        $return = [];
+        $return = [0 => [], 1 => [], 2 => []];
         foreach ($data as $v) {
             $return[$v['is_tenure']][] = $v;
         }
@@ -415,8 +428,13 @@ class NodeController extends BaseController
         if (empty($node)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+        $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
+        if ($now_count >= $setting->max_candidate) {
+            return $this->respondJson(1, '任职数量已达上限');
+        }
         $node->is_tenure = BNotice::STATUS_ACTIVE;
-
+        
         if (!$node->save()) {
             return $this->respondJson(1, '任职失败', $node->getFirstErrorText());
         }
@@ -525,6 +543,52 @@ class NodeController extends BaseController
         }
     }
 
+    public function actionCheckMobile()
+    {
+        $mobile = $this->pString('mobile');
+        if (empty($mobile)) {
+            return $this->respondJson(1, '手机不能为空');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        $user = BUser::find()->where(['mobile' => $mobile])->one();
+        //实名认证信息
+        $identify = 0;
+        if ($user) {
+            $old_node = BNode::find()->where(['user_id' => $user->id])->one();
+            if ($old_node) {
+                return $this->respondJson(1, '此用户已有节点');
+            }
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
+            if ($user_identify) {
+                $identify = 1;
+            }
+        }
+        return $this->respondJson(0, '验证成功', ['is_identify' => $identify]);
+    }
+
+    //
+    public function actionCheckNode()
+    {
+        $type_id = $this->pInt('type_id');
+        if (empty($type_id)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $is_tenure = $this->pInt('is_tenure');
+
+        $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
+        $setting = BNodeType::find()->where(['id' => $type_id])->one();
+        if ($now_count >= $setting->max_people) {
+            return $this->respondJson(1, '候选数量已达上限');
+        }
+        if ($is_tenure == BNotice::STATUS_ACTIVE) {
+            $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+            $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
+            if ($now_count >= $setting->max_candidate) {
+                return $this->respondJson(1, '任职数量已达上限');
+            }
+        }
+        return $this->respondJson(0, '验证成功');
+    }
     // 添加节点
     public function actionCreateUser()
     {
@@ -537,7 +601,13 @@ class NodeController extends BaseController
             return $this->respondJson(1, '节点类型不能为空');
         }
         $is_tenure = $this->pInt('is_tenure');
-
+        if ($is_tenure == BNotice::STATUS_ACTIVE) {
+            $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+            $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
+            if ($now_count >= $setting->max_candidate) {
+                return $this->respondJson(1, '任职数量已达上限');
+            }
+        }
         $grt = $this->pInt('grt');
         if (empty($grt)) {
             return $this->respondJson(1, '质压GRT数量不能为空');
@@ -566,13 +636,27 @@ class NodeController extends BaseController
         } else {
             $user = new BUser();
             $user->mobile = $mobile;
+            $user->username = $mobile;
             
             if (!$user->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
             }
+            $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON, 'recharge_status' => BCurrency::$RECHARGE_STATUS_ON])->all();
+            foreach ($currency as $v) {
+                $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+                
+                if ($returnInfo->code) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, $returnInfo->msg);
+                }
+            }
         }
-        
+        $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
+        $setting = BNodeType::find()->where(['id' => $type_id])->one();
+        if ($now_count >= $setting->max_people) {
+            return $this->respondJson(1, '候选数量已达上限');
+        }
         $node = new BNode();
         $node->user_id = $user->id;
         $node->type_id = $type_id;
@@ -622,6 +706,7 @@ class NodeController extends BaseController
         $user_c_detail->currency_id = $currency_id['grt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $grt;
+        $user_c_detail->remark = '充值';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
@@ -632,6 +717,7 @@ class NodeController extends BaseController
         $user_c_detail->currency_id = $currency_id['tt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $tt;
+        $user_c_detail->remark = '充值';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
@@ -642,6 +728,7 @@ class NodeController extends BaseController
         $user_c_detail->currency_id = $currency_id['bpt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $bpt;
+        $user_c_detail->remark = '充值';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
@@ -652,6 +739,7 @@ class NodeController extends BaseController
         $frozen->user_id = $user->id;
         $frozen->currency_id = $currency_id['bpt'];
         $frozen->amount = $bpt;
+        $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
         $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
@@ -662,6 +750,7 @@ class NodeController extends BaseController
         $frozen->user_id = $user->id;
         $frozen->currency_id = $currency_id['grt'];
         $frozen->amount = $grt;
+        $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
         $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
@@ -672,6 +761,7 @@ class NodeController extends BaseController
         $frozen->user_id = $user->id;
         $frozen->currency_id = $currency_id['tt'];
         $frozen->amount = $tt;
+        $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
         $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
         if (!$frozen->save()) {
@@ -719,55 +809,59 @@ class NodeController extends BaseController
         UserService::resetCurrency($user->id, $currency_id['grt']);
         UserService::resetCurrency($user->id, $currency_id['tt']);
         UserService::resetCurrency($user->id, $currency_id['bpt']);
+
         
-
-        $transaction->commit();
-        return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);
-    }
+        //     return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);
+        // }
 
 
-    public function actionSetIdentify()
-    {
-        $user_id = $this->pInt('user_id');
-        if (empty($user_id)) {
-            return $this->respondJson(1, '用户ID不能为空');
+        // public function actionSetIdentify()
+        // {
+        $user_id = $user->id;
+        // $user_id = $this->pInt('user_id');
+        // if (empty($user_id)) {
+        //     return $this->respondJson(1, '用户ID不能为空');
+        // }
+        if (!$identify) {
+            $realname = $this->pString('realname');
+            if (empty($realname)) {
+                return $this->respondJson(1, '用户姓名不能为空');
+            }
+            $number = $this->pString('identify');
+            if (empty($number)) {
+                return $this->respondJson(1, '身份证号不能为空');
+            }
+            $pic_front = $this->pString('pic_front');
+            if (empty($pic_front)) {
+                return $this->respondJson(1, '证件图片正面不能为空');
+            }
+            $pic_back = $this->pString('pic_back');
+            if (empty($pic_back)) {
+                return $this->respondJson(1, '证件图片背面不能为空');
+            }
+            $identify = new BUserIdentify();
+            $identify->user_id = $user_id;
+            $identify->realname = $realname;
+            $identify->number = (string)$number;
+            $identify->pic_front = $pic_front;
+            $identify->pic_back = $pic_back;
+            $identify->type = 1;
+            $identify->status = BNotice::STATUS_INACTIVE;
+            if (!$identify->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '提交失败', $identify->getFirstErrorText());
+            }
         }
-        $realname = $this->pString('realname');
-        if (empty($realname)) {
-            return $this->respondJson(1, '用户姓名不能为空');
-        }
-        $number = $this->pString('identify');
-        if (empty($number)) {
-            return $this->respondJson(1, '身份证号不能为空');
-        }
-        $pic_front = $this->pString('pic_front');
-        if (empty($pic_front)) {
-            return $this->respondJson(1, '证件图片正面不能为空');
-        }
-        $pic_back = $this->pString('pic_back');
-        if (empty($pic_back)) {
-            return $this->respondJson(1, '证件图片背面不能为空');
-        }
-        $identify = new BUserIdentify();
-        $identify->user_id = $user_id;
-        $identify->realname = $realname;
-        $identify->number = (string)$number;
-        $identify->pic_front = $pic_front;
-        $identify->pic_back = $pic_back;
-        $identify->type = 1;
-        $identify->status = BNotice::STATUS_INACTIVE;
-        if (!$identify->save()) {
-            return $this->respondJson(1, '提交失败', $identify->getFirstErrorText());
-        }
-        return $this->respondJson(0, '提交成功', ['user_id' => $user_id]);
-    }
 
-    public function actionCreateNode()
-    {
-        $user_id = $this->pInt('user_id');
-        if (empty($user_id)) {
-            return $this->respondJson(1, '用户ID不能为空');
-        }
+        //     return $this->respondJson(0, '提交成功', ['user_id' => $user_id]);
+        // }
+
+        // public function actionCreateNode()
+        // {
+        // $user_id = $this->pInt('user_id');
+        // if (empty($user_id)) {
+        //     return $this->respondJson(1, '用户ID不能为空');
+        // }
         $logo = $this->pString('logo', '');
         if (empty($logo)) {
             return $this->respondJson(1, 'logo不能为空');
@@ -794,11 +888,13 @@ class NodeController extends BaseController
         $data->desc = $desc;
         $data->scheme = $scheme;
         $str = '添加';
-        if ($data->save()) {
-            return $this->respondJson(0, $str.'成功');
-        } else {
-            return $this->respondJson(1, $str.'失败', $data->getFirstErrorText());
+        if (!$data->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '提交失败', $identify->getFirstErrorText());
         }
+
+        $transaction->commit();
+        return $this->respondJson(0, $str.'成功');
     }
 
     // 删除记录

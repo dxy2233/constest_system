@@ -68,7 +68,7 @@ class FuncHelper
      * @param $imagePath
      * @return bool|string
      */
-    public static function getImageUrl($imagePath = "")
+    public static function getImageUrl($imagePath = "", $width = "", $height = "")
     {
 
         // if ($imagePath) {
@@ -78,11 +78,16 @@ class FuncHelper
         //     $imgAddress[2] = $imagePath;
         //     $imagePath = implode($imgAddress);
         // }
-        $imagePath = str_replace(\Yii::$app->params['imgAddress'], '', $imagePath);
         if ($imagePath) {
-            $imagePath = \Yii::$app->params['imgAddress'].$imagePath;
+            if (!empty(\Yii::$app->params['oss']['project'])) {
+                $imagePath = \Yii::$app->params['imgAddress'].'/'.\Yii::$app->params['oss']['project'].$imagePath;
+            } else {
+                $imagePath = \Yii::$app->params['imgAddress'].$imagePath;
+            }
+            if ($width && $height) {
+                $imagePath .= "!".$width.'_'.$height;
+            }
         }
-
         return $imagePath;
     }
 

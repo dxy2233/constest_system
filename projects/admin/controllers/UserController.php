@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\RechargeService;
 use common\services\UserService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
@@ -56,6 +57,7 @@ class UserController extends BaseController
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
         $page = $this->pInt('page');
+        
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
@@ -69,14 +71,19 @@ class UserController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-        $count = $find->count();
+        
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
             $find->orderBy($order_arr[$order]. ' DESC');
         }
+        $is_download = $this->pInt('is_download', 0);
+        if ($is_download == 0 && $page != 0) {
+            $count = $find->count();
+            $find->page($page);
+        }
         //echo $find->createCommand()->getRawSql();
-        $list = $find->page($page)->asArray()->all();
+        $list = $find->asArray()->all();
         //var_dump($list);
         foreach ($list as &$v) {
             $node = BNode::find()
@@ -90,22 +97,97 @@ class UserController extends BaseController
                 $v['userType'] = '普通用户';
                 $v['nodeName'] = '——';
             }
-            $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['user_id' => $v['id']])->active(BNotice::STATUS_ACTIVE)->asArray()->one();
-            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-            $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['last_login_time'] = $v['last_login_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['last_login_time']);
+            $v['status'] = BUser::getStatus($v['status']);
+            if ($v['num'] == null) {
+                $v['num'] = 0;
+            }
             $recommend = BUserRecommend::find()
             ->from(BUserRecommend::tableName()." A")
             ->select(['B.mobile'])
             ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $v['id']])->asArray()->one();
 
             if (empty($recommend)) {
-                $v['referee'] = '';
+                $v['referee'] = '-';
             } else {
                 $v['referee'] = $recommend['mobile'];
             }
         }
+        if ($is_download != 0) {
+            $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+            $this->download($list, $headers);
+            return;
+        }
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
+    }
+
+
+    public function actionDownload()
+    {
+        $find = BUser::find()
+        ->from(BUser::tableName()." A")
+        ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
+        ->groupBy(['A.id'])
+        ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
+        
+        $searchName = $this->gString('searchName');
+        
+        if ($searchName != '') {
+            $find->andWhere(['like','A.username',$searchName]);
+        }
+        $str_time = $this->gString('str_time');
+        if ($str_time != '') {
+            $find->startTime($str_time, 'A.create_time');
+        }
+        $end_time = $this->gString('end_time');
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+        
+        $order = $this->gString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
+            $find->orderBy($order_arr[$order]. ' DESC');
+        }
+
+        //echo $find->createCommand()->getRawSql();
+        $list = $find->asArray()->all();
+        //var_dump($list);
+        foreach ($list as &$v) {
+            $node = BNode::find()
+            ->from(BNode::tableName()." A")
+            ->join('inner join', 'gr_node_type B', 'A.type_id = B.id')
+            ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $v['id']])->asArray()->one();
+            if ($node) {
+                $v['userType'] = $node['name'];
+                $v['nodeName'] = $node['nodeName'];
+            } else {
+                $v['userType'] = '普通用户';
+                $v['nodeName'] = '——';
+            }
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['last_login_time'] = $v['last_login_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['last_login_time']);
+            $v['status'] = BUser::getStatus($v['status']);
+            if ($v['num'] == null) {
+                $v['num'] = 0;
+            }
+            $recommend = BUserRecommend::find()
+            ->from(BUserRecommend::tableName()." A")
+            ->select(['B.mobile'])
+            ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $v['id']])->asArray()->one();
+
+            if (empty($recommend)) {
+                $v['referee'] = '-';
+            } else {
+                $v['referee'] = $recommend['mobile'];
+            }
+        }
+
+        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+        $this->download($list, $headers);
+        return;
     }
 
 
@@ -140,7 +222,7 @@ class UserController extends BaseController
             ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $userId])->asArray()->one();
 
         if (empty($recommend)) {
-            $info['referee'] = '';
+            $info['referee'] = '-';
         } else {
             $info['referee'] = $recommend['mobile'];
         }
@@ -188,7 +270,7 @@ class UserController extends BaseController
                     $in_and_out = [];
                     $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
                     $in_and_out['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
-                    $in_and_out['amount'] = $val['amount'];
+                    $in_and_out['amount'] = ($val['amount'] > 0) ? '+'.$val['amount'] : $val['amount'];
                     $v['in_and_out'][] = $in_and_out;
                 }
                 $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
@@ -196,13 +278,24 @@ class UserController extends BaseController
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
                     $frozen['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
-                    $frozen['amount'] = $val['amount'];
+                    $frozen['amount'] = ($val['amount'] > 0) ? '-'.$val['amount'] : '+'.abs($val['amount']);
                     $v['frozen'][] = $frozen;
                 }
+            }
+        } else {
+            $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON, 'recharge_status' => BCurrency::$RECHARGE_STATUS_ON])->all();
+            foreach ($currency as $v) {
+                $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+                if ($returnInfo->code) {
+                    return $this->respondJson(1, $returnInfo->msg);
+                }
+                $content = $returnInfo->content;
+                $currency_data[] = array('address'=>$content['address'],'currency_id'=>$v['id'],'in_and_out'=>[],'frozen'=>[],'name'=>$v['name']);
             }
         }
         return $this->respondJson(0, '获取成功', $currency_data);
     }
+
 
 
     // 获取用户投票信息
@@ -397,7 +490,6 @@ class UserController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
         }
-        $user->mobile = $name;
         $user->username = $name;
         if ($user->save()) {
             return $this->respondJson(0, $str.'成功');
@@ -418,8 +510,11 @@ class UserController extends BaseController
             return $this->respondJson(1, '手机已注册');
         }
         $code = $this->pString('code');
+        $recommend_code = UserService::generateRemmendCode(6);
         $user = new BUser();
         $user->mobile = $mobile;
+        $user->recommend_code = $recommend_code;
+        
         $user->username = $mobile;
         $transaction = \Yii::$app->db->beginTransaction();
         if (!$user->save()) {
@@ -445,6 +540,14 @@ class UserController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_voucher->getFirstErrorText());
         }
+        $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON, 'recharge_status' => BCurrency::$RECHARGE_STATUS_ON])->all();
+        foreach ($currency as $v) {
+            $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+            if ($returnInfo->code) {
+                return $this->respondJson(1, $returnInfo->msg);
+            }
+        }
+        
         $transaction->commit();
         return $this->respondJson(0, '注册成功');
     }

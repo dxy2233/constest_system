@@ -116,6 +116,11 @@ class IdentifyController extends BaseController
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
+        $user = BUser::find()->where(['id' => $user_id])->one();
+        $user->is_identified = BNotice::STATUS_ACTIVE;
+        if (!$user->save()) {
+            return $this->respondJson(1, '审核失败', $user->getFirstErrorText());
+        }
         return $this->respondJson(0, '审核成功');
     }
 }

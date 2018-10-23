@@ -229,8 +229,8 @@ class VoteController extends BaseController
         }
 
         // 赎回时间设定 
-        $remokeTime = (int) SettingService::get('vote', 'remoke_time')->value;
-        $voteModel->undo_time = NOW_TIME + remokeTime;
+        $remokeDay = (int) SettingService::get('vote', 'remoke_day')->value;
+        $voteModel->undo_time = NOW_TIME + $remokeDay * 86400;
         // 赎回中状态
         $voteModel->status = BVote::STATUS_INACTIVE_ING;
         if (!$voteModel->save()) {

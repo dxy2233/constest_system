@@ -71,6 +71,12 @@ class DzQuery extends ActiveQuery
      */
     public function endTime(string $end, string $field)
     {
+        if (strlen($end) == 10) {
+            $end = $end.' 23:59:59';
+        }
+        if (strlen($end) == 13) {
+            $end = $end.':59:59';
+        }
         $end_time = strtotime($end);
         $query = $this->andWhere(['<=', $field, $end_time]);
         return $query;

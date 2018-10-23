@@ -60,9 +60,6 @@ class VoteController extends BaseController
         $voteModel->page($page, $pageSize);
         $voteDataModel = $voteModel->all();
         
-        if (!is_object(reset($voteDataModel))) {
-            return $this->respondJson(0, '记录为空');
-        }
         $voteData = [];
         foreach ($voteDataModel as $key => $vote) {
             $vote->create_time = $vote->createTimeText;

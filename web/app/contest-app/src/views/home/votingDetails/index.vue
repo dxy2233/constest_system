@@ -15,7 +15,7 @@
         </ul>
       </div>
       <div class="voting-list">
-        <quick-loadmore ref="vueLoad"
+        <!--<quick-loadmore ref="vueLoad"
                         :bottom-method="handleBottom"
                         :disable-top="true" :disable-bottom="false">
           <div>
@@ -48,7 +48,36 @@
             </ul>
             <load-more tip="正在加载" v-show="loadShow"></load-more>
           </div>
-        </quick-loadmore>
+        </quick-loadmore>-->
+        <scroller :on-infinite="handleBottom" ref="my_scroller">
+          <ul :class="[currentVotingType==='log'?'log-list':'user-list']" class="list">
+            <li v-if="currentVotingType==='log'" v-for="item in listData">
+              <div class="top">
+                <p>{{item.mobile}}</p>
+                <p>{{item.voteNumber}}票</p>
+              </div>
+              <div class="bottom">
+                <p>
+                  {{item.createTime}}
+                </p>
+                <p>{{item.typeStr}}</p>
+              </div>
+            </li>
+            <li v-if="currentVotingType==='user'" v-for="(item,index) in listData">
+              <div class="top">
+                <p>
+                  <span class="num">{{++index}}</span>
+                  {{item.mobile}}</p>
+                <p class="right">{{item.statusStr}}</p>
+              </div>
+              <div class="bottom">
+                <p>
+                </p>
+                <p class="right">{{item.voteNumber}}票</p>
+              </div>
+            </li>
+          </ul>
+        </scroller>
       </div>
     </div>
   </slide>
@@ -75,10 +104,11 @@
             name: '支持用户'
           }
         ],
-        currentVotingType: 'log',
+        currentVotingType: sessionStorage.getItem("votingType") || 'log',
         listData: [],
         page: 1,
-        loadShow: true
+        loadShow: true,
+        total:''
       }
     },
     methods: {
@@ -88,13 +118,41 @@
         sessionStorage.setItem("votingType", item.type);
         this.page = 1
         this.listData = []
-        this.loadShow = true
+       /* this.loadShow = true
         this.$refs.vueLoad.onBottomLoaded();
-        this.getData()
+        this.getData()*/
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);
       },
       handleBottom() {
-        this.page++
-        this.getData()
+        /*this.page++
+        this.getData()*/
+        if (this.total!==''&&this.listData.length >= parseInt(this.total)){
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+        http.post('/node/vote-detail', {
+          id: this.$route.params.id,
+          type: this.currentVotingType,
+          page: this.page,
+          page_size: 10
+        }, (res) => {
+          if (this.loadShow) this.loadShow = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.listData = this.listData.concat(res.content.list)
+          this.total = res.content.count
+          this.page++
+          this.$refs.my_scroller.finishInfinite(false);
+          /*if (this.listData.length < parseInt(res.content.count)) {
+            this.$refs.vueLoad.onBottomLoaded();
+          } else {
+            this.$refs.vueLoad.onBottomLoaded(false);
+          }*/
+        })
+
       },
       getData() {
         http.post('/node/vote-detail', {
@@ -119,8 +177,8 @@
 
     },
     created() {
-      this.currentVotingType = sessionStorage.getItem("votingType") || 'log'
-      this.getData()
+     /* this.currentVotingType = sessionStorage.getItem("votingType") || 'log'
+      this.getData()*/
     },
     destroyed() {
       sessionStorage.removeItem('votingType')
@@ -156,6 +214,7 @@
       overflow hidden
       .list
         padding 0 $space-box
+        min-height 30px
         li
           padding 10px 0
           border-bottom 1px solid $color-border

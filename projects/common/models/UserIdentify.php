@@ -37,7 +37,7 @@ class UserIdentify extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'type', 'status', 'audit_admin_id', 'audit_time', 'create_time', 'update_time'], 'integer'],
+            [['user_id', 'type', 'status', 'audit_admin_id', 'examine_time', 'create_time', 'update_time'], 'integer'],
             [['realname'], 'string', 'max' => 20],
             [['number', 'status_remark'], 'string', 'max' => 50],
             [['pic_front', 'pic_back'], 'string', 'max' => 100],
@@ -60,7 +60,7 @@ class UserIdentify extends \common\dzbase\DzModel
             'status' => Yii::t('app', '状态，0 待审核，1 审核成功，2 审核失败'),
             'status_remark' => Yii::t('app', '状态备注'),
             'audit_admin_id' => Yii::t('app', '审核人ID'),
-            'audit_time' => Yii::t('app', '审核时间'),
+            'examine_time' => Yii::t('app', '审核时间'),
             'create_time' => Yii::t('app', '添加时间'),
             'update_time' => Yii::t('app', '修改时间'),
         ];

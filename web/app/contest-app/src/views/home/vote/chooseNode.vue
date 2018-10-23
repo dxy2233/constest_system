@@ -19,10 +19,9 @@
           </ul>
         </div>
         <div class="right">
-          <quick-loadmore ref="vueLoad"
-                          :bottom-method="handleBottom"
-                          :disable-top="true" :disable-bottom="false">
-            <ul class="node-list">
+          <scroller :on-infinite="handleBottom" ref="my_scroller">
+            <ul class="list node-list">
+              <!--<li>fjweo</li>-->
               <li v-for="item in nodeList" @click="selectedNode(item)" :class="{'act':item.id == selectId}">
                 <img :src="item.logo" alt="" class="img">
                 <span class="name">{{item.name}}</span>
@@ -31,8 +30,7 @@
                 </div>
               </li>
             </ul>
-            <load-more tip="正在加载" v-show="loadShow"></load-more>
-          </quick-loadmore>
+          </scroller>
         </div>
       </div>
 
@@ -56,7 +54,8 @@
         nodeTab: [],
         currentNodeId: '',
         page: 1,
-        loadShow: true
+        loadShow: true,
+        total:''
       }
     },
     methods: {
@@ -71,19 +70,49 @@
         sessionStorage.setItem("chooseNodeId", item.id);
         this.page = 1
         this.nodeList = []
-        this.loadShow = true
+       /* this.loadShow = true
         this.$refs.vueLoad.onBottomLoaded();
-        this.getNodeList()
+        this.getNodeList()*/
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);
       },
       selectedNode(item) {
         this.$emit('selectedNode', item)
         this.backVote()
       },
       handleBottom() {
-        this.page++
-        this.getNodeList()
+        /*this.page++
+        this.getNodeList()*/
+        if (this.currentNodeId === ''){
+          this.getNodeTab(()=>{
+            this.handleBottom()
+          })
+          return
+        }
+
+        if (this.total!==''&&this.nodeList.length >= parseInt(this.total)){
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+
+        http.post('/node/vote', {
+          id: this.currentNodeId,
+          page: this.page,
+          page_size: 10
+        }, (res) => {
+          if (this.loadShow) this.loadShow = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.nodeList = this.nodeList.concat(res.content.list)
+          // this.counttime = res.content.counttime
+          this.total = res.content.count
+          this.page++
+          this.$refs.my_scroller.finishInfinite(false);
+        })
       },
-      getNodeTab() {
+      getNodeTab(cb) {
         http.post('/node', {}, (res) => {
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
@@ -91,12 +120,13 @@
           }
           this.nodeTab = res.content
           this.currentNodeId = sessionStorage.getItem('chooseNodeId') || res.content[0].id
-          this.getNodeList()
+          // this.getNodeList()
+          cb()
         })
       },
       getNodeList() {
         http.post('/node/vote', {
-          id: this.currentNodeId,
+          id: '1',
           page: this.page,
           page_size: 10
         }, (res) => {
@@ -116,7 +146,7 @@
       },
     },
     created() {
-      this.getNodeTab()
+      // this.getNodeTab()
     },
   }
 </script>
@@ -138,6 +168,8 @@
         height 100%
         float left
       & > .left
+        position relative
+        z-index 2
         overflow auto
         width 90px
         border-right 1px solid $color-border-sub
@@ -165,6 +197,8 @@
         width calc(100% - 90px)
         overflow hidden
         .node-list
+          margin-left 90px
+          min-height 30px
           li
             position relative
             display flex

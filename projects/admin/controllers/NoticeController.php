@@ -44,8 +44,11 @@ class NoticeController extends BaseController
             $find->andWhere(['!=', 'status', BNotice::STATUS_DELETE]);
         }
         $count = $find->count();
-        $page = $this->pInt('page', 1);
-        $find->page($page);
+        $page = $this->pInt('page', 0);
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $find->orderBy('update_time DESC');
         //echo $find->createCommand()->getRawSql();
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
@@ -201,11 +204,13 @@ class NoticeController extends BaseController
             if (empty($url)) {
                 return $this->respondJson(1, '链接地址不能为空');
             }
+            $notice->url = $url;
         } else {
             $detail = $this->pString('detail');
             if (empty($detail)) {
                 return $this->respondJson(1, '正文不能为空');
             }
+            $notice->detail = $detail;
         }
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');

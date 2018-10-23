@@ -72,20 +72,21 @@ class FinanceController extends BaseController
 
         $order = $this->pString('order');
         if ($order != '') {
-            if ($type == 1) {
+            if ($order == 1) {
                 $order = 'A.currency_id';
-            } elseif ($type == 2) {
+            } elseif ($order == 2) {
                 $order = 'A.position_amount';
             } elseif ($order == 3) {
                 $order = 'A.frozen_amount';
             } else {
                 $order = 'A.use_amount';
             }
-            $find->orderBy($order. ' desc');
+        } else {
+            $order = "A.position_amount";
         }
+        $find->orderBy($order. ' desc');
 
-
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }
@@ -131,17 +132,19 @@ class FinanceController extends BaseController
 
         $order = $this->gString('order');
         if ($order != '') {
-            if ($type == 1) {
+            if ($order == 1) {
                 $order = 'A.currency_id';
-            } elseif ($type == 2) {
+            } elseif ($order == 2) {
                 $order = 'A.position_amount';
             } elseif ($order == 3) {
                 $order = 'A.frozen_amount';
             } else {
                 $order = 'A.use_amount';
             }
-            $find->orderBy($order. ' desc');
+        } else {
+            $order = "A.position_amount";
         }
+        $find->orderBy($order. ' desc');
 
         $data = $find->asArray()->all();
 
@@ -185,12 +188,17 @@ class FinanceController extends BaseController
             $find->endTime($end_time, 'A.create_time');
         }
         $count = $find->count();
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
+            if ($v['status'] == BUserCurrencyFrozen::STATUS_FROZEN) {
+                $v['amount'] = '-' . $v['amount'];
+            } else {
+                $v['amount'] = '+' . $v['amount'];
+            }
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $return = [];
@@ -233,8 +241,9 @@ class FinanceController extends BaseController
         } elseif ($type == 2) {
             $find->andWhere(['in', 'type', $out_arr]);
         }
+        $find->orderBy('A.create_time DESC');
         $count = $find->count();
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }
@@ -248,6 +257,9 @@ class FinanceController extends BaseController
             }
             $v['type'] = BUserCurrencyDetail::getType($v['type']);
             $v['status'] = BUserCurrencyDetail::getStatus($v['status']);
+            if ($v['amount'] > 0) {
+                $v['amount'] = '+' . $v['amount'];
+            }
         }
         $return = [];
         $return['count'] = $count;
@@ -288,7 +300,7 @@ class FinanceController extends BaseController
         } elseif ($type == 2) {
             $find->andWhere(['in', 'type', $out_arr]);
         }
-
+        $find->orderBy('A.create_time DESC');
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);

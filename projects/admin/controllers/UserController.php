@@ -57,7 +57,7 @@ class UserController extends BaseController
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
-        $page = $this->pInt('page');
+        $page = $this->pInt('page', 0);
         
         $searchName = $this->pString('searchName');
         
@@ -76,12 +76,16 @@ class UserController extends BaseController
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
+        $find->orderBy($order . ' DESC');
+        $count = $find->count();
         if ($page != 0) {
-            $count = $find->count();
             $find->page($page);
         }
+        
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();
         //var_dump($list);
@@ -142,11 +146,14 @@ class UserController extends BaseController
             $find->endTime($end_time, 'A.create_time');
         }
         
-        $order = $this->gString('order');
+        $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
+        $find->orderBy($order . ' DESC');
 
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();
@@ -486,7 +493,25 @@ class UserController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
         }
+        $code = $this->pString('code');
         $user->username = $name;
+        $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
+        if (empty($recommend)) {
+            $id = UserService::validateRemmendCode($code);
+            $user_recommend = new BUserRecommend();
+            $user_recommend->user_id = $user->id;
+            $user_recommend->parent_id = $id;
+            if (!$user_recommend->save()) {
+                return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+            }
+        } else {
+            return $this->respondJson(1, '用户已有推荐人');
+        }
+        if (empty($recommend)) {
+            $info['referee'] = '-';
+        } else {
+            $info['referee'] = $recommend['mobile'];
+        }
         if ($user->save()) {
             return $this->respondJson(0, $str.'成功');
         } else {

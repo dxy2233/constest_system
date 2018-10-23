@@ -138,7 +138,7 @@
   .recommend
     fixed-full-screen()
     background #28272c
-    .app-header
+    &>.app-header
       background none !important
       color white
     .recommend-content

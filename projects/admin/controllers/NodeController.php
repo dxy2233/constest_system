@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = '';
+            $order = 'A.create_time';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -80,6 +80,7 @@ class NodeController extends BaseController
             }
             
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -95,7 +96,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = '';
+            $order = 'A.create_time';
         }
         $data = NodeService::getList(0, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -133,7 +134,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = '';
+            $order = 'A.create_time';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
@@ -148,6 +149,7 @@ class NodeController extends BaseController
             $item['type_name'] = $v['type_name'];
             $item['status'] = BNode::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $return[] = $item;
         }
         return $this->respondJson(0, '获取成功', $return);
@@ -299,12 +301,16 @@ class NodeController extends BaseController
         if ($endTime == '') {
             $endTime = date('Y-m-d H:i:s');
         }
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }
-        $data = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type])->page($page)->asArray()->all();
+        $find = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type]);
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
         }
@@ -700,6 +706,7 @@ class NodeController extends BaseController
         $node->tt = $tt;
         $node->bpt = $bpt;
         $node->status = BNode::STATUS_ON;
+        $node->examine_time = time();
 
         if (!$node->save()) {
             $transaction->rollBack();
@@ -879,12 +886,14 @@ class NodeController extends BaseController
             $identify->realname = $realname;
             $identify->number = (string)$number;
             $identify->pic_front = $pic_front;
+            $identify->examine_time = time();
+            $identify->audit_admin_id = $this->user_id;
             $identify->pic_back = $pic_back;
             $identify->type = 1;
-            $identify->status = BNotice::STATUS_INACTIVE;
+            $identify->status = BNotice::STATUS_ACTIVE;
             if (!$identify->save()) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '提交失败', $identify->getFirstErrorText());
+                return $this->respondJson(1, '实名信息添加失败', $identify->getFirstErrorText());
             }
         }
 

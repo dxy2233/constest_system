@@ -590,6 +590,9 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
+        if (!preg_match("/^1[34578]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息
@@ -636,6 +639,9 @@ class NodeController extends BaseController
         $mobile = $this->pString('mobile');
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
+        }
+        if (!preg_match("/^1[34578]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
         }
         $type_id = $this->pInt('type_id');
         if (empty($type_id)) {

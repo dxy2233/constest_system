@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'sum(C.vote_number)';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -677,7 +677,7 @@ class NodeController extends BaseController
             if ($old_node) {
                 return $this->respondJson(1, '此用户已有节点');
             }
-            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['!=', 'status', BUserIdentify::STATUS_FAIL])->one();
             if ($user_identify) {
                 $identify = 1;
             }
@@ -726,7 +726,7 @@ class NodeController extends BaseController
         if ($code != '') {
             $id = UserService::validateRemmendCode($code);
             //判断是否已有推荐人
-            $old_recommend = BUserRecommend::find()->where(['user_id' => $user_id])->one();
+            $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
             if (!empty($old_recommend)) {
                 // 已有推荐人与输入推荐人不一致
                 if ($old_recommend->parent_id != $id) {

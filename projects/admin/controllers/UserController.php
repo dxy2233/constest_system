@@ -37,6 +37,7 @@ class UserController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -77,8 +78,7 @@ class UserController extends BaseController
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
             $find->orderBy($order_arr[$order]. ' DESC');
         }
-        $is_download = $this->pInt('is_download', 0);
-        if ($is_download == 0 && $page != 0) {
+        if ($page != 0) {
             $count = $find->count();
             $find->page($page);
         }
@@ -114,11 +114,7 @@ class UserController extends BaseController
                 $v['referee'] = $recommend['mobile'];
             }
         }
-        if ($is_download != 0) {
-            $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
-            $this->download($list, $headers);
-            return;
-        }
+
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
     }

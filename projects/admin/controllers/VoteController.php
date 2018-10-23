@@ -24,6 +24,7 @@ class VoteController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -67,6 +68,7 @@ class VoteController extends BaseController
         }
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
+            $v['type'] = BVote::getType($v['type']);
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         
@@ -74,6 +76,41 @@ class VoteController extends BaseController
         $return['count'] = $count;
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
+    }
+    public function actionDownload()
+    {
+        $find = BVote::find()
+        ->from(BVote::tableName()." A")
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->join('left join', BNode::tableName().' C', 'A.node_id = C.id')
+        ->select(['A.*','B.mobile','C.name']);
+        $searchName = $this->gString('searchName', '');
+        if ($searchName != '') {
+            $find->andWhere(['or',['like', 'B.mobile',$searchName],['like','C.name', $searchName]]);
+        }
+        $str_time = $this->gString('str_time', '');
+        $end_time = $this->gString('end_time', '');
+        if ($str_time != '') {
+            $find->startTime($str_time, 'A.create_time');
+        }
+        
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+        $order = $this->gString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.vote_number', 2 => 'A.type', 3 => 'A.create_time'];
+            $find->orderBy($order_arr[$order]. ' DESC');
+        }
+
+        $data = $find->asArray()->all();
+        foreach ($data as &$v) {
+            $v['type'] = BVote::getType($v['type']);
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+        }
+        $headers = ['mobile'=> '投票用户', 'name' => '投票节点名称', 'vote_number' => '投出票数', 'type' => '投票方式', 'create_time' => '投票时间'];
+        $this->download($data, $headers);
+        return;
     }
     /**
      * Displays homepage.

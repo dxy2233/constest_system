@@ -7,6 +7,7 @@ use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BSetting;
 use common\models\business\BNotice;
+use common\components\FuncHelper;
 
 /**
  * Site controller

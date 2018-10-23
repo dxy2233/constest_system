@@ -52,6 +52,7 @@ class LoginController extends BaseController
         if ($user->status == AdminUser::STATUS_DELETED) {
             return $this->respondJson(1, "账号状态异常，请联系管理员！");
         }
+        $user->save();
         $accessToken = AdminService::setAccessToken($user->id);
         $msg = '登陆成功';
         if ($accessToken->code != 0) {

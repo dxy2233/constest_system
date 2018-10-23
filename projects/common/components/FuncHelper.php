@@ -68,7 +68,7 @@ class FuncHelper
      * @param $imagePath
      * @return bool|string
      */
-    public static function getImageUrl($imagePath = "")
+    public static function getImageUrl($imagePath = "", $width = "", $height = "")
     {
 
         // if ($imagePath) {
@@ -78,11 +78,18 @@ class FuncHelper
         //     $imgAddress[2] = $imagePath;
         //     $imagePath = implode($imgAddress);
         // }
-        $imagePath = str_replace(\Yii::$app->params['imgAddress'], '', $imagePath);
         if ($imagePath) {
-            $imagePath = \Yii::$app->params['imgAddress'].$imagePath;
+            $imagePath = str_replace(\Yii::$app->params['imgAddress'], '', $imagePath);
+            $imagePath = str_replace('/'.\Yii::$app->params['oss']['project'], '', $imagePath);
+            if (!empty(\Yii::$app->params['oss']['project'])) {
+                $imagePath = \Yii::$app->params['imgAddress'].'/'.\Yii::$app->params['oss']['project'].$imagePath;
+            } else {
+                $imagePath = \Yii::$app->params['imgAddress'].$imagePath;
+            }
+            if ($width && $height) {
+                $imagePath .= "!".$width.'_'.$height;
+            }
         }
-
         return $imagePath;
     }
 
@@ -303,34 +310,38 @@ class FuncHelper
      * @return mixed
      *
      */
-    public static  function curlPost($url,$postFields){
+    public static function curlPost($url, $postFields)
+    {
         $postFields = json_encode($postFields);
 
-        $ch = curl_init ();
-        curl_setopt( $ch, CURLOPT_URL, $url );
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt(
+            $ch,
+            CURLOPT_HTTPHEADER,
+            array(
                 'Content-Type: application/json; charset=utf-8'   //json版本需要填写  Content-Type: application/json;
             )
         );
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-        curl_setopt( $ch, CURLOPT_POST, 1 );
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, $postFields);
-        curl_setopt( $ch, CURLOPT_TIMEOUT,60);
-        curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 0);
-        $ret = curl_exec ( $ch );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        $ret = curl_exec($ch);
         if (false == $ret) {
-            $result = curl_error(  $ch);
+            $result = curl_error($ch);
         } else {
-            $rsp = curl_getinfo( $ch, CURLINFO_HTTP_CODE);
+            $rsp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             if (200 != $rsp) {
                 $result = "请求状态 ". $rsp . " " . curl_error($ch);
             } else {
                 $result = $ret;
             }
         }
-        curl_close ( $ch );
+        curl_close($ch);
         return $result;
     }
 
@@ -719,8 +730,6 @@ class FuncHelper
                 $newData[$key] = $value;
             }
             $data = $newData;
-        } else {
-            $data = self::camelize($data, $separator);
         }
         return $data;
     }

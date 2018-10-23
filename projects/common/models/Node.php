@@ -62,6 +62,7 @@ class Node extends \common\dzbase\DzModel
             'scheme' => Yii::t('app', '建设方案'),
             'status' => Yii::t('app', '节点状态：0 停用 1 已生效 2 审核中 3 撤销 4 审核未通过'),
             'is_tenure' => Yii::t('app', '任职状态：0 不任职 1 任职'),
+            'examine_time' => Yii::t('app', '审核时间'),
             'status_remark' => Yii::t('app', '状态备注'),
             'logo' => Yii::t('app', 'LOGO'),
             'create_time' => Yii::t('app', '创建时间'),

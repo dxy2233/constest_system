@@ -167,6 +167,7 @@ export default {
     },
     // 主表格搜索
     searchTableData() {
+      if (this.searchDate === null) this.searchDate = ''
       getVoteList(this.search, null, this.searchDate[0], this.searchDate[1]).then(res => {
         this.tableData = res.content.list
         this.tableDataPage = pagination(this.tableData, this.currentPage, 20)

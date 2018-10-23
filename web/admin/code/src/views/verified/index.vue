@@ -9,8 +9,8 @@
     <el-input v-model="search" placeholder="姓名/手机号/身份证号" suffix-icon="el-icon-search" class="btn-right" style="width:200px;"/>
     <br>
 
-    已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
-    <el-button :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain style="margin-top:20px;" @click="allDoomPass">通过</el-button>
+    已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
+    <el-button v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
 
     <el-table
       :data="tableDataPage"

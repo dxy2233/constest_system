@@ -60,9 +60,6 @@ class VoteController extends BaseController
         $voteModel->page($page, $pageSize);
         $voteDataModel = $voteModel->all();
         
-        if (!is_object(reset($voteDataModel))) {
-            return $this->respondJson(0, '记录为空');
-        }
         $voteData = [];
         foreach ($voteDataModel as $key => $vote) {
             $vote->create_time = $vote->createTimeText;
@@ -290,11 +287,14 @@ class VoteController extends BaseController
         // 返回容器
         $data['amount'] = 0;
         $data['number'] = 0;
+        $data['unit_code'] = '票';
         $scaling = 1;
         if ($type === BVote::TYPE_ORDINARY) {
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
         } elseif ($type === BVote::TYPE_PAY) {
             $scaling = (float) SettingService::get('vote', 'payment_price')->value;
+            // 货币单位
+            $data['unit_code'] = strtoupper($voteCurrencyCode);
         } else {
             $this->actionVoucherInfo();
             $voucherNumber = $this->respondData['content']['count'];

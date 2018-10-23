@@ -7,6 +7,7 @@ use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BSetting;
 use common\models\business\BNotice;
+use common\components\FuncHelper;
 
 /**
  * Site controller
@@ -32,21 +33,32 @@ class NoticeController extends BaseController
 
     public function actionIndex()
     {
-        $type = $this->pInt('type', 1);
+        $type = $this->pInt('type');
         $find = BNotice::find();
         if ($type != 0) {
             if ($type == 2) {
                 $type = 0 ;
             }
             $find->andWhere(['status' => $type]);
+        } else {
+            $find->andWhere(['!=', 'status', BNotice::STATUS_DELETE]);
         }
-        $page = $this->pInt('page', 1);
-        $find->page($page);
+        $count = $find->count();
+        $page = $this->pInt('page', 0);
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $find->orderBy('update_time DESC');
+        //echo $find->createCommand()->getRawSql();
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
+            $v['image'] = FuncHelper::getImageUrl($v['image']);
         }
+        $return = [];
+        $return['list'] = $data;
+        $return['count'] = $count;
         return $this->respondJson(0, '获取成功', $data);
     }
 
@@ -162,8 +174,9 @@ class NoticeController extends BaseController
         if (empty($notice)) {
             return $this->respondJson(1, '文章不存在');
         }
-        $notice['create_time'] = date('Y-m-d H:i:s', $notice['create_time']);
-        $notice['update_time'] = date('Y-m-d H:i:s', $notice['update_time']);
+        $notice['start_time'] = date('Y-m-d H:i:s', $notice['start_time']);
+        $notice['end_time'] = date('Y-m-d H:i:s', $notice['end_time']);
+        $notice['image'] = FuncHelper::getImageUrl($notice['image']);
         return $this->respondJson(0, '获取成功', $notice);
     }
 
@@ -191,11 +204,13 @@ class NoticeController extends BaseController
             if (empty($url)) {
                 return $this->respondJson(1, '链接地址不能为空');
             }
+            $notice->url = $url;
         } else {
             $detail = $this->pString('detail');
             if (empty($detail)) {
                 return $this->respondJson(1, '正文不能为空');
             }
+            $notice->detail = $detail;
         }
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
@@ -242,8 +257,8 @@ class NoticeController extends BaseController
         }
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
-        $notice->start_time = $str_time;
-        $notice->end_time = $end_time;
+        $notice->start_time = strtotime($str_time);
+        $notice->end_time = strtotime($end_time);
         $status = $this->pInt('status');
         $notice->status = $status;
         if (!$notice->save()) {

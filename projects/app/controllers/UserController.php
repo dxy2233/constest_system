@@ -60,10 +60,11 @@ class UserController extends BaseController
     {
         $userModel = $this->user;
         $reCode = $this->pString('re_code', false);
-        if (!preg_match('/^[A-Z0-9]{6}$/i', $reCode)) {
+        
+        if (!preg_match('/^[a-zA-Z0-9]{6}$/i', $reCode)) {
             return $this->respondJson(1, '推荐码格式错误');
         }
-        
+        $reCode = strtoupper($reCode);
         $parentId = UserService::validateRemmendCode($reCode);
         if (is_null($parentId)) {
             return $this->respondJson(1, '推荐人不存在');

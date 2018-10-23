@@ -80,6 +80,7 @@ class NodeController extends BaseController
             }
             
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -148,6 +149,7 @@ class NodeController extends BaseController
             $item['type_name'] = $v['type_name'];
             $item['status'] = BNode::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $return[] = $item;
         }
         return $this->respondJson(0, '获取成功', $return);

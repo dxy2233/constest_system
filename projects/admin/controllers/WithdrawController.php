@@ -117,7 +117,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.id', 'A.destination_address'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.examine_time', 'A.id', 'A.destination_address'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
@@ -142,6 +142,7 @@ class WithdrawController extends BaseController
         //echo $find->createCommand()->getRawSql();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['type'] = BUserRechargeWithdraw::getType($v['type']);
             $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
         }

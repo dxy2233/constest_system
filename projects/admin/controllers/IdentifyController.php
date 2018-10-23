@@ -49,7 +49,7 @@ class IdentifyController extends BaseController
         $page = $this->pInt('page');
         $status = $this->pInt('status', 0);
         $find->andWhere(['B.status' => $status]);
-        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id']);
+        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
@@ -59,6 +59,7 @@ class IdentifyController extends BaseController
         $list = $find->page($page)->asArray()->all();
         foreach ($list as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['status'] = BUserIdentify::getStatus($v['status']);
         }
         $return = ['count' => $count, 'list' => $list];

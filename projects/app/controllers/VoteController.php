@@ -288,6 +288,7 @@ class VoteController extends BaseController
         $data['amount'] = 0;
         $data['number'] = 0;
         $data['unit_code'] = '票';
+        $data['show_currency'] = true;
         $scaling = 1;
         if ($type === BVote::TYPE_ORDINARY) {
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
@@ -298,6 +299,7 @@ class VoteController extends BaseController
         } else {
             $this->actionVoucherInfo();
             $voucherNumber = $this->respondData['content']['count'];
+            $data['show_currency'] = false;
             $data['amount'] = $voucherNumber;
             $data['number'] = $voucherNumber;
             return $this->respondJson(0, '获取成功', $data);

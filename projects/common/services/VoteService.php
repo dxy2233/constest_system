@@ -138,14 +138,14 @@ class VoteService extends ServiceBase
                 throw new ErrorException('投票详情插入失败', $voucherDetailModel->getFirstError());
             }
             // 重置用户投票券
-            if (!UserService::resetVoucher($userModel->user_id)) {
+            if (!UserService::resetVoucher($userModel->id)) {
                 throw new ErrorException('投票券资产更新失败');
             }
             $transaction->commit();
             return new FuncResult(0, '投票成功');
         } catch (\Exception $e) {
             $transaction->rollBack();
-            // var_dump($e->getMessage());exit;
+            // var_dump($e->getMessage());
             return new FuncResult(1, '投票失败');
         }
     }

@@ -281,7 +281,7 @@ class VoteController extends BaseController
     public function actionTypeInfo()
     {
         $data = [];
-        $type = $this->pInt('id', 1);
+        $type = $this->pInt('type', 1);
         $userModel = $this->user;
         $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
         // 返回容器

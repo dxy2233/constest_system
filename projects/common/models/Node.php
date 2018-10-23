@@ -20,6 +20,7 @@ use Yii;
  * @property int $is_tenure 任职状态：0 不任职 1 任职
  * @property string $status_remark 状态备注
  * @property string $logo LOGO
+ * @property int examine_time 审核时间
  * @property int $create_time 创建时间
  */
 class Node extends \common\dzbase\DzModel
@@ -39,7 +40,7 @@ class Node extends \common\dzbase\DzModel
     {
         return [
             [['user_id', 'type_id'], 'required'],
-            [['user_id', 'type_id', 'status', 'create_time', 'is_tenure'], 'integer'],
+            [['user_id', 'type_id', 'status', 'create_time', 'examine_time', 'is_tenure'], 'integer'],
             [['desc', 'scheme'], 'string'],
             [['name', 'status_remark', 'logo'], 'string', 'max' => 255],
         ];

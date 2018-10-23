@@ -982,8 +982,8 @@ export default {
     // 导出excel
     addExcel() {
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['排名', '节点名称', '用户', '票数', '支持人数', '质押GRT', '质押BPT', '质押TT', '加入时间', '状态']
-        const filterVal = ['index', 'name', 'mobile', 'voteNumber', 'count', 'grt', 'bpt', 'tt', 'createTime', 'status']
+        const tHeader = ['排名', '节点名称', '用户', '票数', '支持人数', '质押GRT', '质押BPT', '质押TT', '身份', '加入时间', '状态']
+        const filterVal = ['index', 'name', 'mobile', 'voteNumber', 'count', 'grt', 'bpt', 'tt', 'isTenure', 'createTime', 'status']
         const list = this.tableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({
@@ -1008,8 +1008,12 @@ export default {
     },
     formatJson(filterVal, jsonData) {
       return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
+        if (j === 'isTenure') {
+          if (parseInt(v[j]) === 0) return '候补'
+          if (parseInt(v[j]) === 1) return '任职'
+        } else if (j === 'status') {
+          if (parseInt(v[j]) === 0) return '停用'
+          if (parseInt(v[j]) === 1) return '正常'
         } else {
           return v[j]
         }

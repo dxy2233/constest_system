@@ -35,12 +35,7 @@
       <el-table-column prop="nodeName" label="拥有节点"/>
       <el-table-column prop="num" label="已投票数"/>
       <el-table-column prop="referee" label="推荐人"/>
-      <el-table-column label="状态">
-        <template slot-scope="scope">
-          <div v-if="scope.row.status==1">正常</div>
-          <div v-else>停用</div>
-        </template>
-      </el-table-column>
+      <el-table-column prop="status" label="状态"/>
       <el-table-column prop="createTime" label="注册时间"/>
       <el-table-column prop="lastLoginTime" label="最近一次登录时间"/>
     </el-table>
@@ -58,8 +53,8 @@
           <span class="name">{{ userInfoBase.mobile }}<br><span>用户</span></span>
           <i class="el-icon-close btn" @click="showUserInfo=false"/>
           <el-button type="primary" class="btn" style="margin: 0 10px;" @click="rowEdit">编辑</el-button>
-          <el-button v-show="rowInfo.status==1" type="danger" plain class="btn" @click="free">停用</el-button>
-          <el-button v-show="rowInfo.status==0" type="primary" plain class="btn" @click="thaw">启用</el-button>
+          <el-button v-show="rowInfo.status=='正常'" type="danger" plain class="btn" @click="free">停用</el-button>
+          <el-button v-show="rowInfo.status=='冻结'" type="primary" plain class="btn" @click="thaw">启用</el-button>
         </div>
         <div class="info">
           <el-row :gutter="5" class="info-row">
@@ -89,7 +84,7 @@
             </el-col>
             <el-col>
               <el-card shadow="never">
-                <div class="title">推荐码</div>
+                <div class="title">我的推荐码</div>
                 {{ userInfoBase.recommendCode }}
               </el-card>
             </el-col>
@@ -142,7 +137,7 @@
                 </div>
                 <el-radio-group v-model="walletNote" class="radioTabs">
                   <el-radio-button label="收支记录"/>
-                  <el-radio-button label="冻结记录"/>
+                  <el-radio-button label="锁仓记录"/>
                 </el-radio-group>
                 <div v-show="walletNote=='收支记录'" class="note">
                   <div v-for="(item2,index2) in item.inAndOut" :key="index2" class="row">
@@ -151,7 +146,7 @@
                     <span>{{ item2.amount }}</span>
                   </div>
                 </div>
-                <div v-show="walletNote=='冻结记录'" class="note">
+                <div v-show="walletNote=='锁仓记录'" class="note">
                   <div v-for="(item3,index3) in item.frozen" :key="index3" class="row">
                     <span>{{ item3.type }}</span>
                     <span>{{ item3.createTime }}</span>
@@ -234,12 +229,14 @@
     </el-dialog>
 
     <el-dialog :visible.sync="dialogEditUser" title="用户编辑">
-      <el-form label-width="80px">
-        <el-form-item label="账号："><el-input v-model="rowInfo.mobile"/></el-form-item>
+      <el-form label-width="120px">
+        <!-- <el-form-item label="账号："><el-input v-model="rowInfo.mobile"/></el-form-item> -->
+        <el-form-item label="账号：">{{ rowInfo.mobile }}</el-form-item>
+        <el-form-item v-if="userInfoBase.referee=='-'" label="推荐人推荐码："><el-input v-model="rowInfo.code"/></el-form-item>
         <el-tabs v-model="edidWallet">
           <el-tab-pane v-for="(item,index) in rowInfo.walletData" :key="index" :label="item.name" :name="item.name">
             <p>收款地址</p>
-            <el-input v-model="item.address"/>
+            <p>{{ item.address | address }}</p>
           </el-tab-pane>
         </el-tabs>
       </el-form>
@@ -253,16 +250,25 @@
 
 <script>
 import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
-  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser, editWallet } from '@/api/admin'
+  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser } from '@/api/admin'
 import { Message } from 'element-ui'
 import { parseTime } from '@/utils'
 
 export default {
   name: 'UserManagement',
+  filters: {
+    address(value) {
+      if (!value) {
+        return '-'
+      } else {
+        return value
+      }
+    }
+  },
   data() {
     return {
       search: '',
-      searchDate: '',
+      searchDate: [],
       tableData: [],
       tableDataSelection: [],
       currentPage: 1,
@@ -296,6 +302,7 @@ export default {
   },
   methods: {
     searchRun() {
+      if (this.searchDate === null) this.searchDate = ''
       getUserList(this.search, this.searchDate[0], this.searchDate[1], 1).then(res => {
         this.tableData = res.content.list
         this.total = parseInt(res.content.count)
@@ -359,7 +366,7 @@ export default {
         freezeUser(this.rowInfo.id).then(res => {
           Message({ message: res.msg, type: 'success' })
         }).then(res => {
-          this.rowInfo.status = '0'
+          this.rowInfo.status = '冻结'
         })
       })
     },
@@ -373,7 +380,7 @@ export default {
         thawUser(this.rowInfo.id).then(res => {
           Message({ message: res.msg, type: 'success' })
         }).then(res => {
-          this.rowInfo.status = '1'
+          this.rowInfo.status = '正常'
         })
       })
     },
@@ -430,9 +437,6 @@ export default {
           this.total = parseInt(res.content.count)
         })
       })
-      for (var i = 0; i < this.rowInfo.walletData.length; i++) {
-        editWallet(this.rowInfo.walletData[i].id, this.rowInfo.walletData[i].address)
-      }
       this.changeTabs({ name: 'Wallet' })
     },
     // 导出excel

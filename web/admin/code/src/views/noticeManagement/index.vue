@@ -88,7 +88,7 @@
             :show-file-list="false"
             :on-success="uploadSuccess"
             name="image_file"
-            action="http://admin.contest_system.local/upload/upload/image"
+            action="/upload/upload/image"
             class="avatar-uploader">
             <img v-if="releaseData.image" :src="releaseData.image" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"/>

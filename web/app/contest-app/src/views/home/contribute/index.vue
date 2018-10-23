@@ -13,9 +13,9 @@
               {{tab.name}}
             </li>
           </ul>
-          <div class="time" v-if="!counttime">
+          <!--<div class="time" v-if="counttime">
             <p>统计时间 {{counttime}}</p>
-          </div>
+          </div>-->
         </div>
         <div class="bottom">
           <scroller :on-infinite="handleBottom" ref="my_scroller">
@@ -124,7 +124,8 @@
       width 100%
       overflow hidden
       .contribute-list-data
-        padding 10px $space-box
+        padding 0 $space-box
+        min-height $space-box
         li
           padding 10px 0
           border-bottom 1px solid $color-border
@@ -166,7 +167,7 @@
       &>.bottom
         position absolute
         bottom 0
-        top 70px
+        top 50px
         width 100%
         overflow hidden
 

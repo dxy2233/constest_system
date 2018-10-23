@@ -9,7 +9,7 @@
         <div class="top" :style="bgStyle">
           <img :src="nodeInfo.logo" alt="" class="avatar-icon img">
           <p class="name">{{nodeInfo.name}}</p>
-          <span class="sign right-sign" v-if="!nodeInfo.isTenure">任职</span>
+          <span class="sign right-sign" v-if="nodeInfo.isTenure">任职</span>
           <span class="sign left-sign" v-if="nodeInfo.typeName">{{nodeInfo.typeName}}</span>
         </div>
         <div class="bottom">

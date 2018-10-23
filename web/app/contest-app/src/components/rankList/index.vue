@@ -3,7 +3,9 @@
     <router-link tag="li" v-for="(item,index) in list"
                  :to="'/home/node/dts'+item.id" :key="item.id+item.name+index">
       <div class="rank">
-        <span :class="{'sign':index<3}">{{++index}}</span>
+        <!--<span :class="{'sign':index<3}">{{++index}}</span>-->
+        <img v-if="index<3" :src="'/static/images/rank_'+(++index)+'.png'" alt="">
+        <span v-else>{{++index}}</span>
       </div>
       <div class="content">
         <div class="left">
@@ -13,11 +15,11 @@
           <img :src="item.logo" alt="" class="avatar">
           <div class="text">
             <h4>{{item.name}}</h4>
-            <h6>{{item.countNumber}}人支持</h6>
+            <h6>{{item.peopleNumber+'人支持'}}</h6>
           </div>
         </div>
         <div class="right">
-          {{item.voteNumber}}票
+          {{item.voteNumber+'票'}}
         </div>
       </div>
       <div class="tenure" v-if="item.isTenure">
@@ -38,14 +40,12 @@
     },
     data() {
       return {
-        replaceImg:'https://ww1.sinaimg.cn/large/663d3650gy1fq66vvsr72j20p00gogo2.jpg'
+        replaceImg: 'https://ww1.sinaimg.cn/large/663d3650gy1fq66vvsr72j20p00gogo2.jpg'
       }
     },
-    watch: {
-
-    },
-    methods:{
-      clickItem(id){
+    watch: {},
+    methods: {
+      clickItem(id) {
         this.$emit('selectItem', id)
       }
     }
@@ -56,15 +56,12 @@
   @import "~stylus/variable"
   @import "~stylus/mixin"
   .rank-list
-    padding $space-box
+    padding $space-box 0
     li
       position relative
       display flex
       align-items center
-      padding 17px 15px
-      box-shadow 0 0 20px 2px rgba(90, 90, 90, 0.18)
-      border-radius 10px
-      margin-bottom 30px
+      padding-left $space-box
       overflow hidden
       .tenure
         position absolute
@@ -82,14 +79,16 @@
           top 43px
       .rank
         flex 0 0 30px
+        img
+          width 20px
         span
           text-align center
-          background-color #DBDBDB
+          /*background-color #DBDBDB*/
           padding 3px
           display inline-block
           min-width 10px
-          color #fff
-          font-size $font-size-small-s
+          /*color #fff*/
+          font-size $font-size-medium
           &.sign
             background-color #FFB24E
       .content
@@ -97,6 +96,9 @@
         display flex
         justify-content space-between
         align-items flex-end
+        padding $space-box
+        padding-left 2px
+        border-bottom 1px solid $color-border
         .left
           display flex
           align-items center

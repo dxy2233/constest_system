@@ -53,6 +53,9 @@
           this.loadingShow = false
           this.$vux.toast.show(res.msg)
           if (res.code !== 0) {
+            this.newPsw = ''
+            this.fieldLabel = '设置新支付密码'
+            this.step = 0
             return
           }
           setTimeout(() => {

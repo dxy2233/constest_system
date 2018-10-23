@@ -11,7 +11,7 @@
           <!--<img alt="" class="img-code" :src="imgCode.imageData" @click="getImgCode()">-->
           <group title="" class="login-form">
             <x-input @on-blur="existMobile" title="" placeholder="+86 请输入手机号" mask="99999999999"
-                     v-model="loginForm.mobile"></x-input>
+                     v-model="loginForm.mobile" :max="11"></x-input>
             <x-input title="" placeholder="图片验证码" v-model="loginForm.captcha_code">
               <div class="img-code-box" slot="right-full-height">
                 <img class="img-code"

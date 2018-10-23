@@ -13,7 +13,7 @@
             <label for="">币种</label>
             <div class="ipt-box">
               <sel :dataList="currencyList" placeholder="请选择币种"
-                   value="id" label="name" @changeSel="changeCurrent"></sel>
+                   value="id" label="name" @changeSel="changeCurrent" :select="this.form.id"></sel>
             </div>
           </div>
           <div class="form-item">
@@ -135,7 +135,18 @@
     },
     created() {
       let list = JSON.parse(sessionStorage.getItem('currencyList'))
-      this.currencyList = list
+      for (let item of  list){
+        if (parseInt(item.withdrawStatus)){
+          this.currencyList.push(item)
+          console.log(item.id ,this.$route.params.id,item.id === this.$route.params.id)
+          if (item.id === this.$route.params.id){
+            this.form.id = item.id
+            this.balance = item.useAmount
+          }
+        }
+      }
+      // this.currencyList = list
+      // this.form.id='1'
     },
 
   }

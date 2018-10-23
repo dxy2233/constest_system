@@ -25,10 +25,10 @@
           </div>
         </div>
         <div v-else class="node_x">
-          <img :src="'/static/images/personal-node/bg'+nodeInfo.typeId||'1'+'.png'" alt="" class="bg">
+          <img :src="'/static/images/personal-node/bg'+nodeTypeId+'.png'" alt="" class="bg">
           <router-link tag="div" class="node-content" to="/personal/node">
             <div class="img-box">
-              <img :src="'/static/images/personal-node/icon_'+nodeInfo.typeId||'1'+'.png'" alt="" class="img">
+              <img :src="'/static/images/personal-node/icon_'+nodeTypeId+'.png'" alt="" class="img">
             </div>
             <div class="info">
               <h2>
@@ -107,20 +107,16 @@
         }
 
       },
+      nodeTypeId() {
+        if (!this.nodeInfo.typeId) return 1
+        return this.nodeInfo.typeId
+
+      },
       ...mapGetters([
         "loginMsg",
       ]),
     },
     methods: {
-      /*      existPsw() {
-              http.post('/pay/exist-pass', {}, (res) => {
-                if (res.code !== 0) {
-                  this.$vux.toast.show(res.msg)
-                  return
-                }
-                this.pswPath = res.content ? 'index' : 'set'
-              })
-            },*/
       getNodeInfo() {
         http.post('/node/info', {}, (res) => {
           // console.log(res.content)
@@ -146,6 +142,9 @@
             identify.isIdentify = true
           }
           this.identifyMsg = identify
+          sessionStorage.setItem("identifyMsg", JSON.stringify(identify));
+          this.setIdentifyMsg(identify)
+          console.log(this.identifyMsg)
         })
       },
       pageInt() {
@@ -158,12 +157,17 @@
           if (!!this.loginMsg.isNode) {
             this.getNodeInfo()
           }
-          if (!!this.getIdentifyMsg) return
-          this.getIdentifyMsg()
+          // console.log(this.identifyMsg,JSON.stringify(this.identifyMsg)==='{}')
+          if (JSON.stringify(this.identifyMsg)==='{}'){
+            this.getIdentifyMsg()
+          }
+
         }
 
       },
-      ...mapMutations({})
+      ...mapMutations({
+        setIdentifyMsg: 'IDENTIFY_MSG',
+      })
     },
     data() {
       return {
@@ -178,7 +182,7 @@
       // this.pageInt()
     },
     activated() {
-      this.getIdentifyMsg()
+      // this.getIdentifyMsg()
       this.pageInt()
     },
     watch: {

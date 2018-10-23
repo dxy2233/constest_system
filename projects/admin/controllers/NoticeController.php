@@ -54,7 +54,7 @@ class NoticeController extends BaseController
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
-            $v['image'] = FuncHelper::getImageUrl($v['image'], 100, 100);
+            $v['image'] = FuncHelper::getImageUrl($v['image'], 640, 640);
         }
         $return = [];
         $return['list'] = $data;

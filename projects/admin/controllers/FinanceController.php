@@ -236,7 +236,7 @@ class FinanceController extends BaseController
         } elseif ($type == 2) {
             $find->andWhere(['in', 'type', $out_arr]);
         }
-        $find->order('A.create_time DESC');
+        $find->orderBy('A.create_time DESC');
         $count = $find->count();
         $page = $this->pInt('page', 1);
         if ($page != 0) {
@@ -292,7 +292,7 @@ class FinanceController extends BaseController
         } elseif ($type == 2) {
             $find->andWhere(['in', 'type', $out_arr]);
         }
-        $find->order('A.create_time DESC');
+        $find->orderBy('A.create_time DESC');
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);

@@ -75,7 +75,7 @@
         typeInfo: {},
         nodeName: '',
         nodeId: '',
-        chooseNodeShow: true,
+        chooseNodeShow: false,
         validPswShow: false,
       }
     },

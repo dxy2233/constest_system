@@ -49,7 +49,7 @@ export let mainRouter = [
         component: () => import('views/home/noticeList/index'),
         children: [
           {
-            path: ':id',
+            path: 'dts:id',
             component: () => import('views/home/noticeDetails/index'),
           }
         ]

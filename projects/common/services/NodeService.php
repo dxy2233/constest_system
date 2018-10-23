@@ -167,7 +167,7 @@ class NodeService extends ServiceBase
         $voteUser = NodeService::getPeopleNum($nodeIds);
         foreach ($nodeList as $key => &$node) {
             $node['vote_number'] = $node['vote_number'] ?? 0;
-            $node['logo'] = FuncHelper::getImageUrl($node['logo']);
+            $node['logo'] = FuncHelper::getImageUrl($node['logo'], 100, 100);
             $node['is_tenure'] = (bool) $node['is_tenure'];
             $node['is_vote'] = (bool) $node['is_vote'];
             $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;

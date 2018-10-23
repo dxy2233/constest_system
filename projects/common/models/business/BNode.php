@@ -77,7 +77,7 @@ class BNode extends \common\models\Node
      */
     public function getLogoText()
     {
-        return FuncHelper::getImageUrl($this->logo);
+        return FuncHelper::getImageUrl($this->logo, 100, 100);
     }
     /**
      * 转换 任职状态

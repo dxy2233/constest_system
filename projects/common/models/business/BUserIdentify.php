@@ -31,7 +31,7 @@ class BUserIdentify extends \common\models\UserIdentify
      */
     public function getPicFrontText()
     {
-        return FuncHelper::getImageUrl($this->pic_front);
+        return FuncHelper::getImageUrl($this->pic_front, 640, 640);
     }
     /**
      * 转换pic_back链接
@@ -40,7 +40,7 @@ class BUserIdentify extends \common\models\UserIdentify
      */
     public function getPicBackText()
     {
-        return FuncHelper::getImageUrl($this->pic_back);
+        return FuncHelper::getImageUrl($this->pic_back, 640, 640);
     }
 
     /**

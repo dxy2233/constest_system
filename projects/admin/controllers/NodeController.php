@@ -301,12 +301,16 @@ class NodeController extends BaseController
         if ($endTime == '') {
             $endTime = date('Y-m-d H:i:s');
         }
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }
-        $data = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type])->page($page)->asArray()->all();
+        $find = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type]);
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
         }

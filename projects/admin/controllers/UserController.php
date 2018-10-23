@@ -57,7 +57,7 @@ class UserController extends BaseController
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
-        $page = $this->pInt('page');
+        $page = $this->pInt('page', 0);
         
         $searchName = $this->pString('searchName');
         

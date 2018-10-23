@@ -65,7 +65,7 @@ class VoteController extends BaseController
         }
         $find->orderBy($order. ' DESC');
         $count = $find->count();
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }
@@ -183,7 +183,7 @@ class VoteController extends BaseController
             $find->endTime($end_time, 'A.create_time');
         }
         $count = $find->count();
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }

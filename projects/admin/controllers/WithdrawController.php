@@ -113,7 +113,7 @@ class WithdrawController extends BaseController
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
 
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
@@ -136,7 +136,9 @@ class WithdrawController extends BaseController
         }
         $find->orderBy('A.create_time DESC');
         $count = $find->count();
-        $find->page($page);
+        if ($page != 0) {
+            $find->page($page);
+        }
 
         $data = $find->asArray()->all();
         //echo $find->createCommand()->getRawSql();

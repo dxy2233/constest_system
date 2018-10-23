@@ -44,8 +44,10 @@ class NoticeController extends BaseController
             $find->andWhere(['!=', 'status', BNotice::STATUS_DELETE]);
         }
         $count = $find->count();
-        $page = $this->pInt('page', 1);
-        $find->page($page);
+        $page = $this->pInt('page', 0);
+        if ($page != 0) {
+            $find->page($page);
+        }
         $find->orderBy('update_time DESC');
         //echo $find->createCommand()->getRawSql();
         $data = $find->asArray()->all();

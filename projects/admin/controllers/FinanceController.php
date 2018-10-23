@@ -86,7 +86,7 @@ class FinanceController extends BaseController
         }
         $find->orderBy($order. ' desc');
 
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }
@@ -188,7 +188,7 @@ class FinanceController extends BaseController
             $find->endTime($end_time, 'A.create_time');
         }
         $count = $find->count();
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }
@@ -243,7 +243,7 @@ class FinanceController extends BaseController
         }
         $find->orderBy('A.create_time DESC');
         $count = $find->count();
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         if ($page != 0) {
             $find->page($page);
         }

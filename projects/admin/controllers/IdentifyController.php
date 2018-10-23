@@ -46,7 +46,7 @@ class IdentifyController extends BaseController
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->join('left join', BUserIdentify::tableName().' B', 'B.user_id = A.id');
-        $page = $this->pInt('page');
+        $page = $this->pInt('page', 0);
         $status = $this->pInt('status', 0);
         $find->andWhere(['B.status' => $status]);
         $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
@@ -57,7 +57,10 @@ class IdentifyController extends BaseController
         }
         $count = $find->count();
         $find->orderBy('B.create_time DESC');
-        $list = $find->page($page)->asArray()->all();
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $list = $find->asArray()->all();
         foreach ($list as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);

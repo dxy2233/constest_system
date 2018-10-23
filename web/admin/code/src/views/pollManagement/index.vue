@@ -115,7 +115,7 @@
 </template>
 
 <script>
-import { getVoteList, getVoteSet, pushVoteSet, getVoteRank } from '@/api/poll'
+import { getVoteList, getVoteSet, pushVoteSet, getVoteRank, refresh } from '@/api/poll'
 import { Message } from 'element-ui'
 import { parseTime, pagination } from '@/utils'
 
@@ -191,6 +191,7 @@ export default {
       this.pushSetData.map((item, index, arry) => {
         if (item.hasOwnProperty('end_update_time')) arry[index].end_update_time = time
       })
+      refresh()
     },
     // 保存投票设置
     saveVoteSet() {

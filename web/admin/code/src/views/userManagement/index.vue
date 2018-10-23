@@ -2,7 +2,10 @@
   <div class="app-container" @click.self="showUserInfo=false">
     <h4 style="display:inline-block;">用户管理</h4>
     <el-button class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button>
+    <!-- <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button> -->
+    <el-button class="btn-right" style="margin-right:10px;">
+      <a :href="downUrl">导出excel</a>
+    </el-button>
     <br>
 
     <el-input v-model="search" placeholder="用户" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
@@ -294,6 +297,13 @@ export default {
       dialogEditUser: false
     }
   },
+  computed: {
+    downUrl() {
+      var str = this.searchDate[0] || ''
+      var end = this.searchDate[1] || ''
+      return `http://contestadmin.vguiren.cm/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
+    }
+  },
   created() {
     getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
       this.tableData = res.content.list
@@ -430,7 +440,7 @@ export default {
     // 编辑上传用户信息
     editUser() {
       this.dialogEditUser = false
-      editUser(this.rowInfo.id, this.rowInfo.mobile).then(res => {
+      editUser(this.rowInfo.id, this.rowInfo.mobile, this.rowInfo.code).then(res => {
         Message({ message: res.msg, type: 'success' })
         getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
           this.tableData = res.content.list

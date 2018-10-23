@@ -50,6 +50,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="申请时间"/>
+      <el-table-column v-if="checkTypetoNum!=0" prop="examineTime" label="审核时间"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"

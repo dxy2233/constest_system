@@ -23,6 +23,7 @@
       <el-table-column prop="number" label="身份证号"/>
       <el-table-column prop="status" label="状态"/>
       <el-table-column prop="createTime" label="提交时间"/>
+      <el-table-column v-if="checkTypetoNum!=0" prop="examineTime" label="审核时间"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
@@ -46,7 +47,7 @@
         <p>手持身份证正面</p>
         <img :src="rowDetail.picFront" alt="" class="image">
         <p>手持身份证背面</p>
-        <img :src="rowDetail.picBack" alt="" class="image">
+        <img :src="rowDetail.picBack" alt="" class="image" style="margin-bottom:50px;">
       </div>
     </transition>
   </div>
@@ -88,10 +89,6 @@ export default {
         return 2
       }
     }
-    // cc() {
-    //   if (!this.tableData[0]) return false
-    //   if (this.tableData[0].hasOwnProperty('createTime')) return true
-    // }
   },
   created() {
     getList(this.checkTypetoNum).then(res => {
@@ -181,8 +178,8 @@ export default {
 
 .image {
   display: block;
-  width: 150px;
-  height: 150px;
+  width: 860px;
+  height: 470px;
   border: 1px solid #ddd;
 }
 </style>

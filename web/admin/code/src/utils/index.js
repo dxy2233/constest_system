@@ -86,3 +86,15 @@ export function pagination(data, currentPage, pageSize) {
   array = data.slice(startNum, endNum)
   return array
 }
+
+// 下载文件
+export function download(data) {
+  if (!data) return
+  var url = window.URL.createObjectURL(new Blob([data]))
+  var link = document.createElement('a')
+  link.style.display = 'none'
+  link.href = url
+  link.setAttribute('download', 'excel.xlsx')
+  document.body.appendChild(link)
+  link.click()
+}

@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\SettingService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BSetting;
@@ -54,7 +55,7 @@ class NoticeController extends BaseController
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
-            $v['image'] = FuncHelper::getImageUrl($v['image']);
+            $v['image'] = FuncHelper::getImageUrl($v['image'], 640, 640);
         }
         $return = [];
         $return['list'] = $data;
@@ -176,7 +177,7 @@ class NoticeController extends BaseController
         }
         $notice['start_time'] = date('Y-m-d H:i:s', $notice['start_time']);
         $notice['end_time'] = date('Y-m-d H:i:s', $notice['end_time']);
-        $notice['image'] = FuncHelper::getImageUrl($notice['image']);
+        $notice['image'] = FuncHelper::getImageUrl($notice['image'], 640, 640);
         return $this->respondJson(0, '获取成功', $notice);
     }
 
@@ -188,7 +189,7 @@ class NoticeController extends BaseController
         if (empty($notice)) {
             return $this->respondJson(1, '文章不存在');
         }
-        $image = $this->pString('image');
+        $image = $this->pImage('image');
         if (!empty($image)) {
             $notice->image = $image;
         }
@@ -230,7 +231,7 @@ class NoticeController extends BaseController
     {
         $notice = new BNotice();
 
-        $image = $this->pString('image');
+        $image = $this->pImage('image');
         if (empty($image)) {
             return $this->respondJson(1, 'LOGO不能为空');
         }
@@ -285,7 +286,7 @@ class NoticeController extends BaseController
                 return $this->respondJson(1, "操作失败", $v->getFirstErrorText());
             }
         }
-
+        SettingService::refresh();
         $transaction->commit();
         return $this->respondJson(0, "操作成功");
     }

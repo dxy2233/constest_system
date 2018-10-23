@@ -12,6 +12,8 @@ class BNode extends \common\models\Node
     // public $vote_number = 0;
     // 新增节点投票人数
     public $people_number = 0;
+    // 新增节点类型是否支持投票
+    public $is_vote = 0;
 
     // 定义首页默展示 10 个节点
     const INDEX_NUMBER = 10;
@@ -21,6 +23,7 @@ class BNode extends \common\models\Node
     const STATUS_WAIT = 2; //待审核
     const STATUS_UNDO = 3; //撤回
     const STATUS_NO = 4; //未通过
+    const STATUS_DEL = 5; //删除
 
     public static function getStatus($key = 0)
     {
@@ -30,6 +33,7 @@ class BNode extends \common\models\Node
             self::STATUS_WAIT => \Yii::t('app', '待审核'),
             self::STATUS_UNDO => \Yii::t('app', '撤回'),
             self::STATUS_NO => \Yii::t('app', '未通过'),
+            self::STATUS_DEL => \Yii::t('app', '删除'),
         ];
         if ($key !== "") {
             return isset($arr[$key]) ? $arr[$key] : "";
@@ -73,7 +77,7 @@ class BNode extends \common\models\Node
      */
     public function getLogoText()
     {
-        return FuncHelper::getImageUrl($this->logo);
+        return FuncHelper::getImageUrl($this->logo, 100, 100);
     }
     /**
      * 转换 任职状态

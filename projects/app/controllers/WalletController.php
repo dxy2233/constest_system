@@ -68,7 +68,7 @@ class WalletController extends BaseController
         $userId = $this->user->id;
         $userCurrencys = BCurrency::find()
             ->from(BCurrency::tableName().' c')
-            ->select(['c.name', 'c.code', 'c.id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
+            ->select(['c.name', 'c.code', 'c.id', 'c.recharge_status', 'c.withdraw_status', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
             ->leftJoin(
                 BUserCurrency::tableName().' uc',
                 'c.id = uc.currency_id '
@@ -142,7 +142,7 @@ class WalletController extends BaseController
     public function actionCurrencyDetail()
     {
         $currencyId = $this->pInt('id', false);
-        $type = $this->pInt('type', 1);
+        $type = $this->pInt('type', 0);
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $data = [
@@ -153,18 +153,20 @@ class WalletController extends BaseController
             return $this->respondJson(1, '货币不能为空');
         }
         $userId = $this->user->id;
-        // 获取收入 类型ID
+        // 获取收入 类型ID // 获取是否或者支出的 id 集
         $detailType = (bool) $type ? BUserCurrencyDetail::getTypeRevenue() : BUserCurrencyDetail::getTypePay();
+        
         $currencyModel = BUserCurrencyDetail::find()
         ->select(['amount', 'remark', 'effect_time', 'status'])
         ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType])
         ->active();
+        // var_dump($currencyModel->createCommand()->getRawSql());exit;
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
-            $val['effect_time'] = FuncHelper::formateDate($val['effect_time'], 0, true);
             $val['status_str'] = BUserCurrencyDetail::getStatus($val['status'], 0, true);
+            $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -317,12 +319,12 @@ class WalletController extends BaseController
         // 单笔最小数量
         $minAmount = $currency->withdraw_min_amount;
         if ($amount < $minAmount) {
-            return $this->respondJson(1, '单笔最小转账数量'.floatval($minAmount));
+            return $this->respondJson(1, '单笔最小转账数量 '.floatval($minAmount));
         }
         // 单笔最大数量
         $maxAmount = $currency->withdraw_max_amount;
         if ($amount > $maxAmount) {
-            return $this->respondJson(1, '单笔最大转账数量'.floatval($maxAmount));
+            return $this->respondJson(1, '单笔最大转账数量 '.floatval($maxAmount));
         }
 
         // 重算用户持仓

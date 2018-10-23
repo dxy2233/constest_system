@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'sum(C.vote_number)';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -207,7 +207,7 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['scheme'] = $data->scheme;
-        $return['logo'] = FuncHelper::getImageUrl($data->logo);
+        $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
     }
 
@@ -226,8 +226,8 @@ class NodeController extends BaseController
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;
-            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front);
-            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back);
+            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front, 640, 640);
+            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back, 640, 640);
         }
         return $this->respondJson(0, '获取成功', $identify);
     }
@@ -364,9 +364,17 @@ class NodeController extends BaseController
         if (empty($tenure_num)) {
             return $this->respondJson(1, '任职数量必须大于0');
         }
+        
         $max_candidate = $this->pInt('maxCandidate');
         if ($is_candidate > 0 && empty($max_candidate)) {
             return $this->respondJson(1, '候选数量必须大于0');
+        }
+        $tenure = BNode::find()->where(['type_id' => $type_id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        if ($tenure_num < $tenure['allTenure']) {
+            return $this->respondJson(1, '任职数量必须大于当前任职数量');
+        }
+        if ($max_candidate < $tenure['allCount']) {
+            return $this->respondJson(1, '候选数量必须大于当前候选数量');
         }
         $grt = $this->pInt('grt');
         if (empty($grt)) {
@@ -461,7 +469,7 @@ class NodeController extends BaseController
         $transaction->commit();
         return $this->respondJson(0, '操作成功');
     }
-
+    // 任职
     public function actionTenure()
     {
         $nodeId = $this->pString('nodeId');
@@ -471,7 +479,7 @@ class NodeController extends BaseController
         }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
-        if ($now_count >= $setting->max_candidate) {
+        if ($now_count >= $setting->tenure_num) {
             return $this->respondJson(1, '任职数量已达上限');
         }
         $node->is_tenure = BNotice::STATUS_ACTIVE;
@@ -484,7 +492,7 @@ class NodeController extends BaseController
         NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '任职成功');
     }
-
+    // 取消任职
     public function actionUnTenure()
     {
         $nodeId = $this->pString('nodeId');
@@ -553,7 +561,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        $logo = $this->pString('logo', '');
+        $logo = $this->pImage('logo', '');
         if (empty($logo)) {
             return $this->respondJson(1, 'logo不能为空');
         }
@@ -590,6 +598,9 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
+        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息
@@ -618,14 +629,15 @@ class NodeController extends BaseController
 
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $setting->max_people) {
-            return $this->respondJson(1, '候选数量已达上限');
+
+        if ($now_count >= $setting->max_candidate) {
+            return $this->respondJson(1, $setting->name.'候选数量已达上限');
         }
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
-            $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
-            $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
-            if ($now_count >= $setting->max_candidate) {
-                return $this->respondJson(1, '任职数量已达上限');
+            $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+            $setting = BNodeType::find()->where(['id' => $type_id])->one();
+            if ($now_count >= $setting->tenure_num) {
+                return $this->respondJson(1, $setting->name.'任职数量已达上限');
             }
         }
         return $this->respondJson(0, '验证成功');
@@ -637,15 +649,18 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
+        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
+        }
         $type_id = $this->pInt('type_id');
         if (empty($type_id)) {
             return $this->respondJson(1, '节点类型不能为空');
         }
         $is_tenure = $this->pInt('is_tenure');
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
-            $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
-            $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
-            if ($now_count >= $setting->max_candidate) {
+            $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+            $setting = BNodeType::find()->where(['id' => $type_id])->one();
+            if ($now_count >= $setting->tenure_num) {
                 return $this->respondJson(1, '任职数量已达上限');
             }
         }
@@ -670,7 +685,7 @@ class NodeController extends BaseController
             if ($old_node) {
                 return $this->respondJson(1, '此用户已有节点');
             }
-            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['!=', 'status', BUserIdentify::STATUS_FAIL])->one();
             if ($user_identify) {
                 $identify = 1;
             }
@@ -678,7 +693,8 @@ class NodeController extends BaseController
             $user = new BUser();
             $user->mobile = $mobile;
             $user->username = $mobile;
-            
+            $recommend_code = UserService::generateRemmendCode(6);
+            $user->recommend_code = $recommend_code;
             if (!$user->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
@@ -695,7 +711,7 @@ class NodeController extends BaseController
         }
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $setting->max_people) {
+        if ($now_count >= $setting->max_candidate) {
             return $this->respondJson(1, '候选数量已达上限');
         }
         $node = new BNode();
@@ -717,14 +733,30 @@ class NodeController extends BaseController
         $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
         if ($code != '') {
             $id = UserService::validateRemmendCode($code);
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            $user_recommend->node_id = $node->id;
-            $user_recommend->amount = $grt * $setting->value;
-            if (!$user_recommend->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+            //判断是否已有推荐人
+            $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
+            if (!empty($old_recommend)) {
+                // 已有推荐人与输入推荐人不一致
+                if ($old_recommend->parent_id != $id) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
+                }
+                $old_recommend->node_id = $node->id;
+                $old_recommend->amount = $grt * $setting->value;
+                if (!$old_recommend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                }
+            } else {
+                $user_recommend = new BUserRecommend();
+                $user_recommend->user_id = $user->id;
+                $user_recommend->parent_id = $id;
+                $user_recommend->node_id = $node->id;
+                $user_recommend->amount = $grt * $setting->value;
+                if (!$user_recommend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                }
             }
             $voucher = new BVoucher();
             $voucher->user_id = $id;
@@ -743,35 +775,129 @@ class NodeController extends BaseController
         foreach ($currency_arr  as $v) {
             $currency_id[$v['code']] = $v['id'];
         }
+        //GRT
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['grt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $grt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        $withdraw ->remark = "添加节点充币";
+        $withdraw ->audit_time = time();
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $userRechargeWithdrawId = $withdraw->id;
+
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['grt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $grt;
-        $user_c_detail->remark = '充值';
+        $user_c_detail->remark = '充币';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $user_c_detail->relate_table = 'user_recharge_withdraw';
+        $user_c_detail->relate_id = $userRechargeWithdrawId;
+        $user_c_detail->effect_time = time();
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
         }
+
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['grt'];
+        $frozen->amount = $grt;
+        $frozen->remark = '节点竞选';
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
+        $frozen->relate_table = 'node';
+        $frozen->relate_id = $node->id;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+
+        UserService::resetCurrency($user->id, $currency_id['grt']);
+
+        //TT
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['tt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $tt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        $withdraw ->remark = "添加节点充币";
+        $withdraw ->audit_time = time();
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $userRechargeWithdrawId = $withdraw->id;
+
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['tt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $tt;
-        $user_c_detail->remark = '充值';
+        $user_c_detail->remark = '充币';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $user_c_detail->relate_table = 'user_recharge_withdraw';
+        $user_c_detail->relate_id = $userRechargeWithdrawId;
+        $user_c_detail->effect_time = time();
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
         }
+
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['tt'];
+        $frozen->amount = $tt;
+        $frozen->remark = '节点竞选';
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
+        $frozen->relate_table = 'node';
+        $frozen->relate_id = $node->id;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+
+        UserService::resetCurrency($user->id, $currency_id['tt']);
+
+        //BPT
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['bpt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $bpt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        $withdraw ->remark = "添加节点充币";
+        $withdraw ->audit_time = time();
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $userRechargeWithdrawId = $withdraw->id;
+
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['bpt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $bpt;
-        $user_c_detail->remark = '充值';
+        $user_c_detail->remark = '充币';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $user_c_detail->relate_table = 'user_recharge_withdraw';
+        $user_c_detail->relate_id = $userRechargeWithdrawId;
+        $user_c_detail->effect_time = time();
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
@@ -783,73 +909,14 @@ class NodeController extends BaseController
         $frozen->amount = $bpt;
         $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
+        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
+        $frozen->relate_table = 'node';
+        $frozen->relate_id = $node->id;
         if (!$frozen->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
         }
-        $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
-        $frozen->currency_id = $currency_id['grt'];
-        $frozen->amount = $grt;
-        $frozen->remark = '节点竞选';
-        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
-        if (!$frozen->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
-        }
-        $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
-        $frozen->currency_id = $currency_id['tt'];
-        $frozen->amount = $tt;
-        $frozen->remark = '节点竞选';
-        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
-        if (!$frozen->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
-        }
-
-
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['bpt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $bpt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['tt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $tt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['grt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $grt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        UserService::resetCurrency($user->id, $currency_id['grt']);
-        UserService::resetCurrency($user->id, $currency_id['tt']);
+        
         UserService::resetCurrency($user->id, $currency_id['bpt']);
 
         
@@ -873,11 +940,11 @@ class NodeController extends BaseController
             if (empty($number)) {
                 return $this->respondJson(1, '身份证号不能为空');
             }
-            $pic_front = $this->pString('pic_front');
+            $pic_front = $this->pImage('pic_front');
             if (empty($pic_front)) {
                 return $this->respondJson(1, '证件图片正面不能为空');
             }
-            $pic_back = $this->pString('pic_back');
+            $pic_back = $this->pImage('pic_back');
             if (empty($pic_back)) {
                 return $this->respondJson(1, '证件图片背面不能为空');
             }
@@ -950,11 +1017,11 @@ class NodeController extends BaseController
         if (empty($users)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        $transaction = \Yii::$app->db->beginTransaction();
-        foreach ($users as $user) {
-            $user->delete();
+        $res = BNode::updateAll(['status' => BNode::STATUS_DEL], ['and', ['in', 'id', $user_id], ['status' => BNode::STATUS_NO]]);
+        if ($res) {
+            return $this->respondJson(0, '删除成功');
+        } else {
+            return $this->respondJson(0, '删除失败');
         }
-        $transaction->commit();
-        return $this->respondJson(0, '删除成功');
     }
 }

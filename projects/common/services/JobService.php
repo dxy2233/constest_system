@@ -12,8 +12,13 @@ class JobService extends ServiceBase
 {
     public static function beginPut($type = 0)
     {
+        $setting = BSetting::find()->where(['key' => 'stop_vote'])->one();
+        if ($setting->value == BNotice::STATUS_INACTIVE) {
+            return false;
+        }
         if ($type == 1) {
             self::putDo();
+            return true;
         } else {
             $time = BSetting::find()->where(['key' => 'count_time'])->one();
             if (abs($time->value - time()) < 30) {
@@ -35,13 +40,18 @@ class JobService extends ServiceBase
         }
         $msg = [];
         $people = NodeService::getPeopleNum($id_arr, '', $endTime);
+        $transaction = \Yii::$app->db->beginTransaction();
         $history_id = date('YmdHi');
         foreach ($data as $v) {
             $history = new BHistory();
-            $history->people_number = $people[$v['id']];
+            if (empty($people[$v['id']])) {
+                $history->people_number = 0;
+            } else {
+                $history->people_number = $people[$v['id']];
+            }
             $history->vote_number = $v['vote_number'];
             $history->node_name = $v['name'];
-            $history->username = $v['username'];
+            $history->username = $v['mobile'];
             $history->node_id = $v['id'];
             $history->is_tenure = $v['is_tenure'];
             $history->update_number = $history_id;
@@ -49,7 +59,6 @@ class JobService extends ServiceBase
                 $msg[] = $v->getFirstErrorText();
             }
         }
-            
         $data = BNode::find()->where(['is_tenure' => BNotice::STATUS_ACTIVE])->all();
         foreach ($data as $v) {
             $v->is_tenure = BNotice::STATUS_INACTIVE;
@@ -68,8 +77,10 @@ class JobService extends ServiceBase
             $msg[] = $stop_vote->getFirstErrorText();
         }
         if (count($msg) > 0) {
+            $transaction->rollBack();
             Yii::error(json_encode($msg), 'history');
         } else {
+            $transaction->commit();
             Yii::info('执行成功', 'history');
         }
     }

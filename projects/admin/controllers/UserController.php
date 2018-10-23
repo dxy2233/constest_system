@@ -247,8 +247,8 @@ class UserController extends BaseController
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;
-            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front);
-            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back);
+            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front, 640, 640);
+            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back, 640, 640);
         }
         return $this->respondJson(0, '获取成功', $identify);
     }
@@ -526,14 +526,19 @@ class UserController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
+        
+        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
+        }
         $old_data = BUser::find()->where(['mobile' => $mobile])->one();
         if ($old_data) {
             return $this->respondJson(1, '手机已注册');
         }
         $code = $this->pString('code');
-        $recommend_code = UserService::generateRemmendCode(6);
+        
         $user = new BUser();
         $user->mobile = $mobile;
+        $recommend_code = UserService::generateRemmendCode(6);
         $user->recommend_code = $recommend_code;
         
         $user->username = $mobile;

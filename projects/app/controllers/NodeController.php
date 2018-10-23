@@ -42,6 +42,7 @@ class NodeController extends BaseController
         
         $nodeTypeQuery = BNodeType::find()
         ->select(['id', 'name'])
+        ->where(['is_order' => BNodeType::STATUS_ACTIVE])
         ->active();
         if ($page) {
             $data['count'] = $nodeTypeQuery->count();
@@ -105,10 +106,11 @@ class NodeController extends BaseController
         }
 
         $nodeModel = BNode::find()
-        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.scheme', 'n.is_tenure', 'nt.name as type_name', 'n.type_id'])
+        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.scheme', 'n.is_tenure', 'nt.name as type_name', 'n.type_id', 'nt.is_vote'])
         ->alias('n')
         ->joinWith(['nodeType nt'], false)
         ->active(BNode::STATUS_ACTIVE, 'n.')
+        ->where(['n.id' => $nodeId])
         ->one();
         if (!is_object($nodeModel)) {
             return $this->respondJson(1, '节点不存在或已关闭');
@@ -125,6 +127,7 @@ class NodeController extends BaseController
         $nodeList['logo'] = $nodeModel->logoText;
         $nodeList['is_tenure'] = $nodeModel->isTenureText;
         $nodeList['type_name'] = $nodeModel->type_name;
+        $nodeList['is_vote'] = (bool) $nodeModel->is_vote;
         return $this->respondJson(0, '获取成功', $nodeList);
     }
 
@@ -159,7 +162,7 @@ class NodeController extends BaseController
         $data['count'] = $voteModel->count();
         $voteModel->page($page, $pageSize);
         $voteDataModel = $voteModel->all();
-        
+
         $voteData = [];
         foreach ($voteDataModel as $key => $vote) {
             $vote->create_time = $vote->createTimeText;

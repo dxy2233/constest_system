@@ -56,7 +56,7 @@
           <el-button class="btn" @click="noticeEdit">编辑</el-button>
         </div>
         <p style="margin-top:40px;">展示图</p>
-        <img :src="rowInfo.image" alt="" style="display:block;width:200px;height:200px;border:1px solid #ddd;">
+        <img :src="rowInfo.image" alt="" style="display:block;height:200px;border:1px solid #ddd;">
         <p>公告类型</p>
         <div v-if="rowInfo.type==0">
           <p>链接 <a :href="rowInfo.url" style="text-decoration: underline;color:#888;">{{ rowInfo.url }}</a></p>

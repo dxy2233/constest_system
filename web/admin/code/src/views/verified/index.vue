@@ -178,8 +178,7 @@ export default {
 
 .image {
   display: block;
-  width: 860px;
-  height: 470px;
+  height: 400px;
   border: 1px solid #ddd;
 }
 </style>

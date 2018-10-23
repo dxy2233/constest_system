@@ -445,7 +445,7 @@ import { getNodeList, getNodeType, getNodeBase, getNodeIdentify, getNodeVote, ge
   onTenure, offTenure, stopNode, onNode, updataBase, getNodeSet, getRuleList, pushRuleList,
   getHistory, pushNodeSet, addNode, checkMobile, checkNode } from '@/api/nodePage'
 import { Message } from 'element-ui'
-import { parseTime, pagination } from '@/utils'
+import { pagination } from '@/utils'
 
 export default {
   name: 'NodeManagement',

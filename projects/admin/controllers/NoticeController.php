@@ -33,22 +33,29 @@ class NoticeController extends BaseController
 
     public function actionIndex()
     {
-        $type = $this->pInt('type', 1);
+        $type = $this->pInt('type');
         $find = BNotice::find();
         if ($type != 0) {
             if ($type == 2) {
                 $type = 0 ;
             }
             $find->andWhere(['status' => $type]);
+        } else {
+            $find->andWhere(['!=', 'status', BNotice::STATUS_DELETE]);
         }
+        $count = $find->count();
         $page = $this->pInt('page', 1);
         $find->page($page);
+        echo $find->createCommand()->getRawSql();
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
             $v['image'] = FuncHelper::getImageUrl($v['image']);
         }
+        $return = [];
+        $return['list'] = $data;
+        $return['count'] = $count;
         return $this->respondJson(0, '获取成功', $data);
     }
 

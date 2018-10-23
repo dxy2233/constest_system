@@ -72,6 +72,20 @@ trait DzControllerTrait
         return null;
     }
 
+    final protected function pImage($name, $default = null)
+    {
+        $return = Yii::$app->request->post($name, $default);
+        if (!empty($return)) {
+            $return = str_replace(\Yii::$app->params['imgAddress'], '', $return);
+            $return = str_replace('/'.\Yii::$app->params['oss']['project'], '', $return);
+            return trim($return);
+        }
+        if ($default !== null) {
+            return $default;
+        }
+        return null;
+    }
+
     final protected function gFloat($name, $default = null)
     {
         $return = Yii::$app->request->get($name, $default);

@@ -99,10 +99,22 @@
           }
           sessionStorage.setItem("identifyMsg", JSON.stringify(identify));
           this.setIdentifyMsg(identify)
+          let identifyPath = this.switchPath(identify)
           this.$router.replace({
-            path: `/personal`
+            path: '/personal/identify/'+identifyPath
           })
         })
+      },
+      switchPath(identify){
+        if (!identify.isIdentify) return 'submit'
+        switch (identify.status) {
+          case 0:
+            return 'wait'
+          case 1:
+            return 'success'
+          case 2:
+            return 'fail'
+        }
       },
       handleSuccessFront(res, src) {
         this.frontImg = src

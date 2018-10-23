@@ -8,14 +8,16 @@
       </app-header>
       <div class="h-main">
         <div class="top">
-          <img src="/static/images/default-avatar.png" alt="" class="icon">
+          <img src="/static/images/state-fail.png" alt="" class="icon">
           <span>认证失败</span>
         </div>
         <div class="bottom">
           <p>节点申请失败原因：</p>
           <p v-html="identifyMsg.remark"></p>
           <div class="again">
-            <x-button type="warn" class="again-btn">重新认证</x-button>
+            <router-link to="/personal/identify/submit">
+              <x-button type="warn" class="again-btn">重新认证</x-button>
+            </router-link>
           </div>
         </div>
       </div>

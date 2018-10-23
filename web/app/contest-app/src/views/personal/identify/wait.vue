@@ -6,7 +6,7 @@
       </app-header>
       <div class="h-main ">
         <div class="identify-wait-content">
-          <img src="/static/images/default-avatar.png" alt="" class="icon">
+          <img src="/static/images/state-wait.png" alt="" class="icon">
           <span>您的实名认证信息已提交，等待审核中... ...</span>
           <!--<x-button type="warn" class="revoke-btn">撤回申请</x-button>-->
         </div>

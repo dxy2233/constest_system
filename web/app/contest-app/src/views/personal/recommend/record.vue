@@ -15,7 +15,7 @@
           </div>
           <ul class="list">
             <li v-for="item in dataList" :key="item.id">
-              <h4>{{item.name}}</h4>
+              <h4>{{item.mobile}}</h4>
               <p>
                 <span>{{item.typeName}}</span>
                 <span>{{item.createTime}}</span>
@@ -99,6 +99,8 @@
   @import "~stylus/mixin"
   .record
     fixed-full-screen()
+    &>.app-header
+      border-bottom 1px solid $color-border-sub
     .record-main
       position absolute
       top 50px

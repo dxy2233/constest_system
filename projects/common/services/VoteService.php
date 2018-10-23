@@ -138,14 +138,14 @@ class VoteService extends ServiceBase
                 throw new ErrorException('投票详情插入失败', $voucherDetailModel->getFirstError());
             }
             // 重置用户投票券
-            if (!UserService::resetVoucher($userModel->user_id)) {
+            if (!UserService::resetVoucher($userModel->id)) {
                 throw new ErrorException('投票券资产更新失败');
             }
             $transaction->commit();
             return new FuncResult(0, '投票成功');
         } catch (\Exception $e) {
             $transaction->rollBack();
-            // var_dump($e->getMessage());exit;
+            // var_dump($e->getMessage());
             return new FuncResult(1, '投票失败');
         }
     }
@@ -295,6 +295,12 @@ class VoteService extends ServiceBase
             );
             if ($sign === 0) {
                 throw new ErrorException('user-currency-frozen table data update is fail');
+            }
+
+            $voteModel = BVote::findOne($res['id']);
+            $voteModel->status = BVote::STATUS_INACTIVE;
+            if (!$voteModel->save()) {
+                throw new ErrorException('vote table data update is fail');
             }
 
             // 重算用户持仓

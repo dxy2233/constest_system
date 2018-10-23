@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'sum(C.vote_number)';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -207,7 +207,7 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['scheme'] = $data->scheme;
-        $return['logo'] = FuncHelper::getImageUrl($data->logo);
+        $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
     }
 
@@ -226,8 +226,8 @@ class NodeController extends BaseController
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;
-            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front);
-            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back);
+            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front, 640, 640);
+            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back, 640, 640);
         }
         return $this->respondJson(0, '获取成功', $identify);
     }
@@ -310,6 +310,7 @@ class NodeController extends BaseController
         if ($page != 0) {
             $find->page($page);
         }
+        
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
@@ -364,9 +365,17 @@ class NodeController extends BaseController
         if (empty($tenure_num)) {
             return $this->respondJson(1, '任职数量必须大于0');
         }
+        
         $max_candidate = $this->pInt('maxCandidate');
         if ($is_candidate > 0 && empty($max_candidate)) {
             return $this->respondJson(1, '候选数量必须大于0');
+        }
+        $tenure = BNode::find()->where(['type_id' => $id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        if ($tenure_num < $tenure['allTenure']) {
+            return $this->respondJson(1, '任职数量必须大于当前任职数量');
+        }
+        if ($max_candidate < $tenure['allCount']) {
+            return $this->respondJson(1, '候选数量必须大于当前候选数量');
         }
         $grt = $this->pInt('grt');
         if (empty($grt)) {
@@ -471,7 +480,7 @@ class NodeController extends BaseController
         }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
-        if ($now_count >= $setting->max_candidate) {
+        if ($now_count >= $setting->tenure_num) {
             return $this->respondJson(1, '任职数量已达上限');
         }
         $node->is_tenure = BNotice::STATUS_ACTIVE;
@@ -553,7 +562,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        $logo = $this->pString('logo', '');
+        $logo = $this->pImage('logo', '');
         if (empty($logo)) {
             return $this->respondJson(1, 'logo不能为空');
         }
@@ -621,13 +630,14 @@ class NodeController extends BaseController
 
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $setting->max_people) {
+
+        if ($now_count >= $setting->max_candidate) {
             return $this->respondJson(1, $setting->name.'候选数量已达上限');
         }
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
             $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
             $setting = BNodeType::find()->where(['id' => $type_id])->one();
-            if ($now_count >= $setting->max_candidate) {
+            if ($now_count >= $setting->tenure_num) {
                 return $this->respondJson(1, $setting->name.'任职数量已达上限');
             }
         }
@@ -649,9 +659,9 @@ class NodeController extends BaseController
         }
         $is_tenure = $this->pInt('is_tenure');
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
-            $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
-            $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
-            if ($now_count >= $setting->max_candidate) {
+            $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+            $setting = BNodeType::find()->where(['id' => $type_id])->one();
+            if ($now_count >= $setting->tenure_num) {
                 return $this->respondJson(1, '任职数量已达上限');
             }
         }
@@ -676,7 +686,7 @@ class NodeController extends BaseController
             if ($old_node) {
                 return $this->respondJson(1, '此用户已有节点');
             }
-            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['!=', 'status', BUserIdentify::STATUS_FAIL])->one();
             if ($user_identify) {
                 $identify = 1;
             }
@@ -702,7 +712,7 @@ class NodeController extends BaseController
         }
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $setting->max_people) {
+        if ($now_count >= $setting->max_candidate) {
             return $this->respondJson(1, '候选数量已达上限');
         }
         $node = new BNode();
@@ -725,7 +735,7 @@ class NodeController extends BaseController
         if ($code != '') {
             $id = UserService::validateRemmendCode($code);
             //判断是否已有推荐人
-            $old_recommend = BUserRecommend::find()->where(['user_id' => $user_id])->one();
+            $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
             if (!empty($old_recommend)) {
                 // 已有推荐人与输入推荐人不一致
                 if ($old_recommend->parent_id != $id) {
@@ -931,11 +941,11 @@ class NodeController extends BaseController
             if (empty($number)) {
                 return $this->respondJson(1, '身份证号不能为空');
             }
-            $pic_front = $this->pString('pic_front');
+            $pic_front = $this->pImage('pic_front');
             if (empty($pic_front)) {
                 return $this->respondJson(1, '证件图片正面不能为空');
             }
-            $pic_back = $this->pString('pic_back');
+            $pic_back = $this->pImage('pic_back');
             if (empty($pic_back)) {
                 return $this->respondJson(1, '证件图片背面不能为空');
             }

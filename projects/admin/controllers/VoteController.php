@@ -4,6 +4,7 @@ namespace admin\controllers;
 use common\services\AclService;
 use common\services\TicketService;
 use common\services\UserService;
+use common\services\SettingService;
 use common\services\JobService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BSetting;
@@ -151,7 +152,12 @@ class VoteController extends BaseController
 
     public function actionNowReload()
     {
-        JobService::beginPut(1);
+        $bool = JobService::beginPut(1);
+        if ($bool) {
+            return $this->respondJson(0, "操作成功");
+        } else {
+            return $this->respondJson(1, "操作失败");
+        }
     }
     public function actionGetSettingList()
     {
@@ -160,6 +166,8 @@ class VoteController extends BaseController
             $v['initialize'] = json_decode($v['initialize'], true);
             if (strstr($v['key'], 'time')) {
                 $v['value'] = date('Y-m-d H:i:s', (int)$v['value']);
+            } else {
+                $v['value'] = (float)$v['value'];
             }
         }
         return $this->respondJson(0, "获取成功", $data, false);

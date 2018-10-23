@@ -250,7 +250,7 @@ class FinanceController extends BaseController
         }
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
-            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['create_time'] = $v['create_time'] == 0 ? '-' : date('Y-m-d H:i:s', $v['create_time']);
             if (in_array($v['type'], $in_arr)) {
                 $v['type2'] = '收入';
             } else {

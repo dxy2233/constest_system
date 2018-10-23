@@ -8,7 +8,7 @@
       </app-header>
       <div class="h-main">
         <div class="top">
-          <img src="/static/images/default-avatar.png" alt="" class="icon">
+          <img src="/static/images/state-fail.png" alt="" class="icon">
           <span>申请失败</span>
         </div>
         <div class="bottom">

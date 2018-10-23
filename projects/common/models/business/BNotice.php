@@ -79,7 +79,7 @@ class BNotice extends \common\models\Notice
         $noticeList = $query->asArray()->all();
         ArrayHelper::multisort($noticeList, ['is_top', 'create_time'], [SORT_DESC, SORT_DESC]);
         foreach ($noticeList as $key => &$notice) {
-            $notice['image'] = FuncHelper::getImageUrl($notice['image']);
+            $notice['image'] = FuncHelper::getImageUrl($notice['image'], 640, 640);
             unset($notice['create_time']);
         }
         if (!$isIndex) {

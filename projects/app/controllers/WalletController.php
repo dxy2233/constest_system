@@ -68,7 +68,7 @@ class WalletController extends BaseController
         $userId = $this->user->id;
         $userCurrencys = BCurrency::find()
             ->from(BCurrency::tableName().' c')
-            ->select(['c.name', 'c.code', 'c.id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
+            ->select(['c.name', 'c.code', 'c.id', 'c.recharge_status', 'c.withdraw_status', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
             ->leftJoin(
                 BUserCurrency::tableName().' uc',
                 'c.id = uc.currency_id '
@@ -165,8 +165,8 @@ class WalletController extends BaseController
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
-            $val['effect_time'] = FuncHelper::formateDate($val['effect_time'], 0, true);
             $val['status_str'] = BUserCurrencyDetail::getStatus($val['status'], 0, true);
+            $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -319,12 +319,12 @@ class WalletController extends BaseController
         // 单笔最小数量
         $minAmount = $currency->withdraw_min_amount;
         if ($amount < $minAmount) {
-            return $this->respondJson(1, '单笔最小转账数量'.floatval($minAmount));
+            return $this->respondJson(1, '单笔最小转账数量 '.floatval($minAmount));
         }
         // 单笔最大数量
         $maxAmount = $currency->withdraw_max_amount;
         if ($amount > $maxAmount) {
-            return $this->respondJson(1, '单笔最大转账数量'.floatval($maxAmount));
+            return $this->respondJson(1, '单笔最大转账数量 '.floatval($maxAmount));
         }
 
         // 重算用户持仓

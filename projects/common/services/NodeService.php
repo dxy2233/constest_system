@@ -35,8 +35,9 @@ class NodeService extends ServiceBase
         ->join('left join', 'gr_user B', 'A.user_id = B.id')
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
         ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
+        ->where(['C.status' => BNotice::STATUS_ACTIVE])
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name']);
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name', 'D.id as type_id']);
         // ->orderBy('sum(C.vote_number) desc');
         
         
@@ -143,17 +144,15 @@ class NodeService extends ServiceBase
      */
     public static function getNodeList(int $nodeType = null, int $page = null, int $pageSize = 15, string $field = 'vote_number', int $sort = SORT_DESC)
     {
-        // $cacheKey = 'nodeList_'.$nodeType;
-        // $cache = \Yii::$app->cache;
         $nodeModel = BNode::find()
         ->alias('n')
-        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
+        ->select(['n.id', 'n.name', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number', 'nt.is_vote'])
         ->active(BNode::STATUS_ACTIVE, 'n.')
         ->joinWith(['votes v' => function ($query) {
             if ($query->count()) {
                 $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
             }
-        }], false)
+        }, 'nodeType nt'], false)
         ->filterWhere(['n.type_id' => $nodeType])
         ->groupBy('n.id');
         self::$number = $nodeModel->count();
@@ -169,8 +168,9 @@ class NodeService extends ServiceBase
         $voteUser = NodeService::getPeopleNum($nodeIds);
         foreach ($nodeList as $key => &$node) {
             $node['vote_number'] = $node['vote_number'] ?? 0;
-            $node['logo'] = FuncHelper::getImageUrl($node['logo']);
+            $node['logo'] = FuncHelper::getImageUrl($node['logo'], 100, 100);
             $node['is_tenure'] = (bool) $node['is_tenure'];
+            $node['is_vote'] = (bool) $node['is_vote'];
             $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;
             unset($node['votes']);
         }

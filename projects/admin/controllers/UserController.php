@@ -247,8 +247,8 @@ class UserController extends BaseController
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;
-            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front);
-            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back);
+            $identify['picFront'] = FuncHelper::getImageUrl($userIdentify->pic_front, 640, 640);
+            $identify['picBack'] = FuncHelper::getImageUrl($userIdentify->pic_back, 640, 640);
         }
         return $this->respondJson(0, '获取成功', $identify);
     }

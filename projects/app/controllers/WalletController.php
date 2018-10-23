@@ -68,7 +68,7 @@ class WalletController extends BaseController
         $userId = $this->user->id;
         $userCurrencys = BCurrency::find()
             ->from(BCurrency::tableName().' c')
-            ->select(['c.name', 'c.code', 'c.id', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
+            ->select(['c.name', 'c.code', 'c.id', 'c.recharge_status', 'c.withdraw_status', 'uc.position_amount', 'uc.frozen_amount', 'uc.use_amount'])
             ->leftJoin(
                 BUserCurrency::tableName().' uc',
                 'c.id = uc.currency_id '

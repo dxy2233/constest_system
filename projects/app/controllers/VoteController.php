@@ -151,7 +151,7 @@ class VoteController extends BaseController
         // 返回容器
         $data = [];
         // 查询类型
-        $type = $this->pInt('type', 1);
+        $type = $this->pInt('type', 0);
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $userModel = $this->user;

@@ -34,11 +34,11 @@ class AdminService extends ServiceBase
 
         //过期旧token，保持一个用户登录
         if (!empty(\Yii::$app->params['onlyUserlogin'])) {
-            BUserAccessToken::updateAll(
+            BAdminAccessToken::updateAll(
                 ['expire_time' => NOW_TIME, 'update_time' => NOW_TIME],
                 ['and', ['user_id' => $userId], ['client_id' => \Yii::$app->controller->module->id], ['>', 'expire_time', NOW_TIME]]
             );
-            BUserRefreshToken::updateAll(
+            BAdminRefreshToken::updateAll(
                 ['expire_time' => NOW_TIME, 'update_time' => NOW_TIME],
                 ['and', ['user_id' => $userId], ['client_id' => \Yii::$app->controller->module->id], ['>', 'expire_time', NOW_TIME]]
             );
@@ -75,13 +75,13 @@ class AdminService extends ServiceBase
      */
     public static function refreshAccessToken($refreshToken)
     {
-        $refreshToken = BUserRefreshToken::find()
+        $refreshToken = BAdminRefreshToken::find()
             ->where(['refresh_token' => $refreshToken,'client_id' => \Yii::$app->controller->module->id])
             ->andWhere(['>=', 'expire_time', NOW_TIME])
             ->one();
 
         if ($refreshToken) {
-            $accessToken = new BUserAccessToken();
+            $accessToken = new BAdminAccessToken();
             $accessToken->client_id = $refreshToken->client_id;
             $accessToken->user_id = $refreshToken->user_id;
             $accessToken->access_token = $accessToken->generateAccessToken();

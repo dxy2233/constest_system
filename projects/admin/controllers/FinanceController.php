@@ -187,6 +187,7 @@ class FinanceController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
+        $find->orderBy('A.create_time DESC');
         $count = $find->count();
         $page = $this->pInt('page', 0);
         if ($page != 0) {

@@ -83,24 +83,24 @@
           :key="index"
           :label="item.name"
           :name="item.id">
-          <el-form>
-            <el-form-item label="单笔最小转账数量">
-              <el-input v-model="form.withdraw_min_amount">
+          <el-form ref="transferForm" :model="form" :rules="rules">
+            <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
+              <el-input v-model.number="form.withdraw_min_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
-            <el-form-item label="大于该值转账需审核">
-              <el-input v-model="form.withdraw_max_amount">
+            <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
+              <el-input v-model.number="form.withdraw_max_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
-            <el-form-item label="每日单次最高转账数量">
-              <el-input v-model="form.withdraw_audit_amount">
+            <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
+              <el-input v-model.number="form.withdraw_audit_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
-            <el-form-item label="每日累计转账数量">
-              <el-input v-model="form.withdraw_day_amount">
+            <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
+              <el-input v-model.number="form.withdraw_day_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
@@ -144,6 +144,20 @@ export default {
         withdraw_max_amount: '',
         withdraw_audit_amount: '',
         withdraw_day_amount: ''
+      },
+      rules: {
+        withdraw_min_amount: [
+          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+        ],
+        withdraw_max_amount: [
+          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+        ],
+        withdraw_audit_amount: [
+          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+        ],
+        withdraw_day_amount: [
+          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+        ]
       }
     }
   },
@@ -160,7 +174,7 @@ export default {
       } else if (this.checkType === '已通过') {
         return 1
       } else if (this.checkType === '未通过') {
-        return 3
+        return 2
       }
     }
   },
@@ -258,8 +272,15 @@ export default {
     },
     // 保存转账设置
     saveSet() {
-      editSet({ ...this.form, currency_id: this.setType }).then(res => {
-        Message({ message: res.msg, type: 'success' })
+      this.$refs['transferForm'].validate((valid) => {
+        if (valid) {
+          editSet({ ...this.form, currency_id: this.setType }).then(res => {
+            Message({ message: res.msg, type: 'success' })
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
       })
     }
   }

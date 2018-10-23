@@ -11,6 +11,8 @@ use Yii;
  * @property int $user_id 用户ID
  * @property int $currency_id 货币
  * @property int $type 类型，1 选举 2 投票
+ * @property string $relate_table
+ * @property integer $relate_id
  * @property string $amount 数量
  * @property string $remark 备注
  * @property int $status 状态，0 解冻，1 冻结

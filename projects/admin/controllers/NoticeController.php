@@ -46,6 +46,7 @@ class NoticeController extends BaseController
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
+            $v['image'] = FuncHelper::getImageUrl($v['image']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -164,6 +165,7 @@ class NoticeController extends BaseController
         }
         $notice['create_time'] = date('Y-m-d H:i:s', $notice['create_time']);
         $notice['update_time'] = date('Y-m-d H:i:s', $notice['update_time']);
+        $notice['image'] = FuncHelper::getImageUrl($notice['image']);
         return $this->respondJson(0, '获取成功', $notice);
     }
 

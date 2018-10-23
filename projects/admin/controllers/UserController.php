@@ -91,8 +91,8 @@ class UserController extends BaseController
                 $v['userType'] = '普通用户';
                 $v['nodeName'] = '——';
             }
-            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-            $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['last_login_time'] = $v['last_login_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['last_login_time']);
             $v['status'] = BUser::getStatus($v['status']);
             if ($v['num'] == null) {
                 $v['num'] = 0;

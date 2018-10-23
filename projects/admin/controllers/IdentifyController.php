@@ -99,6 +99,8 @@ class IdentifyController extends BaseController
         }
         $data->status = BUserIdentify::STATUS_FAIL;
         $data->status_remark = $remark;
+        $data->examine_time = time();
+        $data->audit_admin_id = $this->user_id;
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
@@ -118,6 +120,8 @@ class IdentifyController extends BaseController
         }
         $data->status = BUserIdentify::STATUS_ACTIVE;
         $data->status_remark = '已通过';
+        $data->examine_time = time();
+        $data->audit_admin_id = $this->user_id;
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }

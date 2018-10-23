@@ -57,6 +57,9 @@ class LoginController extends BaseController
         if (!$vcode) {
             return $this->respondJson(1, "验证码不能为空");
         }
+        if (!is_null($reCode) && !preg_match('/^[a-zA-Z0-9]{6}$/i', $reCode)) {
+            return $this->respondJson(1, "推荐码格式错误");
+        }
         //图形验证码
         if (\Yii::$app->params['imageCaptcha']) {
             $captchaCode = $this->pString('captcha_code', '');
@@ -87,7 +90,6 @@ class LoginController extends BaseController
         //验证手机、是否存在
         if (!is_object($userModel)) {
             $random = UserService::generateRemmendCode(6);
-            // BUser::find()->where(['mobile' => $mobile])->one();
             $user = [
                 'username' => $mobile,
                 'mobile' => $mobile,
@@ -101,7 +103,7 @@ class LoginController extends BaseController
             $userModel = $createUser->content;
             // 添加推荐关系
             if (!is_null($reCode)) {
-                if ($code = UserService::validateRemmendCode($reCode)) {
+                if ($code = UserService::validateRemmendCode(strtoupper($reCode))) {
                     $recommend = new BUserRecommend();
                     $recommend->parent_id = $code;
                     $recommend->link('user', $userModel);

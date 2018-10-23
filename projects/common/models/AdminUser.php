@@ -47,7 +47,7 @@ class AdminUser extends DzModel implements IdentityInterface
             [['name', 'password'], 'string', 'max' => 45, 'min' => 5],
             [['mobile'], 'string', 'max' => 15],
             [['allow_city','allow_ip'], 'string', 'max' => 1000],
-            [['name', 'mobile'], 'unique'],
+            [['name'], 'unique'],
             [['pwd_salt'], 'string', 'max' => 32],
         ];
     }

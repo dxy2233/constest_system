@@ -527,7 +527,7 @@ class UserController extends BaseController
             return $this->respondJson(1, '手机不能为空');
         }
         
-        if (!preg_match("/^1[34578]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $old_data = BUser::find()->where(['mobile' => $mobile])->one();

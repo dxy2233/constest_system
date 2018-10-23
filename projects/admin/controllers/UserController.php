@@ -37,6 +37,7 @@ class UserController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -56,7 +57,7 @@ class UserController extends BaseController
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
-        $page = $this->pInt('page');
+        $page = $this->pInt('page', 0);
         
         $searchName = $this->pString('searchName');
         
@@ -75,13 +76,16 @@ class UserController extends BaseController
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
-        $is_download = $this->pInt('is_download', 0);
-        if ($is_download == 0 && $page != 0) {
-            $count = $find->count();
+        $find->orderBy($order . ' DESC');
+        $count = $find->count();
+        if ($page != 0) {
             $find->page($page);
         }
+        
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();
         //var_dump($list);
@@ -114,11 +118,7 @@ class UserController extends BaseController
                 $v['referee'] = $recommend['mobile'];
             }
         }
-        if ($is_download != 0) {
-            $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
-            $this->download($list, $headers);
-            return;
-        }
+
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
     }
@@ -146,11 +146,14 @@ class UserController extends BaseController
             $find->endTime($end_time, 'A.create_time');
         }
         
-        $order = $this->gString('order');
+        $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
+        $find->orderBy($order . ' DESC');
 
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();
@@ -490,7 +493,25 @@ class UserController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
         }
+        $code = $this->pString('code');
         $user->username = $name;
+        $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
+        if (empty($recommend)) {
+            $id = UserService::validateRemmendCode($code);
+            $user_recommend = new BUserRecommend();
+            $user_recommend->user_id = $user->id;
+            $user_recommend->parent_id = $id;
+            if (!$user_recommend->save()) {
+                return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+            }
+        } else {
+            return $this->respondJson(1, '用户已有推荐人');
+        }
+        if (empty($recommend)) {
+            $info['referee'] = '-';
+        } else {
+            $info['referee'] = $recommend['mobile'];
+        }
         if ($user->save()) {
             return $this->respondJson(0, $str.'成功');
         } else {
@@ -505,14 +526,19 @@ class UserController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
+        
+        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
+        }
         $old_data = BUser::find()->where(['mobile' => $mobile])->one();
         if ($old_data) {
             return $this->respondJson(1, '手机已注册');
         }
         $code = $this->pString('code');
-        $recommend_code = UserService::generateRemmendCode(6);
+        
         $user = new BUser();
         $user->mobile = $mobile;
+        $recommend_code = UserService::generateRemmendCode(6);
         $user->recommend_code = $recommend_code;
         
         $user->username = $mobile;

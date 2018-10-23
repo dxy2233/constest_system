@@ -1,6 +1,7 @@
 <template>
   <ul class="rank-list">
-    <router-link tag="li" v-for="(item,index) in list" :to="'/home/node/dts'+item.id" :key="item.id">
+    <router-link tag="li" v-for="(item,index) in list"
+                 :to="'/home/node/dts'+item.id" :key="item.id+item.name+index">
       <div class="rank">
         <span :class="{'sign':index<3}">{{++index}}</span>
       </div>

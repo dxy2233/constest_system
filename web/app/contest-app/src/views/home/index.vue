@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <!--<router-link to="/home/notice-details/1">gogogogoog</router-link>-->
     <div class="home-main">
       <header>
         <h2>首页</h2>
@@ -13,13 +12,15 @@
         <swiper height="135px" class="notice-swiper" dots-position="left">
           <swiper-item v-for="(item, index) in swiperList" class="notice-swiper-item"
                        :key="index">
-            <router-link v-if="item.type==='1'" tag="div" class="img-box"
+            <!--v-if="item.type==='1'"-->
+            <router-link tag="div" class="img-box"
                          :style='{ backgroundImage: "url(" + item.image + ")"}'
                          :to="'/home/notice/dts'+item.id"></router-link>
-            <a v-else :href="item.url" target="_blank" class="img-box"></a>
+            <!--<div class="img-box" @click="goNoticeDts(item)"
+                 :style='{ backgroundImage: "url(" + item.image + ")"}'></div>-->
+            <!--<a v-else :href="item.url" target="_blank" class="img-box"></a>-->
           </swiper-item>
         </swiper>
-        <!--<p class="and-more">查看更多>></p>-->
         <router-link tag="p" to="/home/notice" class="and-more">查看更多>></router-link>
       </div>
       <div class="line"></div>
@@ -29,14 +30,14 @@
             {{tab.name}}
           </li>
         </ul>
-        <!--<span class="all-rank">全部排名</span>-->
         <router-link class="all-rank" to="/home/node" tag="span">全部排名</router-link>
         <div class="rank-list-box">
           <rank-list :list="nodeList"></rank-list>
+          <load-more tip="正在加载" v-show="loadShow"></load-more>
+          <div class="no-data" v-if="!loadShow&&!nodeList.length">暂无更多数据</div>
         </div>
       </div>
     </div>
-    <!--<router-link to="/home/node-details">gogogogoog</router-link>-->
     <router-view></router-view>
   </div>
 
@@ -71,10 +72,17 @@
         ],
         currentTab: 0,
         currentNodeId: '',
-        nodeList: []
+        nodeList: [],
+        loadShow: true
       }
     },
     methods: {
+      goNoticeDts(item) {
+        /*this.$router.push({
+          path: '/home/notice/dts' + item.id,
+          query: {type: item.type}
+        })*/
+      },
       jjj(id) {
         id = 1
         let aaa = '333'
@@ -83,7 +91,9 @@
         })
       },
       selectTab(index) {
-        this.currentTab = index
+        this.currentNodeId = index
+        this.nodeList = []
+        this.getNodeList()
       },
       getNoticeList() {
         http.post('/app/notice', {}, (res) => {
@@ -106,9 +116,11 @@
         })
       },
       getNodeList() {
+        this.loadShow = true
         http.post('/node/vote', {
           id: this.currentNodeId
         }, (res) => {
+          this.loadShow = false
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
             return
@@ -182,6 +194,8 @@
 
     .ranking
       position relative
+      .no-data
+        text-align center
       .rank-list-box
         margin -15px
       .all-rank

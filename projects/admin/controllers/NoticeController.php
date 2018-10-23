@@ -44,8 +44,11 @@ class NoticeController extends BaseController
             $find->andWhere(['!=', 'status', BNotice::STATUS_DELETE]);
         }
         $count = $find->count();
-        $page = $this->pInt('page', 1);
-        $find->page($page);
+        $page = $this->pInt('page', 0);
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $find->orderBy('is_top DESC,update_time DESC');
         //echo $find->createCommand()->getRawSql();
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
@@ -171,8 +174,8 @@ class NoticeController extends BaseController
         if (empty($notice)) {
             return $this->respondJson(1, '文章不存在');
         }
-        $notice['create_time'] = date('Y-m-d H:i:s', $notice['create_time']);
-        $notice['update_time'] = date('Y-m-d H:i:s', $notice['update_time']);
+        $notice['start_time'] = date('Y-m-d H:i:s', $notice['start_time']);
+        $notice['end_time'] = date('Y-m-d H:i:s', $notice['end_time']);
         $notice['image'] = FuncHelper::getImageUrl($notice['image']);
         return $this->respondJson(0, '获取成功', $notice);
     }
@@ -201,11 +204,13 @@ class NoticeController extends BaseController
             if (empty($url)) {
                 return $this->respondJson(1, '链接地址不能为空');
             }
+            $notice->url = $url;
         } else {
             $detail = $this->pString('detail');
             if (empty($detail)) {
                 return $this->respondJson(1, '正文不能为空');
             }
+            $notice->detail = $detail;
         }
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
@@ -280,7 +285,7 @@ class NoticeController extends BaseController
                 return $this->respondJson(1, "操作失败", $v->getFirstErrorText());
             }
         }
-
+        SettingService::refresh();
         $transaction->commit();
         return $this->respondJson(0, "操作成功");
     }

@@ -93,6 +93,7 @@ class VoteService extends ServiceBase
                 'update_time' => NOW_TIME,
                 'user_recharge' => $isFrozen ? 'voto_frozen' : 'voto_trans',
             ];
+            // 货币投票
             $currencyTrans = self::bankrollVotes($res, $isFrozen);
             if ($currencyTrans->code) {
                 throw new ErrorException('划账失败 '.$currencyTrans->msg);

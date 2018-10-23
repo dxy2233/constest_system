@@ -7,11 +7,13 @@ import App from './App'
 import store from './store'
 import {ToastPlugin} from 'vux'
 import {Icon, XHeader, XButton, LoadMore} from 'vux'
-import VueQuickLoadmore from 'vue-quick-loadmore';
+// import VueQuickLoadmore from 'vue-quick-loadmore';
 import appHeader from 'components/appHeader/index'
 import loadMore from 'components/loadmore/index'
 
-Vue.use(VueQuickLoadmore)
+import VueScroller from 'vue-scroller'
+Vue.use(VueScroller)
+// Vue.use(VueQuickLoadmore)
 
 Vue.component('icon', Icon)
 Vue.component('x-header', XHeader)

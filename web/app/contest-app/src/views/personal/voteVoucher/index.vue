@@ -24,9 +24,7 @@
           </li>
         </ul>
         <div class="list-box">
-          <quick-loadmore ref="vueLoad"
-                          :bottom-method="handleBottom"
-                          :disable-top="true" :disable-bottom="false">
+          <scroller :on-infinite="handleBottom" ref="my_scroller">
             <ul class="list">
               <li v-for="item in dataList">
                 <p>
@@ -39,8 +37,7 @@
                 </p>
               </li>
             </ul>
-            <load-more tip="正在加载" v-show="loadShow"></load-more>
-          </quick-loadmore>
+          </scroller>
         </div>
       </div>
     </div>
@@ -68,12 +65,13 @@
             name: '使用记录'
           }
         ],
-        currentType: '1',
+        currentType: sessionStorage.getItem("voteVoucherType") || '1',
         dataList: [],
         page: 1,
         loadShow: true,
         currencyInfo: {},
-        voucherInfo: 0
+        voucherInfo: 0,
+        total:'',
       }
     },
     methods: {
@@ -83,13 +81,30 @@
         sessionStorage.setItem("voteVoucherType", item.type);
         this.page = 1
         this.dataList = []
-        this.loadShow = true
-        this.$refs.vueLoad.onBottomLoaded();
-        this.getList()
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);
       },
       handleBottom() {
-        this.page++
-        this.getList()
+        if (this.total!==''&&this.dataList.length >= parseInt(this.total)){
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+
+        http.post('/vote/voucher', {
+          type: this.currentType,
+          page: this.page,
+          page_size: 10
+        }, (res) => {
+          if (this.loadShow) this.loadShow = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.dataList = this.dataList.concat(res.content.list)
+          this.total = res.content.count
+          this.page++
+          this.$refs.my_scroller.finishInfinite(false);
+        })
       },
       getVoucherInfo() {
         http.post('/vote/voucher-info', {}, (res) => {
@@ -124,9 +139,8 @@
       },
     },
     created() {
-      this.currentType = sessionStorage.getItem("voteVoucherType") || '1'
+      // this.currentType = sessionStorage.getItem("voteVoucherType") || '1'
       this.getVoucherInfo()
-      this.getList()
     },
   }
 </script>
@@ -184,6 +198,7 @@
         overflow hidden
         .list
           margin 0 $space-box
+          min-height $space-box
         li
           border-bottom 1px solid $color-border
           padding 10px 0

@@ -20,6 +20,7 @@ use Yii;
  * @property int $is_tenure 任职状态：0 不任职 1 任职
  * @property string $status_remark 状态备注
  * @property string $logo LOGO
+ * @property int examine_time 审核时间
  * @property int $create_time 创建时间
  */
 class Node extends \common\dzbase\DzModel
@@ -39,7 +40,7 @@ class Node extends \common\dzbase\DzModel
     {
         return [
             [['user_id', 'type_id'], 'required'],
-            [['user_id', 'type_id', 'status', 'create_time', 'is_tenure'], 'integer'],
+            [['user_id', 'type_id', 'status', 'create_time', 'examine_time', 'is_tenure'], 'integer'],
             [['desc', 'scheme'], 'string'],
             [['name', 'status_remark', 'logo'], 'string', 'max' => 255],
         ];
@@ -62,6 +63,7 @@ class Node extends \common\dzbase\DzModel
             'scheme' => Yii::t('app', '建设方案'),
             'status' => Yii::t('app', '节点状态：0 停用 1 已生效 2 审核中 3 撤销 4 审核未通过'),
             'is_tenure' => Yii::t('app', '任职状态：0 不任职 1 任职'),
+            'examine_time' => Yii::t('app', '审核时间'),
             'status_remark' => Yii::t('app', '状态备注'),
             'logo' => Yii::t('app', 'LOGO'),
             'create_time' => Yii::t('app', '创建时间'),

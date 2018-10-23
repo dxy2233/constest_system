@@ -8,9 +8,7 @@
         锁仓记录
       </app-header>
       <div class="main">
-        <quick-loadmore ref="vueLoad"
-                        :bottom-method="handleBottom"
-                        :disable-top="true" :disable-bottom="false">
+        <scroller :on-infinite="handleBottom" ref="my_scroller">
           <ul class="list">
             <li v-for="item in dataList">
               <p>
@@ -23,8 +21,7 @@
               </p>
             </li>
           </ul>
-          <load-more tip="正在加载" v-show="loadShow"></load-more>
-        </quick-loadmore>
+        </scroller>
       </div>
     </div>
   </slide>
@@ -43,14 +40,35 @@
       return {
         dataList: [],
         page: 1,
-        loadShow: true
+        loadShow: true,
+        total:''
       }
     },
     methods: {
 
       handleBottom() {
-        this.page++
-        this.getList()
+        /*this.page++
+        this.getList()*/
+        if (this.total!==''&&this.dataList.length >= parseInt(this.total)){
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+
+        http.post('/wallet/currency-frozen', {
+          id: this.$route.params.id,
+          page: this.page,
+          page_size: 10
+        }, (res) => {
+          if (this.loadShow) this.loadShow = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.dataList = this.dataList.concat(res.content.list)
+          this.total = res.content.count
+          this.page++
+          this.$refs.my_scroller.finishInfinite(false);
+        })
       },
       getList() {
         http.post('/wallet/currency-frozen', {
@@ -73,7 +91,7 @@
       },
     },
     created() {
-      this.getList()
+      // this.getList()
     }
   }
 </script>
@@ -90,6 +108,7 @@
       width 100%
       overflow hidden
       .list
+        min-height $space-box
         li
           padding 20px $space-box
           border-bottom 1px solid $color-border

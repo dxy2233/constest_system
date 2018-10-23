@@ -12,8 +12,9 @@ use common\components\NetUtil;
 use common\services\ReturnInfo;
 use common\components\FuncHelper;
 use common\components\FuncResult;
-use common\models\business\BUser;
+use common\models\business\BAdminUser;
 use common\models\business\BUserLog;
+use common\models\business\BAdminLog;
 use common\models\business\BUserWallet;
 use common\models\business\BAdminAccessToken;
 use common\models\business\BVoucherDetail;
@@ -34,11 +35,11 @@ class AdminService extends ServiceBase
 
         //过期旧token，保持一个用户登录
         if (!empty(\Yii::$app->params['onlyUserlogin'])) {
-            BUserAccessToken::updateAll(
+            BAdminAccessToken::updateAll(
                 ['expire_time' => NOW_TIME, 'update_time' => NOW_TIME],
                 ['and', ['user_id' => $userId], ['client_id' => \Yii::$app->controller->module->id], ['>', 'expire_time', NOW_TIME]]
             );
-            BUserRefreshToken::updateAll(
+            BAdminRefreshToken::updateAll(
                 ['expire_time' => NOW_TIME, 'update_time' => NOW_TIME],
                 ['and', ['user_id' => $userId], ['client_id' => \Yii::$app->controller->module->id], ['>', 'expire_time', NOW_TIME]]
             );
@@ -75,13 +76,13 @@ class AdminService extends ServiceBase
      */
     public static function refreshAccessToken($refreshToken)
     {
-        $refreshToken = BUserRefreshToken::find()
+        $refreshToken = BAdminRefreshToken::find()
             ->where(['refresh_token' => $refreshToken,'client_id' => \Yii::$app->controller->module->id])
             ->andWhere(['>=', 'expire_time', NOW_TIME])
             ->one();
 
         if ($refreshToken) {
-            $accessToken = new BUserAccessToken();
+            $accessToken = new BAdminAccessToken();
             $accessToken->client_id = $refreshToken->client_id;
             $accessToken->user_id = $refreshToken->user_id;
             $accessToken->access_token = $accessToken->generateAccessToken();
@@ -103,6 +104,45 @@ class AdminService extends ServiceBase
         }
 
         return new ReturnInfo(1, "刷新用户认证失败");
+    }
+
+    public static function loginErrorNumLimit($mobile)
+    {
+        if (empty($mobile)) {
+            return new ReturnInfo(1, '账号不存在');
+        }
+        /*封ip*/
+        $lastUserLogArr = BAdminLog::find()->where(['ip' => \Yii::$app->request->getUserIP(), 'type' => BAdminLog::$TYPE_LOGIN, 'status' => BAdminLog::$STATUS_FAIL])
+            ->select('create_time')->asArray()->orderBy('create_time desc')->limit(1)->one();
+        if (!empty($lastUserLogArr) && NOW_TIME - $lastUserLogArr['create_time'] < 3600) {
+            $userLogCount = BAdminLog::find()->where(['ip' => \Yii::$app->request->getUserIP(), 'type' => BAdminLog::$TYPE_LOGIN, 'status' => BAdminLog::$STATUS_FAIL])
+                ->andWhere(['<=', 'create_time', $lastUserLogArr['create_time']])
+                ->andWhere(['>', 'create_time', $lastUserLogArr['create_time'] - 3600])->count();
+            if ($userLogCount >= 5) {
+                return new ReturnInfo(1, '您已输入密码错误5次，账户将冻结1小时');
+            }
+        }
+
+        /*封账号*/
+        // 根据用户信息找到现在到过去2小时登录信息
+        $user = BAdminUser::find()->where(['name' => $mobile])->limit(1)->one();
+
+        $count = 0;
+        if (!empty($user)) {
+            $lastUserLogArr = BAdminLog::find()->where(['user_id' => $user->id, 'type' => BAdminLog::$TYPE_LOGIN, 'status' => BAdminLog::$STATUS_FAIL])
+                ->asArray()->orderBy('create_time desc')->limit(1)->one();
+
+            if (!empty($lastUserLogArr) && NOW_TIME - $lastUserLogArr['create_time'] < 3600) {
+                $count = BAdminLog::find()->where(['user_id' => $user->id, 'type' => BAdminLog::$TYPE_LOGIN, 'status' => BAdminLog::$STATUS_FAIL])
+                    ->asArray()->andWhere(['<=', 'create_time', $lastUserLogArr['create_time']])
+                    ->andWhere(['>', 'create_time', $lastUserLogArr['create_time'] - 3600])->count();
+                if ($count >= 5) {
+                    return new ReturnInfo(1, '您已输入密码错误5次，账户将冻结1小时');
+                }
+            }
+        }
+
+        return new ReturnInfo(0, '', ['count' => $count, 'user_id' => empty($user->id) ? 0 : $user->id]);
     }
 
     /**

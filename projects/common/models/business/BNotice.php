@@ -59,9 +59,9 @@ class BNotice extends \common\models\Notice
 
         $showCount = (int) SettingService::get('notice', 'show_count')->value;
         $query = self::find()
-        ->select(['id', 'title', 'desc', 'type', 'image', 'url', 'click', 'sort', 'create_time'])
-        ->active()
-        ->hasStartAndEndTime();
+        ->select(['id', 'title', 'desc', 'type', 'image', 'click', 'is_top', 'create_time'])
+        ->active();
+        // ->hasStartAndEndTime();
         if ($isIndex) {
             $query->limit($showCount);
         } else {
@@ -77,7 +77,7 @@ class BNotice extends \common\models\Notice
         // ])
         
         $noticeList = $query->asArray()->all();
-        ArrayHelper::multisort($noticeList, ['is_top', 'create_time'], [SORT_ASC, SORT_DESC]);
+        ArrayHelper::multisort($noticeList, ['is_top', 'create_time'], [SORT_DESC, SORT_DESC]);
         foreach ($noticeList as $key => &$notice) {
             $notice['image'] = FuncHelper::getImageUrl($notice['image']);
             unset($notice['create_time']);

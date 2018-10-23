@@ -36,7 +36,7 @@ class NodeService extends ServiceBase
         ->join('left join', 'gr_vote C', 'A.id = C.node_id')
         ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time','A.status','A.id','A.is_tenure','D.name as type_name']);
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name']);
         // ->orderBy('sum(C.vote_number) desc');
         
         
@@ -150,21 +150,25 @@ class NodeService extends ServiceBase
         ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
         ->active(BNode::STATUS_ACTIVE, 'n.')
         ->joinWith(['votes v' => function ($query) {
-            $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
+            if ($query->count()) {
+                $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
+            }
         }], false)
         ->filterWhere(['n.type_id' => $nodeType])
         ->groupBy('n.id');
         self::$number = $nodeModel->count();
-        $nodeModel->cache(-1);
+        // $nodeModel->cache(-1);
         if (!is_null($page)) {
             $nodeModel->page($page, $pageSize);
         }
         $nodeModel->asArray();
+        // var_dump($nodeModel->all());exit;
         $nodeList = $nodeModel->all();
         $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
         // 获取节点user 去重统计
         $voteUser = NodeService::getPeopleNum($nodeIds);
         foreach ($nodeList as $key => &$node) {
+            $node['vote_number'] = $node['vote_number'] ?? 0;
             $node['logo'] = FuncHelper::getImageUrl($node['logo']);
             $node['is_tenure'] = (bool) $node['is_tenure'];
             $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;

@@ -46,19 +46,24 @@ class IdentifyController extends BaseController
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->join('left join', BUserIdentify::tableName().' B', 'B.user_id = A.id');
-        $page = $this->pInt('page');
+        $page = $this->pInt('page', 0);
         $status = $this->pInt('status', 0);
         $find->andWhere(['B.status' => $status]);
-        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id']);
+        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
             $find->andWhere(['or',['like','A.username',$searchName],['like', 'A.mobile', $searchName],['like', 'B.number', $searchName]]);
         }
         $count = $find->count();
-        $list = $find->page($page)->asArray()->all();
+        $find->orderBy('B.create_time DESC');
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $list = $find->asArray()->all();
         foreach ($list as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['status'] = BUserIdentify::getStatus($v['status']);
         }
         $return = ['count' => $count, 'list' => $list];
@@ -94,6 +99,8 @@ class IdentifyController extends BaseController
         }
         $data->status = BUserIdentify::STATUS_FAIL;
         $data->status_remark = $remark;
+        $data->examine_time = time();
+        $data->audit_admin_id = $this->user_id;
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
@@ -113,6 +120,8 @@ class IdentifyController extends BaseController
         }
         $data->status = BUserIdentify::STATUS_ACTIVE;
         $data->status_remark = '已通过';
+        $data->examine_time = time();
+        $data->audit_admin_id = $this->user_id;
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }

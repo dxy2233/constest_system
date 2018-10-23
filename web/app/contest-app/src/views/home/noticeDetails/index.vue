@@ -1,11 +1,10 @@
 <template>
   <slide>
     <div class="notice-details">
-      <!--<x-header :left-options="{backText: ''}">{{noticeInfo.title}}</x-header>-->
       <app-header>
-        {{noticeInfo.title}}
+        <span v-if="noticeInfo.type==1">{{noticeInfo.title}}</span>
       </app-header>
-      <div class="h-main">
+      <div class="h-main" v-if="noticeInfo.type==1">
         <div class="content-box">
           <!--<h2 class="title">{{noticeInfo.desc}}</h2>-->
           <div class="detail" v-html="noticeInfo.detail">egwrgwgvgwegr</div>
@@ -34,13 +33,18 @@
         http.post('/notice/info', {
           id: this.$route.params.id,
         }, (res) => {
-
+          console.log(res)
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
             return
           }
-          this.noticeInfo = res.content
-          // console.log(this.noticeInfo)
+          if (res.content.type == 0){
+            window.open(res.content.url)
+            this.$router.back()
+          }else {
+            this.noticeInfo = res.content
+          }
+
         })
       }
     },

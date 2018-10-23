@@ -3,17 +3,12 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\WithdrawService;
 use yii\helpers\ArrayHelper;
-use common\models\business\BNotice;
 use common\models\business\BSetting;
-use common\models\business\BUserCurrency;
 use common\models\business\BUser;
-use common\models\business\BUserWallet;
-use common\models\business\BUserCurrencyDetail;
-use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BCurrency;
-use common\task\TestJob;
 
 /**
  * Site controller
@@ -79,6 +74,7 @@ class WithdrawController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, "操作失败", $currency->getFirstErrorText());
         }
+        SettingService::refresh();
         $transaction->commit();
 
         return $this->respondJson(0, "操作成功");
@@ -113,11 +109,11 @@ class WithdrawController extends BaseController
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
 
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.id', 'A.destination_address'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.examine_time', 'A.id', 'A.destination_address'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
@@ -134,14 +130,17 @@ class WithdrawController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-
+        $find->orderBy('A.create_time DESC');
         $count = $find->count();
-        $find->page($page);
+        if ($page != 0) {
+            $find->page($page);
+        }
 
         $data = $find->asArray()->all();
         //echo $find->createCommand()->getRawSql();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['type'] = BUserRechargeWithdraw::getType($v['type']);
             $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
         }
@@ -150,6 +149,7 @@ class WithdrawController extends BaseController
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
     }
+
     // 审核失败
     public function actionExamineOff()
     {
@@ -165,7 +165,7 @@ class WithdrawController extends BaseController
         if (empty($remark)) {
             return $this->respondJson(1, '原因不能为空');
         }
-        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS, $remark);
+        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_FAIL, $remark);
         if ($return->code == 0) {
             return $this->respondJson(0, '审核成功');
         } else {

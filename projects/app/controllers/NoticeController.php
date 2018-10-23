@@ -43,22 +43,23 @@ class NoticeController extends BaseController
     {
         $noticeId = $this->pInt('id', 0);
         $notice = BNotice::find()
-        ->select(['title', 'create_time', 'start_time', 'end_time', 'detail', 'desc', 'type'])
+        // ->select(['title', 'create_time', 'start_time', 'end_time', 'detail', 'desc', 'type', 'url', 'click'])
         ->active(BNotice::STATUS_ACTIVE)
-        ->hasStartAndEndTime()
+        // ->hasStartAndEndTime()
         ->where(['id' => $noticeId])
         ->one();
         if (!is_object($notice)) {
             return $this->respondJson(1, '获取公告失败');
         }
-        if ($notice->type === BNotice::TYPE_URL) {
-            return $this->respondJson(0, '该公告为跳转链接');
-        }
+        $notice->updateCounters(['click' => 1]);
         $data = ArrayHelper::toArray($notice);
+        $data['type_str'] = BNotice::getType($notice->type);
         // 模型中格式化时间
         $data['create_Time'] = $notice->createTimeText;
+        $data['update_Time'] = $notice->updateTimeText;
         $data['start_Time'] = $notice->startTimeText;
         $data['end_time'] = $notice->endTimeText;
+        unset($data['sort']);
         // 转换驼峰命名
         return $this->respondJson(0, '获取成功', $data);
     }

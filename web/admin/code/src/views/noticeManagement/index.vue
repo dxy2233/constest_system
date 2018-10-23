@@ -7,7 +7,6 @@
     </el-radio-group>
     <el-button class="btn-right" @click="openAddNotice">公告发布</el-button>
     <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openSet">公告设置</el-button>
-
     已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
     <el-button :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain style="margin-top:20px;" @click="allDelete">删除</el-button>
 
@@ -30,7 +29,7 @@
           <div v-else>下架</div>
         </template>
       </el-table-column>
-      <el-table-column prop="isTop" label="排序">
+      <el-table-column v-if="noticeType=='已上架'" label="排序">
         <template slot-scope="scope">
           <el-button v-if="scope.row.isTop==1" type="text" @click.native.stop="unpin(scope.row.id, scope.$index)">取消置顶</el-button>
           <el-button v-else type="text" @click.native.stop="topping(scope.row.id, scope.$index)">置顶</el-button>
@@ -62,7 +61,8 @@
         <div v-if="rowInfo.type==0">
           <p>链接 <a :href="rowInfo.url" style="text-decoration: underline;color:#888;">{{ rowInfo.url }}</a></p>
         </div>
-        <div v-else v-html="rowInfo.detail"/>
+        <p v-if="rowInfo.type!=0">正文</p>
+        <div v-if="rowInfo.type!=0" style="margin-bottom:80px;" v-html="rowInfo.detail"/>
       </div>
     </transition>
 
@@ -97,7 +97,7 @@
         <el-form-item label="公告标题" required>
           <el-input v-model="releaseData.title"/>
         </el-form-item>
-        <el-form-item label="时间">
+        <!-- <el-form-item label="时间">
           <el-date-picker
             v-model="releaseData.date"
             type="datetimerange"
@@ -107,7 +107,7 @@
             format="yyyy 年 MM 月 dd 日 HH：mm"
             value-format="yyyy-MM-dd HH:mm"
             style="width:100%;"/>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="公告类型" required>
           <el-select v-model="releaseData.type">
             <el-option
@@ -124,7 +124,7 @@
           <div>
             <tinymce :height="300" v-model="releaseData.detail"/>
           </div>
-          <div v-html="releaseData.detail"/>
+          <!-- <div v-html="releaseData.detail"/> -->
         </el-form-item>
       </el-form>
       <span slot="footer">
@@ -151,7 +151,7 @@
         <el-form-item label="公告标题" required>
           <el-input v-model="rowInfo.title"/>
         </el-form-item>
-        <el-form-item label="时间">
+        <!-- <el-form-item label="时间">
           <el-date-picker
             v-model="rowInfo.date"
             type="datetimerange"
@@ -161,7 +161,7 @@
             format="yyyy 年 MM 月 dd 日 HH：mm"
             value-format="yyyy-MM-dd HH:mm"
             style="width:100%;"/>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="公告类型" required>
           <el-select v-model="rowInfo.type">
             <el-option
@@ -178,7 +178,7 @@
           <div>
             <tinymce :height="300" v-model="rowInfo.detail"/>
           </div>
-          <div v-html="rowInfo.detail"/>
+          <!-- <div v-html="rowInfo.detail"/> -->
         </el-form-item>
       </el-form>
       <span slot="footer">

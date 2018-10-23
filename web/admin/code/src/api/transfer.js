@@ -40,22 +40,22 @@ export function editSet({ ...data }) {
 }
 
 // 审核通过
-export function passTrial(user_id) {
+export function passTrial(id) {
   return request({
     url: '/withdraw/examine-on',
     method: 'post',
     data: {
-      user_id
+      id
     }
   })
 }
 // 审核不通过
-export function failTrial(user_id, remark) {
+export function failTrial(id, remark) {
   return request({
     url: '/withdraw/examine-off',
     method: 'post',
     data: {
-      user_id,
+      id,
       remark
     }
   })

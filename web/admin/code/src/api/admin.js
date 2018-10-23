@@ -97,13 +97,14 @@ export function thawUser(userId) {
 }
 
 // 编辑用户名
-export function editUser(userId, name) {
+export function editUser(userId, name, code) {
   return request({
     url: '/user/edit-user',
     method: 'post',
     data: {
       userId,
-      name
+      name,
+      code
     }
   })
 }

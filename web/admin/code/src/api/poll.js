@@ -46,3 +46,11 @@ export function getVoteRank(end_time, type, page) {
     }
   })
 }
+
+// 手动刷新
+export function refresh() {
+  return request({
+    url: '/vote/now-reload',
+    method: 'post'
+  })
+}

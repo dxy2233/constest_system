@@ -167,7 +167,7 @@ class VoteController extends BaseController
             if (strstr($v['key'], 'time')) {
                 $v['value'] = date('Y-m-d H:i:s', (int)$v['value']);
             } else {
-                $v['value'] = float($v['value']);
+                $v['value'] = (float)$v['value'];
             }
         }
         return $this->respondJson(0, "获取成功", $data, false);

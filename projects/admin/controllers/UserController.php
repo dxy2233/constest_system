@@ -37,6 +37,7 @@ class UserController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -77,8 +78,7 @@ class UserController extends BaseController
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
             $find->orderBy($order_arr[$order]. ' DESC');
         }
-        $is_download = $this->pInt('is_download', 0);
-        if ($is_download == 0 && $page != 0) {
+        if ($page != 0) {
             $count = $find->count();
             $find->page($page);
         }
@@ -114,13 +114,76 @@ class UserController extends BaseController
                 $v['referee'] = $recommend['mobile'];
             }
         }
-        if ($is_download != 0) {
-            $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
-            $this->download($list, $headers);
-            return;
-        }
+
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
+    }
+
+
+    public function actionDownload()
+    {
+        $find = BUser::find()
+        ->from(BUser::tableName()." A")
+        ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
+        ->groupBy(['A.id'])
+        ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
+        
+        $searchName = $this->gString('searchName');
+        
+        if ($searchName != '') {
+            $find->andWhere(['like','A.username',$searchName]);
+        }
+        $str_time = $this->gString('str_time');
+        if ($str_time != '') {
+            $find->startTime($str_time, 'A.create_time');
+        }
+        $end_time = $this->gString('end_time');
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+        
+        $order = $this->gString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
+            $find->orderBy($order_arr[$order]. ' DESC');
+        }
+
+        //echo $find->createCommand()->getRawSql();
+        $list = $find->asArray()->all();
+        //var_dump($list);
+        foreach ($list as &$v) {
+            $node = BNode::find()
+            ->from(BNode::tableName()." A")
+            ->join('inner join', 'gr_node_type B', 'A.type_id = B.id')
+            ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $v['id']])->asArray()->one();
+            if ($node) {
+                $v['userType'] = $node['name'];
+                $v['nodeName'] = $node['nodeName'];
+            } else {
+                $v['userType'] = '普通用户';
+                $v['nodeName'] = '——';
+            }
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['last_login_time'] = $v['last_login_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['last_login_time']);
+            $v['status'] = BUser::getStatus($v['status']);
+            if ($v['num'] == null) {
+                $v['num'] = 0;
+            }
+            $recommend = BUserRecommend::find()
+            ->from(BUserRecommend::tableName()." A")
+            ->select(['B.mobile'])
+            ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $v['id']])->asArray()->one();
+
+            if (empty($recommend)) {
+                $v['referee'] = '-';
+            } else {
+                $v['referee'] = $recommend['mobile'];
+            }
+        }
+
+        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+        $this->download($list, $headers);
+        return;
     }
 
 

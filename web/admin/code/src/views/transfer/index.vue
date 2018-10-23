@@ -29,8 +29,8 @@
     </el-select>
     <br>
 
-    已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
-    <el-button :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain style="margin-top:20px;" @click="allDoomPass">通过</el-button>
+    已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
+    <el-button v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
 
     <el-table
       :data="tableDataPage"
@@ -85,22 +85,22 @@
           <el-form>
             <el-form-item label="单笔最小转账数量">
               <el-input v-model="form.withdraw_min_amount">
-                <template slot="append">{{ item.code }}</template>
+                <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="大于该值转账需审核">
               <el-input v-model="form.withdraw_max_amount">
-                <template slot="append">{{ item.code }}</template>
+                <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="每日单次最高转账数量">
               <el-input v-model="form.withdraw_audit_amount">
-                <template slot="append">{{ item.code }}</template>
+                <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="每日累计转账数量">
               <el-input v-model="form.withdraw_day_amount">
-                <template slot="append">{{ item.code }}</template>
+                <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
           </el-form>
@@ -185,6 +185,7 @@ export default {
     },
     // 搜索
     searchData() {
+      if (this.date === null) this.date = ''
       getList(this.checkTypetoNum, this.moneyType, this.search, null, this.date[0], this.date[1]).then(res => {
         this.tableData = res.content.list
       })

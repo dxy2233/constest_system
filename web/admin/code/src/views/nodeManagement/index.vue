@@ -37,6 +37,7 @@
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="index" label="排名"/>
       <el-table-column prop="name" label="节点名称"/>
+      <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="voteNumber" label="票数"/>
       <el-table-column prop="count" label="支持人数"/>
       <el-table-column prop="grt" label="质押GRT"/>
@@ -103,14 +104,14 @@
           <el-tab-pane label="投票明细" name="2">
             <el-radio-group v-model="pollName" class="radioTabs">
               <el-radio-button label="投票记录"/>
-              <el-radio-button label="赎回记录"/>
+              <el-radio-button label="支持用户"/>
             </el-radio-group>
             <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.voteList">
               <el-table-column prop="mobile" label="手机号"/>
               <el-table-column prop="voteNumber" label="票数"/>
               <el-table-column prop="createTime" label="投票时间"/>
             </el-table>
-            <el-table v-show="pollName=='赎回记录'" :data="nodeInfoVote.orderList">
+            <el-table v-show="pollName=='支持用户'" :data="nodeInfoVote.orderList">
               <el-table-column type="index" label="排名"/>
               <el-table-column prop="mobile" label="用户"/>
               <el-table-column prop="voteNumber" label="合计票数"/>
@@ -135,7 +136,7 @@
           :on-success="handleAvatarSuccess"
           :data="{type:'logo'}"
           name="image_file"
-          action="http://admin.contest_system.local/upload/upload/image">
+          action="/upload/upload/image">
           <el-button style="margin-top:30px;">更换logo</el-button>
         </el-upload>
       </div>
@@ -161,7 +162,7 @@
       <el-radio-group v-model="dialogSetType" @change="changeSetType">
         <el-radio-button v-for="(item,index) in allType" :key="index" :label="item.name"/>
       </el-radio-group>
-      <el-button style="float:right;" @click="openRule">权益设置</el-button>
+      <el-button style="float:right;" @click="dialogRight = true">权益设置</el-button>
       <div class="row">节点审核功能<el-switch v-model="dialogSetData.isExamine" active-value="1" inactive-value="0"/></div>
       <div class="row">候选人功能<el-switch v-model="dialogSetData.isCandidate" active-value="1" inactive-value="0"/></div>
       <div class="row">节点投票功能<el-switch v-model="dialogSetData.isVote" active-value="1" inactive-value="0"/></div>
@@ -377,7 +378,7 @@
               :show-file-list="false"
               :on-success="addNodeImgF"
               :data="{type:'identify'}"
-              action="http://admin.contest_system.local/upload/upload/image"
+              action="/upload/upload/image"
               name="image_file"
               class="avatar-uploader">
               <img v-if="stepSecondData.pic_front" :src="stepSecondData.pic_front" class="avatar">
@@ -389,7 +390,7 @@
               :show-file-list="false"
               :on-success="addNodeImgB"
               :data="{type:'identify'}"
-              action="http://admin.contest_system.local/upload/upload/image"
+              action="/upload/upload/image"
               name="image_file"
               class="avatar-uploader">
               <img v-if="stepSecondData.pic_back" :src="stepSecondData.pic_back" class="avatar">
@@ -405,7 +406,7 @@
               :show-file-list="false"
               :on-success="addNodeImgLogo"
               :data="{type:'logo'}"
-              action="http://admin.contest_system.local/upload/upload/image"
+              action="/upload/upload/image"
               name="image_file"
               class="avatar-uploader">
               <img v-if="stepThirdData.logo" :src="stepThirdData.logo" class="avatar">
@@ -587,6 +588,7 @@ export default {
     },
     // 主表格搜索
     searchTableData() {
+      if (this.searchDate === null) this.searchDate = ''
       getNodeList(this.search, this.searchDate[0], this.searchDate[1], this.allType[this.typeIndex].id).then(res => {
         this.tableData = res.content
         this.tableData.forEach((item, index, arry) => {
@@ -734,46 +736,43 @@ export default {
     openNodeSet() {
       Promise.all([getNodeSet(this.setTypeId), getRuleList()]).then(res => {
         this.dialogSetData = res[0].content
-        this.this_tenureNum = res[0].content.tenureNum
-        this.this_maxCandidate = res[0].content.maxCandidate
-        this.dialogSetRuleList = res[1].content
-      }).then(() => {
-        this.dialogSetRuleList[0].forEach((item, index, arry) => {
+        this.this_tenureNum = res[0].content.allCount
+        this.this_maxCandidate = res[0].content.allTenure
+        return res[1].content
+      }).then((res) => {
+        res[0].forEach((item, index, arry) => {
+          arry[index].checked = false
+          arry[index].maxOrder = 0
+          arry[index].minOrder = 0
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
+            }
+          }
+        })
+        res[1].forEach((item, index, arry) => {
+          arry[index].checked = false
+          arry[index].maxOrder = 0
+          arry[index].minOrder = 0
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
+            }
+          }
+        })
+        res[2].forEach((item, index, arry) => {
+          arry[index].checked = false
+          arry[index].maxOrder = 1
+          arry[index].minOrder = 1
           for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
             if (this.dialogSetData.ruleList[i].ruleId === item.id) {
               arry[index].checked = true
               arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
               arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-            } else {
-              arry[index].maxOrder = 0
-              arry[index].minOrder = 0
             }
           }
         })
-        this.dialogSetRuleList[1].forEach((item, index, arry) => {
-          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-              arry[index].checked = true
-              arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-              arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-            } else {
-              arry[index].maxOrder = 0
-              arry[index].minOrder = 0
-            }
-          }
-        })
-        this.dialogSetRuleList[2].forEach((item, index, arry) => {
-          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-              arry[index].checked = true
-              arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-              arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-            } else {
-              arry[index].maxOrder = 1
-              arry[index].minOrder = 1
-            }
-          }
-        })
+        this.dialogSetRuleList = res
         this.dialogSet = true
       })
     },
@@ -781,62 +780,41 @@ export default {
     changeSetType(val) {
       getNodeSet(this.setTypeId).then(res => {
         this.dialogSetData = res.content
-        this.this_tenureNum = res.content.tenureNum
-        this.this_maxCandidate = res.content.maxCandidate
-      }).then(() => {
-        getRuleList().then(res => {
-          this.dialogSetRuleList = res.content
-        }).then(() => {
-          this.dialogSetRuleList[0].forEach((item, index, arry) => {
-            arry[index].maxOrder = 0
-            arry[index].minOrder = 0
-            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-                arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              }
+        this.this_tenureNum = res.content.allCount
+        this.this_maxCandidate = res.content.allTenure
+        this.dialogSetRuleList[0].forEach((item, index, arry) => {
+          arry[index].checked = false
+          arry[index].maxOrder = 0
+          arry[index].minOrder = 0
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
             }
-          })
-          this.dialogSetRuleList[0].push({ })
-          this.dialogSetRuleList[0].pop({ })
-          this.dialogSetRuleList[1].forEach((item, index, arry) => {
-            arry[index].maxOrder = 0
-            arry[index].minOrder = 0
-            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-                arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              }
+          }
+        })
+        this.dialogSetRuleList[1].forEach((item, index, arry) => {
+          arry[index].checked = false
+          arry[index].maxOrder = 0
+          arry[index].minOrder = 0
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
             }
-          })
-          this.dialogSetRuleList[1].push({ })
-          this.dialogSetRuleList[1].pop({ })
-          this.dialogSetRuleList[2].forEach((item, index, arry) => {
-            for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
-              if (this.dialogSetData.ruleList[i].ruleId === item.id) {
-                arry[index].checked = true
-                arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
-                arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
-              } else {
-                arry[index].maxOrder = 1
-                arry[index].minOrder = 1
-              }
+          }
+        })
+        this.dialogSetRuleList[2].forEach((item, index, arry) => {
+          arry[index].checked = false
+          arry[index].maxOrder = 1
+          arry[index].minOrder = 1
+          for (var i = 0; i < this.dialogSetData.ruleList.length; i++) {
+            if (this.dialogSetData.ruleList[i].ruleId === item.id) {
+              arry[index].checked = true
+              arry[index].maxOrder = this.dialogSetData.ruleList[i].maxOrder
+              arry[index].minOrder = this.dialogSetData.ruleList[i].minOrder
             }
-          })
-          this.dialogSetRuleList[2].push({ })
-          this.dialogSetRuleList[2].pop({ })
-          this.dialogSet = true
+          }
         })
       })
-    },
-    // 打开权益设置
-    openRule() {
-      getRuleList().then(res => {
-        this.dialogSetRuleList = res.content
-      })
-      this.dialogRight = true
     },
     // 删除权益
     deleteRule(type, index) {
@@ -851,11 +829,11 @@ export default {
     // 增加权益
     addRule(type) {
       if (type === 0) {
-        this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '0' })
+        this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '0', checked: false, maxOrder: 0, minOrder: 0 })
       } else if (type === 1) {
-        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '1' })
+        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '1', checked: false, maxOrder: 0, minOrder: 0 })
       } else {
-        this.dialogSetRuleList[2].push({ name: '', content: '', isTenure: '2' })
+        this.dialogSetRuleList[2].push({ name: '', content: '', isTenure: '2', checked: false, maxOrder: 1, minOrder: 1 })
       }
     },
     // 上传权益列表
@@ -978,8 +956,8 @@ export default {
     // 导出excel
     addExcel() {
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['排名', '节点名称', '票数', '支持人数', '质押GRT', '质押BPT', '质押TT', '加入时间', '状态']
-        const filterVal = ['index', 'name', 'voteNumber', 'count', 'grt', 'bpt', 'tt', 'createTime', 'status']
+        const tHeader = ['排名', '节点名称', '用户', '票数', '支持人数', '质押GRT', '质押BPT', '质押TT', '加入时间', '状态']
+        const filterVal = ['index', 'name', 'mobile', 'voteNumber', 'count', 'grt', 'bpt', 'tt', 'createTime', 'status']
         const list = this.tableData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({

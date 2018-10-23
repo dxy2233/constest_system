@@ -171,8 +171,8 @@ class NoticeController extends BaseController
         if (empty($notice)) {
             return $this->respondJson(1, '文章不存在');
         }
-        $notice['create_time'] = date('Y-m-d H:i:s', $notice['create_time']);
-        $notice['update_time'] = date('Y-m-d H:i:s', $notice['update_time']);
+        $notice['start_time'] = date('Y-m-d H:i:s', $notice['start_time']);
+        $notice['end_time'] = date('Y-m-d H:i:s', $notice['end_time']);
         $notice['image'] = FuncHelper::getImageUrl($notice['image']);
         return $this->respondJson(0, '获取成功', $notice);
     }

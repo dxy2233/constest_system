@@ -5,6 +5,7 @@ namespace common\modules\upload\controllers;
 use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
 use common\services\UploadService;
+use common\components\FuncHelper;
 
 class UploadController extends BaseController
 {
@@ -36,7 +37,7 @@ class UploadController extends BaseController
             $type = 'uploads';
         }
         $result = UploadService::uploadImage($type);
-
-        return $this->respondJson($result->code, $result->msg, $result->content);
+        $url = FuncHelper::getImageUrl($result->content);
+        return $this->respondJson($result->code, $result->msg, $url);
     }
 }

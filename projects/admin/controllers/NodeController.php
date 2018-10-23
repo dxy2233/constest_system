@@ -39,6 +39,7 @@ class NodeController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -81,6 +82,40 @@ class NodeController extends BaseController
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
         }
         return $this->respondJson(0, '获取成功', $data);
+    }
+    public function actionDownload()
+    {
+        // 节点类型
+        $type = $this->gInt('type');
+        $searchName = $this->gString('searchName', '');
+        $str_time = $this->gString('str_time', '');
+        $end_time = $this->gString('end_time', '');
+        $order = $this->gString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.create_time'];
+            $order = $order_arr[$order];
+        } else {
+            $order = '';
+        }
+        $data = NodeService::getList(0, $searchName, $str_time, $end_time, $type, 0, $order);
+        $id_arr = [];
+        foreach ($data as $v) {
+            $id_arr[] = $v['id'];
+        }
+        $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
+        foreach ($data as $key => &$v) {
+            if (isset($people[$v['id']])) {
+                $v['count'] = $people[$v['id']];
+            } else {
+                $v['count'] = 0;
+            }
+            $v['key'] = $key+1;
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['status'] = BNode::getStatus($v['status']);
+        }
+        $headers = ['key'=> '排名', 'name' => '节点名称', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'create_time' => '加入时间', 'status' => '状态'];
+        $this->download($data, $headers);
+        return;
     }
     // 审核列表
     public function actionExamine()

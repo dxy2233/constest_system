@@ -55,7 +55,11 @@ class UserController extends BaseController
         $data['re_code'] = BUserRecommend::find()->where(['parent_id' => $userModel->id])->exists();
         return $this->respondJson(0, '获取成功', $data);
     }
-
+    /**
+     * 添加邀请人邀请码
+     *
+     * @return void
+     */
     public function actionAddRecommend()
     {
         $userModel = $this->user;
@@ -81,6 +85,11 @@ class UserController extends BaseController
         return $this->respondJson(0, '设置成功', $parentId);
     }
 
+    /**
+     * 获取推荐记录
+     *
+     * @return void
+     */
     public function actionRecommend()
     {
         // 返回容器
@@ -90,11 +99,11 @@ class UserController extends BaseController
         $userModel = $this->user;
         $recommendModel = $userModel->getUserRecommend()
         ->alias('r')
-        ->select(['n.name', 'r.create_time', 'nt.name as type_name', 'r.node_id', 'p.mobile', 'r.parent_id'])
-        ->where(['<>', 'r.node_id', 0])
+        ->select(['r.create_time', 'nt.name as type_name', 'r.node_id', 'p.mobile', 'r.parent_id'])
         ->joinWith(['node n' => function ($query) {
             $query->joinWith('nodeType nt', false);
         }, 'parent p'], false);
+        // var_dump($recommendModel->createCommand()->getRawSql());exit;
         $data['count'] = $recommendModel->count();
         $data['list'] = $recommendModel
         ->page($page, $pageSize)
@@ -102,6 +111,7 @@ class UserController extends BaseController
         foreach ($data['list'] as &$recommend) {
             $recommend['create_time'] = FuncHelper::formateDate($recommend['create_time']);
             $recommend['mobile'] = substr_replace($recommend['mobile'], '****', 3, 4);
+            $recommend['type_name'] = $recommend['type_name'] ?? '普通用户';
             unset($recommend['node']);
             unset($recommend['parent']);
             unset($recommend['node_id']);

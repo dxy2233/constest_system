@@ -188,7 +188,7 @@ class NoticeController extends BaseController
         if (empty($notice)) {
             return $this->respondJson(1, '文章不存在');
         }
-        $image = $this->pString('image');
+        $image = $this->pImage('image');
         if (!empty($image)) {
             $notice->image = $image;
         }
@@ -230,7 +230,7 @@ class NoticeController extends BaseController
     {
         $notice = new BNotice();
 
-        $image = $this->pString('image');
+        $image = $this->pImage('image');
         if (empty($image)) {
             return $this->respondJson(1, 'LOGO不能为空');
         }

@@ -3,17 +3,12 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\WithdrawService;
 use yii\helpers\ArrayHelper;
-use common\models\business\BNotice;
 use common\models\business\BSetting;
-use common\models\business\BUserCurrency;
 use common\models\business\BUser;
-use common\models\business\BUserWallet;
-use common\models\business\BUserCurrencyDetail;
-use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BCurrency;
-use common\task\TestJob;
 
 /**
  * Site controller
@@ -150,6 +145,7 @@ class WithdrawController extends BaseController
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
     }
+
     // 审核失败
     public function actionExamineOff()
     {
@@ -165,7 +161,7 @@ class WithdrawController extends BaseController
         if (empty($remark)) {
             return $this->respondJson(1, '原因不能为空');
         }
-        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS, $remark);
+        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_FAIL, $remark);
         if ($return->code == 0) {
             return $this->respondJson(0, '审核成功');
         } else {

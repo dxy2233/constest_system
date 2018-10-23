@@ -706,6 +706,7 @@ class NodeController extends BaseController
         $node->tt = $tt;
         $node->bpt = $bpt;
         $node->status = BNode::STATUS_ON;
+        $node->examine_time = time();
 
         if (!$node->save()) {
             $transaction->rollBack();
@@ -885,12 +886,14 @@ class NodeController extends BaseController
             $identify->realname = $realname;
             $identify->number = (string)$number;
             $identify->pic_front = $pic_front;
+            $identify->examine_time = time();
+            $identify->audit_admin_id = $this->user_id;
             $identify->pic_back = $pic_back;
             $identify->type = 1;
-            $identify->status = BNotice::STATUS_INACTIVE;
+            $identify->status = BNotice::STATUS_ACTIVE;
             if (!$identify->save()) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '提交失败', $identify->getFirstErrorText());
+                return $this->respondJson(1, '实名信息添加失败', $identify->getFirstErrorText());
             }
         }
 

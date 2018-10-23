@@ -622,13 +622,13 @@ class NodeController extends BaseController
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
         if ($now_count >= $setting->max_people) {
-            return $this->respondJson(1, '候选数量已达上限');
+            return $this->respondJson(1, $setting->name.'候选数量已达上限');
         }
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
             $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
             $setting = BNodeType::find()->where(['id' => $type_id])->one();
             if ($now_count >= $setting->max_candidate) {
-                return $this->respondJson(1, '任职数量已达上限');
+                return $this->respondJson(1, $setting->name.'任职数量已达上限');
             }
         }
         return $this->respondJson(0, '验证成功');

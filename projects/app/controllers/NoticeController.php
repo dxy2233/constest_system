@@ -45,7 +45,7 @@ class NoticeController extends BaseController
         $notice = BNotice::find()
         // ->select(['title', 'create_time', 'start_time', 'end_time', 'detail', 'desc', 'type', 'url', 'click'])
         ->active(BNotice::STATUS_ACTIVE)
-        ->hasStartAndEndTime()
+        // ->hasStartAndEndTime()
         ->where(['id' => $noticeId])
         ->one();
         if (!is_object($notice)) {

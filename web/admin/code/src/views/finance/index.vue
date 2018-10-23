@@ -95,6 +95,7 @@ export default {
     },
     // 主表格搜索
     searchTableData() {
+      if (this.date === null) this.date = ''
       getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1]).then(res => {
         this.tableData = res.content.list
         this.tableDataPage = pagination(this.tableData, this.currentPage, 20)

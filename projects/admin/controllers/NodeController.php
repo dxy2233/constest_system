@@ -461,7 +461,7 @@ class NodeController extends BaseController
         $transaction->commit();
         return $this->respondJson(0, '操作成功');
     }
-
+    // 任职
     public function actionTenure()
     {
         $nodeId = $this->pString('nodeId');
@@ -484,7 +484,7 @@ class NodeController extends BaseController
         NodeService::RefreshPushRanking($nodeId);
         return $this->respondJson(0, '任职成功');
     }
-
+    // 取消任职
     public function actionUnTenure()
     {
         $nodeId = $this->pString('nodeId');
@@ -678,7 +678,8 @@ class NodeController extends BaseController
             $user = new BUser();
             $user->mobile = $mobile;
             $user->username = $mobile;
-            
+            $recommend_code = UserService::generateRemmendCode(6);
+            $user->recommend_code = $recommend_code;
             if (!$user->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
@@ -717,14 +718,30 @@ class NodeController extends BaseController
         $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
         if ($code != '') {
             $id = UserService::validateRemmendCode($code);
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            $user_recommend->node_id = $node->id;
-            $user_recommend->amount = $grt * $setting->value;
-            if (!$user_recommend->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+            //判断是否已有推荐人
+            $old_recommend = BUserRecommend::find()->where(['user_id' => $user_id])->one();
+            if (!empty($old_recommend)) {
+                // 已有推荐人与输入推荐人不一致
+                if ($old_recommend->parent_id != $id) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
+                }
+                $old_recommend->node_id = $node->id;
+                $old_recommend->amount = $grt * $setting->value;
+                if (!$old_recommend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                }
+            } else {
+                $user_recommend = new BUserRecommend();
+                $user_recommend->user_id = $user->id;
+                $user_recommend->parent_id = $id;
+                $user_recommend->node_id = $node->id;
+                $user_recommend->amount = $grt * $setting->value;
+                if (!$user_recommend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                }
             }
             $voucher = new BVoucher();
             $voucher->user_id = $id;
@@ -743,35 +760,129 @@ class NodeController extends BaseController
         foreach ($currency_arr  as $v) {
             $currency_id[$v['code']] = $v['id'];
         }
+        //GRT
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['grt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $grt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        $withdraw ->remark = "添加节点充币";
+        $withdraw ->audit_time = time();
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $userRechargeWithdrawId = $withdraw->id;
+
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['grt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $grt;
-        $user_c_detail->remark = '充值';
+        $user_c_detail->remark = '充币';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $user_c_detail->relate_table = 'user_recharge_withdraw';
+        $user_c_detail->relate_id = $userRechargeWithdrawId;
+        $user_c_detail->effect_time = time();
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
         }
+
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['grt'];
+        $frozen->amount = $grt;
+        $frozen->remark = '节点竞选';
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
+        $frozen->relate_table = 'node';
+        $frozen->relate_id = $node->id;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+
+        UserService::resetCurrency($user->id, $currency_id['grt']);
+
+        //TT
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['tt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $tt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        $withdraw ->remark = "添加节点充币";
+        $withdraw ->audit_time = time();
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $userRechargeWithdrawId = $withdraw->id;
+
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['tt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $tt;
-        $user_c_detail->remark = '充值';
+        $user_c_detail->remark = '充币';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $user_c_detail->relate_table = 'user_recharge_withdraw';
+        $user_c_detail->relate_id = $userRechargeWithdrawId;
+        $user_c_detail->effect_time = time();
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
         }
+
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id['tt'];
+        $frozen->amount = $tt;
+        $frozen->remark = '节点竞选';
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
+        $frozen->relate_table = 'node';
+        $frozen->relate_id = $node->id;
+        if (!$frozen->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
+        }
+
+        UserService::resetCurrency($user->id, $currency_id['tt']);
+
+        //BPT
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id['bpt'];
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $bpt;
+        $withdraw ->transaction_id = (string)$node->id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        $withdraw ->remark = "添加节点充币";
+        $withdraw ->audit_time = time();
+        if (!$withdraw->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+        }
+        $userRechargeWithdrawId = $withdraw->id;
+
         $user_c_detail = new BUserCurrencyDetail();
         $user_c_detail->user_id = $user->id;
         $user_c_detail->currency_id = $currency_id['bpt'];
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $bpt;
-        $user_c_detail->remark = '充值';
+        $user_c_detail->remark = '充币';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $user_c_detail->relate_table = 'user_recharge_withdraw';
+        $user_c_detail->relate_id = $userRechargeWithdrawId;
+        $user_c_detail->effect_time = time();
         if (!$user_c_detail->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
@@ -783,73 +894,14 @@ class NodeController extends BaseController
         $frozen->amount = $bpt;
         $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
+        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
+        $frozen->relate_table = 'node';
+        $frozen->relate_id = $node->id;
         if (!$frozen->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
         }
-        $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
-        $frozen->currency_id = $currency_id['grt'];
-        $frozen->amount = $grt;
-        $frozen->remark = '节点竞选';
-        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
-        if (!$frozen->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
-        }
-        $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
-        $frozen->currency_id = $currency_id['tt'];
-        $frozen->amount = $tt;
-        $frozen->remark = '节点竞选';
-        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyDetail::$TYPE_ELECTION;
-        if (!$frozen->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
-        }
-
-
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['bpt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $bpt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['tt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $tt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['grt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $grt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        UserService::resetCurrency($user->id, $currency_id['grt']);
-        UserService::resetCurrency($user->id, $currency_id['tt']);
+        
         UserService::resetCurrency($user->id, $currency_id['bpt']);
 
         

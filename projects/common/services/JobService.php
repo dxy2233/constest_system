@@ -12,6 +12,10 @@ class JobService extends ServiceBase
 {
     public static function beginPut($type = 0)
     {
+        $setting = BSetting::find()->where(['key' => 'stop_vote'])->one();
+        if ($setting->value == BNotice::STATUS_INACTIVE) {
+            return false;
+        }
         if ($type == 1) {
             self::putDo();
             return true;

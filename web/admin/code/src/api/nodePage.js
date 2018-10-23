@@ -186,8 +186,8 @@ export function getHistory(type, endTime, page) {
   })
 }
 
-// 添加节点第一步
-export function addNodeOne({ ...data }) {
+// 添加节点
+export function addNode({ ...data }) {
   return request({
     url: '/node/create-user',
     method: 'post',
@@ -196,23 +196,44 @@ export function addNodeOne({ ...data }) {
     }
   })
 }
-// 添加节点第二步
-export function addNodeTwo({ ...data }) {
+// 验证手机
+export function checkMobile(mobile) {
   return request({
-    url: '/node/set-identify',
+    url: '/node/check-mobile',
     method: 'post',
     data: {
-      ...data
+      mobile
     }
   })
 }
-// 添加节点第三步
-export function addNodeThree({ ...data }) {
+// 验证候选
+export function checkNode(type_id, is_tenure) {
   return request({
-    url: '/node/create-node',
+    url: '/node/check-node',
     method: 'post',
     data: {
-      ...data
+      type_id,
+      is_tenure
     }
   })
 }
+// // 添加节点第二步
+// export function addNodeTwo({ ...data }) {
+//   return request({
+//     url: '/node/set-identify',
+//     method: 'post',
+//     data: {
+//       ...data
+//     }
+//   })
+// }
+// // 添加节点第三步
+// export function addNodeThree({ ...data }) {
+//   return request({
+//     url: '/node/create-node',
+//     method: 'post',
+//     data: {
+//       ...data
+//     }
+//   })
+// }

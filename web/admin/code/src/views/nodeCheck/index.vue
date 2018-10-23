@@ -11,6 +11,7 @@
 
     已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
     <el-button v-show="noticeChecktoNum==2" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allPass">通过</el-button>
+    <el-button v-show="noticeChecktoNum==4" :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain @click="allFail">删除记录</el-button>
 
     <el-table
       :data="tableDataPage"
@@ -26,7 +27,7 @@
       <el-table-column prop="tt" label="质押TT"/>
       <el-table-column prop="status" label="状态"/>
       <el-table-column prop="createTime" label="提交时间"/>
-      <!-- <el-table-column prop="updateTime" label="审核时间"/> -->
+      <el-table-column v-if="noticeChecktoNum!=2" prop="examineTime" label="审核时间"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
@@ -178,6 +179,26 @@ export default {
         this.showInfo = false
         getCheckList(this.noticeChecktoNum).then(res => {
           this.tableData = res.content
+        })
+      })
+    },
+    // 批量删除记录
+    allFail() {
+      if (this.tableDataSelection.length < 1) return
+      this.$confirm('确定删除全部记录吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        let allId = ''
+        this.tableDataSelection.map((item, index, items) => {
+          allId = allId + ',' + item.id
+        })
+        deleteNote(allId.replace(',', '')).then(res => {
+          Message({ message: res.msg, type: 'success' })
+          getCheckList(this.noticeChecktoNum).then(res => {
+            this.tableData = res.content
+          })
         })
       })
     }

@@ -155,6 +155,7 @@ export default {
     },
     // 锁仓记录搜索
     searchLock() {
+      if (this.lockDate === null) this.lockDate = ''
       getLockList(this.searchLockData, this.lockMoneyType, this.lockDate[0], this.lockDate[1]).then(res => {
         this.lockTableData = res.content.list
         this.lockTableDataPage = pagination(this.lockTableData, this.lockCurrentPage, 20)

@@ -12,6 +12,10 @@ class JobService extends ServiceBase
 {
     public static function beginPut($type = 0)
     {
+        $setting = BSetting::find()->where(['key' => 'stop_vote'])->one();
+        if ($setting->value == BNotice::STATUS_INACTIVE) {
+            return false;
+        }
         if ($type == 1) {
             self::putDo();
             return true;
@@ -36,7 +40,7 @@ class JobService extends ServiceBase
         }
         $msg = [];
         $people = NodeService::getPeopleNum($id_arr, '', $endTime);
-
+        $transaction = \Yii::$app->db->beginTransaction();
         $history_id = date('YmdHi');
         foreach ($data as $v) {
             $history = new BHistory();
@@ -73,8 +77,10 @@ class JobService extends ServiceBase
             $msg[] = $stop_vote->getFirstErrorText();
         }
         if (count($msg) > 0) {
+            $transaction->rollBack();
             Yii::error(json_encode($msg), 'history');
         } else {
+            $transaction->commit();
             Yii::info('执行成功', 'history');
         }
     }

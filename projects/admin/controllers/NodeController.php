@@ -590,6 +590,9 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
+        if (!preg_match("/^1[34578]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息
@@ -619,13 +622,13 @@ class NodeController extends BaseController
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
         if ($now_count >= $setting->max_people) {
-            return $this->respondJson(1, '候选数量已达上限');
+            return $this->respondJson(1, $setting->name.'候选数量已达上限');
         }
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
             $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
             $setting = BNodeType::find()->where(['id' => $type_id])->one();
             if ($now_count >= $setting->max_candidate) {
-                return $this->respondJson(1, '任职数量已达上限');
+                return $this->respondJson(1, $setting->name.'任职数量已达上限');
             }
         }
         return $this->respondJson(0, '验证成功');
@@ -636,6 +639,9 @@ class NodeController extends BaseController
         $mobile = $this->pString('mobile');
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
+        }
+        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+            return $this->respondJson(1, '手机格式不正确');
         }
         $type_id = $this->pInt('type_id');
         if (empty($type_id)) {

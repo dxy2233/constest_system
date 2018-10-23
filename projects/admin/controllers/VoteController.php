@@ -152,7 +152,12 @@ class VoteController extends BaseController
 
     public function actionNowReload()
     {
-        JobService::beginPut(1);
+        $bool = JobService::beginPut(1);
+        if ($bool) {
+            return $this->respondJson(0, "操作成功");
+        } else {
+            return $this->respondJson(1, "操作失败");
+        }
     }
     public function actionGetSettingList()
     {

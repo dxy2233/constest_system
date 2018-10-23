@@ -14,6 +14,7 @@ class JobService extends ServiceBase
     {
         if ($type == 1) {
             self::putDo();
+            return true;
         } else {
             $time = BSetting::find()->where(['key' => 'count_time'])->one();
             if (abs($time->value - time()) < 30) {

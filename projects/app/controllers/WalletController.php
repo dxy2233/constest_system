@@ -142,7 +142,7 @@ class WalletController extends BaseController
     public function actionCurrencyDetail()
     {
         $currencyId = $this->pInt('id', false);
-        $type = $this->pInt('type', 1);
+        $type = $this->pInt('type', 0);
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $data = [
@@ -153,12 +153,14 @@ class WalletController extends BaseController
             return $this->respondJson(1, '货币不能为空');
         }
         $userId = $this->user->id;
-        // 获取收入 类型ID
+        // 获取收入 类型ID // 获取是否或者支出的 id 集
         $detailType = (bool) $type ? BUserCurrencyDetail::getTypeRevenue() : BUserCurrencyDetail::getTypePay();
+        
         $currencyModel = BUserCurrencyDetail::find()
         ->select(['amount', 'remark', 'effect_time', 'status'])
         ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType])
         ->active();
+        // var_dump($currencyModel->createCommand()->getRawSql());exit;
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {

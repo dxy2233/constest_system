@@ -23,6 +23,8 @@ class FinanceController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download',
+            'finance-download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -92,6 +94,60 @@ class FinanceController extends BaseController
         $return['count'] = $count;
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
+    }
+    //资产管理
+    public function actionDownload()
+    {
+        $find = BUserCurrency::find()
+        ->from(BUserCurrency::tableName()." A")
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
+        ->select(['A.*','B.mobile','D.name']);
+        $searchName = $this->gString('searchName', '');
+        if ($searchName != '') {
+            $find->andWhere(['like', 'B.mobile',$searchName]);
+        }
+        $currency_id = $this->gInt('currency_id', 0);
+        if ($currency_id != 0) {
+            $find->andWhere(['A.currency_id' => $currency_id]);
+        }
+        $type = $this->gInt('type');
+        if ($type == 3) {
+            $field = 'A.use_amount';
+        } elseif ($type == 2) {
+            $field = 'A.frozen_amount';
+        } else {
+            $field = 'A.position_amount';
+        }
+        $min = $this->gFloat('min', 0);
+        $max = $this->gFloat('max', 0);
+        if ($min != 0) {
+            $find->andWhere(['>=', $field, $min]);
+        }
+        if ($max != 0) {
+            $find->andWhere(['<=', $field, $max]);
+        }
+
+
+        $order = $this->gString('order');
+        if ($order != '') {
+            if ($type == 1) {
+                $order = 'A.currency_id';
+            } elseif ($type == 2) {
+                $order = 'A.position_amount';
+            } elseif ($order == 3) {
+                $order = 'A.frozen_amount';
+            } else {
+                $order = 'A.use_amount';
+            }
+            $find->orderBy($order. ' desc');
+        }
+
+        $data = $find->asArray()->all();
+
+        $headers = ['mobile'=> '用户', 'name' => '币种', 'position_amount' => '总额',  'use_amount' => '可用', 'frozen_amount' => '锁仓'];
+        $this->download($data, $headers);
+        return;
     }
     
     // 币种列表
@@ -197,5 +253,55 @@ class FinanceController extends BaseController
         $return['count'] = $count;
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
+    }
+    // 财务流水
+    public function actionFinanceDownload()
+    {
+        $in_arr = BUserCurrencyDetail::getTypeRevenue();
+        $out_arr = BUserCurrencyDetail::getTypePay();
+        $find = BUserCurrencyDetail::find()
+        ->from(BUserCurrencyDetail::tableName()." A")
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
+        ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
+        ->select(['A.*','B.mobile','D.name']);
+        $searchName = $this->gString('searchName', '');
+        if ($searchName != '') {
+            $find->andWhere(['like','B.mobile',$searchName]);
+        }
+        $currency_id = $this->gInt('currency_id', 0);
+        if ($currency_id != 0) {
+            $find->andWhere(['A.currency_id' => $currency_id]);
+        }
+        $str_time = $this->gString('str_time', '');
+        $end_time = $this->gString('end_time', '');
+        if ($str_time != '') {
+            $find->startTime($str_time, 'A.create_time');
+        }
+        
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+        $type = $this->gInt('type', 0);
+        if ($type == 1) {
+            $find->andWhere(['in', 'type', $in_arr]);
+        } elseif ($type == 2) {
+            $find->andWhere(['in', 'type', $out_arr]);
+        }
+
+        $data = $find->asArray()->all();
+        foreach ($data as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            if (in_array($v['type'], $in_arr)) {
+                $v['type2'] = '收入';
+            } else {
+                $v['type2'] = '支出';
+            }
+            $v['type'] = BUserCurrencyDetail::getType($v['type']);
+            $v['status'] = BUserCurrencyDetail::getStatus($v['status']);
+        }
+        $headers = ['id'=> '流水号', 'mobile' => '用户', 'name' => '币种', 'type2' => '收支', 'type' => '类型', 'amount' => '数量', 'status' => '状态', 'create_time' => '时间'];
+        $this->download($data, $headers);
+        return;
     }
 }

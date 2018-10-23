@@ -39,8 +39,9 @@ class Notice extends \common\dzbase\DzModel
         return [
             [['title', 'type'], 'required'],
             [['detail'], 'string'],
-            [['type', 'sort', 'status',  'click', 'create_time', 'update_time'], 'integer'],
+            [['type', 'sort', 'status', 'click', 'create_time', 'update_time'], 'integer'],
             [['title', 'desc', 'url', 'image'], 'string', 'max' => 255],
+            ['url', 'url', 'defaultScheme' => 'http'],
         ];
     }
 

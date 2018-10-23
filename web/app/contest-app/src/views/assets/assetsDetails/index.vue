@@ -7,19 +7,6 @@
       <app-header>
       </app-header>
       <div class="assets-details-main">
-        <!--<div class="brief">
-          <h1>{{currencyInfo.positionAmount}}</h1>
-          <ul>
-            <li>
-              <p class="label">可用</p>
-              <p class="number">{{currencyInfo.useAmount}}</p>
-            </li>
-            <li @click="goFrozen">
-              <p class="label">锁仓</p>
-              <p class="number">{{currencyInfo.frozenAmount}}</p>
-            </li>
-          </ul>
-        </div>-->
         <div class="brief">
           <div class="top">
             <p>{{currencyInfo.name}}</p>
@@ -34,20 +21,15 @@
               <p>锁仓</p>
               <h4>{{currencyInfo.frozenAmount}}</h4>
             </li>
-            <!--<router-link tag="li" to="/assets/transfer">可用</router-link>
-            <router-link tag="li" :to="{name:'collect',query:{address:walletData.address}}">收款</router-link>-->
           </ul>
         </div>
-
         <ul class="tab-list">
           <li v-for="item in tabList" :key="item.name" @click="selectedTab(item)"
               :class="{'act':item.type===currentType}">{{item.name}}
           </li>
         </ul>
         <div class="detail">
-          <quick-loadmore ref="vueLoad"
-                          :bottom-method="handleBottom"
-                          :disable-top="true" :disable-bottom="false">
+          <scroller :on-infinite="handleBottom" ref="my_scroller">
             <ul class="detail-list">
               <li v-for="item in dataList">
                 <p>
@@ -60,9 +42,7 @@
                 </p>
               </li>
             </ul>
-            <load-more tip="正在加载" v-show="loadShow"></load-more>
-          </quick-loadmore>
-
+          </scroller>
         </div>
         <div class="handle-btn">
           <ul>
@@ -75,7 +55,6 @@
               <span>转账</span>
             </router-link>
           </ul>
-          <!--<div class="line"></div>-->
         </div>
       </div>
       <router-view></router-view>
@@ -104,12 +83,13 @@
             name: '支出记录'
           }
         ],
-        currentType: 1,
+        currentType: sessionStorage.getItem("currencyDetailType") || '1',
         dataList: [],
         page: 1,
         loadShow: true,
         currencyInfo: {},
-        dtsId: this.$route.params.id
+        dtsId: this.$route.params.id,
+        total:''
       }
     },
     methods: {
@@ -125,13 +105,30 @@
         sessionStorage.setItem("currencyDetailType", item.type);
         this.page = 1
         this.dataList = []
-        this.loadShow = true
-        this.$refs.vueLoad.onBottomLoaded();
-        this.getList()
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);
       },
       handleBottom() {
-        this.page++
-        this.getList()
+        if (this.total!==''&&this.dataList.length >= parseInt(this.total)){
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+        http.post('/wallet/currency-detail', {
+          id: this.$route.params.id,
+          type: this.currentType,
+          page: this.page,
+          page_size: 10
+        }, (res) => {
+          if (this.loadShow) this.loadShow = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.dataList = this.dataList.concat(res.content.list)
+          this.total = res.content.count
+          this.page++
+          this.$refs.my_scroller.finishInfinite(false);
+        })
       },
       getList() {
         http.post('/wallet/currency-detail', {
@@ -167,9 +164,9 @@
       }
     },
     created() {
-      this.currentType = sessionStorage.getItem("currencyDetailType") || '1'
+      // this.currentType = sessionStorage.getItem("currencyDetailType") || '1'
       this.getCurrencyInfo()
-      this.getList()
+      // this.getList()
     },
     destroyed() {
       sessionStorage.removeItem('currentType')
@@ -244,6 +241,7 @@
       overflow hidden
       .detail-list
         padding-left $space-box
+        min-height 20px
         li
           padding 15px 15px 15px 0
           border-bottom 1px solid $color-border

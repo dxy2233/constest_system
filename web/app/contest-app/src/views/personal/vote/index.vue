@@ -29,7 +29,7 @@
                   <p>{{'方式：'+item.typeStr}}</p>
                   <p>{{item.createTime}}</p>
                 </div>
-                <div class="right">
+                <div class="right" v-if="item.typeStr==='普通投票'">
                   <x-button v-if="item.isRevoke" type="warn" class="redeem" @click.native="clickRedeem(item.id)">赎回</x-button>
                   <p v-else>本次竞选活动结束后才能赎回</p>
                 </div>

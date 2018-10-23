@@ -4,12 +4,14 @@
       <header>
         <h2>首页</h2>
         <p>
-          <router-link to="/home/vote" tag="span">节点投票</router-link>
+          <router-link to="/home/vote" tag="span">
+            <img src="/static/images/vote.png" alt="" class="vote-img">
+            投票</router-link>
           <router-link to="/home/contribute" tag="span">贡献榜</router-link>
         </p>
       </header>
-      <div class="notice-swiper">
-        <swiper height="135px" class="notice-swiper" dots-position="left">
+      <div class="notice-swiper-box">
+        <swiper height="135px" class="notice-swiper" dots-position="left" loop auto :duration="1000">
           <swiper-item v-for="(item, index) in swiperList" class="notice-swiper-item"
                        :key="index">
             <!--v-if="item.type==='1'"-->
@@ -21,7 +23,7 @@
             <!--<a v-else :href="item.url" target="_blank" class="img-box"></a>-->
           </swiper-item>
         </swiper>
-        <router-link tag="p" to="/home/notice" class="and-more">查看更多>></router-link>
+        <router-link tag="p" to="/home/notice" class="and-more">更多 ></router-link>
       </div>
       <div class="line"></div>
       <div class="ranking">
@@ -30,7 +32,7 @@
             {{tab.name}}
           </li>
         </ul>
-        <router-link class="all-rank" to="/home/node" tag="span">全部排名</router-link>
+        <router-link class="all-rank" to="/home/node" tag="span">更多 ></router-link>
         <div class="rank-list-box">
           <rank-list :list="nodeList"></rank-list>
           <load-more tip="正在加载" v-show="loadShow"></load-more>
@@ -170,9 +172,15 @@
         color $color-text-sub
         font-size $font-size-medium
         margin-left 24px
+      .vote-img
+        width $font-size-medium
+        margin-right 5px
+
     .notice-swiper
       padding 15px 0
       overflow visible
+    .notice-swiper-box
+      padding-bottom 15px
       .and-more
         float right
         color $color-text-sub

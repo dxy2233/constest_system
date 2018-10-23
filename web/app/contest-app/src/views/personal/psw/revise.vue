@@ -76,6 +76,8 @@
           this.loadingShow = false
           this.$vux.toast.show(res.msg)
           if (res.code !== 0) {
+            this.newPsw = ''
+            this.step = 1
             return
           }
           setTimeout(() => {

@@ -6,7 +6,7 @@
       </app-header>
       <div class="h-main">
         <div class="top">
-          <img src="/static/images/default-avatar.png" alt="" class="icon">
+          <img src="/static/images/state-success.png" alt="" class="icon">
           <!--<span>认证成功</span>-->
         </div>
         <div class="bottom">

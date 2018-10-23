@@ -55,8 +55,11 @@
       placeholder:{
         type:String,
         default:''
+      },
+      select:{
+        type:String,
+        default:''
       }
-
     },
     data() {
       return {
@@ -82,6 +85,16 @@
       /*selectedLabel(){
         if (!this.selected||!this.dataList.length) return ''
       }*/
+    },
+    created(){
+      if (this.select){
+        // console.log('567890')
+        let idx = this.dataList.findIndex((item)=>{
+          return this.select===item[this.value]
+        })
+        this.selected = this.select
+        this.selectedLabel = this.dataList[idx][this.label]
+      }
     }
   }
 </script>

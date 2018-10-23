@@ -22,7 +22,8 @@
           <scroller :on-infinite="handleBottom" ref="my_scroller">
             <ul class="list node-list">
               <!--<li>fjweo</li>-->
-              <li v-for="item in nodeList" @click="selectedNode(item)" :class="{'act':item.id == selectId}">
+              <li v-for="item in nodeList" v-if="item.isVote"
+                  @click="selectedNode(item)" :class="{'act':item.id == selectId}">
                 <img :src="item.logo" alt="" class="img">
                 <span class="name">{{item.name}}</span>
                 <div class="tenure" v-if="item.isTenure">

@@ -14,7 +14,8 @@
               <h5>活动截止后失效</h5>
             </div>
             <div class="right">
-              <button>立即投票</button>
+              <!--<button>立即投票</button>-->
+              <router-link tag="button" to="/home/vote">立即投票</router-link>
             </div>
           </div>
         </div>

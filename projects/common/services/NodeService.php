@@ -143,17 +143,15 @@ class NodeService extends ServiceBase
      */
     public static function getNodeList(int $nodeType = null, int $page = null, int $pageSize = 15, string $field = 'vote_number', int $sort = SORT_DESC)
     {
-        // $cacheKey = 'nodeList_'.$nodeType;
-        // $cache = \Yii::$app->cache;
         $nodeModel = BNode::find()
         ->alias('n')
-        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number'])
+        ->select(['n.id', 'n.name', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number', 'nt.is_vote'])
         ->active(BNode::STATUS_ACTIVE, 'n.')
         ->joinWith(['votes v' => function ($query) {
             if ($query->count()) {
                 $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
             }
-        }], false)
+        }, 'nodeType nt'], false)
         ->filterWhere(['n.type_id' => $nodeType])
         ->groupBy('n.id');
         self::$number = $nodeModel->count();
@@ -171,6 +169,7 @@ class NodeService extends ServiceBase
             $node['vote_number'] = $node['vote_number'] ?? 0;
             $node['logo'] = FuncHelper::getImageUrl($node['logo']);
             $node['is_tenure'] = (bool) $node['is_tenure'];
+            $node['is_vote'] = (bool) $node['is_vote'];
             $node['people_number'] = isset($voteUser[$node['id']]) ? $voteUser[$node['id']] : 0;
             unset($node['votes']);
         }

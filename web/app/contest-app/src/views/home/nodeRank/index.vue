@@ -20,12 +20,11 @@
           </div>
         </div>
         <div class="bottom">
-          <quick-loadmore ref="vueLoad"
-                          :bottom-method="handleBottom"
-                          :disable-top="true" :disable-bottom="false">
+
+          <scroller :on-infinite="handleBottom" ref="my_scroller">
             <rank-list :list="nodeList"></rank-list>
-            <load-more tip="正在加载" v-show="loadShow"></load-more>
-          </quick-loadmore>
+          </scroller>
+
         </div>
       </div>
       <router-view></router-view>
@@ -52,7 +51,8 @@
         currentNodeId: '',
         page: 1,
         counttime: "",
-        loadShow: true
+        loadShow: true,
+        total:''
       };
     },
     deactivated() {
@@ -65,15 +65,46 @@
         sessionStorage.setItem("nodeRankType", item.id);
         this.page = 1
         this.nodeList = []
-        this.loadShow = true
+        // console.log(this.nodeList,this.total)
+        /*this.loadShow = true
         this.$refs.vueLoad.onBottomLoaded();
-        this.getNodeList()
+        this.getNodeList()*/
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);
       },
       handleBottom() {
-        this.page++
-        this.getNodeList()
+        if (this.currentNodeId === ''){
+          this.getNodeTab(()=>{
+            this.handleBottom()
+          })
+          return
+        }
+        if (this.total!==''&&this.nodeList.length >= parseInt(this.total)){
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+
+        http.post('/node/vote', {
+          id: this.currentNodeId,
+          page: this.page,
+          page_size: 10
+        }, (res) => {
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          // console.log(this.nodeList)
+          this.nodeList = this.nodeList.concat(res.content.list)
+          // console.log(this.nodeList,res.content)
+          this.counttime = res.content.counttime
+          this.total = res.content.count
+          this.page++
+          // done()
+          this.$refs.my_scroller.finishInfinite(false);
+
+        })
       },
-      getNodeTab() {
+      getNodeTab(cb) {
         http.post('/node', {}, (res) => {
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
@@ -81,7 +112,7 @@
           }
           this.nodeTab = res.content
           this.currentNodeId = sessionStorage.getItem('nodeRankType') || res.content[0].id
-          this.getNodeList()
+          cb()
         })
       },
       getNodeList() {
@@ -106,7 +137,7 @@
       },
     },
     created() {
-      this.getNodeTab()
+      // this.getNodeTab()
     },
     mounted() {
     }

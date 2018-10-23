@@ -33,6 +33,8 @@
         <router-link class="all-rank" to="/home/node" tag="span">全部排名</router-link>
         <div class="rank-list-box">
           <rank-list :list="nodeList"></rank-list>
+          <load-more tip="正在加载" v-show="loadShow"></load-more>
+          <div class="no-data" v-if="!loadShow&&!nodeList.length">暂无更多数据</div>
         </div>
       </div>
     </div>
@@ -71,7 +73,8 @@
         ],
         currentTab: 0,
         currentNodeId: '',
-        nodeList: []
+        nodeList: [],
+        loadShow: true
       }
     },
     methods: {
@@ -83,7 +86,9 @@
         })
       },
       selectTab(index) {
-        this.currentTab = index
+        this.currentNodeId = index
+        this.nodeList = []
+        this.getNodeList()
       },
       getNoticeList() {
         http.post('/app/notice', {}, (res) => {
@@ -106,9 +111,11 @@
         })
       },
       getNodeList() {
+        this.loadShow = true
         http.post('/node/vote', {
           id: this.currentNodeId
         }, (res) => {
+          this.loadShow = false
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
             return
@@ -182,6 +189,8 @@
 
     .ranking
       position relative
+      .no-data
+        text-align center
       .rank-list-box
         margin -15px
       .all-rank

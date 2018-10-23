@@ -6,7 +6,7 @@
         全部公告
       </app-header>
       <div class="main">
-        <quick-loadmore ref="vueLoad"
+        <!--<quick-loadmore ref="vueLoad"
                         :bottom-method="handleBottom"
                         :disable-top="true" :disable-bottom="false">
           <ul class="list">
@@ -18,7 +18,18 @@
 
           </ul>
           <load-more tip="正在加载" v-show="loadShow"></load-more>
-        </quick-loadmore>
+        </quick-loadmore>-->
+
+        <scroller :on-infinite="handleBottom" ref="my_scroller">
+          <ul class="list">
+            <li v-for="(item,index) in dataList"
+                :style='{ backgroundImage: "url(" + item.image + ")"}'
+                style="height: 300px"
+                @click="lookDetails(item)">
+              {{item.title+' '+index}}
+            </li>
+          </ul>
+        </scroller>
 
         <router-view></router-view>
       </div>
@@ -39,14 +50,34 @@
       return {
         dataList: [],
         page: 1,
-        loadShow: true
+        loadShow: true,
+        total:''
       }
     },
     methods: {
+      handleBottom(done) {
+        if (this.total!==''&&this.dataList.length >= parseInt(this.total)){
+          // done(true)
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+        http.post('/notice', {
+          page: this.page,
+          page_size: 1
+        }, (res) => {
+          if (this.loadShow) this.loadShow = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.dataList = this.dataList.concat(res.content.list)
+          this.total = res.content.count
+          // console.log(this.dataList.length < parseInt(res.content.count))
+          this.page++
+          // done()
+          this.$refs.my_scroller.finishInfinite(false);
 
-      handleBottom() {
-        this.page++
-        this.getList()
+        })
       },
       getList() {
         http.post('/notice', {
@@ -77,7 +108,7 @@
       }
     },
     created() {
-      this.getList()
+      // this.getList()
     }
   }
 </script>

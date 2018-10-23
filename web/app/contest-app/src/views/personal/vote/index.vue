@@ -10,12 +10,10 @@
         <router-link tag="span" to="/personal/vote/redeem" slot="right" @click="">赎回记录</router-link>
       </app-header>
       <div class="vote-content">
-        <quick-loadmore ref="vueLoad"
-                        :bottom-method="handleBottom"
-                        :disable-top="true" :disable-bottom="false">
+        <scroller :on-infinite="handleBottom" ref="my_scroller">
           <div class="no-data" v-if="!dataList.length&&!loadShow">
             <img src="/static/images/state-fail.png" alt="">
-            <p>你还没有投票</p>
+            <!--<p>你还没有投票</p>-->
           </div>
           <ul class="vote-list">
             <li v-for="item in dataList">
@@ -38,8 +36,7 @@
               </div>
             </li>
           </ul>
-          <load-more tip="正在加载" v-show="loadShow"></load-more>
-        </quick-loadmore>
+        </scroller>
 
       </div>
       <x-dialog v-model="show" class="redeem-dialog">
@@ -76,7 +73,8 @@
         loadShow: true,
         show:false,
         btnLoading: false,
-        redeemId:''
+        redeemId:'',
+        total:''
       }
     },
     methods: {
@@ -105,8 +103,26 @@
         this.show = true
       },
       handleBottom() {
-        this.page++
-        this.getList()
+        if (this.total!==''&&this.dataList.length >= parseInt(this.total)){
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+
+        http.post('/vote/logs', {
+          page: this.page,
+          page_size: 10,
+          type:1
+        }, (res) => {
+          if (this.loadShow) this.loadShow = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.dataList = this.dataList.concat(res.content.list)
+          this.total = res.content.count
+          this.page++
+          this.$refs.my_scroller.finishInfinite(false);
+        })
       },
       getList() {
         http.post('/vote/logs', {
@@ -129,7 +145,6 @@
       },
     },
     created() {
-      this.getList()
     }
   }
 </script>
@@ -147,6 +162,7 @@
       right 0
       overflow hidden
       .vote-list
+        min-height 30px
         li
           padding $space-box
           border-bottom 1px solid $color-border

@@ -24,6 +24,7 @@ use common\models\business\BUserAccessToken;
  * @property string $last_login_ip 最后登录IP
  * @property int $last_login_time 最后登录时间
  * @property string $equipment_number 设备号
+ * @property string $recommend_code 推荐码
  * @property int $create_time 添加时间
  * @property int $update_time 修改时间
  */

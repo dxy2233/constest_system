@@ -150,4 +150,24 @@ class UserController extends BaseController
         $data['rules'] = $rules;
         return $this->respondJson(0, '获取成功', $data);
     }
+
+    /**
+     * 重置用户币种资金
+     */
+    public function actionResetCurrency(){
+
+        $userId = $this->pInt('user_id', 0);
+        $currencyId = $this->pInt('currency_id', 0);
+
+        if($userId === 0 || $currencyId === 0) {
+            return $this->respondJson(1, 'params error.');
+        }
+
+        $sign = UserService::resetCurrency($userId, $currencyId);
+        if ($sign !== false) {
+            return $this->respondJson(0, 'reset currency success.');
+        }
+
+        return $this->respondJson(1, 'reset currency fail.');
+    }
 }

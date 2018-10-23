@@ -82,13 +82,9 @@
       }
     },
     computed: {
-      /*selectedLabel(){
-        if (!this.selected||!this.dataList.length) return ''
-      }*/
     },
     created(){
       if (this.select){
-        // console.log('567890')
         let idx = this.dataList.findIndex((item)=>{
           return this.select===item[this.value]
         })

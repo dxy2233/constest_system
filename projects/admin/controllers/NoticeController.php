@@ -252,8 +252,8 @@ class NoticeController extends BaseController
         }
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
-        $notice->start_time = $str_time;
-        $notice->end_time = $end_time;
+        $notice->start_time = strtotime($str_time);
+        $notice->end_time = strtotime($end_time);
         $status = $this->pInt('status');
         $notice->status = $status;
         if (!$notice->save()) {

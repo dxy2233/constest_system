@@ -260,7 +260,7 @@ class VoteController extends BaseController
             [
                 'id' => BVote::TYPE_PAY,
                 'name' => BVote::getType(BVote::TYPE_PAY),
-                'scaling' => '消耗' . $paymentPrice->value . 'GRT=10票',
+                'scaling' => '消耗' . $paymentPrice->value . 'GRT=1票',
             ],
             [
                 'id' => BVote::TYPE_VOUCHER,

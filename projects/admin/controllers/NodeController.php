@@ -622,8 +622,8 @@ class NodeController extends BaseController
             return $this->respondJson(1, '候选数量已达上限');
         }
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
-            $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
-            $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
+            $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+            $setting = BNodeType::find()->where(['id' => $type_id])->one();
             if ($now_count >= $setting->max_candidate) {
                 return $this->respondJson(1, '任职数量已达上限');
             }
@@ -1002,11 +1002,11 @@ class NodeController extends BaseController
         if (empty($users)) {
             return $this->respondJson(1, '不存在的节点');
         }
-        $transaction = \Yii::$app->db->beginTransaction();
-        foreach ($users as $user) {
-            $user->delete();
+        $res = BNode::updateAll(['status' => BNode::STATUS_DEL], ['and', ['in', 'id', $user_id], ['status' => BNode::STATUS_NO]]);
+        if ($res) {
+            return $this->respondJson(0, '删除成功');
+        } else {
+            return $this->respondJson(0, '删除失败');
         }
-        $transaction->commit();
-        return $this->respondJson(0, '删除成功');
     }
 }

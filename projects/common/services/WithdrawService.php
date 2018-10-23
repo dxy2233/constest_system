@@ -57,6 +57,7 @@ class WithdrawService extends ServiceBase
             $withdraw->setAttributes($data);
             $withdraw->order_number = FuncHelper::generateOrderCode(); // 订单号
             $withdraw->type = BUserRechargeWithdraw::$TYPE_WITHDRAW; // 提币
+            $withdraw->remark = $withdraw->remark ? $withdraw->remark : '提币';
             $sign = $withdraw->save();
             if (!$sign) {
                 throw new ErrorException('user_recharge_withdraw table data is not inserted successfully');

@@ -730,8 +730,6 @@ class FuncHelper
                 $newData[$key] = $value;
             }
             $data = $newData;
-        } else {
-            $data = self::camelize($data, $separator);
         }
         return $data;
     }

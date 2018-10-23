@@ -56,6 +56,7 @@ class NoticeController extends BaseController
         $data['type_str'] = BNotice::getType($notice->type);
         // 模型中格式化时间
         $data['create_Time'] = $notice->createTimeText;
+        $data['update_Time'] = $notice->updateTimeText;
         $data['start_Time'] = $notice->startTimeText;
         $data['end_time'] = $notice->endTimeText;
         unset($data['sort']);

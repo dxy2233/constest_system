@@ -207,7 +207,7 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['scheme'] = $data->scheme;
-        $return['logo'] = FuncHelper::getImageUrl($data->logo,640 ,640);
+        $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
     }
 
@@ -471,7 +471,7 @@ class NodeController extends BaseController
         }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
-        if ($now_count >= $setting->max_candidate) {
+        if ($now_count >= $setting->tenure_num) {
             return $this->respondJson(1, '任职数量已达上限');
         }
         $node->is_tenure = BNotice::STATUS_ACTIVE;
@@ -621,13 +621,14 @@ class NodeController extends BaseController
 
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $setting->max_people) {
+
+        if ($now_count >= $setting->max_candidate) {
             return $this->respondJson(1, $setting->name.'候选数量已达上限');
         }
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
             $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
             $setting = BNodeType::find()->where(['id' => $type_id])->one();
-            if ($now_count >= $setting->max_candidate) {
+            if ($now_count >= $setting->tenure_num) {
                 return $this->respondJson(1, $setting->name.'任职数量已达上限');
             }
         }
@@ -649,9 +650,9 @@ class NodeController extends BaseController
         }
         $is_tenure = $this->pInt('is_tenure');
         if ($is_tenure == BNotice::STATUS_ACTIVE) {
-            $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
-            $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
-            if ($now_count >= $setting->max_candidate) {
+            $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+            $setting = BNodeType::find()->where(['id' => $type_id])->one();
+            if ($now_count >= $setting->tenure_num) {
                 return $this->respondJson(1, '任职数量已达上限');
             }
         }
@@ -702,7 +703,7 @@ class NodeController extends BaseController
         }
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $setting->max_people) {
+        if ($now_count >= $setting->max_candidate) {
             return $this->respondJson(1, '候选数量已达上限');
         }
         $node = new BNode();

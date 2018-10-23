@@ -112,7 +112,7 @@ export function addNotice({ image, title, date, type, url, detail, status }) {
   })
 }
 // 修改公告
-export function editNotice({ id, image, title, date, type, url, status }) {
+export function editNotice({ id, image, title, date, type, url, detail, status }) {
   return request({
     url: '/notice/edit',
     method: 'post',
@@ -124,6 +124,7 @@ export function editNotice({ id, image, title, date, type, url, status }) {
       end_time: date[1],
       type,
       url,
+      detail,
       status
     }
   })

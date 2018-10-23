@@ -119,15 +119,3 @@ export function addUser(mobile, code) {
     }
   })
 }
-
-// 编辑钱包地址
-export function editWallet(walletId, address) {
-  return request({
-    url: '/user/edit-wallet',
-    method: 'post',
-    data: {
-      walletId,
-      address
-    }
-  })
-}

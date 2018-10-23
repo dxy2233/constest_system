@@ -9,8 +9,8 @@
     <el-input v-model="search" placeholder="节点名称/手机号" suffix-icon="el-icon-search" class="btn-right" style="width:200px;"/>
     <br>
 
-    已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
-    <el-button :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain style="margin-top:20px;" @click="allPass">通过</el-button>
+    已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
+    <el-button v-show="noticeChecktoNum==2" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allPass">通过</el-button>
 
     <el-table
       :data="tableDataPage"
@@ -19,6 +19,7 @@
       @row-click="clickRow">
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="name" label="节点名称"/>
+      <el-table-column prop="typeName" label="节点类型"/>
       <el-table-column prop="mobile" label="手机号"/>
       <el-table-column prop="grt" label="质押GRT"/>
       <el-table-column prop="bpt" label="质押BPT"/>

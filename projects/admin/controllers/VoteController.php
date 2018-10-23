@@ -144,7 +144,7 @@ class VoteController extends BaseController
                 return $this->respondJson(1, "操作失败", $v->getFirstErrorText());
             }
         }
-
+        SettingService::refresh();
         $transaction->commit();
         return $this->respondJson(0, "操作成功");
     }

@@ -45,6 +45,12 @@ class LoginController extends BaseController
         if (!$username) {
             return $this->respondJson(1, "用户名不能为空");
         }
+
+        // 登陆密码、ip 错误次数达到上限
+        $loginLimit = AdminService::loginErrorNumLimit($username);
+        if ($loginLimit->code != 0) {
+            return $this->respondJson(1, "您已输入密码错误5次，账户将冻结1小时");
+        }
         $user = AdminLogin::login($username, $password);
         if ($user === false) {
             return $this->respondJson(1, "用户名或密码错误！");

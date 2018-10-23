@@ -59,8 +59,11 @@ class VoteController extends BaseController
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'A.vote_number', 2 => 'A.type', 3 => 'A.create_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
+        $find->orderBy($order. ' DESC');
         $count = $find->count();
         $page = $this->pInt('page', 1);
         if ($page != 0) {
@@ -100,8 +103,11 @@ class VoteController extends BaseController
         $order = $this->gString('order');
         if ($order != '') {
             $order_arr = [1 => 'A.vote_number', 2 => 'A.type', 3 => 'A.create_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
+        $find->orderBy($order. ' DESC');
 
         $data = $find->asArray()->all();
         foreach ($data as &$v) {

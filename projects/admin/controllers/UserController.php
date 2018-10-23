@@ -76,12 +76,16 @@ class UserController extends BaseController
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
+        $find->orderBy($order . ' DESC');
+        $count = $find->count();
         if ($page != 0) {
-            $count = $find->count();
             $find->page($page);
         }
+        
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();
         //var_dump($list);
@@ -142,11 +146,14 @@ class UserController extends BaseController
             $find->endTime($end_time, 'A.create_time');
         }
         
-        $order = $this->gString('order');
+        $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
-            $find->orderBy($order_arr[$order]. ' DESC');
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time';
         }
+        $find->orderBy($order . ' DESC');
 
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();

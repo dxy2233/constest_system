@@ -72,18 +72,19 @@ class FinanceController extends BaseController
 
         $order = $this->pString('order');
         if ($order != '') {
-            if ($type == 1) {
+            if ($order == 1) {
                 $order = 'A.currency_id';
-            } elseif ($type == 2) {
+            } elseif ($order == 2) {
                 $order = 'A.position_amount';
             } elseif ($order == 3) {
                 $order = 'A.frozen_amount';
             } else {
                 $order = 'A.use_amount';
             }
-            $find->orderBy($order. ' desc');
+        } else {
+            $order = "A.position_amount";
         }
-
+        $find->orderBy($order. ' desc');
 
         $page = $this->pInt('page', 1);
         if ($page != 0) {
@@ -131,17 +132,19 @@ class FinanceController extends BaseController
 
         $order = $this->gString('order');
         if ($order != '') {
-            if ($type == 1) {
+            if ($order == 1) {
                 $order = 'A.currency_id';
-            } elseif ($type == 2) {
+            } elseif ($order == 2) {
                 $order = 'A.position_amount';
             } elseif ($order == 3) {
                 $order = 'A.frozen_amount';
             } else {
                 $order = 'A.use_amount';
             }
-            $find->orderBy($order. ' desc');
+        } else {
+            $order = "A.position_amount";
         }
+        $find->orderBy($order. ' desc');
 
         $data = $find->asArray()->all();
 
@@ -233,6 +236,7 @@ class FinanceController extends BaseController
         } elseif ($type == 2) {
             $find->andWhere(['in', 'type', $out_arr]);
         }
+        $find->orderBy('A.create_time DESC');
         $count = $find->count();
         $page = $this->pInt('page', 1);
         if ($page != 0) {
@@ -288,7 +292,7 @@ class FinanceController extends BaseController
         } elseif ($type == 2) {
             $find->andWhere(['in', 'type', $out_arr]);
         }
-
+        $find->orderBy('A.create_time DESC');
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);

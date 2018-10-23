@@ -134,7 +134,7 @@ class WithdrawController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-
+        $find->orderBy('A.create_time DESC');
         $count = $find->count();
         $find->page($page);
 

@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = '';
+            $order = 'A.create_time';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -96,7 +96,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = '';
+            $order = 'A.create_time';
         }
         $data = NodeService::getList(0, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -134,7 +134,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = '';
+            $order = 'A.create_time';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];

@@ -56,6 +56,7 @@ class IdentifyController extends BaseController
             $find->andWhere(['or',['like','A.username',$searchName],['like', 'A.mobile', $searchName],['like', 'B.number', $searchName]]);
         }
         $count = $find->count();
+        $find->orderBy('B.create_time DESC');
         $list = $find->page($page)->asArray()->all();
         foreach ($list as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);

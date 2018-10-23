@@ -46,6 +46,7 @@ class NoticeController extends BaseController
         $count = $find->count();
         $page = $this->pInt('page', 1);
         $find->page($page);
+        $find->orderBy('update_time DESC');
         //echo $find->createCommand()->getRawSql();
         $data = $find->asArray()->all();
         foreach ($data as &$v) {

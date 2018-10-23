@@ -53,6 +53,7 @@ class JobService extends ServiceBase
             $history->node_name = $v['name'];
             $history->username = $v['mobile'];
             $history->node_id = $v['id'];
+            $history->node_type = $v['type_id'];
             $history->is_tenure = $v['is_tenure'];
             $history->update_number = $history_id;
             if (!$history->save()) {

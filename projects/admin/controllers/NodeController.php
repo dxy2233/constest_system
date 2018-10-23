@@ -310,6 +310,7 @@ class NodeController extends BaseController
         if ($page != 0) {
             $find->page($page);
         }
+        
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];

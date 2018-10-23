@@ -12,6 +12,8 @@ class BNode extends \common\models\Node
     // public $vote_number = 0;
     // 新增节点投票人数
     public $people_number = 0;
+    // 新增节点类型是否支持投票
+    public $is_vote = 0;
 
     // 定义首页默展示 10 个节点
     const INDEX_NUMBER = 10;

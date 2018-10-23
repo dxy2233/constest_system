@@ -37,8 +37,8 @@ class NodeType extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['name', 'max_people', 'max_candidate', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'create_time'], 'required'],
-            [['max_people', 'max_candidate', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'sort', 'create_time'], 'integer'],
+            [['name',  'max_candidate', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'create_time'], 'required'],
+            [[ 'max_candidate', 'is_examine', 'is_candidate', 'is_vote', 'is_order', 'tenure_num', 'status', 'sort', 'create_time'], 'integer'],
             [['name'], 'string', 'max' => 16],
         ];
     }
@@ -54,7 +54,6 @@ class NodeType extends \common\dzbase\DzModel
             'grt' => 'grt最低标准',
             'tt' => 'tt最低标准',
             'bpt' => 'bpt最低标准',
-            'max_people' => '人数上限',
             'max_candidate' => '候选人上限',
             'is_examine' => '是否审核',
             'is_candidate' => '是否开启候选功能',

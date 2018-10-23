@@ -33,7 +33,7 @@ class JobService extends ServiceBase
             
         $page = 0;
         $data = NodeService::getList($page, '', '', $endTime);
-            
+
         $id_arr = [];
         foreach ($data as $v) {
             $id_arr[] = $v['id'];
@@ -79,6 +79,7 @@ class JobService extends ServiceBase
         }
         if (count($msg) > 0) {
             $transaction->rollBack();
+
             Yii::error(json_encode($msg), 'history');
         } else {
             $transaction->commit();

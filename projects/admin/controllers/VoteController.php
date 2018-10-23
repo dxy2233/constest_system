@@ -4,6 +4,7 @@ namespace admin\controllers;
 use common\services\AclService;
 use common\services\TicketService;
 use common\services\UserService;
+use common\services\SettingService;
 use common\services\JobService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BSetting;

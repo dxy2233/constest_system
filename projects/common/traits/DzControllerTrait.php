@@ -9,12 +9,30 @@
 namespace common\traits;
 
 use common\components\FuncHelper;
+use moonland\phpexcel\Excel;
 use Yii;
 
 trait DzControllerTrait
 {
     protected $respondData;
    
+    final protected function download($list, $headers, $fileName = '')
+    {
+        if ($fileName == '') {
+            $fileName = time();
+        }
+        $columns = [];
+        foreach ($headers as $key => $val) {
+            $columns[] = $key;
+        }
+        Excel::export([
+            'models'=>$list,
+            'fileName'=>$fileName.'.xls',
+            'columns'=>$columns,
+            'headers'=>$headers,
+            ]);
+    }
+
     /*
     * 安全参数
     */

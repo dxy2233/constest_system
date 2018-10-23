@@ -57,6 +57,7 @@ class UserController extends BaseController
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
         $page = $this->pInt('page');
+        
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
@@ -70,14 +71,19 @@ class UserController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-        $count = $find->count();
+        
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
             $find->orderBy($order_arr[$order]. ' DESC');
         }
+        $is_download = $this->pInt('is_download', 0);
+        if ($is_download == 0 && $page != 0) {
+            $count = $find->count();
+            $find->page($page);
+        }
         //echo $find->createCommand()->getRawSql();
-        $list = $find->page($page)->asArray()->all();
+        $list = $find->asArray()->all();
         //var_dump($list);
         foreach ($list as &$v) {
             $node = BNode::find()
@@ -107,6 +113,11 @@ class UserController extends BaseController
             } else {
                 $v['referee'] = $recommend['mobile'];
             }
+        }
+        if ($is_download != 0) {
+            $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+            $this->download($list, $headers);
+            return;
         }
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);

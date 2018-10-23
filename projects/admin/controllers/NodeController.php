@@ -677,7 +677,7 @@ class NodeController extends BaseController
             if ($old_node) {
                 return $this->respondJson(1, '此用户已有节点');
             }
-            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['!=', 'status', BUserIdentify::STATUS_FAIL])->one();
             if ($user_identify) {
                 $identify = 1;
             }

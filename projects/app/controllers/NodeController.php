@@ -109,7 +109,7 @@ class NodeController extends BaseController
         ->alias('n')
         ->joinWith(['nodeType nt'], false)
         ->active(BNode::STATUS_ACTIVE, 'n.')
-        ->where(['n.node_id' => $nodeId])
+        ->where(['n.id' => $nodeId])
         ->one();
         if (!is_object($nodeModel)) {
             return $this->respondJson(1, '节点不存在或已关闭');

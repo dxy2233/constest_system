@@ -315,6 +315,7 @@ class NodeController extends BaseController
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
+            $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

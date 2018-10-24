@@ -243,6 +243,7 @@ class NodeController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->select(['A.*','B.mobile'])
         ->where(['A.node_id' => $nodeId, 'A.status' => BNotice::STATUS_ACTIVE])
+        ->orderBy('A.create_time DESC')
         ->asArray()->all();
         foreach ($data as $v) {
             $voteItem = [];

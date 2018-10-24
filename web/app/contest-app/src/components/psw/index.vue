@@ -31,7 +31,6 @@
         this.$emit('backFnc') // 返回上级
       },
       keyUpHandle (e) {
-        console.log(e)
         let text = e.currentTarget.innerText
         let len = this.password.length
         if (!text || len >= 6) return

@@ -112,6 +112,10 @@
             this.$vux.toast.show(res.msg)
             return
           }
+          if (!res.content.length){
+            this.loadShow = false
+            return
+          }
           this.nodeTab = res.content
           this.currentNodeId = res.content[0].id
           this.getNodeList()

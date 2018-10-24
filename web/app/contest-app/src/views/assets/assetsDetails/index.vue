@@ -5,7 +5,10 @@
         {{currencyInfo.name}}
       </x-header>-->
       <app-header>
-        <span @click="refreshData" slot="right">刷新数据</span>
+        <div @click="refreshData" slot="right" class="refresh-btn">
+          <inline-loading v-show="refreshLoad"></inline-loading>
+          <span>刷新数据</span>
+        </div>
       </app-header>
       <div class="assets-details-main">
         <div class="brief">
@@ -68,11 +71,13 @@
 <script>
   import slide from 'components/slide/index'
   import http from 'js/http'
+  import { InlineLoading } from 'vux'
 
   export default {
     name: "index",
     components: {
-      slide
+      slide,
+      InlineLoading
     },
     data() {
       return {
@@ -92,16 +97,40 @@
         loadShow: true,
         currencyInfo: {},
         dtsId: this.$route.params.id,
-        total:''
+        total:'',
+        refreshLoad:false
       }
     },
     methods: {
       refreshData(){
-        this.getCurrencyInfo()
+        /*this.getCurrencyInfo()
         this.page = 1
         this.dataList = []
         this.total = ''
-        this.$refs.my_scroller.finishInfinite(false);
+        this.$refs.my_scroller.finishInfinite(false);*/
+        let is = this.isRefresh()
+        if(is){
+          this.getCurrencyInfo()
+          this.page = 1
+          this.dataList = []
+          this.total = ''
+          this.$refs.my_scroller.finishInfinite(false);
+        }
+      },
+      isRefresh(){
+        this.refreshLoad = true
+        http.post('/wallet/recharge-refresh', {
+          id: this.$route.params.id,
+        }, (res) => {
+          this.refreshLoad = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return false
+          }else {
+            return res.content.isRefresh
+          }
+
+        })
       },
       goFrozen() {
         this.$router.push({
@@ -190,6 +219,11 @@
   .assets-details
     fixed-full-screen()
     overflow auto
+    .refresh-btn
+      display flex
+      align-items center
+      span
+        margin-left 5px
     .assets-details-main
       position absolute
       top 50px

@@ -134,7 +134,7 @@
     fixed-full-screen()
     overflow auto
     background $color-background-sub
-    &>.app-header
+    & > .app-header
       background $color-background-sub
     .node-details-content
       margin 20px
@@ -159,6 +159,7 @@
           width 85px
           height 85px
           border-radius 50%
+          overflow hidden
           img
             width 100%
             height 100%

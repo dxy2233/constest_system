@@ -11,7 +11,7 @@
         <div class="top" :style="bgStyle">
           <img :src="'/static/images/personal-node/icon_'+nodeInfo.typeId+'.png'" alt="" class="img">
           <p class="name">{{nodeInfo.name}}</p>
-          <span class="sign" v-if="!nodeInfo.isTenure">任职</span>
+          <span class="sign" v-if="nodeInfo.isTenure">任职</span>
         </div>
         <div class="bottom">
           <dl>
@@ -47,7 +47,6 @@
     },
     created() {
       this.nodeInfo = JSON.parse(sessionStorage.getItem('myNodeInfo'))
-      // console.log(this.nodeInfo, "url(/static/images/personal-node/bg_" + this.nodeInfo.typeId + ".png)")
       this.getInterests()
     },
     computed: {

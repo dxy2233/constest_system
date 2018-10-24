@@ -243,7 +243,7 @@ class UserController extends BaseController
             return $this->respondJson(1, '不存在的用户');
         }
         $identify = [];
-        $userIdentify = BUserIdentify::find()->where(['user_id'=> $userId])->active(BNotice::STATUS_ACTIVE)->one();
+        $userIdentify = BUserIdentify::find()->where(['user_id'=> $userId])->orderBy('id DESC')->active(BNotice::STATUS_ACTIVE)->one();
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;

@@ -2,6 +2,7 @@
 
 namespace common\services;
 
+use common\models\NodeType;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 use common\components\NetUtil;
@@ -10,13 +11,13 @@ use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BNode;
 use common\models\business\BVote;
+use common\models\business\BNotice;
+use common\models\business\BNodeRule;
+use common\models\business\BNodeType;
 use common\models\business\BUserWallet;
 use common\models\business\BUserAccessToken;
-use common\models\business\BUserRefreshToken;
 use common\models\business\BTypeRuleContrast;
-use common\models\business\BNodeRule;
-use common\models\business\BNotice;
-use common\models\business\BNodeType;
+use common\models\business\BUserRefreshToken;
 
 class NodeService extends ServiceBase
 {
@@ -150,11 +151,12 @@ class NodeService extends ServiceBase
         ->select(['n.id', 'n.name', 'n.logo', 'n.is_tenure', 'SUM(v.vote_number) as vote_number', 'nt.is_vote'])
         ->active(BNode::STATUS_ACTIVE, 'n.')
         ->joinWith(['votes v' => function ($query) {
-            $query->active(BVote::STATUS_ACTIVE, 'v.');
-            // if ($query->count()) {
-            //     $query->andOnCondition(['v.status' => BVote::STATUS_ACTIVE]);
-            // }
-        }, 'nodeType nt'], false)
+            if ($query->count()) {
+                $query->active(BVote::STATUS_ACTIVE, 'v.');
+            }
+        }, 'nodeType nt' => function ($query) {
+            $query->andWhere(['is_order' => NodeType::STATUS_ACTIVE]);
+        }], false)
         ->filterWhere(['n.type_id' => $nodeType])
         ->groupBy('n.id');
         self::$number = $nodeModel->count();

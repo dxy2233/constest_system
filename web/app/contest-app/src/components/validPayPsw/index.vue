@@ -2,7 +2,7 @@
   <slide>
     <div class="psw-field">
       <x-header :left-options="{backText: ''}" class="w-header">
-        <div slot="overwrite-left" class="icon-back header-left-icon" @click.native="closeTem"></div>
+        <div slot="overwrite-left" class="icon-back header-left-icon" @click="closeTem"></div>
       </x-header>
       <div class="psw-field-box">
         <div class="content">

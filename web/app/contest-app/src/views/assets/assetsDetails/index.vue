@@ -5,6 +5,7 @@
         {{currencyInfo.name}}
       </x-header>-->
       <app-header>
+        <span @click="refreshData" slot="right">刷新数据</span>
       </app-header>
       <div class="assets-details-main">
         <div class="brief">
@@ -46,11 +47,13 @@
         </div>
         <div class="handle-btn">
           <ul>
-            <router-link tag="li" :to="'/assets/dts'+dtsId+'/collect'">
+            <router-link tag="li" :to="'/assets/dts'+dtsId+'/collect'"
+                         v-if="parseInt(currencyInfo.rechargeStatus)">
               <img src="/static/images/collect.png" alt="">
               <span>收款</span>
             </router-link>
-            <router-link tag="li" :to="'/assets/dts'+dtsId+'/transfer'">
+            <router-link v-if="parseInt(currencyInfo.withdrawStatus)"
+              tag="li" :to="'/assets/dts'+dtsId+'/transfer'">
               <img src="/static/images/transfer.png" alt="">
               <span>转账</span>
             </router-link>
@@ -93,6 +96,13 @@
       }
     },
     methods: {
+      refreshData(){
+        this.getCurrencyInfo()
+        this.page = 1
+        this.dataList = []
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);
+      },
       goFrozen() {
         this.$router.push({
           path: `/assets/dts${this.dtsId}/frozen`
@@ -236,7 +246,8 @@
     .detail
       position absolute
       top 225px
-      bottom 60px
+      bottom 0
+      padding-bottom 60px
       width 100%
       overflow hidden
       .detail-list
@@ -293,13 +304,13 @@
         overflow hidden
         line-height 60px
         height 60px
-        border-top 1px solid $color-border-sub
         margin-left -1px
         box-sizing border-box
         li
           width 50%
           float left
           text-align center
+          border-top 1px solid $color-border-sub
           font-size $font-size-medium-x
           box-sizing border-box
           border-left 1px solid $color-border-sub

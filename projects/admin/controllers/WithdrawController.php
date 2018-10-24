@@ -93,10 +93,10 @@ class WithdrawController extends BaseController
             return $this->respondJson(1, '币种不存在');
         }
         $return  = [];
-        $return['withdraw_min_amount'] = $currency->withdraw_min_amount;
-        $return['withdraw_max_amount'] = $currency->withdraw_max_amount;
-        $return['withdraw_audit_amount'] = $currency->withdraw_audit_amount;
-        $return['withdraw_day_amount'] = $currency->withdraw_day_amount;
+        $return['withdraw_min_amount'] = (float)$currency->withdraw_min_amount;
+        $return['withdraw_max_amount'] = (float)$currency->withdraw_max_amount;
+        $return['withdraw_audit_amount'] = (float)$currency->withdraw_audit_amount;
+        $return['withdraw_day_amount'] = (float)$currency->withdraw_day_amount;
         $is_identify = BSetting::find()->where(['key' => 'is_identify'])->one();
         $return['is_identify'] = $is_identify->value;
         return $this->respondJson(0, "获取成功", $return, false);
@@ -114,7 +114,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.examine_time', 'A.id', 'A.destination_address'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');

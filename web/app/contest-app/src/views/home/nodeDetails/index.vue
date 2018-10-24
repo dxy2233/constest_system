@@ -36,9 +36,11 @@
       </div>-->
       <div class="node-details-content">
         <div class="top" :style="bgStyle">
-          <img :src="nodeInfo.logo" alt="图片路径错误" class="img">
+          <div class="img">
+            <img v-if="nodeInfo.logo" :src="nodeInfo.logo" alt="" class="">
+          </div>
           <p class="name">{{nodeInfo.name}}</p>
-          <span class="sign right-sign" v-if="!nodeInfo.isTenure">任职</span>
+          <span class="sign right-sign" v-if="nodeInfo.isTenure">任职</span>
           <span class="sign left-sign" v-if="nodeInfo.typeName" v-html="nodeInfo.typeName">超级节点</span>
         </div>
         <div class="bottom">
@@ -66,7 +68,7 @@
           </dl>
         </div>
       </div>
-      <div class="btn-box">
+      <div class="btn-box" v-if="nodeInfo.isVote">
         <!--<button>支持TA</button>-->
         <router-link tag="button" :to="{path:'/home/vote',query:{nodeId:nodeInfo.id,nodeName:nodeInfo.name}}">支持TA
         </router-link>
@@ -157,6 +159,9 @@
           width 85px
           height 85px
           border-radius 50%
+          img
+            width 100%
+            height 100%
         .sign
           position absolute
           top 20px

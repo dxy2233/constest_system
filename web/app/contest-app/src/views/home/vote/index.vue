@@ -40,8 +40,9 @@
             </div>
           </div>
           <div class="ps">
-            <span>可用GRT数量&nbsp;&nbsp;&nbsp;{{typeInfo.amount}}</span>
-            <span>{{typeInfo.number}}票</span>
+            <span v-if="typeInfo.showCurrency">可用GRT数量&nbsp;&nbsp;&nbsp;{{typeInfo.amount}}</span>
+            <span v-else></span>
+            <span>{{typeInfo.number+'票'}}</span>
           </div>
           <x-button type="warn" class="sbm-btn" @click.native="sbmVote">确定</x-button>
         </div>

@@ -40,6 +40,7 @@
           <el-button v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
           <el-button v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
         </div>
+        <p v-show="checkTypetoNum==2">未通过原因：{{ rowDetail.statusRemark }}</p>
         <p style="margin-top:50px;">
           <span style="margin-right:150px;">姓名：{{ rowInfo.realname }}</span>
           <span>身份证号：{{ rowInfo.number }}</span>
@@ -178,8 +179,7 @@ export default {
 
 .image {
   display: block;
-  width: 860px;
-  height: 470px;
+  height: 400px;
   border: 1px solid #ddd;
 }
 </style>

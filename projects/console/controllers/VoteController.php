@@ -32,7 +32,7 @@ class VoteController extends BaseController
     {
         // 赎回投票操作时间加上后台设定撤回时间是否大于当前控制台执行时间（判断当前时间小于等于执行解冻操作, 反之不处理)
         $revokeList = VoteService::getRevokeList(0, function ($query) {
-            return $query->andWhere(['>=', 'undo_time', NOW_TIME]);
+            return $query->andWhere(['<=', 'undo_time', NOW_TIME]);
         });
         $count = 0;
         $success = 0;

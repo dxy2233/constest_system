@@ -56,7 +56,7 @@
           <el-button class="btn" @click="noticeEdit">编辑</el-button>
         </div>
         <p style="margin-top:40px;">展示图</p>
-        <img :src="rowInfo.image" alt="" style="display:block;width:200px;height:200px;border:1px solid #ddd;">
+        <img :src="rowInfo.image" alt="" style="display:block;height:200px;border:1px solid #ddd;">
         <p>公告类型</p>
         <div v-if="rowInfo.type==0">
           <p>链接 <a :href="rowInfo.url" style="text-decoration: underline;color:#888;">{{ rowInfo.url }}</a></p>
@@ -81,8 +81,8 @@
     </el-dialog>
 
     <el-dialog :visible.sync="dialogRelease" title="发布公告" class="release">
-      <el-form label-width="100px">
-        <el-form-item label="首页展示图" required>
+      <el-form ref="releaseForm" :model="releaseData" :rules="rules" label-width="100px">
+        <el-form-item label="首页展示图" prop="image">
           <el-upload
             :data="{type:'notice'}"
             :show-file-list="false"
@@ -94,7 +94,7 @@
             <i v-else class="el-icon-plus avatar-uploader-icon"/>
           </el-upload>
         </el-form-item>
-        <el-form-item label="公告标题" required>
+        <el-form-item label="公告标题" prop="title">
           <el-input v-model="releaseData.title"/>
         </el-form-item>
         <!-- <el-form-item label="时间">
@@ -108,7 +108,7 @@
             value-format="yyyy-MM-dd HH:mm"
             style="width:100%;"/>
         </el-form-item> -->
-        <el-form-item label="公告类型" required>
+        <el-form-item label="公告类型">
           <el-select v-model="releaseData.type">
             <el-option
               v-for="item in allType"
@@ -117,10 +117,10 @@
               :value="item.value"/>
           </el-select>
         </el-form-item>
-        <el-form-item v-show="releaseData.type==0" label="链接地址" required>
+        <el-form-item v-if="releaseData.type==0" label="链接地址" prop="url">
           <el-input v-model="releaseData.url"/>
         </el-form-item>
-        <el-form-item v-show="releaseData.type==1" label="正文内容" required>
+        <el-form-item v-if="releaseData.type==1" label="正文内容" prop="detail">
           <div>
             <tinymce :height="300" v-model="releaseData.detail"/>
           </div>
@@ -134,9 +134,9 @@
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogEdit" title="发布公告" class="release">
-      <el-form label-width="100px">
-        <el-form-item label="首页展示图" required>
+    <el-dialog :visible.sync="dialogEdit" title="编辑公告" class="release">
+      <el-form ref="rowInfoForm" :model="rowInfo" :rules="rules" label-width="100px">
+        <el-form-item label="首页展示图" prop="image">
           <el-upload
             :data="{type:'notice'}"
             :show-file-list="false"
@@ -148,7 +148,7 @@
             <i v-else class="el-icon-plus avatar-uploader-icon"/>
           </el-upload>
         </el-form-item>
-        <el-form-item label="公告标题" required>
+        <el-form-item label="公告标题" prop="title">
           <el-input v-model="rowInfo.title"/>
         </el-form-item>
         <!-- <el-form-item label="时间">
@@ -162,7 +162,7 @@
             value-format="yyyy-MM-dd HH:mm"
             style="width:100%;"/>
         </el-form-item> -->
-        <el-form-item label="公告类型" required>
+        <el-form-item label="公告类型">
           <el-select v-model="rowInfo.type">
             <el-option
               v-for="item in allType"
@@ -171,10 +171,10 @@
               :value="item.value"/>
           </el-select>
         </el-form-item>
-        <el-form-item v-show="rowInfo.type==0" label="链接地址" required>
+        <el-form-item v-if="rowInfo.type==0" label="链接地址" prop="url">
           <el-input v-model="rowInfo.url"/>
         </el-form-item>
-        <el-form-item v-show="rowInfo.type==1" label="正文内容" required>
+        <el-form-item v-if="rowInfo.type==1" label="正文内容" prop="detail">
           <div>
             <tinymce :height="300" v-model="rowInfo.detail"/>
           </div>
@@ -226,6 +226,20 @@ export default {
         url: '',
         detail: ``,
         status: 0
+      },
+      rules: {
+        image: [
+          { required: true, message: '请上传图片', trigger: 'change' }
+        ],
+        title: [
+          { required: true, message: '请填写标题', trigger: 'blur' }
+        ],
+        detail: [
+          { required: true, message: '请编辑正文', trigger: 'blur' }
+        ],
+        url: [
+          { type: 'url', required: true, message: '请输入完整的链接', trigger: 'blur' }
+        ]
       }
     }
   },
@@ -370,20 +384,34 @@ export default {
     },
     // 上传公告内容
     saveNtice(isRelease) {
-      isRelease ? this.releaseData.status = 1 : this.releaseData.status = 0
-      addNotice(this.releaseData).then(res => {
-        Message({ message: res.msg, type: 'success' })
-        this.dialogRelease = false
-        getNoticeList(this.noticeTypetoNum).then(res => {
-          this.tableData = res.content
-        })
+      this.$refs['releaseForm'].validate((valid) => {
+        if (valid) {
+          isRelease ? this.releaseData.status = 1 : this.releaseData.status = 0
+          addNotice(this.releaseData).then(res => {
+            Message({ message: res.msg, type: 'success' })
+            this.dialogRelease = false
+            getNoticeList(this.noticeTypetoNum).then(res => {
+              this.tableData = res.content
+            })
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
       })
     },
     // 编辑内容
     editNtice() {
-      editNotice(this.rowInfo).then(res => {
-        Message({ message: res.msg, type: 'success' })
-        this.dialogEdit = false
+      this.$refs['rowInfoForm'].validate((valid) => {
+        if (valid) {
+          editNotice(this.rowInfo).then(res => {
+            Message({ message: res.msg, type: 'success' })
+            this.dialogEdit = false
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
       })
     }
   }

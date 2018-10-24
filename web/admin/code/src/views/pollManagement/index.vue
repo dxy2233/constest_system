@@ -40,12 +40,12 @@
       <div v-for="(item,index) in dialogSetData" :key="index">
         <div v-if="item.type=='radio'" class="switch">
           <span>{{ item.name }}</span>
-          <el-switch v-model="pushSetData[index][item.key]" active-value="1" inactive-value="0" active-color="#13ce66" inactive-color="#ff4949"/>
+          <el-switch v-model="pushSetData[index][item.key]" active-value="1" inactive-value="0" active-color="#13ce66" inactive-color="#ff4949" @change="changeSwitch"/>
         </div>
         <div v-if="item.type=='text'" class="txt">
           <span>{{ item.name }}{{ pushSetData[index][item.key] }}</span>
         </div>
-        <div v-if="item.type=='time'" class="time">
+        <div v-if="item.type=='time' && showTimeOver==1" class="time">
           <span>{{ item.name }}</span>
           <el-date-picker
             v-model="pushSetData[index][item.key]"
@@ -136,14 +136,14 @@ export default {
         { value: 0, label: '全部' },
         { value: 1, label: '普通投票' },
         { value: 2, label: '支付投票' },
-        { value: 3, label: '投票券' },
-        { value: 4, label: '推荐投票' }
+        { value: 3, label: '投票券' }
       ],
       dialogRankType: 0,
       dialogRankData: [],
       dialogRankDataPage: [],
       dialogRankDate: '',
-      rankCurrentPage: 1
+      rankCurrentPage: 1,
+      showTimeOver: null
     }
   },
   computed: {
@@ -182,6 +182,9 @@ export default {
         })
         this.dialogSet = true
       })
+    },
+    changeSwitch(val) {
+      this.showTimeOver = val
     },
     // 手动截至投票时间
     manuakStop(index) {
@@ -284,10 +287,15 @@ export default {
   .switch {
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
   }
   .txt {
     margin-top: 20px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
   }
   .time {
     margin-top: 20px;

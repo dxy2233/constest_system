@@ -273,12 +273,13 @@ class NoticeController extends BaseController
     public function actionSetNotice()
     {
         $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_NOTICE])->all();
+        $post = \Yii::$app->request->post();
         $transaction = \Yii::$app->db->beginTransaction();
         foreach ($data as $v) {
-            $post_item = $this->pString($v->key, '');
-            if ($post_item == '') {
+            if (!isset($post[$v->key])) {
                 continue;
             }
+            $post_item = $post[$v->key];
             $v->value = $post_item;
             
             if (!$v->save()) {

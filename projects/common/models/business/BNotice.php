@@ -59,7 +59,7 @@ class BNotice extends \common\models\Notice
 
         $showCount = (int) SettingService::get('notice', 'show_count')->value;
         $query = self::find()
-        ->select(['id', 'title', 'desc', 'type', 'image', 'click', 'is_top', 'create_time'])
+        ->select(['id', 'title', 'desc', 'type', 'image', 'click', 'is_top', 'create_time', 'update_time'])
         ->active();
         // ->hasStartAndEndTime();
         if ($isIndex) {
@@ -68,16 +68,9 @@ class BNotice extends \common\models\Notice
             $count = $query->count();
             $query->page($page, $pageSize);
         }
-        
-        // $sql = $query->createCommand()->getRawSql();
-        // var_dump($sql);exit;
-        // ->orderBy([
-        //     'sort' => SORT_ASC,
-        //     'create_time' => SORT_DESC,
-        // ])
-        
+         
         $noticeList = $query->asArray()->all();
-        ArrayHelper::multisort($noticeList, ['is_top', 'create_time'], [SORT_DESC, SORT_DESC]);
+        ArrayHelper::multisort($noticeList, ['is_top', 'update_time'], [SORT_DESC, SORT_DESC]);
         foreach ($noticeList as $key => &$notice) {
             $notice['image'] = FuncHelper::getImageUrl($notice['image'], 640, 640);
             unset($notice['create_time']);

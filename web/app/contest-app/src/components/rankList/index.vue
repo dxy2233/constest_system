@@ -56,7 +56,8 @@
   @import "~stylus/variable"
   @import "~stylus/mixin"
   .rank-list
-    padding $space-box 0
+    /*padding $space-box 0*/
+    min-height 30px
     li
       position relative
       display flex

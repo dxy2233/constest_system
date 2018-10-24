@@ -309,7 +309,8 @@ export default {
     downUrl() {
       var str = this.searchDate[0] || ''
       var end = this.searchDate[1] || ''
-      return `http://contestadmin.vguiren.cm/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
+      // return `http://contestadmin.vguiren.cm/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
+      return `/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
     }
   },
   created() {

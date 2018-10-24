@@ -157,7 +157,7 @@
   .home-main
     overflow auto
     height 100%
-    padding $space-box
+    padding 0 $space-box
     .line
       height 1px
       width 100%
@@ -168,6 +168,7 @@
       justify-content space-between
       align-items flex-end
       line-height 50px
+      padding-top $space-box
       /*background-image url('https://ww1.sinaimg.cn/large/663d3650gy1fq66vw1k2wj20p00goq7n.jpg')*/
       h2
         font-weight bold

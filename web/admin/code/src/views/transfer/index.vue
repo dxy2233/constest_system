@@ -70,7 +70,8 @@
         <p v-show="checkTypetoNum==2">未通过原因：{{ rowInfo.statusRemark }}</p>
         <p><span>流水号</span>{{ rowInfo.orderNumber }}</p>
         <p><span>币种</span>{{ rowInfo.name }}<span>类型</span>{{ rowInfo.type }}</p>
-        <p><span>数量</span>{{ rowInfo.amount }}<span>备注</span>{{ rowInfo.remark }}</p>
+        <p><span>数量</span>{{ rowInfo.amount }}<span>剩余划拨数量</span>{{ payment }}</p>
+        <p><span>备注</span>{{ rowInfo.remark }}</p>
         <p><span>对方钱包地址</span>{{ rowInfo.destinationAddress }}</p>
         <p><span>申请时间</span>{{ rowInfo.createTime }}</p>
       </div>
@@ -117,7 +118,7 @@
 </template>
 
 <script>
-import { getList, editSet, passTrial, failTrial, getSetValue } from '@/api/transfer'
+import { getList, editSet, passTrial, failTrial, getSetValue, walletInfo } from '@/api/transfer'
 import { getMoneyType } from '@/api/assets'
 import { Message } from 'element-ui'
 import { pagination } from '@/utils'
@@ -137,6 +138,7 @@ export default {
       moneyType: '',
       showInfo: false,
       rowInfo: [],
+      payment: '',
       dialogSet: false,
       setType: '',
       form: {
@@ -209,6 +211,9 @@ export default {
     // 点击表格行
     clickRow(row) {
       this.rowInfo = row
+      walletInfo('payment', this.rowInfo.name).then(res => {
+        this.payment = res.content.payment
+      })
       this.showInfo = true
     },
     // 通过

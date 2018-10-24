@@ -8,8 +8,8 @@
       </app-header>
       <div class="h-main wrapper">
         <div class="title">
-          <h3>钱包地址</h3>
-          <h5>贵生态钱包</h5>
+          <h3>收款地址</h3>
+          <h5>{{$route.query.name}}</h5>
         </div>
         <div class="qrcode-box">
           <qrcode :value="address" type="img" :size="230"></qrcode>

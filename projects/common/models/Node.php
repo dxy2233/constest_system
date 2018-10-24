@@ -43,6 +43,7 @@ class Node extends \common\dzbase\DzModel
             [['user_id', 'type_id', 'status', 'create_time', 'examine_time', 'is_tenure'], 'integer'],
             [['desc', 'scheme'], 'string'],
             [['name', 'status_remark', 'logo'], 'string', 'max' => 255],
+            [['name'], 'unique']
         ];
     }
 

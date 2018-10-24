@@ -69,8 +69,8 @@ class VoteService extends ServiceBase
             $voteModel->vote_number = $data['vote_number'];
             if ($type == BVote::TYPE_PAY) {
                 $isFrozen = false;
-                $voteModel->consume = $data['amount'];
             }
+            $voteModel->consume = $data['amount'];
             $voteModel->unit_code = $data['unit_code'];
             $voteModel->create_time = NOW_TIME;
             $voteModel->user_id = $userModel->id;
@@ -121,6 +121,7 @@ class VoteService extends ServiceBase
             $voteModel->type = BVote::TYPE_VOUCHER;
             $voteModel->status = BVote::STATUS_ACTIVE;
             $voteModel->vote_number = $data['vote_number'];
+            $voteModel->consume = $data['vote_number'];
             $voteModel->unit_code = $data['unit_code'];
             $voteModel->create_time = NOW_TIME;
             $voteModel->user_id = $userModel->id;
@@ -272,7 +273,7 @@ class VoteService extends ServiceBase
             return new FuncResult(0, '状态更改成功');
         } catch (\Exception $e) {
             $transaction->rollBack();
-            var_dump($e->getMessage());
+            // var_dump($e->getMessage());
             return new FuncResult(1, $e->getMessage());
         }
     }

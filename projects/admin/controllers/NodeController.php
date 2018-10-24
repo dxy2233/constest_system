@@ -206,6 +206,7 @@ class NodeController extends BaseController
         $return = [];
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
+        $return['status_remark'] = $data->status_remark;
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
@@ -310,10 +311,11 @@ class NodeController extends BaseController
         if ($page != 0) {
             $find->page($page);
         }
-        
+        $find->orderBy('vote_number DESC');
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
+            $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

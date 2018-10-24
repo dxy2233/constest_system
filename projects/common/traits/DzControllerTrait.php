@@ -78,6 +78,7 @@ trait DzControllerTrait
         if (!empty($return)) {
             $return = str_replace(\Yii::$app->params['imgAddress'], '', $return);
             $return = str_replace('/'.\Yii::$app->params['oss']['project'], '', $return);
+            $return = preg_replace('/!\d+_\d+/', '', $return);
             return trim($return);
         }
         if ($default !== null) {

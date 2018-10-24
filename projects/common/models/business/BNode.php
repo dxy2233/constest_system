@@ -25,6 +25,10 @@ class BNode extends \common\models\Node
     const STATUS_NO = 4; //未通过
     const STATUS_DEL = 5; //删除
 
+
+    const TENURE_NO = 0; //未通过
+    const TENURE_YES = 1; //删除
+
     public static function getStatus($key = 0)
     {
         $arr = [
@@ -41,6 +45,20 @@ class BNode extends \common\models\Node
 
         return $arr;
     }
+
+    public static function getTenure($key = 0)
+    {
+        $arr = [
+            self::TENURE_NO => \Yii::t('app', '候选'),
+            self::TENURE_YES => \Yii::t('app', '任职')
+        ];
+        if ($key !== "") {
+            return isset($arr[$key]) ? $arr[$key] : "";
+        }
+
+        return $arr;
+    }
+
 
     /**
      * 节点下类型关联

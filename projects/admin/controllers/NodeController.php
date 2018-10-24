@@ -248,7 +248,7 @@ class NodeController extends BaseController
             $voteItem = [];
             $voteItem['mobile'] = $v['mobile'];
             $voteItem['voteNumber'] = $v['vote_number'];
-            $voteItem['createTime'] = $v['create_time'];
+            $voteItem['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voteList[] = $voteItem;
         }
         $orderList = [];
@@ -688,7 +688,7 @@ class NodeController extends BaseController
             if ($old_node) {
                 return $this->respondJson(1, '此用户已有节点');
             }
-            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['!=', 'status', BUserIdentify::STATUS_FAIL])->one();
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['status' => BUserIdentify::STATUS_ACTIVE])->one();
             if ($user_identify) {
                 $identify = 1;
             }
@@ -935,6 +935,10 @@ class NodeController extends BaseController
         //     return $this->respondJson(1, '用户ID不能为空');
         // }
         if (!$identify) {
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['status' => BUserIdentify::STATUS_INACTIVE])->one();
+            if ($user_identify) {
+                $user_identify->delete();
+            }
             $realname = $this->pString('realname');
             if (empty($realname)) {
                 return $this->respondJson(1, '用户姓名不能为空');

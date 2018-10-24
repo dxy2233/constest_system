@@ -5,7 +5,10 @@
         {{currencyInfo.name}}
       </x-header>-->
       <app-header>
-        <span @click="refreshData" slot="right">刷新数据</span>
+        <div @click="refreshData" slot="right" class="refresh-btn">
+          <inline-loading v-show="refreshLoad"></inline-loading>
+          <span>刷新数据</span>
+        </div>
       </app-header>
       <div class="assets-details-main">
         <div class="brief">
@@ -47,7 +50,7 @@
         </div>
         <div class="handle-btn">
           <ul>
-            <router-link tag="li" :to="'/assets/dts'+dtsId+'/collect'"
+            <router-link tag="li" :to="{path:'/assets/dts'+dtsId+'/collect',query:{name:currencyInfo.name}}"
                          v-if="parseInt(currencyInfo.rechargeStatus)">
               <img src="/static/images/collect.png" alt="">
               <span>收款</span>
@@ -68,11 +71,13 @@
 <script>
   import slide from 'components/slide/index'
   import http from 'js/http'
+  import { InlineLoading } from 'vux'
 
   export default {
     name: "index",
     components: {
-      slide
+      slide,
+      InlineLoading
     },
     data() {
       return {
@@ -92,16 +97,30 @@
         loadShow: true,
         currencyInfo: {},
         dtsId: this.$route.params.id,
-        total:''
+        total:'',
+        refreshLoad:false
       }
     },
     methods: {
       refreshData(){
-        this.getCurrencyInfo()
-        this.page = 1
-        this.dataList = []
-        this.total = ''
-        this.$refs.my_scroller.finishInfinite(false);
+        this.refreshLoad = true
+        http.post('/wallet/recharge-refresh', {
+          id: this.$route.params.id,
+        }, (res) => {
+          res.content.isRefresh = true
+          this.refreshLoad = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          if (res.content.isRefresh){
+            this.getCurrencyInfo()
+            this.page = 1
+            this.dataList = []
+            this.total = ''
+            this.$refs.my_scroller.finishInfinite(false);
+          }
+        })
       },
       goFrozen() {
         this.$router.push({
@@ -190,6 +209,11 @@
   .assets-details
     fixed-full-screen()
     overflow auto
+    .refresh-btn
+      display flex
+      align-items center
+      span
+        margin-left 5px
     .assets-details-main
       position absolute
       top 50px

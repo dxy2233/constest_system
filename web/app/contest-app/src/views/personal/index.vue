@@ -144,7 +144,6 @@
           this.identifyMsg = identify
           sessionStorage.setItem("identifyMsg", JSON.stringify(identify));
           this.setIdentifyMsg(identify)
-          console.log(this.identifyMsg)
         })
       },
       pageInt() {
@@ -245,6 +244,7 @@
       position relative
       .bg
         width 100%
+        /*box-shadow 0 4px 15px 4px RGBA(240, 208, 172, 0.5)*/
       .node-content
         position absolute
         top 15%

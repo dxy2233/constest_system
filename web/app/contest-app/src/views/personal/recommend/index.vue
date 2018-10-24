@@ -100,6 +100,10 @@
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
           }else {
+            this.$vux.toast.show({
+              text: res.msg,
+              type: 'success'
+            })
             this.show = false
           }
           this.code = ''

@@ -49,11 +49,9 @@ let checkToken = function (callback) {
     return
   }
   let loginMsg = JSON.parse(sessionStorage.getItem('loginMsg'))
-  // console.log(loginMsg)
   // let loginMsg = {};
   if (!!loginMsg){
     let timestamp = parseInt(Date.parse(new Date())/ 1000)
-    // console.log(loginMsg.expireTime-timestamp)
     if(loginMsg.expireTime-timestamp>0){
       if (loginMsg.expireTime-timestamp>1800){
         callback()
@@ -71,7 +69,6 @@ let checkToken = function (callback) {
 }
 
 let refreshToken = (callback)=>{
-  console.log('ref')
   request({
     method: 'post',
     url: '/login/refresh-token',
@@ -81,7 +78,6 @@ let refreshToken = (callback)=>{
     if (response.code === 0){
       sessionStorage.setItem("loginMsg", JSON.stringify(response.content));
     }else {
-      console.log('ref-fail')
       cancelLogin()
     }
     window.refreshLock = false

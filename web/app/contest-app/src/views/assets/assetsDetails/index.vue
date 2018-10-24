@@ -324,6 +324,7 @@
       left 0
       bottom 0
       right 0
+      background white
       ul
         overflow hidden
         line-height 60px

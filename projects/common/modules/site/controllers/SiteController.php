@@ -26,9 +26,7 @@ class SiteController extends BaseController
     }
 
 
-    /**
-     * 上传图片
-     */
+
     public function actionGetSiteInfo()
     {
         $return = ['imgAddress' => \Yii::$app->params['imgAddress']];

@@ -36,10 +36,28 @@ return [
     // （钱包业务）正式地址：https://grtchain.daguobrand.com/v2/
     'JTBusinessUrl'=>'http://47.92.80.205:3002/v2',//井通钱包业务URL
     'JTAccountUrl'=>'',//井通账号体系URL 暂时未用该参数
-    'JTAddress'=>'jpFWhXZCEcifZQftfWBPyQmmxTnucRvTbB',//公钥  jHDkGBYN17aXd6xm42cpcYFvLc3oWckxKx 正式；jpFWhXZCEcifZQftfWBPyQmmxTnucRvTbB 测试
-    'JTKey'=>'snmhqnej9YopAieT7A8C4uroQupm3',//私钥  shbhRq3KBqbB78nMzNS7NzDgzse1Z 正式； snmhqnej9YopAieT7A8C4uroQupm3 测试
+    'JTAddress'=>'',//公钥  jpFWhXZCEcifZQftfWBPyQmmxTnucRvTbB 测试
+    'JTKey'=>'',//私钥  snmhqnej9YopAieT7A8C4uroQupm3 测试
     'JTIssuer'=>'jh195JTSbws2owFT4HW6tvNTxBcygU5jAs',//银关
     'JTWalletActiveAmount'=>0.000001,//激活钱包GRT金额
+    'JTWallet'=> [
+        //激活账户
+        'active' => [
+            'address' => 'jPjnUjv7ARzTukcr2h2vYuGZmgPnj6EvYz', //公钥
+            'key' => 'snXfp7p6nHHZ7LXKEHXsgpdxsHyPK', //私钥
+        ],
+        //收款账户
+        'receipt' => [
+            'address' => 'jpFWhXZCEcifZQftfWBPyQmmxTnucRvTbB', //公钥
+            'key' => '', //私钥
+        ],
+        //付款账户
+        'payment' => [
+            'address' => 'jEnDkuaFSTZn2Ck3TLpu219QW7C5gUuBBQ', //公钥
+            'key' => 'shMBVGrwWp5MHPMbHcvxxxhmUi4wS', //私钥
+        ],
+    ],
+
 
     // 货币显示精度 0.000012 小数点位数
     'wallet_precision' => 6,

@@ -50,8 +50,9 @@ class WalletController extends BaseController
 //        var_dump(FuncHelper::sendSocketMsg('msg','single', 'user', 35, ['id'=>11, 'status'=>"ssss"]));
 //        var_dump(WithdrawService::withdrawCurrencyAudit(24,2,'身份不正确')) ;
 //        var_dump( JingTumService::getInstance()->queryPayments("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY" , "1", "10")) ;
-//        var_dump( JingTumService::getInstance()->addUserBalanceFormMain("jNnCJNbvrctbriJRSfwGg2BydGph2tmDuu","Trans20181018002",0.3,"test",JingTumService::ASSETS_TYPE_GRT)) ;
-//        var_dump( JingTumService::getInstance()->queryBalance("j3q98BEzVKGp6deZM5RdPoXREDtNuoJw7H")) ;
+//        var_dump( JingTumService::getInstance()->addUserBalanceFormMain("jPjnUjv7ARzTukcr2h2vYuGZmgPnj6EvYz","Trans20181024002",0.2,"test",JingTumService::ASSETS_TYPE_GRT)) ;
+//        var_dump( JingTumService::getInstance()->queryBalance("jEnDkuaFSTZn2Ck3TLpu219QW7C5gUuBBQ")) ;
+//        var_dump( JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['receipt']['key'], \Yii::$app->params['JTWallet']['receipt']['address'],"jEnDkuaFSTZn2Ck3TLpu219QW7C5gUuBBQ","Trans20181024005",200,"test","BPT")) ;
 //        $resJingTum = JingTumService::getInstance()->queryPayments("j4oRzJ88L37Qnig8ftGtDrmbKxyaXR7G1d" , 1, 10);
 //        var_dump($resJingTum);
 //        var_dump( JingTumService::getInstance()->mainBalance()) ;

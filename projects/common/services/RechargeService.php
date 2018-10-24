@@ -102,7 +102,7 @@ class RechargeService extends ServiceBase {
         if(in_array($currencyId, $currencyJingtum)) {
             //账户余额是否足够
             $amount = \Yii::$app->params['JTWalletActiveAmount'];
-            $mainBalanceRes = JingTumService::getInstance()->mainBalance(JingTumService::ASSETS_TYPE_GRT);
+            $mainBalanceRes = JingTumService::getInstance()->queryBalance(\Yii::$app->params['JTWallet']['active']['address'], JingTumService::ASSETS_TYPE_GRT);
             if ($mainBalanceRes->code == 0 && !empty($mainBalanceRes->content)) {
                 $mainBalance = $mainBalanceRes->content;
             } else {
@@ -135,7 +135,7 @@ class RechargeService extends ServiceBase {
                         $walletSent->relate_table = 'wallet_jingtum';
                         $walletSent->relate_id = $walletJingtumId;
                         $walletSent->amount = $amount;
-                        $walletSent->source_address = \Yii::$app->params['JTAddress'];
+                        $walletSent->source_address = \Yii::$app->params['JTWallet']['active']['address'];
                         $walletSent->destination_address = $address;
                         $walletSent->remark = $remark;
                         $walletSent->status = BWalletSent::$STATUS_WAIT;
@@ -145,7 +145,7 @@ class RechargeService extends ServiceBase {
                         $walletSentId = $walletSent->id;
 
                         if ($res) {
-                            $resWalletSent = JingTumService::getInstance()->addUserBalanceFormMain($address, $transactionNumber, $amount, $remark, JingTumService::ASSETS_TYPE_GRT);
+                            $resWalletSent = JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['active']['key'], \Yii::$app->params['JTWallet']['active']['address'], $address, $transactionNumber, $amount, $remark, JingTumService::ASSETS_TYPE_GRT);
                             if ($resWalletSent->code == 0) {
                                 BWalletSent::updateAll([
                                     'transaction_id' => $resWalletSent->content['hash'],

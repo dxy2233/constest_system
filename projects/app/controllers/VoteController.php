@@ -175,13 +175,25 @@ class VoteController extends BaseController
         $data['list'] = $voteModel->page($page, $pageSize)
         ->asArray()
         ->all();
+        // 创建一个闭包函数
+        $history = function(int $nodeId, int $voteTime = NOW_TIME) {
+             $historyModel = BHistory::find()->select('id')
+            ->where(['node_id' => $nodeId])
+            ->andWhere(['>', 'create_time', $voteTime])
+            ->orderBy(['update_number' => SORT_DESC]);
+            return $historyModel->exists();
+        };
         foreach ($data['list'] as &$vote) {
+            if (in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
+                $vote['is_revoke'] = false;
+            } else {
+                $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? $history($vote['node_id'], $vote['create_time']) : false;
+            }
             $vote['undo_time'] = FuncHelper::formateDate($vote['undo_time']);
             $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);
             $vote['status_str'] = BVote::getStatus($vote['status']);
             $vote['type_str'] = BVote::getType($vote['type']);
             // $vote['is_revoke'] = in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]) ? false : in_array($vote['type'], BVote::IS_REVOKE);
-            $vote['is_revoke'] = VoteService::hasRevoke($userModel, $vote['id'])->content;
             unset($vote['user_id'], $vote['node_id'], $vote['consume'], $vote['status'], $vote['unit_code']);
         }
         return $this->respondJson(0, '获取成功', $data);

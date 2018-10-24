@@ -38,7 +38,8 @@ class IdentifyController extends BaseController
         $data = [];
         $userModel = $this->user;
         
-        $identify = $userModel->identify;
+        $identify = BUserIdentify::find()->where(['user_id' => $userModel->id])->orderBy(['id' => SORT_DESC])->one();
+        // $identify = $userModel->identify;
         if (is_null($identify)) {
             return $this->respondJson(0, "未实名认证");
         }

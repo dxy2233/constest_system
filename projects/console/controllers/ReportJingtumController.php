@@ -147,7 +147,7 @@ class ReportJingtumController extends BaseController
                     $walletSent->relate_id = 0;
                     $walletSent->amount = $amount;
                     $walletSent->source_address = $jingtumAddress;
-                    $walletSent->destination_address = \Yii::$app->params['JTAddress'];
+                    $walletSent->destination_address = \Yii::$app->params['JTWallet']['receipt']['address'];
                     $walletSent->remark = $remark;
                     $walletSent->status = BWalletSent::$STATUS_WAIT;
                     $walletSent->create_time = $nowTime;
@@ -155,7 +155,7 @@ class ReportJingtumController extends BaseController
                     $res = $walletSent->insert();
                     $walletSentId = $walletSent->id;
                     if ($res) {
-                        $resWalletSent = JingTumService::getInstance()->addMainBalanceFormUser($walletJingtum->secret, $jingtumAddress, $transactionNumber, $amount, $remark, strtoupper($currency->code));
+                        $resWalletSent = JingTumService::getInstance()->userTransferUser($walletJingtum->secret, $jingtumAddress, \Yii::$app->params['JTWallet']['receipt']['address'], $transactionNumber, $amount, $remark, strtoupper($currency->code));
                         if ($resWalletSent->code == 0) {
                             BWalletSent::updateAll([
                                 'transaction_id' => $resWalletSent->content['hash'],

@@ -114,7 +114,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.examine_time', 'A.id', 'A.destination_address'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');

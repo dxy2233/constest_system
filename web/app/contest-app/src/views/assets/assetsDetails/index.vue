@@ -107,7 +107,7 @@
         http.post('/wallet/recharge-refresh', {
           id: this.$route.params.id,
         }, (res) => {
-          res.content.isRefresh = true
+          // res.content.isRefresh = true
           this.refreshLoad = false
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
@@ -324,6 +324,7 @@
       left 0
       bottom 0
       right 0
+      background white
       ul
         overflow hidden
         line-height 60px

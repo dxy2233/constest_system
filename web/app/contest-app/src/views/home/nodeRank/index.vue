@@ -15,9 +15,9 @@
               {{tab.name}}
             </li>
           </ul>
-          <div class="time" v-if="counttime">
+          <!--<div class="time" v-if="counttime">
             <p>统计时间 {{counttime}}</p>
-          </div>
+          </div>-->
         </div>
         <div class="bottom">
 
@@ -182,7 +182,7 @@
       .bottom
         position absolute
         bottom 0
-        top 80px
+        top 40px
         width 100%
         overflow hidden
 </style>

@@ -56,7 +56,8 @@
   @import "~stylus/variable"
   @import "~stylus/mixin"
   .rank-list
-    padding $space-box 0
+    /*padding $space-box 0*/
+    min-height 30px
     li
       position relative
       display flex
@@ -104,11 +105,11 @@
           align-items center
           h4
             font-size $font-size-small
-            font-weight bold
+            color $color-text-minor
           h6
             margin-top 10px
             font-size $font-size-small-s
-            color #B4B5BC
+            /*color #B4B5BC*/
         .avatar
           width 40px
           height 40px

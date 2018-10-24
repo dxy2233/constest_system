@@ -23,7 +23,7 @@
       fileName: {
         type: String,
         default: 'image_file'
-      }
+      },
     },
     data(){
       return{
@@ -50,6 +50,7 @@
         this.show = true
         let param = new FormData();
         param.append(this.fileName, file, file.name);
+        param.append('type','identify');
         // console.log(param.get('image_file')); //FormData私有类对象，访问不到，可以通过get判断值是否传进去
         let config = {
           headers: {'Content-Type': 'multipart/form-data'}

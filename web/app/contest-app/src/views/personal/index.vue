@@ -37,7 +37,7 @@
               </h2>
               <p v-if="nodeInfo.typeId===1||nodeInfo.typeId===2">
                 <span class="gray">{{nodeInfo.peopleNumber+' 人支持'}}</span>
-                <span>{{nodeInfo.peopleNumber+' 票'}}</span>
+                <span>{{nodeInfo.voteNumber+' 票'}}</span>
               </p>
             </div>
           </router-link>
@@ -209,6 +209,7 @@
         margin-bottom 25px
         display flex
         align-items center
+        padding-top 10px
         .avatar
           margin-right 15px
           width 60px

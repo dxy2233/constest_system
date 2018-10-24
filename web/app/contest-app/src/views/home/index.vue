@@ -157,7 +157,7 @@
   .home-main
     overflow auto
     height 100%
-    padding $space-box
+    padding 0 $space-box
     .line
       height 1px
       width 100%
@@ -167,6 +167,8 @@
       display flex
       justify-content space-between
       align-items flex-end
+      line-height 50px
+      padding-top $space-box
       /*background-image url('https://ww1.sinaimg.cn/large/663d3650gy1fq66vw1k2wj20p00goq7n.jpg')*/
       h2
         font-weight bold
@@ -179,7 +181,9 @@
       .vote-img
         width $font-size-medium
         margin-right 5px
-
+    .vux-swiper
+      border-radius 6px
+      overflow hidden
     .notice-swiper
       padding 15px 0
       overflow visible
@@ -193,7 +197,7 @@
         display block
         background-size cover
         background-position center center
-        border-radius 4px
+        /*border-radius 6px*/
         width 100%
         height 100%
     .vux-indicator

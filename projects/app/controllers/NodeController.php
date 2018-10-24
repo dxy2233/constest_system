@@ -117,6 +117,7 @@ class NodeController extends BaseController
         }
         $votesCount = $nodeModel->getVotes()
         ->select(['COUNT(id) as people_number', 'SUM(vote_number) as vote_number'])
+        ->active()
         ->asArray()
         ->one();
         

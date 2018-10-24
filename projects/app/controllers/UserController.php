@@ -103,7 +103,6 @@ class UserController extends BaseController
         ->joinWith(['node n' => function ($query) {
             $query->joinWith('nodeType nt', false);
         }, 'user u'], false);
-        var_dump($recommendModel->createCommand()->getRawSql());exit;
         $data['count'] = $recommendModel->count();
         $data['list'] = $recommendModel
         ->page($page, $pageSize)

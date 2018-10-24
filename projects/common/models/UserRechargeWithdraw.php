@@ -72,7 +72,6 @@ class UserRechargeWithdraw extends \common\dzbase\DzModel
             'transaction_id' => '交易ID',
             'status' => '状态，0 待确认，1 操作成功，2 操作失败',
             'status_remark' => '状态备注',
-            'examine_time' => Yii::t('app', '审核时间'),
             'audit_admin_id' => '操作人id',
             'audit_time' => '操作时间',
             'create_time' => '添加时间',

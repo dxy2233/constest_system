@@ -525,13 +525,16 @@ export default {
           { required: true, message: '请选择节点身份', trigger: 'change' }
         ],
         grt: [
-          { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+          // { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
         ],
         tt: [
-          { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+          // { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
         ],
         bpt: [
-          { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+          // { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
         ],
         realname: [
           { required: true, message: '请输入姓名', trigger: 'blur' }

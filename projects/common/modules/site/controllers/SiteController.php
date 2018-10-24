@@ -27,11 +27,14 @@ class SiteController extends BaseController
 
 
     /**
-     * 上传图片
+     * 获取网站信息
      */
     public function actionGetSiteInfo()
     {
-        $return = ['imgAddress' => \Yii::$app->params['imgAddress']];
+        $return = [
+            'imgAddress' => \Yii::$app->params['imgAddress'],
+            'home_platform_url' => \Yii::$app->params['home_platform_url'],
+        ];
 
         return $this->respondJson(0, '获取成功', $return);
     }

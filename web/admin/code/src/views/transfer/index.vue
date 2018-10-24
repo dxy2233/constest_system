@@ -150,16 +150,17 @@ export default {
       },
       rules: {
         withdraw_min_amount: [
-          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+          // { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
         ],
         withdraw_max_amount: [
-          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
         ],
         withdraw_audit_amount: [
-          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
         ],
         withdraw_day_amount: [
-          { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
         ]
       }
     }

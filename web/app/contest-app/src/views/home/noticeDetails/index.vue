@@ -66,5 +66,7 @@
         margin-bottom 20px
         font-weight bold
         font-size $font-size-large
+      .detail
+        line-height 1.5em
 
 </style>

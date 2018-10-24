@@ -105,6 +105,7 @@
           font-size $font-size-large
           padding 15px 0
           margin-bottom 30px
+          font-weight bold
         dd
           display flex
           justify-content space-between

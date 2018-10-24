@@ -3726,7 +3726,7 @@ input.weui-btn_plain-default {
   margin-top: 5px;
 }
 .app-footer .act {
-  color: #da4333;
+  color: #ff4800;
 }/**
 * actionsheet
 */
@@ -6012,7 +6012,7 @@ html {
           user-select: none;
   -webkit-tap-highlight-color: transparent;
   background: #fff;
-  color: #3b3b3b;
+  color: #2f4050;
   font-size: 14px;
   width: 100%;
   height: 100%;
@@ -6057,18 +6057,18 @@ html .vux-header.w-header {
 }
 body .vux-header .vux-header-title,
 html .vux-header .vux-header-title {
-  color: #3b3b3b;
+  color: #2f4050;
   font-size: 16px;
 }
 body .vux-header .vux-header-left,
 html .vux-header .vux-header-left,
 body .vux-header .vux-header-right a,
 html .vux-header .vux-header-right a {
-  color: #3b3b3b;
+  color: #2f4050;
 }
 body .vux-header .vux-header-left .left-arrow:before,
 html .vux-header .vux-header-left .left-arrow:before {
-  border-color: #3b3b3b;
+  border-color: #2f4050;
 }
 body .h-main,
 html .h-main {
@@ -6180,4 +6180,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=66d3346d6a04dce1a0cca22b55647687*/
+/*# sourceMappingURL=app.css.map?v=546ddac1db244d957947db0d1b21a5c8*/

@@ -71,5 +71,5 @@
       p
         margin-top 5px
     .act
-      color $color-sub-theme
+      color $color-theme
 </style>

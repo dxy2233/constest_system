@@ -129,6 +129,9 @@
             time: 3000,
             type: type
           })
+          if (res.code === 0){
+            this.$router.go(-1)
+          }
           this.validVcodeShow = false
         })
       }

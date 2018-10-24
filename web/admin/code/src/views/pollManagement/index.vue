@@ -40,7 +40,7 @@
       <div v-for="(item,index) in dialogSetData" :key="index">
         <div v-if="item.type=='radio'" class="switch">
           <span>{{ item.name }}</span>
-          <el-switch v-model="pushSetData[index][item.key]" active-value="1" inactive-value="0" active-color="#13ce66" inactive-color="#ff4949" @change="changeSwitch"/>
+          <el-switch v-model="pushSetData[index][item.key]" active-value="1" inactive-value="0" @change="changeSwitch"/>
         </div>
         <div v-if="item.type=='text'" class="txt">
           <span>{{ item.name }}{{ pushSetData[index][item.key] }}</span>
@@ -177,11 +177,15 @@ export default {
     openVoteSet() {
       getVoteSet().then(res => {
         this.dialogSetData = res.content
+        this.pushSetData = []
         this.dialogSetData.forEach((item, index, arry) => {
-          this.pushSetData.push({ [item.key]: item.value })
+          this.pushSetData.push({ [item.key]: item.value.toString() })
+          if (item.key === 'stop_vote') {
+            this.showTimeOver = item.value
+          }
         })
-        this.dialogSet = true
       })
+      this.dialogSet = true
     },
     changeSwitch(val) {
       this.showTimeOver = val

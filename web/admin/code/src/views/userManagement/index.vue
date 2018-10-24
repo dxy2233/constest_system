@@ -221,12 +221,12 @@
     </transition>
 
     <el-dialog :visible.sync="dialogAddUser" title="新增用户">
-      <el-form label-width="80px">
-        <el-form-item label="账号："><el-input v-model="addUserName"/></el-form-item>
-        <el-form-item label="推荐码："><el-input v-model="addUserCode"/></el-form-item>
+      <el-form ref="addUser" :model="addData" :rules="rules" label-width="80px">
+        <el-form-item label="账号：" prop="addUserName"><el-input v-model="addData.addUserName"/></el-form-item>
+        <el-form-item label="推荐码："><el-input v-model="addData.addUserCode"/></el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button type="primary" @click="addUser">确 认</el-button>
+        <el-button type="primary" @click="saveAddUser">确 认</el-button>
         <el-button @click="dialogAddUser=false">取 消</el-button>
       </span>
     </el-dialog>
@@ -287,8 +287,16 @@ export default {
       userInfoRecommend: [], // 推荐记录
       activeName: 'Base',
       dialogAddUser: false,
-      addUserName: '',
-      addUserCode: '',
+      addData: {
+        addUserName: '',
+        addUserCode: ''
+      },
+      rules: {
+        addUserName: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' },
+          { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+        ]
+      },
       pollName: '投票记录',
       walletName: '',
       walletMoney: 'GRT',
@@ -427,14 +435,21 @@ export default {
       })
     },
     // 新增用户
-    addUser() {
-      addUser(this.addUserName, this.addUserCode).then(res => {
-        Message({ message: res.msg, type: 'success' })
-        this.dialogAddUser = false
-        getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-          this.tableData = res.content.list
-          this.total = parseInt(res.content.count)
-        })
+    saveAddUser() {
+      this.$refs['addUser'].validate((valid) => {
+        if (valid) {
+          addUser(this.addData.ddUserName, this.addData.ddUserCode).then(res => {
+            Message({ message: res.msg, type: 'success' })
+            this.dialogAddUser = false
+            getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
+              this.tableData = res.content.list
+              this.total = parseInt(res.content.count)
+            })
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
       })
     },
     // 编辑上传用户信息

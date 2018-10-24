@@ -105,6 +105,7 @@ class VoteController extends BaseController
             foreach ($data['list'] as &$voucher) {
                 $voucher['mobile'] = substr_replace($voucher['mobile'], '****', 3, 4);
                 $voucher['create_time'] = FuncHelper::formateDate($voucher['create_time']);
+                $voucher['voucher_num'] = '+' . $voucher['voucher_num'];
                 unset($voucher['node']);
                 unset($voucher['node_id']);
             }
@@ -120,6 +121,7 @@ class VoteController extends BaseController
             ->asArray()->all();
             foreach ($data['list'] as &$voucherDetail) {
                 $voucherDetail['create_time'] = FuncHelper::formateDate($voucherDetail['create_time']);
+                $voucherDetail['amount'] = '-' . $voucherDetail['amount'];
                 unset($voucherDetail['node']);
                 unset($voucherDetail['node_id']);
             }

@@ -85,7 +85,7 @@
           :key="index"
           :label="item.name"
           :name="item.id">
-          <el-form ref="transferForm" :model="form" :rules="rules">
+          <el-form :ref="'transferForm' + index" :model="form" :rules="rules">
             <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
               <el-input v-model="form.withdraw_min_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
@@ -279,15 +279,19 @@ export default {
     },
     // 保存转账设置
     saveSet() {
-      this.$refs['transferForm'].validate((valid) => {
-        if (valid) {
-          editSet({ ...this.form, currency_id: this.setType }).then(res => {
-            Message({ message: res.msg, type: 'success' })
-          })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
+      // var temName = 'transferForm' + this.setType
+      // this.$refs[temName].validate((valid) => {
+      //   if (valid) {
+      //     editSet({ ...this.form, currency_id: this.setType }).then(res => {
+      //       Message({ message: res.msg, type: 'success' })
+      //     })
+      //   } else {
+      //     console.log('error submit!!')
+      //     return false
+      //   }
+      // })
+      editSet({ ...this.form, currency_id: this.setType }).then(res => {
+        Message({ message: res.msg, type: 'success' })
       })
     }
   }

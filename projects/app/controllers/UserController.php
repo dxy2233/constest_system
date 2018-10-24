@@ -99,11 +99,11 @@ class UserController extends BaseController
         $userModel = $this->user;
         $recommendModel = $userModel->getUserRecommend()
         ->alias('r')
-        ->select(['r.create_time', 'nt.name as type_name', 'r.node_id', 'p.mobile', 'r.parent_id'])
+        ->select(['r.create_time', 'nt.name as type_name', 'r.node_id', 'u.mobile', 'r.parent_id'])
         ->joinWith(['node n' => function ($query) {
             $query->joinWith('nodeType nt', false);
-        }, 'parent p'], false);
-        // var_dump($recommendModel->createCommand()->getRawSql());exit;
+        }, 'user u'], false);
+        var_dump($recommendModel->createCommand()->getRawSql());exit;
         $data['count'] = $recommendModel->count();
         $data['list'] = $recommendModel
         ->page($page, $pageSize)

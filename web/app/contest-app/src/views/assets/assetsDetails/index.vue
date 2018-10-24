@@ -50,7 +50,7 @@
         </div>
         <div class="handle-btn">
           <ul>
-            <router-link tag="li" :to="'/assets/dts'+dtsId+'/collect'"
+            <router-link tag="li" :to="{path:'/assets/dts'+dtsId+'/collect',query:{name:currencyInfo.name}}"
                          v-if="parseInt(currencyInfo.rechargeStatus)">
               <img src="/static/images/collect.png" alt="">
               <span>收款</span>
@@ -103,33 +103,23 @@
     },
     methods: {
       refreshData(){
-        /*this.getCurrencyInfo()
-        this.page = 1
-        this.dataList = []
-        this.total = ''
-        this.$refs.my_scroller.finishInfinite(false);*/
-        let is = this.isRefresh()
-        if(is){
-          this.getCurrencyInfo()
-          this.page = 1
-          this.dataList = []
-          this.total = ''
-          this.$refs.my_scroller.finishInfinite(false);
-        }
-      },
-      isRefresh(){
         this.refreshLoad = true
         http.post('/wallet/recharge-refresh', {
           id: this.$route.params.id,
         }, (res) => {
+          res.content.isRefresh = true
           this.refreshLoad = false
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
-            return false
-          }else {
-            return res.content.isRefresh
+            return
           }
-
+          if (res.content.isRefresh){
+            this.getCurrencyInfo()
+            this.page = 1
+            this.dataList = []
+            this.total = ''
+            this.$refs.my_scroller.finishInfinite(false);
+          }
         })
       },
       goFrozen() {

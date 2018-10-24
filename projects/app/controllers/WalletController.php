@@ -52,7 +52,7 @@ class WalletController extends BaseController
 //        var_dump( JingTumService::getInstance()->queryPayments("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY" , "1", "10")) ;
 //        var_dump( JingTumService::getInstance()->addUserBalanceFormMain("jPjnUjv7ARzTukcr2h2vYuGZmgPnj6EvYz","Trans20181024002",0.2,"test",JingTumService::ASSETS_TYPE_GRT)) ;
 //        var_dump( JingTumService::getInstance()->queryBalance("jEnDkuaFSTZn2Ck3TLpu219QW7C5gUuBBQ")) ;
-//        var_dump( JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['receipt']['key'], \Yii::$app->params['JTWallet']['receipt']['address'],"jEnDkuaFSTZn2Ck3TLpu219QW7C5gUuBBQ","Trans20181024005",200,"test","BPT")) ;
+//        var_dump( JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['receipt']['key'], \Yii::$app->params['JTWallet']['receipt']['address'],"jH33GX8GJwSsH33WrqZS9i77eKp3hN1WtC","Trans20181024008",0.1,"test","BPT")) ;
 //        $resJingTum = JingTumService::getInstance()->queryPayments("j4oRzJ88L37Qnig8ftGtDrmbKxyaXR7G1d" , 1, 10);
 //        var_dump($resJingTum);
 //        var_dump( JingTumService::getInstance()->mainBalance()) ;
@@ -194,7 +194,7 @@ class WalletController extends BaseController
         $detailType = BUserCurrencyFrozen::getTypeFrozen();
         $currencyModel = BUserCurrencyFrozen::find()
         ->select(['amount', 'remark', 'unfrozen_time', 'create_time', 'status'])
-        ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType]);
+        ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType, 'status' => BUserCurrencyFrozen::STATUS_FROZEN]);
         if (is_int($status)) {
             $currencyModel->active($status);
         }

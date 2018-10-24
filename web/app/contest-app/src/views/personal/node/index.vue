@@ -147,7 +147,8 @@
         dd
           display flex
           align-items center
-          font-size $font-size-medium
+          font-size $font-size-small
+          line-height 1.5em
 
 
 </style>

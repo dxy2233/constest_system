@@ -89,13 +89,9 @@ class UserController extends BaseController
         }
         $transaction = \Yii::$app->db->beginTransaction();
         try {
+            $nodeModel = $userModel->node;
             $recommendModel = new BUserRecommend();
             $recommendModel->parent_id = (int) $parentId;
-            $recommendModel->link('user', $userModel);
-            if (!$recommendModel->id) {
-                throw new ErrorException('推荐人关联失败');
-            }
-            $nodeModel = $userModel->node;
             if (!is_null($nodeModel) && $nodeModel->status == BNode::STATUS_ON) {
                 $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
                 // 指定货币类型的 * 设置倍数
@@ -107,10 +103,17 @@ class UserController extends BaseController
                 if (!$voucherModel->save()) {
                     throw new ErrorException('投票劵赠送失败');
                 }
+                $recommendModel->node_id = $nodeModel->id;
+                $recommendModel->amount = $voucherCount;
                 // 重置用户投票券
                 if (!UserService::resetVoucher($parentId)) {
                     throw new ErrorException('投票券资产更新失败');
                 }
+            }
+            
+            $recommendModel->link('user', $userModel);
+            if (!$recommendModel->id) {
+                throw new ErrorException('推荐人关联失败');
             }
             $transaction->commit();
         } catch (\Exception $e) {

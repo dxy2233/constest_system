@@ -60,3 +60,15 @@ export function failTrial(id, remark) {
     }
   })
 }
+
+// 钱包资产信息
+export function walletInfo(type, currency_code) {
+  return request({
+    url: '/withdraw/wallet-info',
+    method: 'post',
+    data: {
+      type,
+      currency_code
+    }
+  })
+}

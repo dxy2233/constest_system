@@ -128,12 +128,14 @@ class VoteController extends BaseController
     {
         $time = BSetting::find()->where(['key' => 'count_time'])->one();
         $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_VOTE])->all();
+        $post = \Yii::$app->request->post();
         $transaction = \Yii::$app->db->beginTransaction();
+
         foreach ($data as $v) {
-            $post_item = $this->pString($v->key, '');
-            if ($post_item == '') {
+            if (!isset($post[$v->key])) {
                 continue;
             }
+            $post_item = $post[$v->key];
             if (strstr($v->key, 'time')) {
                 $post_item = strtotime($post_item);
             }

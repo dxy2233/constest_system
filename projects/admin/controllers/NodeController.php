@@ -311,7 +311,7 @@ class NodeController extends BaseController
         if ($page != 0) {
             $find->page($page);
         }
-        
+        $find->orderBy('vote_number DESC');
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];

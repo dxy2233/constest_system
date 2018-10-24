@@ -248,7 +248,7 @@ class NodeController extends BaseController
             $voteItem = [];
             $voteItem['mobile'] = $v['mobile'];
             $voteItem['voteNumber'] = $v['vote_number'];
-            $voteItem['createTime'] = $v['create_time'];
+            $voteItem['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voteList[] = $voteItem;
         }
         $orderList = [];

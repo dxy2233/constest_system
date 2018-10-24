@@ -76,7 +76,6 @@
         this.$emit('close', true)
       },
       selectTab(item) {
-        console.log(item)
         if (item.id === this.currentNodeId) return
         this.currentNodeId = item.id
         this.currentNodeId = item.id

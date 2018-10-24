@@ -65,7 +65,6 @@
         sessionStorage.setItem("nodeRankType", item.id);
         this.page = 1
         this.nodeList = []
-        // console.log(this.nodeList,this.total)
         /*this.loadShow = true
         this.$refs.vueLoad.onBottomLoaded();
         this.getNodeList()*/

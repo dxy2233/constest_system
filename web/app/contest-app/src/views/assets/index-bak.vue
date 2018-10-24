@@ -95,7 +95,7 @@
             return
           }
           this.currencyList = res.content
-          console.log(this.currencyList)
+          // console.log(this.currencyList)
           sessionStorage.setItem("currencyList", JSON.stringify(this.currencyList));
         })
       },

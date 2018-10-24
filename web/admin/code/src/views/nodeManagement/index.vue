@@ -338,7 +338,7 @@
             <el-input v-model="addNodeData.code"/>
           </el-form-item>
           <el-form-item prop="type_id" label="节点类型">
-            <el-select v-model="addNodeData.type_id" placeholder="请选择">
+            <el-select v-model="addNodeData.type_id" placeholder="请选择" @change="recommendSelect">
               <el-option
                 v-for="item in allType"
                 :key="item.id"
@@ -500,7 +500,7 @@ export default {
         mobile: '',
         code: '',
         type_id: '',
-        is_tenure: '',
+        is_tenure: 0,
         grt: '',
         tt: '',
         bpt: '',
@@ -956,11 +956,25 @@ export default {
         })
       }
     },
-    // 新加节点验证手机号
-    chechAddMobile() {
-      // checkMobile(this.addNodeData.mobile).then(res => {
-      //   Message({ message: res.msg, type: 'success' })
-      // })
+    //
+    recommendSelect(val) {
+      if (val === '1') {
+        this.addNodeData.grt = 50000
+        this.addNodeData.bpt = 4000
+        this.addNodeData.tt = 5000
+      } else if (val === '2') {
+        this.addNodeData.grt = 20000
+        this.addNodeData.bpt = 1600
+        this.addNodeData.tt = 1800
+      } else if (val === '3') {
+        this.addNodeData.grt = 8000
+        this.addNodeData.bpt = 600
+        this.addNodeData.tt = 750
+      } else if (val === '4') {
+        this.addNodeData.grt = 2000
+        this.addNodeData.bpt = 160
+        this.addNodeData.tt = 200
+      }
     },
     // 添加节点1,2步
     addStep() {

@@ -44,6 +44,11 @@ class UserController extends BaseController
         return $this->respondJson(0, '获取成功');
     }
 
+    /**
+     * 获取邀请码以及判断是否添加推荐人
+     *
+     * @return void
+     */
     public function actionRecommendCode()
     {
         $userModel = $this->user;

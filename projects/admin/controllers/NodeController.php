@@ -206,6 +206,7 @@ class NodeController extends BaseController
         $return = [];
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
+        $return['status_remark'] = $data->status_remark;
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
@@ -247,7 +248,7 @@ class NodeController extends BaseController
             $voteItem = [];
             $voteItem['mobile'] = $v['mobile'];
             $voteItem['voteNumber'] = $v['vote_number'];
-            $voteItem['createTime'] = $v['create_time'];
+            $voteItem['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voteList[] = $voteItem;
         }
         $orderList = [];
@@ -310,9 +311,11 @@ class NodeController extends BaseController
         if ($page != 0) {
             $find->page($page);
         }
+        $find->orderBy('vote_number DESC');
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['count'] = $v['people_number'];
+            $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -369,7 +372,7 @@ class NodeController extends BaseController
         if ($is_candidate > 0 && empty($max_candidate)) {
             return $this->respondJson(1, '候选数量必须大于0');
         }
-        $tenure = BNode::find()->where(['type_id' => $type_id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        $tenure = BNode::find()->where(['type_id' => $id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
         if ($tenure_num < $tenure['allTenure']) {
             return $this->respondJson(1, '任职数量必须大于当前任职数量');
         }
@@ -685,7 +688,7 @@ class NodeController extends BaseController
             if ($old_node) {
                 return $this->respondJson(1, '此用户已有节点');
             }
-            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['!=', 'status', BUserIdentify::STATUS_FAIL])->one();
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['status' => BUserIdentify::STATUS_ACTIVE])->one();
             if ($user_identify) {
                 $identify = 1;
             }
@@ -932,6 +935,10 @@ class NodeController extends BaseController
         //     return $this->respondJson(1, '用户ID不能为空');
         // }
         if (!$identify) {
+            $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['status' => BUserIdentify::STATUS_INACTIVE])->one();
+            if ($user_identify) {
+                $user_identify->delete();
+            }
             $realname = $this->pString('realname');
             if (empty($realname)) {
                 return $this->respondJson(1, '用户姓名不能为空');

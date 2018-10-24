@@ -33,7 +33,7 @@ class JobService extends ServiceBase
             
         $page = 0;
         $data = NodeService::getList($page, '', '', $endTime);
-            
+
         $id_arr = [];
         foreach ($data as $v) {
             $id_arr[] = $v['id'];
@@ -53,6 +53,7 @@ class JobService extends ServiceBase
             $history->node_name = $v['name'];
             $history->username = $v['mobile'];
             $history->node_id = $v['id'];
+            $history->node_type = $v['type_id'];
             $history->is_tenure = $v['is_tenure'];
             $history->update_number = $history_id;
             if (!$history->save()) {
@@ -78,6 +79,7 @@ class JobService extends ServiceBase
         }
         if (count($msg) > 0) {
             $transaction->rollBack();
+
             Yii::error(json_encode($msg), 'history');
         } else {
             $transaction->commit();

@@ -45,6 +45,7 @@
           <el-button v-show="noticeChecktoNum==2" type="primary" class="btn" @click="doomPass">通过</el-button>
           <el-button v-show="noticeChecktoNum==4" type="danger" plain class="btn" @click="delteFailNote">删除记录</el-button>
         </div>
+        <p v-show="noticeChecktoNum==4">未通过原因：{{ rowDetail.statusRemark }}</p>
         <p style="color:#888;">logo</p>
         <img :src="rowDetail.logo" alt="" style="display:block;width:100px;height:100px;border:1px solid #ddd;">
         <p style="color:#888;margin-top:50px;">机构/个人名称</p>

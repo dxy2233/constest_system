@@ -85,11 +85,11 @@ class VoteController extends BaseController
     {
         // 返回容器
         $data = [];
-        $type = $this->pInt('type', 1);
+        $type = $this->pInt('type', 0);
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $userModel = $this->user;
-        // $voucherModel->sum('voucher_num - use_voucher');
+        // var_dump($type, (bool) $type);exit;
         if ((bool) $type) {
             $voucherModel = $userModel->getVouchers();
             $voucherModel->alias('vh')
@@ -105,6 +105,7 @@ class VoteController extends BaseController
             foreach ($data['list'] as &$voucher) {
                 $voucher['mobile'] = substr_replace($voucher['mobile'], '****', 3, 4);
                 $voucher['create_time'] = FuncHelper::formateDate($voucher['create_time']);
+                $voucher['voucher_num'] = '+' . $voucher['voucher_num'];
                 unset($voucher['node']);
                 unset($voucher['node_id']);
             }
@@ -120,6 +121,7 @@ class VoteController extends BaseController
             ->asArray()->all();
             foreach ($data['list'] as &$voucherDetail) {
                 $voucherDetail['create_time'] = FuncHelper::formateDate($voucherDetail['create_time']);
+                $voucherDetail['amount'] = '-' . $voucherDetail['amount'];
                 unset($voucherDetail['node']);
                 unset($voucherDetail['node_id']);
             }
@@ -225,7 +227,7 @@ class VoteController extends BaseController
             return $this->respondJson(1, '该投票状态不能更改');
         }
 
-        // 赎回时间设定 
+        // 赎回时间设定
         $remokeDay = (int) SettingService::get('vote', 'remoke_day')->value;
         $voteModel->undo_time = NOW_TIME + $remokeDay * 86400;
         // 赎回中状态

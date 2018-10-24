@@ -2,6 +2,7 @@
 namespace admin\controllers;
 
 use common\services\AclService;
+use common\services\JingTumService;
 use common\services\TicketService;
 use common\services\WithdrawService;
 use common\services\SettingService;
@@ -114,7 +115,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.examine_time', 'A.id', 'A.destination_address'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
@@ -191,5 +192,32 @@ class WithdrawController extends BaseController
         } else {
             return $this->respondJson(1, '审核失败');
         }
+    }
+
+    // 钱包资产信息
+    public function actionWalletInfo()
+    {
+        $type = $this->pString('type');
+        $currencyCode = $this->pString('currency_code');
+        $currencyCode = $currencyCode ? strtoupper($currencyCode) : null;
+
+        if($type && isset(\Yii::$app->params['JTWallet'][$type])) {
+            $walletList = [
+                $type => \Yii::$app->params['JTWallet'][$type]
+            ];
+        } else {
+            $walletList = \Yii::$app->params['JTWallet'];
+        }
+        $data = [];
+        foreach($walletList AS $key => $wallet) {
+            $res = JingTumService::getInstance()->queryBalance($wallet['address'], $currencyCode) ;
+
+            if($res->code != 0) {
+                $res->content = "0.000000";
+            }
+            $data[$key] = $res->content;
+        }
+
+        return $this->respondJson(0, '获取成功', $data);
     }
 }

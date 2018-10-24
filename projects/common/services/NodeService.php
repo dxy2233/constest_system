@@ -2,6 +2,7 @@
 
 namespace common\services;
 
+use common\models\NodeType;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 use common\components\NetUtil;
@@ -10,13 +11,13 @@ use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BNode;
 use common\models\business\BVote;
+use common\models\business\BNotice;
+use common\models\business\BNodeRule;
+use common\models\business\BNodeType;
 use common\models\business\BUserWallet;
 use common\models\business\BUserAccessToken;
-use common\models\business\BUserRefreshToken;
 use common\models\business\BTypeRuleContrast;
-use common\models\business\BNodeRule;
-use common\models\business\BNotice;
-use common\models\business\BNodeType;
+use common\models\business\BUserRefreshToken;
 
 class NodeService extends ServiceBase
 {
@@ -33,11 +34,10 @@ class NodeService extends ServiceBase
         $find = BNode::find()
         ->from(BNode::tableName()." A")
         ->join('left join', 'gr_user B', 'A.user_id = B.id')
-        ->join('left join', 'gr_vote C', 'A.id = C.node_id')
+        ->join('left join', 'gr_vote C', 'A.id = C.node_id && C.status = '.BNotice::STATUS_ACTIVE)
         ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
-        ->where(['status' => BNotice::STATUS_ACTIVE])
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name']);
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name', 'D.id as type_id']);
         // ->orderBy('sum(C.vote_number) desc');
         
         
@@ -65,7 +65,7 @@ class NodeService extends ServiceBase
         if ($order != '') {
             $find->orderBy($order. ' desc');
         }
-
+        //echo $find->createCommand()->getRawSql();
         if ($page != 0) {
             $find->page($page);
         }
@@ -88,7 +88,9 @@ class NodeService extends ServiceBase
      */
     public static function getPeopleNum(array $id_arr = [], string $str_time = '', string $end_time = '')
     {
-        $voteMode = BVote::find()->select(['node_id', 'COUNT(DISTINCT user_id) as people_number']);
+        $voteMode = BVote::find()
+        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number'])
+        ->active();
         if (!empty($id_arr)) {
             $voteMode->where(['node_id' => $id_arr]);
         }
@@ -150,9 +152,11 @@ class NodeService extends ServiceBase
         ->active(BNode::STATUS_ACTIVE, 'n.')
         ->joinWith(['votes v' => function ($query) {
             if ($query->count()) {
-                $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
+                $query->active(BVote::STATUS_ACTIVE, 'v.');
             }
-        }, 'nodeType nt'], false)
+        }, 'nodeType nt' => function ($query) {
+            $query->andWhere(['is_order' => NodeType::STATUS_ACTIVE]);
+        }], false)
         ->filterWhere(['n.type_id' => $nodeType])
         ->groupBy('n.id');
         self::$number = $nodeModel->count();
@@ -161,7 +165,7 @@ class NodeService extends ServiceBase
             $nodeModel->page($page, $pageSize);
         }
         $nodeModel->asArray();
-        // var_dump($nodeModel->all());exit;
+        // var_dump($nodeModel->createCommand()->getRawSql());exit;
         $nodeList = $nodeModel->all();
         $nodeIds = ArrayHelper::getColumn($nodeList, 'id');
         // 获取节点user 去重统计

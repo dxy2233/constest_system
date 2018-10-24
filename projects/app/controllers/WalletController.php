@@ -51,8 +51,8 @@ class WalletController extends BaseController
 //        var_dump(WithdrawService::withdrawCurrencyAudit(24,2,'身份不正确')) ;
 //        var_dump( JingTumService::getInstance()->queryPayments("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY" , "1", "10")) ;
 //        var_dump( JingTumService::getInstance()->addUserBalanceFormMain("jPjnUjv7ARzTukcr2h2vYuGZmgPnj6EvYz","Trans20181024002",0.2,"test",JingTumService::ASSETS_TYPE_GRT)) ;
-//        var_dump( JingTumService::getInstance()->queryBalance("jEnDkuaFSTZn2Ck3TLpu219QW7C5gUuBBQ")) ;
-//        var_dump( JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['receipt']['key'], \Yii::$app->params['JTWallet']['receipt']['address'],"jH33GX8GJwSsH33WrqZS9i77eKp3hN1WtC","Trans20181024008",0.1,"test","BPT")) ;
+//        var_dump( JingTumService::getInstance()->queryBalance("jH33GX8GJwSsH33WrqZS9i77eKp3hN1WtC")) ;
+//        var_dump( JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['receipt']['key'], \Yii::$app->params['JTWallet']['receipt']['address'],"jH33GX8GJwSsH33WrqZS9i77eKp3hN1WtC","Trans20181024014",0.02,"test","GRT")) ;
 //        $resJingTum = JingTumService::getInstance()->queryPayments("j4oRzJ88L37Qnig8ftGtDrmbKxyaXR7G1d" , 1, 10);
 //        var_dump($resJingTum);
 //        var_dump( JingTumService::getInstance()->mainBalance()) ;
@@ -166,7 +166,7 @@ class WalletController extends BaseController
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
-            $val['status_str'] = BUserCurrencyDetail::getStatus($val['status'], 0, true);
+            $val['status_str'] = BUserCurrencyDetail::getStatus($val['status']);
             $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
         }
         return $this->respondJson(0, '获取成功', $data);

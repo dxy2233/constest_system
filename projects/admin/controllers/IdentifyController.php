@@ -93,7 +93,7 @@ class IdentifyController extends BaseController
         if (empty($remark)) {
             return $this->respondJson(1, '原因不能为空');
         }
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->one();
+        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id DESC')->one();
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
@@ -114,7 +114,7 @@ class IdentifyController extends BaseController
             return $this->respondJson(1, '用户ID不能为空');
         }
 
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->one();
+        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id DESC')->one();
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }

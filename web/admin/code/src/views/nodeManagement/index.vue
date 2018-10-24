@@ -919,7 +919,6 @@ export default {
       this.dialogSetData.ruleList = temList
       pushNodeSet(this.dialogSetData).then(res => {
         Message({ message: res.msg, type: 'success' })
-        this.dialogSet = false
       })
     },
     // 打开历史排名

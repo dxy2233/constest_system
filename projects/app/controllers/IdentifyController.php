@@ -38,7 +38,8 @@ class IdentifyController extends BaseController
         $data = [];
         $userModel = $this->user;
         
-        $identify = $userModel->identify;
+        $identify = BUserIdentify::find()->where(['user_id' => $userModel->id])->orderBy(['id' => SORT_DESC])->one();
+        // $identify = $userModel->identify;
         if (is_null($identify)) {
             return $this->respondJson(0, "未实名认证");
         }
@@ -69,15 +70,14 @@ class IdentifyController extends BaseController
     public function actionSubmit()
     {
         $userModel = $this->user;
-        $identify = $userModel->identify;
+        // $identify = $userModel->identify;
+        $identify = BUserIdentify::find()->where(['user_id' => $userModel->id])->orderBy(['id' => SORT_DESC])->one();
         $isOpen = SettingService::get('user', 'is_open')->value;
         if (is_null($isOpen) || !(bool) $isOpen) {
             return $this->respondJson(1, "实名认证未启用");
         }
-        if (is_null($identify)) {
+        if (is_null($identify) || $identify->status == BUserIdentify::STATUS_FAIL) {
             $identify = new BUserIdentify();
-        } elseif ($identify->status == BUserIdentify::STATUS_FAIL) {
-            $identify = $userModel->getIdentify()->one();
         } else {
             return $this->respondJson(1, '不能再次提交');
         }

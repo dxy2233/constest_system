@@ -223,7 +223,7 @@ class NodeController extends BaseController
         }
 
         $identify = [];
-        $userIdentify = BUserIdentify::find()->where(['user_id'=> $data->user_id])->active(BNotice::STATUS_ACTIVE)->one();
+        $userIdentify = BUserIdentify::find()->where(['user_id'=> $data->user_id])->orderBy('id DESC')->active(BNotice::STATUS_ACTIVE)->one();
         if (!empty($userIdentify)) {
             $identify['realName'] = $userIdentify->realname;
             $identify['number'] = $userIdentify->number;

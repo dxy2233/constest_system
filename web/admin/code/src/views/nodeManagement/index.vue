@@ -207,14 +207,14 @@
         </el-radio-group>
         <div v-show="dialogSetRightType=='任职'">
           <div class="right-checkbox">
-            <el-checkbox v-for="(item,index) in dialogSetRuleList[0]" :key="index" v-model="item.checked">
+            <el-checkbox v-for="(item,index) in dialogSetRuleList[1]" :key="index" v-model="item.checked">
               {{ item.name }}
             </el-checkbox>
           </div>
         </div>
         <div v-show="dialogSetRightType=='候选人'">
           <div class="right-checkbox">
-            <el-checkbox v-for="(item,index) in dialogSetRuleList[1]" :key="index" v-model="item.checked">
+            <el-checkbox v-for="(item,index) in dialogSetRuleList[0]" :key="index" v-model="item.checked">
               {{ item.name }}
             </el-checkbox>
           </div>
@@ -249,19 +249,6 @@
       <div v-show="dialogRightName=='任职权益'">
         <div class="rigth-edit">
           <div class="row"><div>权益</div><div>描述</div></div>
-          <div v-for="(item,index) in dialogSetRuleList[0]" :key="index" class="row">
-            <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
-            <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
-            <i class="el-icon-circle-close-outline" @click="deleteRule(0, index)"/>
-          </div>
-        </div>
-        <div class="add">
-          <i class="el-icon-circle-plus-outline" @click="addRule(0)"> 添加一行</i>
-        </div>
-      </div>
-      <div v-show="dialogRightName=='候选人权益'">
-        <div class="rigth-edit">
-          <div class="row"><div>权益</div><div>描述</div></div>
           <div v-for="(item,index) in dialogSetRuleList[1]" :key="index" class="row">
             <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
             <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
@@ -270,6 +257,19 @@
         </div>
         <div class="add">
           <i class="el-icon-circle-plus-outline" @click="addRule(1)"> 添加一行</i>
+        </div>
+      </div>
+      <div v-show="dialogRightName=='候选人权益'">
+        <div class="rigth-edit">
+          <div class="row"><div>权益</div><div>描述</div></div>
+          <div v-for="(item,index) in dialogSetRuleList[0]" :key="index" class="row">
+            <div><el-input v-model="item.name" placeholder="请输入内容" size="mini"/></div>
+            <div><el-input v-model="item.content" placeholder="请输入内容" size="mini"/></div>
+            <i class="el-icon-circle-close-outline" @click="deleteRule(0, index)"/>
+          </div>
+        </div>
+        <div class="add">
+          <i class="el-icon-circle-plus-outline" @click="addRule(0)"> 添加一行</i>
         </div>
       </div>
       <div v-show="dialogRightName=='排名权益'">
@@ -309,16 +309,11 @@
       </div>
       <el-table :data="dialogHistoryDataPage" style="margin:10px 0;">
         <el-table-column prop="index" label="排名"/>
-        <el-table-column prop="name" label="节点名称"/>
+        <el-table-column prop="nodeName" label="节点名称"/>
         <el-table-column prop="username" label="账号"/>
         <el-table-column prop="voteNumber" label="票数"/>
         <el-table-column prop="count" label="支持人数"/>
-        <el-table-column label="状态">
-          <template slot-scope="scope">
-            <span v-if="scope.row.status==1">在职</span>
-            <span v-else>候选</span>
-          </template>
-        </el-table-column>
+        <el-table-column prop="isTenure" label="状态"/>
       </el-table>
       <el-pagination
         :current-page.sync="historyCurrentPage"
@@ -357,17 +352,18 @@
                 v-for="item in tenureData"
                 :key="item.value"
                 :label="item.label"
-                :value="item.value"/>
+                :value="item.value"
+                :disabled="item.disabled"/>
             </el-select>
           </el-form-item>
           <el-form-item prop="grt" label="质押GRT数量">
-            <el-input v-model.number="addNodeData.grt"/>
+            <el-input v-model="addNodeData.grt"/>
           </el-form-item>
           <el-form-item prop="tt" label="质押TT数量">
-            <el-input v-model.number="addNodeData.tt"/>
+            <el-input v-model="addNodeData.tt"/>
           </el-form-item>
           <el-form-item prop="bpt" label="质押BPT数量">
-            <el-input v-model.number="addNodeData.bpt"/>
+            <el-input v-model="addNodeData.bpt"/>
           </el-form-item>
         </el-form>
       </div>
@@ -497,7 +493,7 @@ export default {
       dialogAddNode: false,
       step: 0,
       tenureData: [
-        { value: 1, label: '任职' },
+        { value: 1, label: '任职', disabled: true },
         { value: 0, label: '候选' }
       ],
       addNodeData: {
@@ -878,9 +874,9 @@ export default {
     // 增加权益
     addRule(type) {
       if (type === 0) {
-        this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '0', checked: false, maxOrder: 0, minOrder: 0 })
+        this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '1', checked: false, maxOrder: 0, minOrder: 0 })
       } else if (type === 1) {
-        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '1', checked: false, maxOrder: 0, minOrder: 0 })
+        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '0', checked: false, maxOrder: 0, minOrder: 0 })
       } else {
         this.dialogSetRuleList[2].push({ name: '', content: '', isTenure: '2', checked: false, maxOrder: 1, minOrder: 1 })
       }
@@ -1040,7 +1036,7 @@ export default {
     addExcelHistory() {
       import('@/vendor/Export2Excel').then(excel => {
         const tHeader = ['排名', '节点名称', '账号', '票数', '支持人数', '状态']
-        const filterVal = ['index', 'name', 'username', 'voteNumber', 'count', 'status']
+        const filterVal = ['index', 'nodeName', 'username', 'voteNumber', 'count', 'isTenure']
         const list = this.dialogHistoryData
         const data = this.formatJson(filterVal, list)
         excel.export_json_to_excel({
@@ -1055,6 +1051,7 @@ export default {
         if (j === 'isTenure') {
           if (parseInt(v[j]) === 0) return '候补'
           if (parseInt(v[j]) === 1) return '任职'
+          else return v[j]
         } else if (j === 'status') {
           if (parseInt(v[j]) === 0) return '停用'
           if (parseInt(v[j]) === 1) return '正常'

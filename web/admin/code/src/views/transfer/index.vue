@@ -60,13 +60,14 @@
 
     <transition name="fade">
       <div v-show="showInfo" class="fade-slide">
-        <div class="title" style="margin-bottom:50px;">
+        <div class="title">
           <img src="@/assets/img/user.jpg" alt="">
-          <span class="name">{{ rowInfo.realname }}<br><span>{{ checkType }}</span></span>
+          <span class="name">{{ rowInfo.mobile }}<br><span>{{ checkType }}</span></span>
           <i class="el-icon-close btn" @click="showInfo=false"/>
           <el-button v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
           <el-button v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
         </div>
+        <p v-show="checkTypetoNum==2">未通过原因：{{ rowInfo.statusRemark }}</p>
         <p><span>流水号</span>{{ rowInfo.orderNumber }}</p>
         <p><span>币种</span>{{ rowInfo.name }}<span>类型</span>{{ rowInfo.type }}</p>
         <p><span>数量</span>{{ rowInfo.amount }}<span>备注</span>{{ rowInfo.remark }}</p>
@@ -85,22 +86,22 @@
           :name="item.id">
           <el-form ref="transferForm" :model="form" :rules="rules">
             <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
-              <el-input v-model.number="form.withdraw_min_amount">
+              <el-input v-model="form.withdraw_min_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
-              <el-input v-model.number="form.withdraw_max_amount">
+              <el-input v-model="form.withdraw_max_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
-              <el-input v-model.number="form.withdraw_audit_amount">
+              <el-input v-model="form.withdraw_audit_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
-              <el-input v-model.number="form.withdraw_day_amount">
+              <el-input v-model="form.withdraw_day_amount">
                 <template slot="append">{{ item.code.toUpperCase() }}</template>
               </el-input>
             </el-form-item>

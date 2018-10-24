@@ -117,10 +117,10 @@
               :value="item.value"/>
           </el-select>
         </el-form-item>
-        <el-form-item v-show="releaseData.type==0" label="链接地址" prop="url">
+        <el-form-item v-if="releaseData.type==0" label="链接地址" prop="url">
           <el-input v-model="releaseData.url"/>
         </el-form-item>
-        <el-form-item v-show="releaseData.type==1" label="正文内容" prop="detail">
+        <el-form-item v-if="releaseData.type==1" label="正文内容" prop="detail">
           <div>
             <tinymce :height="300" v-model="releaseData.detail"/>
           </div>
@@ -171,10 +171,10 @@
               :value="item.value"/>
           </el-select>
         </el-form-item>
-        <el-form-item v-show="rowInfo.type==0" label="链接地址" prop="url">
+        <el-form-item v-if="rowInfo.type==0" label="链接地址" prop="url">
           <el-input v-model="rowInfo.url"/>
         </el-form-item>
-        <el-form-item v-show="rowInfo.type==1" label="正文内容" prop="detail">
+        <el-form-item v-if="rowInfo.type==1" label="正文内容" prop="detail">
           <div>
             <tinymce :height="300" v-model="rowInfo.detail"/>
           </div>

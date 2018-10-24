@@ -59,7 +59,7 @@ class BNotice extends \common\models\Notice
 
         $showCount = (int) SettingService::get('notice', 'show_count')->value;
         $query = self::find()
-        ->select(['id', 'title', 'desc', 'type', 'image', 'click', 'is_top', 'create_time'])
+        ->select(['id', 'title', 'desc', 'type', 'image', 'click', 'is_top', 'create_time', 'update_time'])
         ->active();
         // ->hasStartAndEndTime();
         if ($isIndex) {

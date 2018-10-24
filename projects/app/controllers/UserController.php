@@ -2,13 +2,16 @@
 
 namespace app\controllers;
 
+use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 use common\services\NodeService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
+use common\models\business\BNode;
 use common\models\business\BUser;
 use common\services\SettingService;
+use common\models\business\BVoucher;
 use common\models\business\BUserRecommend;
 
 class UserController extends BaseController
@@ -79,9 +82,36 @@ class UserController extends BaseController
         if (BUserRecommend::find()->where(['user_id' => $userModel->id])->exists()) {
             return $this->respondJson(1, '已添加推荐人');
         }
-        $recommendModel = new BUserRecommend();
-        $recommendModel->parent_id = (int) $parentId;
-        $recommendModel->link('user', $userModel);
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $recommendModel = new BUserRecommend();
+            $recommendModel->parent_id = (int) $parentId;
+            $recommendModel->link('user', $userModel);
+            if (!$recommendModel->id) {
+                throw new ErrorException('推荐人关联失败');
+            }
+            $nodeModel = $userModel->node;
+            if (!is_null($nodeModel) && $nodeModel->status == BNode::STATUS_ON) {
+                $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
+                // 指定货币类型的 * 设置倍数
+                $voucherCount = $nodeModel->grt * $multiple;
+                $voucherModel = new BVoucher();
+                $voucherModel->user_id = $parentId;
+                $voucherModel->node_id = $nodeModel->id;
+                $voucherModel->voucher_num = $voucherCount;
+                if (!$voucherModel->save()) {
+                    throw new ErrorException('投票劵赠送失败');
+                }
+                // 重置用户投票券
+                if (!UserService::resetVoucher($parentId)) {
+                    throw new ErrorException('投票券资产更新失败');
+                }
+            }
+            $transaction->commit();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return $this->respondJson(1, $e->getMessage());
+        }
         return $this->respondJson(0, '设置成功', $parentId);
     }
 
@@ -153,12 +183,12 @@ class UserController extends BaseController
     /**
      * 重置用户币种资金
      */
-    public function actionResetCurrency(){
-
+    public function actionResetCurrency()
+    {
         $userId = $this->pInt('user_id', 0);
         $currencyId = $this->pInt('currency_id', 0);
 
-        if($userId === 0 || $currencyId === 0) {
+        if ($userId === 0 || $currencyId === 0) {
             return $this->respondJson(1, 'params error.');
         }
 

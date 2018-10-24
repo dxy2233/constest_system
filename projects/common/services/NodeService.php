@@ -88,7 +88,9 @@ class NodeService extends ServiceBase
      */
     public static function getPeopleNum(array $id_arr = [], string $str_time = '', string $end_time = '')
     {
-        $voteMode = BVote::find()->select(['node_id', 'COUNT(DISTINCT user_id) as people_number']);
+        $voteMode = BVote::find()
+        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number'])
+        ->active();
         if (!empty($id_arr)) {
             $voteMode->where(['node_id' => $id_arr]);
         }
@@ -150,7 +152,7 @@ class NodeService extends ServiceBase
         ->active(BNode::STATUS_ACTIVE, 'n.')
         ->joinWith(['votes v' => function ($query) {
             if ($query->count()) {
-                $query->andWhere(['v.status' => BVote::STATUS_ACTIVE]);
+                $query->active(BVote::STATUS_ACTIVE, 'v.');
             }
         }, 'nodeType nt'], false)
         ->filterWhere(['n.type_id' => $nodeType])

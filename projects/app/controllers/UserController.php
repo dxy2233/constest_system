@@ -55,7 +55,7 @@ class UserController extends BaseController
             }
         }
         $data['code'] = $userModel->recommend_code;
-        $data['re_code'] = BUserRecommend::find()->where(['parent_id' => $userModel->id])->exists();
+        $data['re_code'] = BUserRecommend::find()->where(['user_id' => $userModel->id])->exists();
         return $this->respondJson(0, '获取成功', $data);
     }
     /**

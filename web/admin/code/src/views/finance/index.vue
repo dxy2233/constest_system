@@ -4,7 +4,7 @@
     <el-button class="btn-right" @click="addExcel">导出excel</el-button>
     <br>
 
-    <el-input v-model="search" placeholder="用户/节点名称" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
+    <el-input v-model="search" placeholder="用户" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
     <div style="float:right;margin-top:20px;">
       <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;">
         <el-option

@@ -309,7 +309,6 @@ export default {
     downUrl() {
       var str = this.searchDate[0] || ''
       var end = this.searchDate[1] || ''
-      // return `http://contestadmin.vguiren.cm/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
       return `/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
     }
   },
@@ -336,7 +335,11 @@ export default {
     clickRow(row) {
       this.rowInfo = row
       this.showUserInfo = true
-      this.changeTabs({ name: this.activeName })
+      if (this.activeName === 'Base') this.changeTabs({ name: this.activeName })
+      else {
+        this.changeTabs({ name: 'Base' })
+        this.changeTabs({ name: this.activeName })
+      }
     },
     // 变页面
     changePage(page) {

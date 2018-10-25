@@ -188,7 +188,7 @@ class UserController extends BaseController
             }
         }
 
-        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
         $this->download($list, $headers);
         return;
     }
@@ -498,6 +498,9 @@ class UserController extends BaseController
         $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
         if (empty($recommend)) {
             $id = UserService::validateRemmendCode($code);
+            if ($id === $userId) {
+                return $this->respondJson(1, '推荐人不能是自己');
+            }
             $user_recommend = new BUserRecommend();
             $user_recommend->user_id = $user->id;
             $user_recommend->parent_id = $id;

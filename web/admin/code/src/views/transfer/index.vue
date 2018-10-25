@@ -8,7 +8,7 @@
     <el-button class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
     <br>
 
-    <el-input v-model="search" placeholder="姓名/手机号/身份证号" suffix-icon="el-icon-search" style="width:200px;"/>
+    <el-input v-model="search" placeholder="流水号/手机号" suffix-icon="el-icon-search" style="width:200px;"/>
     <el-button style="float:right;" @click="searchData">查询</el-button>
     <el-date-picker
       v-model="date"
@@ -85,29 +85,101 @@
           :key="index"
           :label="item.name"
           :name="item.id">
-          <el-form :ref="'transferForm' + index" :model="form" :rules="rules">
+          <el-form :ref="'transferForm' + (index + 1)" :model="form" :rules="rules">
             <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
               <el-input v-model="form.withdraw_min_amount">
-                <template slot="append">{{ item.code.toUpperCase() }}</template>
+                <template slot="append">{{ item.name }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
               <el-input v-model="form.withdraw_max_amount">
-                <template slot="append">{{ item.code.toUpperCase() }}</template>
+                <template slot="append">{{ item.name }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
               <el-input v-model="form.withdraw_audit_amount">
-                <template slot="append">{{ item.code.toUpperCase() }}</template>
+                <template slot="append">{{ item.name }}</template>
               </el-input>
             </el-form-item>
             <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
               <el-input v-model="form.withdraw_day_amount">
-                <template slot="append">{{ item.code.toUpperCase() }}</template>
+                <template slot="append">{{ item.name }}</template>
               </el-input>
             </el-form-item>
           </el-form>
         </el-tab-pane>
+        <!-- <el-tab-pane label="GRT" name="1">
+          <el-form ref="transferForm1" :model="form" :rules="rules">
+            <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
+              <el-input v-model="form.withdraw_min_amount">
+                <template slot="append">GRT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
+              <el-input v-model="form.withdraw_max_amount">
+                <template slot="append">GRT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
+              <el-input v-model="form.withdraw_audit_amount">
+                <template slot="append">GRT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
+              <el-input v-model="form.withdraw_day_amount">
+                <template slot="append">GRT</template>
+              </el-input>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="BPT" name="2">
+          <el-form ref="transferForm2" :model="form" :rules="rules">
+            <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
+              <el-input v-model="form.withdraw_min_amount">
+                <template slot="append">BPT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
+              <el-input v-model="form.withdraw_max_amount">
+                <template slot="append">BPT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
+              <el-input v-model="form.withdraw_audit_amount">
+                <template slot="append">BPT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
+              <el-input v-model="form.withdraw_day_amount">
+                <template slot="append">BPT</template>
+              </el-input>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="TT" name="3">
+          <el-form ref="transferForm3" :model="form" :rules="rules">
+            <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
+              <el-input v-model="form.withdraw_min_amount">
+                <template slot="append">TT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
+              <el-input v-model="form.withdraw_max_amount">
+                <template slot="append">TT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
+              <el-input v-model="form.withdraw_audit_amount">
+                <template slot="append">TT</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
+              <el-input v-model="form.withdraw_day_amount">
+                <template slot="append">TT</template>
+              </el-input>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane> -->
       </el-tabs>
       <span slot="footer">
         <el-button type="primary" @click="saveSet">确认修改</el-button>
@@ -252,7 +324,9 @@ export default {
     doomFail() {
       this.$prompt('请填写不通过原因', '提示', {
         confirmButtonText: '确定',
-        cancelButtonText: '取消'
+        cancelButtonText: '取消',
+        inputPattern: /^\S{1,50}$/,
+        inputErrorMessage: '请输入1~50不包含空格的内容'
       }).then(({ value }) => {
         failTrial(this.rowInfo.id, value).then(res => {
           this.showInfo = false
@@ -263,7 +337,7 @@ export default {
         })
       })
     },
-    // 转账设置
+    // 打开转账设置
     openTransferSet() {
       this.dialogSet = true
       this.setType = this.allMoneyType[0].id
@@ -279,19 +353,16 @@ export default {
     },
     // 保存转账设置
     saveSet() {
-      // var temName = 'transferForm' + this.setType
-      // this.$refs[temName].validate((valid) => {
-      //   if (valid) {
-      //     editSet({ ...this.form, currency_id: this.setType }).then(res => {
-      //       Message({ message: res.msg, type: 'success' })
-      //     })
-      //   } else {
-      //     console.log('error submit!!')
-      //     return false
-      //   }
-      // })
-      editSet({ ...this.form, currency_id: this.setType }).then(res => {
-        Message({ message: res.msg, type: 'success' })
+      var temName = 'transferForm' + this.setType
+      this.$refs[temName][0].validate((valid) => {
+        if (valid) {
+          editSet({ ...this.form, currency_id: this.setType }).then(res => {
+            Message({ message: res.msg, type: 'success' })
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
       })
     }
   }

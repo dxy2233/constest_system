@@ -85,14 +85,14 @@ class IdentifyController extends BaseController
         $postData['pic_front'] = $this->pImage('pic_front');
         $postData['pic_back'] = $this->pImage('pic_back');
         $identify->load(['BUserIdentify' => $postData]);
-        if (!$identify->validate()) {
-            return $this->respondJson(1, $identify->getFirstError());
-        }
+        // if (!$identify->validate()) {
+        //     return $this->respondJson(1, $identify->getFirstError());
+        // }
         $identify->status = (int) SettingService::get('user', 'has_identify')->value;
         $identify->status_remark = BUserIdentify::getStatus($identify->status);
         $identify->user_id = $userModel->id;
         if (!$identify->save()) {
-            return $this->respondJson(1, $identify->getFirstError());
+            return $this->respondJson(1, $identify->getFirstErrorText());
         }
         $identify->pic_front = $identify->picFrontText;
         $identify->pic_back = $identify->picBackText;

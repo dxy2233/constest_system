@@ -100,7 +100,8 @@ class IdentifyController extends BaseController
             return $this->respondJson(1, '不存在的节点');
         }
         $data->status = BUserIdentify::STATUS_FAIL;
-        $data->status_remark = $remark;
+        $data->status_remark = BUserIdentify::getStatus(BUserIdentify::STATUS_FAIL);
+        $data->remark = $remark;
         $data->examine_time = time();
         $data->audit_admin_id = $this->user_id;
         if (!$data->save()) {

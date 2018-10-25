@@ -80,6 +80,8 @@ class IdentifyController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '此用户没有实名信息');
         }
+        $data['pic_back'] = FuncHelper::getImageUrl($data['pic_back'], 640, 640);
+        $data['pic_front'] = FuncHelper::getImageUrl($data['pic_front'], 640, 640);
         return $this->respondJson(0, '获取成功', $data);
     }
     // 审核不通过

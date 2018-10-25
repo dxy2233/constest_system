@@ -124,6 +124,9 @@ a:hover {
     i {
       margin-top: 6px;
       font-size: 28px;
+      &:hover {
+        cursor: pointer;
+      }
     }
   }
   .info {

@@ -1,5 +1,6 @@
 import request from 'js/request'
 import {cancelLogin} from 'js/mixin'
+import router from '@/router'
 // import { Message } from 'element-ui'
 import store from '@/store/index'
 import  { ToastPlugin } from 'vux'
@@ -26,6 +27,12 @@ let http = {
         url: url,
         data: data
       }).then((response) => {
+        if (response.data.code === -1){
+          cancelLogin()
+          router.push({
+            path: '/login',
+          })
+        }
         callback(response.data);
       }).catch((response) => {
         if (response.msg){

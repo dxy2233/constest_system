@@ -991,7 +991,7 @@ class NodeController extends BaseController
         // if (empty($user_id)) {
         //     return $this->respondJson(1, '用户ID不能为空');
         // }
-        $logo = $this->pString('logo', '');
+        $logo = $this->pImage('logo', '');
         if (empty($logo)) {
             return $this->respondJson(1, 'logo不能为空');
         }

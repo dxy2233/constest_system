@@ -80,6 +80,8 @@ class IdentifyController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '此用户没有实名信息');
         }
+        $data['pic_back'] = FuncHelper::getImageUrl($data['pic_back'], 640, 640);
+        $data['pic_front'] = FuncHelper::getImageUrl($data['pic_front'], 640, 640);
         return $this->respondJson(0, '获取成功', $data);
     }
     // 审核不通过
@@ -98,7 +100,8 @@ class IdentifyController extends BaseController
             return $this->respondJson(1, '不存在的节点');
         }
         $data->status = BUserIdentify::STATUS_FAIL;
-        $data->status_remark = $remark;
+        $data->status_remark = BUserIdentify::getStatus(BUserIdentify::STATUS_FAIL);
+        $data->remark = $remark;
         $data->examine_time = time();
         $data->audit_admin_id = $this->user_id;
         if (!$data->save()) {

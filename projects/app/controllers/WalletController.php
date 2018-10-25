@@ -52,7 +52,7 @@ class WalletController extends BaseController
 //        var_dump( JingTumService::getInstance()->queryPayments("jGXcJRazVUC1iqNbHDiTkMk4hvybWPPzYY" , "1", "10")) ;
 //        var_dump( JingTumService::getInstance()->addUserBalanceFormMain("jPjnUjv7ARzTukcr2h2vYuGZmgPnj6EvYz","Trans20181024002",0.2,"test",JingTumService::ASSETS_TYPE_GRT)) ;
 //        var_dump( JingTumService::getInstance()->queryBalance("jH33GX8GJwSsH33WrqZS9i77eKp3hN1WtC")) ;
-//        var_dump( JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['receipt']['key'], \Yii::$app->params['JTWallet']['receipt']['address'],"jH33GX8GJwSsH33WrqZS9i77eKp3hN1WtC","Trans20181024014",0.02,"test","GRT")) ;
+//        var_dump( JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['receipt']['key'], \Yii::$app->params['JTWallet']['receipt']['address'],"jPeGTPBTrz9uNSKSFu34wGfU59evCHTTxX","Trans20181025004",100,"test","GRT")) ;
 //        $resJingTum = JingTumService::getInstance()->queryPayments("j4oRzJ88L37Qnig8ftGtDrmbKxyaXR7G1d" , 1, 10);
 //        var_dump($resJingTum);
 //        var_dump( JingTumService::getInstance()->mainBalance()) ;
@@ -293,7 +293,7 @@ class WalletController extends BaseController
         }
         $address = $this->pString('address');
         if (!$address) {
-            return $this->respondJson(1, '转出地址不能为空');
+            return $this->respondJson(1, '转账地址不能为空');
         }
         $remark = $this->pString('remark', '');
 
@@ -359,14 +359,14 @@ class WalletController extends BaseController
         // 验证地址
         $addressCheck = WithdrawService::withdrawAddressCheck($address, $currencyId);
         if ($addressCheck === false) {
-            return $this->respondJson(1, "转出地址不正确");
+            return $this->respondJson(1, "转账地址不正确");
         }
         $rechargeAddress = BUserRechargeAddress::find()
             ->where(['user_id' => $userModel->id, 'currency_id' => $currencyId])
             ->limit(1)
             ->one();
         if(!empty($rechargeAddress) && $rechargeAddress->address == $address) {
-            return $this->respondJson(1, '转出地址不能为自己钱包地址');
+            return $this->respondJson(1, '转账地址不能为自己钱包地址');
         }
 
         // 短信验证码
@@ -428,5 +428,23 @@ class WalletController extends BaseController
 
 
         return $this->respondJson(0, '提交成功');
+    }
+
+    public function actionAddressCheck()
+    {
+        $currencyId = $this->pInt('id');
+        if (!$currencyId) {
+            return $this->respondJson(1, '转出货币不能为空');
+        }
+        $address = $this->pString('address');
+        if (!$address) {
+            return $this->respondJson(1, '转账地址不能为空');
+        }
+        // 验证地址
+        $addressCheck = WithdrawService::withdrawAddressCheck($address, $currencyId);
+        if ($addressCheck === false) {
+            return $this->respondJson(1, "转账地址不正确");
+        }
+        return $this->respondJson(0, '转账地址正确');
     }
 }

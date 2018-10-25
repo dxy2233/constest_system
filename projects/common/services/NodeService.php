@@ -72,7 +72,7 @@ class NodeService extends ServiceBase
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             if ($v['vote_number'] == null) {
-                $v['vote_number'] = 0;
+                $v['vote_number'] = '0';
             }
         }
         

@@ -108,7 +108,7 @@ class NodeController extends BaseController
             if (isset($people[$v['id']])) {
                 $v['count'] = $people[$v['id']];
             } else {
-                $v['count'] = 0;
+                $v['count'] = '0';
             }
             $v['key'] = $key+1;
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
@@ -605,7 +605,6 @@ class NodeController extends BaseController
         if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
-        $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息
         $identify = 0;
@@ -615,7 +614,7 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '此用户已有节点');
             }
             $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
-            if ($user_identify) {
+            if (!is_null($user_identify) && $user_identify->status == BUserIdentify::STATUS_ACTIVE) {
                 $identify = 1;
             }
         }
@@ -735,33 +734,43 @@ class NodeController extends BaseController
         $code = $this->pString('code');
         // 取出比例
         $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
-        if ($code != '') {
-            $id = UserService::validateRemmendCode($code);
-            //判断是否已有推荐人
-            $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
-            if (!empty($old_recommend)) {
-                // 已有推荐人与输入推荐人不一致
-                if ($old_recommend->parent_id != $id) {
+        //判断是否已有推荐人
+        $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
+        if ($code != '' || $old_recommend != '') {
+            if ($code != '') {
+                $id = UserService::validateRemmendCode($code);
+
+                if (empty($old_recommend)) {
+                    $user_recommend = new BUserRecommend();
+                    $user_recommend->user_id = $user->id;
+                    $user_recommend->parent_id = $id;
+                    $user_recommend->node_id = $node->id;
+                    $user_recommend->amount = $grt * $setting->value;
+                    if (!$user_recommend->save()) {
+                        $transaction->rollBack();
+                        return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                    }
+                } elseif ($old_recommend->parent_id != $id) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
+                } else {
+                    $old_recommend->node_id = $node->id;
+                    $old_recommend->amount = $grt * $setting->value;
+                    if (!$old_recommend->save()) {
+                        $transaction->rollBack();
+                        return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                    }
                 }
+            } else {
+                $id = $old_recommend->parent_id;
                 $old_recommend->node_id = $node->id;
                 $old_recommend->amount = $grt * $setting->value;
                 if (!$old_recommend->save()) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
                 }
-            } else {
-                $user_recommend = new BUserRecommend();
-                $user_recommend->user_id = $user->id;
-                $user_recommend->parent_id = $id;
-                $user_recommend->node_id = $node->id;
-                $user_recommend->amount = $grt * $setting->value;
-                if (!$user_recommend->save()) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
-                }
             }
+
             $voucher = new BVoucher();
             $voucher->user_id = $id;
             $voucher->node_id = $node->id;
@@ -981,7 +990,7 @@ class NodeController extends BaseController
         // if (empty($user_id)) {
         //     return $this->respondJson(1, '用户ID不能为空');
         // }
-        $logo = $this->pString('logo', '');
+        $logo = $this->pImage('logo', '');
         if (empty($logo)) {
             return $this->respondJson(1, 'logo不能为空');
         }

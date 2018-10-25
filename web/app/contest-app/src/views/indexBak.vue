@@ -1,4 +1,4 @@
-<template>
+ <template>
   <slide>
     <div class="identify-submit">fef</div>
   </slide>

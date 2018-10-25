@@ -108,7 +108,7 @@ class NodeController extends BaseController
             if (isset($people[$v['id']])) {
                 $v['count'] = $people[$v['id']];
             } else {
-                $v['count'] = 0;
+                $v['count'] = '0';
             }
             $v['key'] = $key+1;
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);

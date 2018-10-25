@@ -60,7 +60,7 @@ class BUserIdentify extends \common\models\UserIdentify
     {
         return array_merge(parent::rules(), [
             [['realname', 'number', 'pic_front', 'pic_back'], 'required'],
-            [['number'], 'unique'],
+            // [['number'], 'unique'],
             [['number'], 'match', 'pattern' => '/^(\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$/'],
             [['status'], 'default', 'value' => static::STATUS_INACTIVE + 10],
         ]);

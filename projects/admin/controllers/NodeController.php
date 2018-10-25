@@ -605,7 +605,6 @@ class NodeController extends BaseController
         if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
-        $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息
         $identify = 0;
@@ -615,7 +614,7 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '此用户已有节点');
             }
             $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
-            if ($user_identify) {
+            if (!is_null($user_identify) && $user_identify->status == BUserIdentify::STATUS_ACTIVE) {
                 $identify = 1;
             }
         }

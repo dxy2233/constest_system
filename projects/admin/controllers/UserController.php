@@ -183,7 +183,7 @@ class UserController extends BaseController
             $v['last_login_time'] = $v['last_login_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['last_login_time']);
             $v['status'] = BUser::getStatus($v['status']);
             if ($v['num'] == null) {
-                $v['num'] = 0;
+                $v['num'] = "0";
             }
             $recommend = BUserRecommend::find()
             ->from(BUserRecommend::tableName()." A")
@@ -198,7 +198,7 @@ class UserController extends BaseController
         }
 
 //        return $this->respondJson(0, '获取成功', $list);
-        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
         $this->download($list, $headers, '用户列表'.date('YmdHis'));
         return;
     }

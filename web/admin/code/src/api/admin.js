@@ -17,6 +17,7 @@ export function getUserListExcel(searchName, str_time, end_time, page) {
   return request({
     url: '/user/download',
     method: 'post',
+    responseType: 'blob',
     data: {
       searchName,
       str_time,

@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = 'sum(C.vote_number)';
+            $order = 'sum(C.vote_number) DESC,A.create_time';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -115,7 +115,7 @@ class NodeController extends BaseController
             $v['status'] = BNode::getStatus($v['status']);
         }
         $headers = ['key'=> '排名', 'name' => '节点名称', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'create_time' => '加入时间', 'status' => '状态'];
-        $this->download($data, $headers);
+        $this->download($data, $headers, '节点列表'.date('YmdHis'));
         return;
     }
     // 审核列表
@@ -304,7 +304,7 @@ class NodeController extends BaseController
             $endTime = date('Y-m-d H:i:s');
         }
         $page = $this->pInt('page', 0);
-        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
+        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('vote_number DESC,create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }
@@ -737,15 +737,18 @@ class NodeController extends BaseController
         //判断是否已有推荐人
         $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
         if ($code != '' || $old_recommend != '') {
+            $setting_recommend_voucher = BSetting::find()->where(['key' => 'recommend_voucher'])->one();
             if ($code != '') {
                 $id = UserService::validateRemmendCode($code);
-
+                $parent_node = BNode::find()->where(['user_id' => $id])->one();
                 if (empty($old_recommend)) {
                     $user_recommend = new BUserRecommend();
                     $user_recommend->user_id = $user->id;
                     $user_recommend->parent_id = $id;
-                    $user_recommend->node_id = $node->id;
-                    $user_recommend->amount = $grt * $setting->value;
+                    if (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) {
+                        $user_recommend->node_id = $node->id;
+                        $user_recommend->amount = $grt * $setting->value;
+                    }
                     if (!$user_recommend->save()) {
                         $transaction->rollBack();
                         return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
@@ -753,7 +756,7 @@ class NodeController extends BaseController
                 } elseif ($old_recommend->parent_id != $id) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
-                } else {
+                } elseif (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) {
                     $old_recommend->node_id = $node->id;
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {
@@ -763,11 +766,14 @@ class NodeController extends BaseController
                 }
             } else {
                 $id = $old_recommend->parent_id;
-                $old_recommend->node_id = $node->id;
-                $old_recommend->amount = $grt * $setting->value;
-                if (!$old_recommend->save()) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                $parent_node = BNode::find()->where(['user_id' => $id])->one();
+                if (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) {
+                    $old_recommend->node_id = $node->id;
+                    $old_recommend->amount = $grt * $setting->value;
+                    if (!$old_recommend->save()) {
+                        $transaction->rollBack();
+                        return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                    }
                 }
             }
 

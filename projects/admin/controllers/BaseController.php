@@ -14,6 +14,7 @@ use yii\web\Error;
 use yii\filters\Cors;
 use yii\helpers\ArrayHelper;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 
 class BaseController extends DzController
 {
@@ -30,6 +31,10 @@ class BaseController extends DzController
     public function behaviors()
     {
         $behaviors = [
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [],
+            ],
             'authenticator' => [
                 'class' => \common\components\Behavior\HttpBearerAuth::className(),
                 'isThrowException' => false,

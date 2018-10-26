@@ -13,6 +13,17 @@ export function getUserList(searchName, str_time, end_time, page) {
     }
   })
 }
+export function getUserListExcel(searchName, str_time, end_time, page) {
+  return request({
+    url: '/user/download',
+    method: 'post',
+    data: {
+      searchName,
+      str_time,
+      end_time
+    }
+  })
+}
 
 // tabs基础信息
 export function getUserBase(userId) {

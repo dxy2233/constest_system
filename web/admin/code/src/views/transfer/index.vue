@@ -79,7 +79,7 @@
 
     <el-dialog :visible.sync="dialogSet" title="转账设置">
       <p>转账需完成实名认证<el-switch v-model="form.is_identify" active-value="1" inactive-value="0" style="float:right;"/></p>
-      <el-tabs v-model="setType" @tab-click="changeTabs">
+      <el-tabs v-model="setType" :before-leave="beforeChangeTabs">
         <el-tab-pane
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -108,78 +108,6 @@
             </el-form-item>
           </el-form>
         </el-tab-pane>
-        <!-- <el-tab-pane label="GRT" name="1">
-          <el-form ref="transferForm1" :model="form" :rules="rules">
-            <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
-              <el-input v-model="form.withdraw_min_amount">
-                <template slot="append">GRT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
-              <el-input v-model="form.withdraw_max_amount">
-                <template slot="append">GRT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
-              <el-input v-model="form.withdraw_audit_amount">
-                <template slot="append">GRT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
-              <el-input v-model="form.withdraw_day_amount">
-                <template slot="append">GRT</template>
-              </el-input>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-        <el-tab-pane label="BPT" name="2">
-          <el-form ref="transferForm2" :model="form" :rules="rules">
-            <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
-              <el-input v-model="form.withdraw_min_amount">
-                <template slot="append">BPT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
-              <el-input v-model="form.withdraw_max_amount">
-                <template slot="append">BPT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
-              <el-input v-model="form.withdraw_audit_amount">
-                <template slot="append">BPT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
-              <el-input v-model="form.withdraw_day_amount">
-                <template slot="append">BPT</template>
-              </el-input>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-        <el-tab-pane label="TT" name="3">
-          <el-form ref="transferForm3" :model="form" :rules="rules">
-            <el-form-item label="单笔最小转账数量" prop="withdraw_min_amount">
-              <el-input v-model="form.withdraw_min_amount">
-                <template slot="append">TT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="每日单次最高转账数量" prop="withdraw_max_amount">
-              <el-input v-model="form.withdraw_max_amount">
-                <template slot="append">TT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="大于该值转账需审核" prop="withdraw_audit_amount">
-              <el-input v-model="form.withdraw_audit_amount">
-                <template slot="append">TT</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="每日累计转账数量" prop="withdraw_day_amount">
-              <el-input v-model="form.withdraw_day_amount">
-                <template slot="append">TT</template>
-              </el-input>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane> -->
       </el-tabs>
       <span slot="footer">
         <el-button type="primary" @click="saveSet">确认修改</el-button>
@@ -220,6 +148,7 @@ export default {
         withdraw_audit_amount: '',
         withdraw_day_amount: ''
       },
+      form2: '',
       rules: {
         withdraw_min_amount: [
           // { type: 'number', min: 0.000001, required: true, message: '请输入大于0的数字', trigger: 'blur' }
@@ -343,12 +272,31 @@ export default {
       this.setType = this.allMoneyType[0].id
       getSetValue(this.setType).then(res => {
         this.form = res.content
+        this.form2 = JSON.stringify(res.content)
       })
     },
-    // 切换转账设置类型
-    changeTabs(val) {
-      getSetValue(val.name).then(res => {
-        this.form = res.content
+    beforeChangeTabs(val) {
+      return new Promise((reslove, reject) => {
+        if (JSON.stringify(this.form) !== this.form2) {
+          this.$confirm('即将切换页面，是否保存修改的设置?', '提示', {
+            confirmButtonText: '保存设置',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            reslove()
+            this.saveSet()
+            getSetValue(val).then(res => {
+              this.form = res.content
+              this.form2 = JSON.stringify(res.content)
+            })
+          })
+        } else {
+          reslove()
+          getSetValue(val).then(res => {
+            this.form = res.content
+            this.form2 = JSON.stringify(res.content)
+          })
+        }
       })
     },
     // 保存转账设置

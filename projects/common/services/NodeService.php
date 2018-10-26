@@ -63,7 +63,7 @@ class NodeService extends ServiceBase
         $count = $find->count();
         
         if ($order != '') {
-            $find->orderBy($order. ' desc');
+            $find->orderBy($order);
         }
         //echo $find->createCommand()->getRawSql();
         if ($page != 0) {

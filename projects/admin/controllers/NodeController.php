@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = 'sum(C.vote_number) DESC,A.create_time';
+            $order = 'sum(C.vote_number) DESC,A.create_time ASC';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -737,7 +737,7 @@ class NodeController extends BaseController
         //判断是否已有推荐人
         $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
         if ($code != '' || $old_recommend != '') {
-            $setting_recommend_voucher = BSetting::find()->where(['key' => 'recommend_voucher'])->one();
+            $setting_recommend_voucher = BSetting::find()->active()->where(['key' => 'recommend_voucher'])->one();
             if ($code != '') {
                 $id = UserService::validateRemmendCode($code);
                 $parent_node = BNode::find()->where(['user_id' => $id])->one();

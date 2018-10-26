@@ -133,7 +133,7 @@ class UserController extends BaseController
     {
         // $file = './a';
         // $data = file_get_contents($file);
-        // return $this->respondJson(0, '获取成功', $data);
+        // return $data;
         // exit;
         $find = BUser::find()
         ->from(BUser::tableName()." A")

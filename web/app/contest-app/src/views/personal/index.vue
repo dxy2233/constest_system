@@ -12,7 +12,7 @@
                    style='background-image: url("/static/images/person-node.png")'>
       </router-link>-->
       <div class="node-brief">
-        <div v-if="loginMsg?!loginMsg.isNode:false" class="node_0">
+        <div v-if="!nodeInfo" class="node_0">
           <img src="/static/images/personal-node/bg.png" alt="" class="bg">
           <div class="node-content">
             <div class="left">
@@ -124,12 +124,16 @@
             this.$vux.toast.show(res.msg)
             return
           }
+          /*if (!res.content){
+            this.nodeInfo
+          }*/
           this.nodeInfo = res.content
           sessionStorage.setItem("myNodeInfo", JSON.stringify(res.content));
         })
       },
       getIdentifyMsg() {
         http.post('/identify', {}, (res) => {
+          // console.log(res)
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
             return
@@ -153,14 +157,16 @@
           })
         } else {
           // console.log(this.loginMsg.isNode)
-          if (!!this.loginMsg.isNode) {
+          /*if (!!this.loginMsg.isNode) {
             this.getNodeInfo()
-          }
+          }*/
+          this.getNodeInfo()
           // console.log(this.identifyMsg,JSON.stringify(this.identifyMsg)==='{}')
-          if (JSON.stringify(this.identifyMsg)==='{}'){
+          /*if (JSON.stringify(identifyMsg)==='{}'){
             this.getIdentifyMsg()
-          }
-
+          }*/
+          this.identifyMsg = {}
+          this.getIdentifyMsg()
         }
 
       },
@@ -172,21 +178,21 @@
       return {
         hidMobile: hidMobile,
         personalRouter: mainRouter[2],
-        pswPath: '',
         nodeInfo: {},
         identifyMsg: {}
       }
     },
     created() {
-      // this.pageInt()
     },
     activated() {
-      // this.getIdentifyMsg()
       this.pageInt()
     },
     watch: {
-      '$route': function (router) {
-      },
+      '$route': function (t, f) {
+        if (t.path === '/personal') {
+          this.pageInt()
+        }
+      }
     },
   }
 </script>

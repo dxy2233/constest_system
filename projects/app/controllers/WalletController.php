@@ -80,13 +80,19 @@ class WalletController extends BaseController
             ->asArray()
 //             ->createCommand()->getRawSql();var_dump($userCurrencys);return;
             ->all();
-
+        $has_identify = true;
+        // 获取设置中相关设置
+        $isIdentify = (bool) SettingService::get('currency', 'is_identify')->value;
+        if ($isIdentify && !(bool) $this->user->is_identified) {
+            $has_identify = false;
+        }
         foreach ($userCurrencys as $key => &$currency) {
             $currency['code'] = $currency['code'];
             $currency['name'] = $currency['name'];
             $currency['position_amount'] = FuncHelper::formatAmount($currency['position_amount']);
             $currency['frozen_amount'] = FuncHelper::formatAmount($currency['frozen_amount']);
             $currency['use_amount'] = FuncHelper::formatAmount($currency['use_amount']);
+            $currency['has_identify'] = $has_identify;
         }
         return $this->respondJson(0, '获取成功', $userCurrencys);
     }

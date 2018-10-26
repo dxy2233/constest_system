@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = 'sum(C.vote_number) DESC,A.create_time';
+            $order = 'sum(C.vote_number) DESC,A.create_time ASC';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];

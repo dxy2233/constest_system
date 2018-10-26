@@ -19,14 +19,14 @@
           <div class="form-item">
             <label for="">数量</label>
             <div class="ipt-box">
-              <input type="text" v-model="form.amount" :placeholder="'余额'+balance">
+              <input type="text" v-model="form.amount" :placeholder="'余额'+balance" @blur="vaildAmount">
               <span class="all-btn" @click="form.amount = balance" v-if="form.id">全部</span>
             </div>
           </div>
           <div class="form-item">
             <label for="">接收方钱包地址</label>
             <div class="ipt-box">
-              <input type="text" v-model="form.address" placeholder="输入或长按黏贴">
+              <input type="text" v-model="form.address" placeholder="输入或长按黏贴" @blur="vaildAdress">
             </div>
           </div>
           <div class="form-item">
@@ -83,6 +83,35 @@
       }
     },
     methods: {
+      vaildAmount(){
+        let vaild = this.clickAmount(this.form.amount)
+        if (vaild) {
+          this.$vux.toast.show(vaild)
+        }
+      },
+      vaildAdress(){
+        this.clickAdress(this.form.address,(res)=>{
+          if (res){
+            this.$vux.toast.show(res)
+          }
+        })
+      },
+      clickAdress(value,cb){
+        if (!value) {
+          cb('转账地址不能为空')
+          return
+        }
+        http.post('/wallet/address-check',{
+          id:this.form.id,
+          address:this.form.address
+        },(res)=>{
+          if (res.code !== 0){
+            cb(res.msg)
+          }else {
+            cb('')
+          }
+        })
+      },
       backPath() {
         this.$router.back()
       },
@@ -91,24 +120,48 @@
         this.form.id = item.id
         this.balance = item.useAmount
       },
+      clickAmount(value) {
+        if (!value) {
+          return '请输入数量'
+        }
+        if (!(/^\d+(\.\d+)?$/.test(value))||value*1===0) {
+          return '请输入有效的数量'
+        }
+        if (value-this.balance>0){
+          return '可用不足'
+        }
+        return ''
+      },
       submitTransfer() {
         if (!this.form.id) {
           this.$vux.toast.show('请选择币种')
           return
         }
-        if (!this.form.amount) {
+        /*if (!this.form.amount) {
           this.$vux.toast.show('请输入数量')
           return
         }
         if (!(/^\d+(\.\d+)?$/.test(this.form.amount))){
           this.$vux.toast.show('请输入有效的数量')
           return
-        }
-        if (!this.form.address) {
-          this.$vux.toast.show('请输入或长按黏贴钱包地址')
+        }*/
+        let vaild = this.clickAmount(this.form.amount)
+        if (vaild) {
+          this.$vux.toast.show(vaild)
           return
         }
-        this.validPswShow = true
+        this.clickAdress(this.form.address,(res)=>{
+          if (res){
+            this.$vux.toast.show(res)
+            return
+          }
+          this.validPswShow = true
+        })
+        /*if (!this.form.address) {
+          this.$vux.toast.show('请输入或长按黏贴钱包地址')
+          return
+        }*/
+
       },
       validPswSuccess(payPsw) {
         this.validVcodeShow = true
@@ -141,7 +194,7 @@
       for (let item of  list){
         if (parseInt(item.withdrawStatus)){
           this.currencyList.push(item)
-          console.log(item.id ,this.$route.params.id,item.id === this.$route.params.id)
+          // console.log(item.id ,this.$route.params.id,item.id === this.$route.params.id)
           if (item.id === this.$route.params.id){
             this.form.id = item.id
             this.balance = item.useAmount

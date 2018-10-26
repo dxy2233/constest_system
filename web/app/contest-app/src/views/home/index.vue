@@ -6,7 +6,8 @@
         <p>
           <router-link to="/home/vote" tag="span">
             <img src="/static/images/vote.png" alt="" class="vote-img">
-            投票</router-link>
+            投票
+          </router-link>
           <router-link to="/home/contribute" tag="span">贡献榜</router-link>
         </p>
       </header>
@@ -59,11 +60,7 @@
     data() {
       return {
         swiperList: [],
-        nodeTab: [
-          '超级节点',
-          '高级节点'
-        ],
-        currentTab: 0,
+        nodeTab: [],
         currentNodeId: '',
         nodeList: [],
         loadShow: true
@@ -103,7 +100,7 @@
             this.$vux.toast.show(res.msg)
             return
           }
-          if (!res.content.length){
+          if (!res.content.length) {
             this.loadShow = false
             return
           }
@@ -126,12 +123,28 @@
           // console.log(this.nodeList)
           // this.currentNodeId = res.content[0].id
         })
+      },
+      pageInt() {
+        this.swiperList = []
+        this.nodeList = []
+        this.nodeTab = []
+        this.currentNodeId = ''
+        this.getNoticeList()
+        this.getNodeTab()
       }
-
     },
     created() {
-      this.getNoticeList()
-      this.getNodeTab()
+      this.pageInt()
+    },
+    activated() {
+
+    },
+    watch: {
+      '$route': function (t, f) {
+        if (t.path === '/home') {
+          this.pageInt()
+        }
+      }
     }
   }
 </script>

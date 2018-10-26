@@ -96,15 +96,18 @@ class UserController extends BaseController
                 $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
                 // 指定货币类型的 * 设置倍数
                 $voucherCount = $nodeModel->grt * $multiple;
-                $voucherModel = new BVoucher();
-                $voucherModel->user_id = $parentId;
-                $voucherModel->node_id = $nodeModel->id;
-                $voucherModel->voucher_num = $voucherCount;
-                if (!$voucherModel->save()) {
-                    throw new ErrorException('投票劵赠送失败');
+                $recommendVoucher = (bool) SettingService::get('recommend', 'recommend_voucher')->value;
+                if (BNode::find()->where(['user_id' => $parentId])->exists() && $recommendVoucher) {
+                    $voucherModel = new BVoucher();
+                    $voucherModel->user_id = $parentId;
+                    $voucherModel->node_id = $nodeModel->id;
+                    $voucherModel->voucher_num = $voucherCount;
+                    if (!$voucherModel->save()) {
+                        throw new ErrorException('投票劵赠送失败');
+                    }
+                    $recommendModel->amount = $voucherCount;
                 }
                 $recommendModel->node_id = $nodeModel->id;
-                $recommendModel->amount = $voucherCount;
                 // 重置用户投票券
                 if (!UserService::resetVoucher($parentId)) {
                     throw new ErrorException('投票券资产更新失败');

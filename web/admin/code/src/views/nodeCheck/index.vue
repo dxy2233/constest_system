@@ -162,7 +162,9 @@ export default {
     doomFail() {
       this.$prompt('请填写不通过原因', '提示', {
         confirmButtonText: '确定',
-        cancelButtonText: '取消'
+        cancelButtonText: '取消',
+        inputPattern: /^\S{1,50}$/,
+        inputErrorMessage: '请输入1~50不包含空格的内容'
       }).then(({ value }) => {
         checkFail(this.rowInfo.id, value).then(res => {
           Message({ message: res.msg, type: 'success' })

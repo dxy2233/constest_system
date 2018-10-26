@@ -14,7 +14,6 @@
         </dl>
         <load-more tip="正在加载" v-if="listShow"></load-more>
       </div>
-      <!--<loading :show="showLoading"></loading>-->
     </div>
     <router-view></router-view>
   </div>
@@ -33,8 +32,7 @@
     data() {
       return {
         currencyList: [],
-        showLoading: false,
-        listShow:true
+        listShow: true
       }
     },
     methods: {
@@ -42,8 +40,7 @@
         this.$router.push({name: 'collect', params: {address: this.walletData.address}})
       },
       getCurrencyList() {
-        http.post('/wallet/currency', {
-        }, (res) => {
+        http.post('/wallet/currency', {}, (res) => {
           this.listShow = false
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
@@ -54,23 +51,26 @@
           sessionStorage.setItem("currencyList", JSON.stringify(this.currencyList));
         })
       },
-      pageInt(){
-        if (!this.loginMsg){
+      pageInt() {
+        if (!this.loginMsg) {
           this.$router.push({
             path: `/login`
           })
           return
         }
-        if (!this.currencyList.length){
+        this.currencyList = []
+        this.listShow = true
+        this.getCurrencyList()
+        /*if (!this.currencyList.length){
           this.getCurrencyList()
-        }
+        }*/
 
       }
     },
     created() {
-      this.pageInt()
+      // this.pageInt()
     },
-    activated(){
+    activated() {
       this.pageInt()
     },
     computed: {
@@ -78,6 +78,13 @@
         "loginMsg",
       ]),
     },
+    watch: {
+      '$route': function (t, f) {
+        if (t.path === '/assets') {
+          this.pageInt()
+        }
+      }
+    }
   }
 </script>
 

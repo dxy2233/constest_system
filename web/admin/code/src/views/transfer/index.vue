@@ -8,7 +8,7 @@
     <el-button class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
     <br>
 
-    <el-input v-model="search" placeholder="姓名/手机号/身份证号" suffix-icon="el-icon-search" style="width:200px;"/>
+    <el-input v-model="search" placeholder="流水号/手机号" suffix-icon="el-icon-search" style="width:200px;"/>
     <el-button style="float:right;" @click="searchData">查询</el-button>
     <el-date-picker
       v-model="date"
@@ -324,7 +324,9 @@ export default {
     doomFail() {
       this.$prompt('请填写不通过原因', '提示', {
         confirmButtonText: '确定',
-        cancelButtonText: '取消'
+        cancelButtonText: '取消',
+        inputPattern: /^\S{1,50}$/,
+        inputErrorMessage: '请输入1~50不包含空格的内容'
       }).then(({ value }) => {
         failTrial(this.rowInfo.id, value).then(res => {
           this.showInfo = false

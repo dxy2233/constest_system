@@ -165,9 +165,12 @@
     </el-dialog>
 
     <el-dialog :visible.sync="dialogSet" title="节点设置" class="dialog-set">
-      <el-radio-group v-model="dialogSetType" @change="changeSetType">
+      <!-- <el-radio-group v-model="dialogSetType" @change="changeSetType">
         <el-radio-button v-for="(item,index) in allType" :key="index" :label="item.name"/>
-      </el-radio-group>
+      </el-radio-group> -->
+      <el-button-group>
+        <el-button v-for="(item,index) in allType" :key="index" :class="{activeBtn: item.name==dialogSetType}" @click="changeSetType(item.name)">{{ item.name }}</el-button>
+      </el-button-group>
       <el-button style="float:right;" @click="dialogRight = true">权益设置</el-button>
       <!-- <div class="row">节点审核功能<el-switch v-model="dialogSetData.isExamine" active-value="1" inactive-value="0"/></div> -->
       <!-- <div class="row">候选人功能<el-switch v-model="dialogSetData.isCandidate" active-value="1" inactive-value="0"/></div> -->
@@ -427,7 +430,7 @@
         </el-form>
       </div>
       <span slot="footer">
-        <el-button v-show="step>0" type="primary" @click="step--">上一步</el-button>
+        <el-button v-show="step>0" type="primary" @click="minStep">上一步</el-button>
         <el-button type="primary" @click="addStep">
           <span v-show="step<2">下一步</span>
           <span v-show="step>=2">确认添加</span>
@@ -478,12 +481,14 @@ export default {
       dialogSet: false,
       dialogSetType: '',
       dialogSetData: {},
+      dialogSetData2: {}, // 对比数据
       this_tenureNum: '', // 当前任职数
       this_maxCandidate: '', // 当前候选数
       dialogSetRightType: '任职',
       dialogRight: false,
       dialogRightName: '任职权益',
       dialogSetRuleList: [], // 权益列表
+      dialogSetRuleList2: [], // 对比数据
       dialogHistory: false,
       dialogHistoryData: [],
       dialogHistoryDataPage: [],
@@ -496,6 +501,7 @@ export default {
         { value: 1, label: '任职', disabled: true },
         { value: 0, label: '候选' }
       ],
+      jump: false, // 是否跳过实名认证
       addNodeData: {
         mobile: '',
         code: '',
@@ -784,8 +790,9 @@ export default {
     openNodeSet() {
       Promise.all([getNodeSet(this.setTypeId), getRuleList()]).then(res => {
         this.dialogSetData = res[0].content
-        this.this_tenureNum = res[0].content.allCount
-        this.this_maxCandidate = res[0].content.allTenure
+        this.dialogSetData2 = JSON.parse(JSON.stringify(res[0].content)) // 对比数据
+        this.this_tenureNum = res[0].content.allCount // 页面固定值
+        this.this_maxCandidate = res[0].content.allTenure // 页面固定值
         return res[1].content
       }).then((res) => {
         res[0].forEach((item, index, arry) => {
@@ -821,13 +828,34 @@ export default {
           }
         })
         this.dialogSetRuleList = res
+        this.dialogSetRuleList2 = JSON.parse(JSON.stringify(res)) // 对比数据
         this.dialogSet = true
       })
     },
     // 切换节点设置的类型
-    changeSetType(val) {
+    changeSetType(name) {
+      if (JSON.stringify(this.dialogSetData) !== JSON.stringify(this.dialogSetData2) ||
+        JSON.stringify(this.dialogSetRuleList) !== JSON.stringify(this.dialogSetRuleList2)) {
+        this.$confirm('即将切换页面，是否保存修改的设置?', '提示', {
+          confirmButtonText: '保存设置',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.saveNodeSet()
+        }).then(() => {
+          this.dialogSetType = name
+          this.dataChange()
+        })
+      } else {
+        this.dialogSetType = name
+        this.dataChange()
+      }
+    },
+    // 切换节点设置类型时的数据交换
+    dataChange() {
       getNodeSet(this.setTypeId).then(res => {
         this.dialogSetData = res.content
+        this.dialogSetData2 = JSON.parse(JSON.stringify(res.content))
         this.this_tenureNum = res.content.allCount
         this.this_maxCandidate = res.content.allTenure
         this.dialogSetRuleList[0].forEach((item, index, arry) => {
@@ -862,6 +890,7 @@ export default {
             }
           }
         })
+        this.dialogSetRuleList2 = JSON.parse(JSON.stringify(this.dialogSetRuleList))
       })
     },
     // 删除权益
@@ -877,9 +906,9 @@ export default {
     // 增加权益
     addRule(type) {
       if (type === 0) {
-        this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '1', checked: false, maxOrder: 0, minOrder: 0 })
+        this.dialogSetRuleList[0].push({ name: '', content: '', isTenure: '0', checked: false, maxOrder: 0, minOrder: 0 })
       } else if (type === 1) {
-        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '0', checked: false, maxOrder: 0, minOrder: 0 })
+        this.dialogSetRuleList[1].push({ name: '', content: '', isTenure: '1', checked: false, maxOrder: 0, minOrder: 0 })
       } else {
         this.dialogSetRuleList[2].push({ name: '', content: '', isTenure: '2', checked: false, maxOrder: 1, minOrder: 1 })
       }
@@ -978,14 +1007,17 @@ export default {
         this.addNodeData.tt = 200
       }
     },
-    // 添加节点1,2步
+    // 添加节点下一步
     addStep() {
       if (this.step === 0) {
         this.$refs['addNodeForm1'].validate((valid) => {
           if (valid) {
             Promise.all([checkMobile(this.addNodeData.mobile), checkNode(this.addNodeData.type_id, this.addNodeData.is_tenure)]).then(res => {
               if (res[0].content.isIdentify === 0 && res[1].code === 0) this.step = 1
-              if (res[0].content.isIdentify === 1 && res[1].code === 0) this.step = 2
+              if (res[0].content.isIdentify === 1 && res[1].code === 0) {
+                this.step = 2
+                this.jump = true
+              }
             })
           } else {
             console.log('error submit!!')
@@ -1016,6 +1048,11 @@ export default {
         })
       }
     },
+    // 添加节点上一步
+    minStep() {
+      if (this.step === 2 && this.jump) this.step = this.step - 2
+      else this.step--
+    },
     // 身份证正面回调
     addNodeImgF(res, file) {
       this.addNodeData.pic_front = res.content
@@ -1034,6 +1071,7 @@ export default {
       this.$refs['addNodeForm2'].resetFields()
       this.$refs['addNodeForm3'].resetFields()
       this.step = 0
+      this.jump = false
     },
     // 导出excel
     addExcel() {
@@ -1201,5 +1239,10 @@ export default {
   width: 178px;
   height: 178px;
   display: block;
+}
+
+.activeBtn {
+  background: #409eff;
+  color: #fff;
 }
 </style>

@@ -503,6 +503,9 @@ class UserController extends BaseController
         $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
         if (empty($recommend)) {
             $id = UserService::validateRemmendCode($code);
+            if ($id === $userId) {
+                return $this->respondJson(1, '推荐人不能是自己');
+            }
             $user_recommend = new BUserRecommend();
             $user_recommend->user_id = $user->id;
             $user_recommend->parent_id = $id;

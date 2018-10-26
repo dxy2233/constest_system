@@ -62,18 +62,18 @@ service.interceptors.response.use(
       //     })
       //   })
       // }
-    if (res.code === -1) {
-      Message({
-        message: res.msg,
-        type: 'error',
-        duration: 1000
-      })
-      setTimeout(() => {
-        store.dispatch('FedLogOut').then(() => {
-          location.reload()
+      if (res.code === -1) {
+        Message({
+          message: res.msg,
+          type: 'error',
+          duration: 1000
         })
-      }, 1000)
-    }
+        setTimeout(() => {
+          store.dispatch('FedLogOut').then(() => {
+            location.reload()
+          })
+        }, 1000)
+      }
       return Promise.reject('error')
     } else {
       return response.data

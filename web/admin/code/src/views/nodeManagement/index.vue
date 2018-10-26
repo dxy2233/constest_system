@@ -68,7 +68,7 @@
       <div v-show="showNodeInfo" class="fade-slide">
         <div class="title">
           <img src="@/assets/img/user.jpg" alt="">
-          <span class="name">{{ rowInfo.name }}<br><span>{{ nodeType }}</span></span>
+          <span class="name">{{ rowInfo.name }}<br><span>{{ rowInfo.typeName }}</span></span>
           <i class="el-icon-close btn" @click="showNodeInfo=false"/>
           <el-button v-show="rowInfo.status==1" type="danger" plain class="btn" style="margin:0 10px;" @click="closeNode">停用</el-button>
           <el-button v-show="rowInfo.status==0" type="primary" class="btn" style="margin:0 10px;" @click="openNode">启用</el-button>
@@ -147,11 +147,11 @@
         </el-upload>
       </div>
       <div class="item">
-        <div class="title">机构/个人名称</div>
+        <div class="title">节点名称</div>
         <el-input v-model="nodeInfoBase.name"/>
       </div>
       <div class="item">
-        <div class="title">机构/个人简介</div>
+        <div class="title">节点简介</div>
         <el-input v-model="nodeInfoBase.desc" :rows="2" type="textarea"/>
       </div>
       <div class="item">
@@ -776,12 +776,13 @@ export default {
     // 上传logo回调
     handleAvatarSuccess(res, file) {
       this.uploadLogo = res.content
-      this.nodeInfoBase.logo = URL.createObjectURL(file.raw)
+      // this.nodeInfoBase.logo = URL.createObjectURL(file.raw)
+      this.nodeInfoBase.logo = res.content
     },
     // 修改节点基本信息
     editNodeBase() {
       this.dialogEdit = false
-      updataBase(this.rowInfo.id, this.uploadLogo, this.nodeInfoBase.name,
+      updataBase(this.rowInfo.id, this.nodeInfoBase.logo, this.nodeInfoBase.name,
         this.nodeInfoBase.desc, this.nodeInfoBase.scheme).then(res => {
         Message({ message: res.msg, type: 'success' })
       })
@@ -1110,7 +1111,7 @@ export default {
           if (parseInt(v[j]) === 0) return '停用'
           if (parseInt(v[j]) === 1) return '正常'
         } else {
-          return v[j]
+          return v[j].toString()
         }
       }))
     }

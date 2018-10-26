@@ -741,11 +741,11 @@ class NodeController extends BaseController
             if ($code != '') {
                 $id = UserService::validateRemmendCode($code);
                 $parent_node = BNode::find()->where(['user_id' => $id])->one();
-                if (empty($old_recommend) && $setting_recommend_voucher->recommend_voucher == 1) {
+                if (empty($old_recommend)) {
                     $user_recommend = new BUserRecommend();
                     $user_recommend->user_id = $user->id;
                     $user_recommend->parent_id = $id;
-                    if (!empty($parent_node)) {
+                    if (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) {
                         $user_recommend->node_id = $node->id;
                         $user_recommend->amount = $grt * $setting->value;
                     }

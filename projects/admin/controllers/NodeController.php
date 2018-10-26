@@ -737,14 +737,15 @@ class NodeController extends BaseController
         //判断是否已有推荐人
         $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
         if ($code != '' || $old_recommend != '') {
+            $setting_recommend_voucher = BSetting::find()->where(['key' => 'recommend_voucher'])->one();
             if ($code != '') {
                 $id = UserService::validateRemmendCode($code);
                 $parent_node = BNode::find()->where(['user_id' => $id])->one();
-                if (empty($old_recommend)) {
+                if (empty($old_recommend) && $setting_recommend_voucher->recommend_voucher == 1) {
                     $user_recommend = new BUserRecommend();
                     $user_recommend->user_id = $user->id;
                     $user_recommend->parent_id = $id;
-                    if(!empty($parent_node)){
+                    if (!empty($parent_node)) {
                         $user_recommend->node_id = $node->id;
                         $user_recommend->amount = $grt * $setting->value;
                     }
@@ -755,7 +756,7 @@ class NodeController extends BaseController
                 } elseif ($old_recommend->parent_id != $id) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
-                } elseif(!empty($parent_node)) {
+                } elseif (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) {
                     $old_recommend->node_id = $node->id;
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {
@@ -766,7 +767,7 @@ class NodeController extends BaseController
             } else {
                 $id = $old_recommend->parent_id;
                 $parent_node = BNode::find()->where(['user_id' => $id])->one();
-                if(!empty($parent_node)){
+                if (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) {
                     $old_recommend->node_id = $node->id;
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {

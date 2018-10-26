@@ -131,12 +131,6 @@ class UserController extends BaseController
 
     public function actionDownload()
     {
-        $file = './a.xls';
-        if (file_exists($file)) {
-            readfile($file);
-            exit;
-        }
-        return;
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])

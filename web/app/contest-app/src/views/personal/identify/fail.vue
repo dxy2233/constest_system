@@ -12,7 +12,7 @@
           <span>认证失败</span>
         </div>
         <div class="bottom">
-          <p>节点申请失败原因：</p>
+          <p>实名认证失败原因：</p>
           <p v-html="identifyMsg.remark"></p>
           <div class="again">
             <router-link to="/personal/identify/submit">

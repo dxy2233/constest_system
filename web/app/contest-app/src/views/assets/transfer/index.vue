@@ -79,7 +79,8 @@
         validVcodeShow: false,
         payPsw: '',
         vcode: "",
-        loadingShow: false
+        loadingShow: false,
+        hasIdentify:true
       }
     },
     methods: {
@@ -116,9 +117,10 @@
         this.$router.back()
       },
       changeCurrent(item) {
-        // console.log(item)
+        console.log(item)
         this.form.id = item.id
         this.balance = item.useAmount
+        this.hasIdentify = item.hasIdentify
       },
       clickAmount(value) {
         if (!value) {
@@ -137,14 +139,6 @@
           this.$vux.toast.show('请选择币种')
           return
         }
-        /*if (!this.form.amount) {
-          this.$vux.toast.show('请输入数量')
-          return
-        }
-        if (!(/^\d+(\.\d+)?$/.test(this.form.amount))){
-          this.$vux.toast.show('请输入有效的数量')
-          return
-        }*/
         let vaild = this.clickAmount(this.form.amount)
         if (vaild) {
           this.$vux.toast.show(vaild)
@@ -155,12 +149,12 @@
             this.$vux.toast.show(res)
             return
           }
+          if (!this.hasIdentify){
+            this.$vux.toast.show('请先通过实名认证')
+            return
+          }
           this.validPswShow = true
         })
-        /*if (!this.form.address) {
-          this.$vux.toast.show('请输入或长按黏贴钱包地址')
-          return
-        }*/
 
       },
       validPswSuccess(payPsw) {
@@ -196,8 +190,10 @@
           this.currencyList.push(item)
           // console.log(item.id ,this.$route.params.id,item.id === this.$route.params.id)
           if (item.id === this.$route.params.id){
+            // console.log(item)
             this.form.id = item.id
             this.balance = item.useAmount
+            this.hasIdentify = item.hasIdentify
           }
         }
       }

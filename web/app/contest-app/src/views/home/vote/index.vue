@@ -81,20 +81,33 @@
       }
     },
     methods: {
+      clickAmount(value,cb) {
+        if (!value) {
+          cb('请输入投票数量')
+          return
+        }
+        if (!(/^[1-9]\d*$/.test(value))) {
+          cb('请输入有效的投票数量')
+          return
+        }
+        if (value-this.typeInfo.number>0){
+          cb('可用不足')
+          return
+        }
+        cb('')
+      },
       sbmVote() {
         if (!this.nodeId) {
           this.$vux.toast.show('请选择投票节点')
           return
         }
-        if (this.number === '') {
-          this.$vux.toast.show('请输入投票数量')
-          return
-        }
-        if (!(/^[1-9]\d*$/.test(this.number))) {
-          this.$vux.toast.show('请输入有效的投票数量')
-          return
-        }
-        this.validPswShow = true
+        this.clickAmount(this.number,(res)=>{
+          if (res){
+            this.$vux.toast.show(res)
+            return
+          }
+          this.validPswShow = true
+        })
       },
       validPswSuccess(payPsw) {
         http.post('/vote/submit', {
@@ -152,9 +165,7 @@
           })
           return
         }
-        /*console.log(this.$route.query.nodeId, this.$route.query.nodeName)
-        let pathCode = GetUrlParam('nodeId')
-        console.log(pathCode)*/
+
         if (!this.typeList.length){
           this.getTypeList()
         }

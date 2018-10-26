@@ -6006,7 +6006,6 @@ a {
 }
 body,
 html {
-  line-height: 1;
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE\8F6F\96C5\9ED1", Arial, sans-serif;
   -webkit-user-select: none;
           user-select: none;
@@ -6017,6 +6016,7 @@ html {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  line-height: 1.5em;
 }
 body :-moz-placeholder,
 html :-moz-placeholder {
@@ -6180,4 +6180,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=546ddac1db244d957947db0d1b21a5c8*/
+/*# sourceMappingURL=app.css.map?v=f42855c6401bdc48ebf5950ca3f23eba*/

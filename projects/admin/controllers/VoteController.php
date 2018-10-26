@@ -116,7 +116,7 @@ class VoteController extends BaseController
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $headers = ['mobile'=> '投票用户', 'name' => '投票节点名称', 'vote_number' => '投出票数', 'type' => '投票方式', 'create_time' => '投票时间'];
-        $this->download($data, $headers);
+        $this->download($data, $headers, '投票列表'.date('YmdHis'));
         return;
     }
     /**

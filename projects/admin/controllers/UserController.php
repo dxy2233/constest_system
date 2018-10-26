@@ -82,7 +82,8 @@ class UserController extends BaseController
         }
         $find->orderBy($order . ' DESC');
         $count = $find->count();
-        if ($page != 0) {
+        $is_download = $this->pInt('is_download', 0);
+        if ($page != 0 && $is_download == 0) {
             $find->page($page);
         }
         
@@ -118,7 +119,11 @@ class UserController extends BaseController
                 $v['referee'] = $recommend['mobile'];
             }
         }
-
+        if ($is_download == 1) {
+            $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+            $this->download($list, $headers, '用户列表'.date('YmdHis'));
+            return;
+        }
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
     }
@@ -132,16 +137,16 @@ class UserController extends BaseController
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         
-        $searchName = $this->gString('searchName');
+        $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
             $find->andWhere(['like','A.username',$searchName]);
         }
-        $str_time = $this->gString('str_time');
+        $str_time = $this->pString('str_time');
         if ($str_time != '') {
             $find->startTime($str_time, 'A.create_time');
         }
-        $end_time = $this->gString('end_time');
+        $end_time = $this->pString('end_time');
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
@@ -187,9 +192,9 @@ class UserController extends BaseController
                 $v['referee'] = $recommend['mobile'];
             }
         }
-
-        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
-        $this->download($list, $headers);
+//        return $this->respondJson(0, '获取成功', $list);
+        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+        $this->download($list, $headers, '用户列表'.date('YmdHis'));
         return;
     }
 

@@ -73,7 +73,7 @@
         this.showPop = true
       },
       selectedItem(item) {
-        console.log(item)
+        // console.log(item)
         if (item.selected === this.selected) return
         this.selected = item[this.value]
         this.selectedLabel = item[this.label]

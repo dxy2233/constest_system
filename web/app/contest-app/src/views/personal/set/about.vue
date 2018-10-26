@@ -14,11 +14,15 @@
           <ul class="contact">
             <li>
               <div class="">联系邮箱</div>
-              <div class="gray">4832184@163.com</div>
+              <div class="gray">jdjxkf@163.com</div>
             </li>
             <li>
-              <div class="">客服电话</div>
-              <div class="gray">400-096-0909</div>
+              <div class="">客服电话1</div>
+              <div class="gray">185 8682 3227</div>
+            </li>
+            <li>
+              <div class="">客服电话2</div>
+              <div class="gray">139 8436 3689</div>
             </li>
           </ul>
         </div>
@@ -58,7 +62,7 @@
         border-top 1px solid $color-border
         width 100%
         li
-          padding 20px 0
+          padding 15px 0
           display flex
           justify-content space-between
           align-items center

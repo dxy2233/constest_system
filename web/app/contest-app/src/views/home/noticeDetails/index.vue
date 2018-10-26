@@ -39,8 +39,9 @@
             return
           }
           if (res.content.type == 0){
-            window.open(res.content.url)
+            // window.open(res.content.url)
             this.$router.back()
+            window.location.href = res.content.url
           }else {
             this.noticeInfo = res.content
           }
@@ -68,5 +69,7 @@
         font-size $font-size-large
       .detail
         line-height 1.5em
+      img
+        max-width 100%
 
 </style>

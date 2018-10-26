@@ -739,13 +739,15 @@ class NodeController extends BaseController
         if ($code != '' || $old_recommend != '') {
             if ($code != '') {
                 $id = UserService::validateRemmendCode($code);
-
+                $parent_node = BNode::find()->where(['user_id' => $id])->one();
                 if (empty($old_recommend)) {
                     $user_recommend = new BUserRecommend();
                     $user_recommend->user_id = $user->id;
                     $user_recommend->parent_id = $id;
-                    $user_recommend->node_id = $node->id;
-                    $user_recommend->amount = $grt * $setting->value;
+                    if(!empty($parent_node)){
+                        $user_recommend->node_id = $node->id;
+                        $user_recommend->amount = $grt * $setting->value;
+                    }
                     if (!$user_recommend->save()) {
                         $transaction->rollBack();
                         return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
@@ -753,7 +755,7 @@ class NodeController extends BaseController
                 } elseif ($old_recommend->parent_id != $id) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
-                } else {
+                } elseif(!empty($parent_node)) {
                     $old_recommend->node_id = $node->id;
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {
@@ -763,11 +765,14 @@ class NodeController extends BaseController
                 }
             } else {
                 $id = $old_recommend->parent_id;
-                $old_recommend->node_id = $node->id;
-                $old_recommend->amount = $grt * $setting->value;
-                if (!$old_recommend->save()) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                $parent_node = BNode::find()->where(['user_id' => $id])->one();
+                if(!empty($parent_node)){
+                    $old_recommend->node_id = $node->id;
+                    $old_recommend->amount = $grt * $setting->value;
+                    if (!$old_recommend->save()) {
+                        $transaction->rollBack();
+                        return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                    }
                 }
             }
 

@@ -131,10 +131,10 @@ class UserController extends BaseController
 
     public function actionDownload()
     {
-        $file = './a';
-        $data = file_get_contents($file);
-        return $data;
-        exit;
+        // $file = './a';
+        // $data = file_get_contents($file);
+        // return $data;
+        // exit;
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])

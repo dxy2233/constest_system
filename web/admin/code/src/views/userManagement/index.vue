@@ -253,7 +253,7 @@
 
 <script>
 import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
-  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser } from '@/api/admin'
+  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser, getUserListExcel } from '@/api/admin'
 import { Message } from 'element-ui'
 import { parseTime } from '@/utils'
 
@@ -317,27 +317,24 @@ export default {
       this.tableData = res.content.list
       this.total = parseInt(res.content.count)
     })
-    // getUserListExcel().then(res => {
-    //   console.log(res);
-    // })
-    // getUserListExcel().then(res => {
-    //   console.log(res);
-    //   const content = res.content
-    //   const blob = new Blob([content])
-    //   const fileName = '测试表格123.xls'
-    //   if ('download' in document.createElement('a')) { // 非IE下载
-    //     const elink = document.createElement('a')
-    //     elink.download = fileName
-    //     elink.style.display = 'none'
-    //     elink.href = URL.createObjectURL(blob)
-    //     document.body.appendChild(elink)
-    //     elink.click()
-    //     URL.revokeObjectURL(elink.href) // 释放URL 对象
-    //     document.body.removeChild(elink)
-    //   } else { // IE10+下载
-    //     navigator.msSaveBlob(blob, fileName)
-    //   }
-    // })
+    getUserListExcel().then(res => {
+      console.log(res);
+      const content = res.content
+      const blob = new Blob([content])
+      const fileName = '测试表格123.xls'
+      if ('download' in document.createElement('a')) { // 非IE下载
+        const elink = document.createElement('a')
+        elink.download = fileName
+        elink.style.display = 'none'
+        elink.href = URL.createObjectURL(blob)
+        document.body.appendChild(elink)
+        elink.click()
+        URL.revokeObjectURL(elink.href) // 释放URL 对象
+        document.body.removeChild(elink)
+      } else { // IE10+下载
+        navigator.msSaveBlob(blob, fileName)
+      }
+    })
   },
   methods: {
     searchRun() {

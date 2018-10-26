@@ -514,10 +514,10 @@ export default {
         identify: '',
         pic_front: '',
         pic_back: '',
-        logo: '',
-        name: '',
-        desc: '',
-        scheme: ''
+        logo: 'http://static.vguiren.com/contest_system/logo/2018/10/26/995495bd2d8da9e4b4.jpg',
+        name: '暂未设置',
+        desc: '该节点很懒什么都没有写',
+        scheme: '该节点很懒什么都没有写'
       },
       rules: {
         mobile: [

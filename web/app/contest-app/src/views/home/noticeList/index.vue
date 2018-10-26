@@ -103,8 +103,30 @@
         } else {//0 是外部
           window.location.href = obj.url
         }*/
-        this.$router.push({
+        /*this.$router.push({
           path: `/home/notice/dts${obj.id}`
+        })*/
+        this.getData(obj.id)
+      },
+      getData(id){
+        http.post('/notice/info', {
+          id: id
+        }, (res) => {
+          console.log(res)
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          if (res.content.type == 0){
+            window.location.href = res.content.url
+          }else {
+            sessionStorage.setItem("noticeInfo", JSON.stringify(res.content));
+            this.$router.push({
+              path: `/home/notice/dts${id}`
+            })
+
+          }
+
         })
       }
     },

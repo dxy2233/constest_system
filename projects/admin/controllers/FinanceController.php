@@ -149,7 +149,7 @@ class FinanceController extends BaseController
         $data = $find->asArray()->all();
 
         $headers = ['mobile'=> '用户', 'name' => '币种', 'position_amount' => '总额',  'use_amount' => '可用', 'frozen_amount' => '锁仓'];
-        $this->download($data, $headers);
+        $this->download($data, $headers, '资产管理'.date('YmdHis'));
         return;
     }
     
@@ -314,7 +314,7 @@ class FinanceController extends BaseController
             $v['status'] = BUserCurrencyDetail::getStatus($v['status']);
         }
         $headers = ['id'=> '流水号', 'mobile' => '用户', 'name' => '币种', 'type2' => '收支', 'type' => '类型', 'amount' => '数量', 'status' => '状态', 'create_time' => '时间'];
-        $this->download($data, $headers);
+        $this->download($data, $headers, '财务流水'.date('YmdHis'));
         return;
     }
 }

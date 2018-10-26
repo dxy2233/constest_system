@@ -139,7 +139,7 @@ class WithdrawController extends BaseController
         }
 
         $data = $find->asArray()->all();
-        echo $find->createCommand()->getRawSql();
+        //echo $find->createCommand()->getRawSql();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);

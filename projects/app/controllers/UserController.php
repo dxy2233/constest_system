@@ -97,7 +97,7 @@ class UserController extends BaseController
                 // 指定货币类型的 * 设置倍数
                 $voucherCount = $nodeModel->grt * $multiple;
                 $recommendVoucher = (bool) SettingService::get('recommend', 'recommend_voucher')->value;
-                if (BNode::find()->where(['user_id' => $parentId])->exists() && $recommendVoucher) {
+                if (BNode::find()->where(['user_id' => $parentId])->exists() && !$recommendVoucher) {
                     $voucherModel = new BVoucher();
                     $voucherModel->user_id = $parentId;
                     $voucherModel->node_id = $nodeModel->id;

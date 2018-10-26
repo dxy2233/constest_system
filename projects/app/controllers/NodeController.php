@@ -102,7 +102,12 @@ class NodeController extends BaseController
         }
         
         if (empty($nodeId) && !is_null($userModel)) {
-            $nodeId = $userModel->node->id;
+            $nodeModel = $userModel->node;
+            if (is_null($nodeModel)) {
+                return $this->respondJson(0, '节点不存在', false);
+            } else {
+                $nodeId = $userModel->node->id;
+            }
         }
 
         $nodeModel = BNode::find()
@@ -113,7 +118,7 @@ class NodeController extends BaseController
         ->where(['n.id' => $nodeId])
         ->one();
         if (!is_object($nodeModel)) {
-            return $this->respondJson(1, '节点不存在或已关闭');
+            return $this->respondJson(0, '节点不存在或已关闭', false);
         }
         $votesCount = $nodeModel->getVotes()
         ->select(['COUNT(id) as people_number', 'SUM(vote_number) as vote_number'])

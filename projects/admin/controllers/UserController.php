@@ -192,6 +192,7 @@ class UserController extends BaseController
                 $v['referee'] = $recommend['mobile'];
             }
         }
+
 //        return $this->respondJson(0, '获取成功', $list);
         $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
         $this->download($list, $headers, '用户列表'.date('YmdHis'));

@@ -50,7 +50,8 @@
       }
     },
     created(){
-      this.getData()
+      // this.getData()
+      this.noticeInfo = JSON.parse(sessionStorage.getItem('noticeInfo'))
     }
   }
 </script>

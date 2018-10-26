@@ -15,13 +15,8 @@
         <swiper height="135px" class="notice-swiper" dots-position="left" loop auto :duration="1000">
           <swiper-item v-for="(item, index) in swiperList" class="notice-swiper-item"
                        :key="index">
-            <!--v-if="item.type==='1'"-->
-            <router-link tag="div" class="img-box"
-                         :style='{ backgroundImage: "url(" + item.image + ")"}'
-                         :to="'/home/notice/dts'+item.id"></router-link>
-            <!--<div class="img-box" @click="goNoticeDts(item)"
-                 :style='{ backgroundImage: "url(" + item.image + ")"}'></div>-->
-            <!--<a v-else :href="item.url" target="_blank" class="img-box"></a>-->
+            <div class="img-box" @click="goNoticeDts(item)"
+                         :style='{ backgroundImage: "url(" + item.image + ")"}'></div>
           </swiper-item>
         </swiper>
         <router-link tag="p" to="/home/notice" class="and-more">更多 ></router-link>
@@ -68,16 +63,23 @@
     },
     methods: {
       goNoticeDts(item) {
-        /*this.$router.push({
-          path: '/home/notice/dts' + item.id,
-          query: {type: item.type}
-        })*/
-      },
-      jjj(id) {
-        id = 1
-        let aaa = '333'
-        this.$router.push({
-          path: `/home/notice-details/${aaa}`
+        http.post('/notice/info', {
+          id: item.id
+        }, (res) => {
+          console.log(res)
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          if (res.content.type == 0){
+            window.location.href = res.content.url
+          }else {
+            sessionStorage.setItem("noticeInfo", JSON.stringify(res.content));
+            this.$router.push({
+              path: `/home/notice/dts${item.id}`
+            })
+          }
+
         })
       },
       selectTab(index) {

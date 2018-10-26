@@ -64,7 +64,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time'];
             $order = $order_arr[$order];
         } else {
-            $order = 'sum(C.vote_number)';
+            $order = 'sum(C.vote_number),A.create_time DESC';
         }
         $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
@@ -304,7 +304,7 @@ class NodeController extends BaseController
             $endTime = date('Y-m-d H:i:s');
         }
         $page = $this->pInt('page', 0);
-        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
+        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('vote_number DESC,create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }

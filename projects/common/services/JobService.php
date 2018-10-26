@@ -57,7 +57,7 @@ class JobService extends ServiceBase
             $history->is_tenure = $v['is_tenure'];
             $history->update_number = $history_id;
             if (!$history->save()) {
-                $msg[] = $v->getFirstErrorText();
+                $msg[] = $history->getFirstErrorText();
             }
         }
         $data = BNode::find()->where(['is_tenure' => BNotice::STATUS_ACTIVE])->all();

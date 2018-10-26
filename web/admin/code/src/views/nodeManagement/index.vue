@@ -90,12 +90,12 @@
           <el-tab-pane label="基本信息" name="0">
             <p style="color:#888;">logo</p>
             <img :src="nodeInfoBase.logo" alt="" style="display:block;width:100px;height:100px;border:1px solid #ddd;">
-            <p style="color:#888;margin-top:50px;">机构/个人名称</p>
+            <p style="color:#888;margin-top:50px;">节点名称</p>
             <p>{{ nodeInfoBase.name }}</p>
-            <p style="color:#888;margin-top:50px;">机构/个人简介</p>
+            <p style="color:#888;margin-top:50px;">节点简介</p>
             <p>{{ nodeInfoBase.desc }}</p>
             <p style="color:#888;margin-top:50px;">社区建设方案</p>
-            <p>{{ nodeInfoBase.scheme }}</p>
+            <p style="padding-bottom:50px;">{{ nodeInfoBase.scheme }}</p>
           </el-tab-pane>
           <el-tab-pane label="实名信息" name="1">
             <p>

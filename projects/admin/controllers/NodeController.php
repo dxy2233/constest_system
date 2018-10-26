@@ -6,6 +6,7 @@ use common\services\UserService;
 use common\services\VoteService;
 use common\services\NodeService;
 use common\services\RechargeService;
+use common\services\VoucherService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BNode;
@@ -748,15 +749,12 @@ class NodeController extends BaseController
                     $user_recommend->node_id = $node->id;
                     if (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) { // 推荐人是节点送券
                         $user_recommend->amount = $grt * $setting->value;
-                        $voucher = new BVoucher();
-                        $voucher->user_id = $id;
-                        $voucher->node_id = $node->id;
-                        $voucher->voucher_num = $grt * $setting->value;
-                        if (!$voucher->save()) {
-                            $transaction->rollBack();
-                            return $this->respondJson(1, '注册失败', $voucher->getFirstErrorText());
-                        }
                         UserService::resetVoucher($id);
+                        $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
+                        if ($res->code != 0) {
+                            $transaction->rollBack();
+                            return $this->respondJson(1, '注册失败', $res->msg());
+                        }
                     }
                     if (!$user_recommend->save()) {
                         $transaction->rollBack();
@@ -772,15 +770,12 @@ class NodeController extends BaseController
                         $transaction->rollBack();
                         return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
                     }
-                    $voucher = new BVoucher();
-                    $voucher->user_id = $id;
-                    $voucher->node_id = $node->id;
-                    $voucher->voucher_num = $grt * $setting->value;
-                    if (!$voucher->save()) {
+
+                    $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
+                    if ($res->code != 0) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $voucher->getFirstErrorText());
+                        return $this->respondJson(1, '注册失败', $res->msg());
                     }
-                    UserService::resetVoucher($id);
                 } else {// 有推荐关系且推荐人不是节点只修改对应node关系
                     $old_recommend->node_id = $node->id;
                     if (!$old_recommend->save()) {
@@ -799,16 +794,13 @@ class NodeController extends BaseController
                         $transaction->rollBack();
                         return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
                     }
-                    $voucher = new BVoucher();
-                    $voucher->user_id = $id;
-                    $voucher->node_id = $node->id;
-                    $voucher->voucher_num = $grt * $setting->value;
-                    if (!$voucher->save()) {
+
+                    $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
+                    if ($res->code != 0) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $voucher->getFirstErrorText());
+                        return $this->respondJson(1, '注册失败', $res->msg());
                     }
-                    UserService::resetVoucher($id);
-                }else{ // 其它情况只修改node 对应关系
+                } else { // 其它情况只修改node 对应关系
                     if (!$old_recommend->save()) {
                         $transaction->rollBack();
                         return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
@@ -1059,6 +1051,7 @@ class NodeController extends BaseController
         $transaction->commit();
         return $this->respondJson(0, $str.'成功');
     }
+
 
     // 删除记录
     public function actionDelOldData()

@@ -267,7 +267,7 @@ class Excel extends \yii\base\Widget
     /**
      * @var boolean to set the file excel to download mode.
      */
-    public $asAttachment = true;
+    public $asAttachment = false;
     /**
      * @var boolean to set the first record on excel file to a keys of array per line.
      * If you want to set the keys of record column with first record, if it not set, the header with use the alphabet column on excel.

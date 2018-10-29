@@ -1045,7 +1045,7 @@ class NodeController extends BaseController
         $str = '添加';
         if (!$data->save()) {
             $transaction->rollBack();
-            return $this->respondJson(1, '提交失败', $identify->getFirstErrorText());
+            return $this->respondJson(1, '提交失败', $data->getFirstErrorText());
         }
 
         $transaction->commit();

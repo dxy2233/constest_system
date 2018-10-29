@@ -762,7 +762,7 @@ class NodeController extends BaseController
                     }
                 } elseif ($old_recommend->parent_id != $id) {
                     $transaction->rollBack();
-                    return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
+                    return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致');
                 } elseif (!empty($parent_node) && $setting_recommend_voucher->value == 1) { // 有推荐关系且推荐人是节点直接送券
                     $old_recommend->node_id = $node->id;
                     $old_recommend->amount = $grt * $setting->value;

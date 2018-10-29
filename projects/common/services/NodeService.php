@@ -156,6 +156,7 @@ class NodeService extends ServiceBase
             $query->andWhere(['is_order' => NodeType::STATUS_ACTIVE]);
         }], false)
         ->filterWhere(['n.type_id' => $nodeType])
+        ->orderBy(['vote_number' => SORT_DESC])
         ->groupBy('n.id');
         self::$number = $nodeModel->count();
         // $nodeModel->cache(-1);

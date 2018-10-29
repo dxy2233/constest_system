@@ -53,7 +53,7 @@ class IdentifyController extends BaseController
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
-            $find->andWhere(['or',['like','A.username',$searchName],['like', 'A.mobile', $searchName],['like', 'B.number', $searchName]]);
+            $find->andWhere(['or',['like','B.realname',$searchName],['like', 'A.mobile', $searchName],['like', 'B.number', $searchName]]);
         }
         $count = $find->count();
         $find->orderBy('B.create_time DESC');

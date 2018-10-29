@@ -808,7 +808,6 @@ class NodeController extends BaseController
                 }
             }
         }
-
         // 补全充值冻结信息
         $currency_arr = BCurrency::find()->all();
         $currency_id = [];
@@ -1007,7 +1006,6 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '实名信息添加失败', $identify->getFirstErrorText());
             }
         }
-
         //     return $this->respondJson(0, '提交成功', ['user_id' => $user_id]);
         // }
 

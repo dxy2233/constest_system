@@ -120,7 +120,7 @@ class WithdrawController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
         if ($searchName != '') {
-            $find->andWhere(['like', 'B.mobile', $searchName]);
+            $find->andWhere(['or',['like', 'B.mobile', $searchName], ['like', 'A.order_number', $searchName]]);
         }
         if ($currency_id != 0) {
             $find->andWhere(['A.currency_id' => $currency_id]);

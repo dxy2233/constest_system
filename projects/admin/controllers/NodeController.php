@@ -747,7 +747,7 @@ class NodeController extends BaseController
                     $user_recommend->user_id = $user->id;
                     $user_recommend->parent_id = $id;
                     $user_recommend->node_id = $node->id;
-                    if (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) { // 推荐人是节点送券
+                    if (!empty($parent_node) && $setting_recommend_voucher->value == 1) { // 推荐人是节点送券
                         $user_recommend->amount = $grt * $setting->value;
                         UserService::resetVoucher($id);
                         $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
@@ -763,7 +763,7 @@ class NodeController extends BaseController
                 } elseif ($old_recommend->parent_id != $id) {
                     $transaction->rollBack();
                     return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致', $node->getFirstErrorText());
-                } elseif (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) { // 有推荐关系且推荐人是节点直接送券
+                } elseif (!empty($parent_node) && $setting_recommend_voucher->value == 1) { // 有推荐关系且推荐人是节点直接送券
                     $old_recommend->node_id = $node->id;
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {
@@ -787,7 +787,7 @@ class NodeController extends BaseController
                 $id = $old_recommend->parent_id;
                 $parent_node = BNode::find()->active()->where(['user_id' => $id])->one();
                 $old_recommend->node_id = $node->id;
-                if (!empty($parent_node) && $setting_recommend_voucher->recommend_voucher == 1) { //推荐人是节点直接送券
+                if (!empty($parent_node) && $setting_recommend_voucher->value == 1) { //推荐人是节点直接送券
                     
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {

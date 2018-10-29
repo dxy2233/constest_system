@@ -564,7 +564,7 @@ class Excel extends \yii\base\Widget
         if (isset($this->savePath) && $this->savePath != null) {
             $path = $this->savePath . '/' . $this->getFileName();
         }
-        //ob_start();
+        // ob_start();
         $objectwriter->save($path);
         // $data = ob_get_contents();
         // ob_end_clean();
@@ -575,8 +575,18 @@ class Excel extends \yii\base\Widget
         // foreach ($obj as $v) {
         //     $str .=str_pad(base_convert($v, 16, 2), 4, '0', STR_PAD_LEFT);
         // }
-        // $string = $str;
-        // echo $string;
+        // echo $str;
+        // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // header('Content-Disposition: attachment;filename="' . $this->getFileName() .'"');
+        // header('Cache-Control: max-age=0');
+        // $data = str_split($str, 4);
+ 
+        // $str = '';
+        // foreach ($data as $v) {
+        //     $str .= base_convert($v, 2, 16);
+        // }
+        // $str =  pack('H*', $str);
+        // echo  $str;
         exit();
     }
     

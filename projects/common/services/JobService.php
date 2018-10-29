@@ -68,7 +68,7 @@ class JobService extends ServiceBase
         foreach ($data as $v) {
             $v->is_tenure = BNotice::STATUS_INACTIVE;
             if (!$v->save()) {
-                $msg[] = $v->getFirstErrorText();
+                $msg[] = $v->getFirstErrorText().$v->id;
             }
         }
         $last_time = BSetting::find()->where(['key' => 'end_update_time'])->one();

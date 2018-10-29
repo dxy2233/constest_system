@@ -42,22 +42,32 @@ class IndexController extends \common\dzbase\DzController
      */
     public function actionIndex()
     {
-        // header('Access-Control-Allow-Origin:*');
-        // $file = './a.xlsx';
-        // if (file_exists($file)) {
-        //     // ob_start();
-        //     // readfile($file);
-        //     // $buffer = ob_get_contents();
-        //     // ob_end_clean();
-        //     // echo $buffer;
-        //     $data = file_get_contents($file);
-        //     $string = $this->encode_str($data);
-        //     echo $string;
-        //     exit;
-        // }
+        header('Access-Control-Allow-Origin:*');
+        $file = './a.xls';
+        if (file_exists($file)) {
+            // ob_start();
+            // readfile($file);
+            // $buffer = ob_get_contents();
+            // ob_end_clean();
+            // echo $buffer;
+            $data = file_get_contents($file);
+            $string = $this->encode_str($data);
+            echo $string;
+            exit;
+        }
         return $this->respondJson(0, '获取成功');
     }
-
+    public function actionTest()
+    {
+        header('Access-Control-Allow-Origin:*');
+        $file = './a.xls';
+        if (file_exists($file)) {
+            $data = file_get_contents($file);
+            echo $data;
+            exit;
+        }
+        return $this->respondJson(0, '获取成功');
+    }
 
     /**
      * 字符串、文件转换成二进制流内容

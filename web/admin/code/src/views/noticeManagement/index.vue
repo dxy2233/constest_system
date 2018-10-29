@@ -87,6 +87,7 @@
             :data="{type:'notice'}"
             :show-file-list="false"
             :on-success="uploadSuccess"
+            :before-upload="beforeAvatarUpload"
             name="image_file"
             action="/upload/upload/image"
             class="avatar-uploader">
@@ -109,7 +110,7 @@
             style="width:100%;"/>
         </el-form-item> -->
         <el-form-item label="公告类型">
-          <el-select v-model="releaseData.type">
+          <el-select v-model="releaseData.type" @change="changeNoticeEditType('releaseForm')">
             <el-option
               v-for="item in allType"
               :key="item.value"
@@ -141,6 +142,7 @@
             :data="{type:'notice'}"
             :show-file-list="false"
             :on-success="uploadSuccess"
+            :before-upload="beforeAvatarUpload"
             name="image_file"
             action="http://admin.contest_system.local/upload/upload/image"
             class="avatar-uploader">
@@ -163,7 +165,7 @@
             style="width:100%;"/>
         </el-form-item> -->
         <el-form-item label="公告类型">
-          <el-select v-model="rowInfo.type">
+          <el-select v-model="rowInfo.type" @change="changeNoticeEditType('rowInfoForm')">
             <el-option
               v-for="item in allType"
               :key="item.value"
@@ -373,6 +375,18 @@ export default {
         this.dialogSet = false
       })
     },
+    // 上传图片的限制
+    beforeAvatarUpload(file) {
+      const isImage = file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/gif'
+      const isLt2M = file.size / 1024 / 1024 < 200
+      if (!isImage) {
+        this.$message.error('上传头像图片只能是jpeg/jpg/png/gif格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 200MB!')
+      }
+      return isImage && isLt2M
+    },
     // 上传图片
     uploadSuccess(res, file) {
       // this.releaseData.image = URL.createObjectURL(file.raw)
@@ -381,6 +395,10 @@ export default {
     // 打开公告发布
     openAddNotice() {
       this.dialogRelease = true
+    },
+    // 切换公告类型时取消表单验证
+    changeNoticeEditType(type) {
+      this.$refs[type].clearValidate()
     },
     // 上传公告内容
     saveNtice(isRelease) {

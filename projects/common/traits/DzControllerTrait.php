@@ -18,9 +18,25 @@ trait DzControllerTrait
    
     final protected function download($list, $headers, $fileName = '')
     {
+        // echo json_encode($list);
+        // exit;
+        // $string="";
+
+        // $string .= implode(",", $headers)."\n";
+        // foreach ($list as $key => $value) {
+        //     $item = [];
+        //     foreach ($headers as $k => $val) {
+        //         $item[] = (string)$value[$k];
+        //     }
+        //     $string .= implode(",", $item)."\n"; //用英文逗号分开
+        // }
+        
+        // echo $string;
+        // exit;
         if ($fileName == '') {
             $fileName = time();
         }
+        
         $columns = [];
         foreach ($headers as $key => $val) {
             $columns[] = $key;
@@ -31,6 +47,8 @@ trait DzControllerTrait
             'columns'=>$columns,
             'headers'=>$headers,
             ]);
+        
+        exit;
     }
 
     /*

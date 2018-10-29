@@ -43,6 +43,9 @@ class JobService extends ServiceBase
         $transaction = \Yii::$app->db->beginTransaction();
         $history_id = date('YmdHi');
         foreach ($data as $v) {
+            if ($v['mobile'] == '') {
+                continue;
+            }
             $history = new BHistory();
             if (empty($people[$v['id']])) {
                 $history->people_number = 0;
@@ -56,6 +59,7 @@ class JobService extends ServiceBase
             $history->node_type = $v['type_id'];
             $history->is_tenure = $v['is_tenure'];
             $history->update_number = $history_id;
+
             if (!$history->save()) {
                 $msg[] = $history->getFirstErrorText();
             }

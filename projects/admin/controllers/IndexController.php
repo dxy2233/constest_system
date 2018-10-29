@@ -43,7 +43,7 @@ class IndexController extends \common\dzbase\DzController
     public function actionIndex()
     {
         header('Access-Control-Allow-Origin:*');
-        $file = './a.xls';
+        $file = './a.xlsx';
         if (file_exists($file)) {
             // ob_start();
             // readfile($file);
@@ -60,12 +60,50 @@ class IndexController extends \common\dzbase\DzController
     public function actionTest()
     {
         header('Access-Control-Allow-Origin:*');
-        $file = './a.xls';
+        $file = './a.xlsx';
         if (file_exists($file)) {
-            $data = file_get_contents($file);
-            echo $data;
-            exit;
+            // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            // header('Content-Disposition: attachment;filename="数据.xls"');
+            // header('Cache-Control: max-age=0');
+            // $data = file_get_contents($file);
+            // echo $data;
+            // exit;
+            $base64_image = '';
+            $image_data = fread(fopen($file, 'r'), filesize($file));
+            $base64_image = 'data:application/vnd.ms-excel;base64,' . chunk_split(base64_encode($image_data));
+            echo $base64_image;
         }
+        // $image_file = './a.png';
+        // $base64_image = '';
+        // $image_info = getimagesize($image_file);
+        // $image_data = fread(fopen($image_file, 'r'), filesize($image_file));
+        // $base64_image = 'data:' . $image_info['mime'] . ';base64,' . chunk_split(base64_encode($image_data));
+        // echo $base64_image;
+        exit;
+
+        return $this->respondJson(0, '获取成功');
+    }
+    public function actionText()
+    {
+        header('Access-Control-Allow-Origin:*');
+        $file = './a.txt';
+        if (file_exists($file)) {
+            $str = file_get_contents($file);
+            // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            // header('Content-Disposition: attachment;filename="测试.xls"');
+            // header('Cache-Control: max-age=0');
+            $data = str_split($str, 4);
+ 
+            $str = '';
+            foreach ($data as $v) {
+                $str .= base_convert($v, 2, 16);
+            }
+            $str =  pack('H*', $str);
+            echo  $str;
+        }
+
+        exit;
+
         return $this->respondJson(0, '获取成功');
     }
 

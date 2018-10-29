@@ -21,7 +21,7 @@ class JobService extends ServiceBase
             return true;
         } else {
             $time = BSetting::find()->where(['key' => 'count_time'])->one();
-            if (abs($time->value - time()) < 30) {
+            if (abs($time->value - time()) <= 30) {
                 self::putDo();
             }
         }
@@ -41,6 +41,7 @@ class JobService extends ServiceBase
         $msg = [];
         $people = NodeService::getPeopleNum($id_arr, '', $endTime);
         $transaction = \Yii::$app->db->beginTransaction();
+
         $history_id = date('YmdHi');
         foreach ($data as $v) {
             if ($v['mobile'] == '') {
@@ -64,7 +65,9 @@ class JobService extends ServiceBase
                 $msg[] = $history->getFirstErrorText();
             }
         }
+        
         $data = BNode::find()->where(['is_tenure' => BNotice::STATUS_ACTIVE])->all();
+
         foreach ($data as $v) {
             $v->is_tenure = BNotice::STATUS_INACTIVE;
             if (!$v->save()) {
@@ -81,9 +84,9 @@ class JobService extends ServiceBase
         if (!$stop_vote->save()) {
             $msg[] = $stop_vote->getFirstErrorText();
         }
+
         if (count($msg) > 0) {
             $transaction->rollBack();
-
             Yii::error(json_encode($msg), 'history');
         } else {
             $transaction->commit();

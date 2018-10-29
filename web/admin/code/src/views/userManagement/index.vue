@@ -6,6 +6,8 @@
     <el-button class="btn-right" style="margin-right:10px;">
       <a :href="downUrl">导出excel</a>
     </el-button>
+    <!-- <input type="file" ref="file" name="" value="">
+    <button @click="cc">text</button> -->
     <br>
 
     <el-input v-model="search" placeholder="用户" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
@@ -253,7 +255,7 @@
 
 <script>
 import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
-  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser, getUserListExcel } from '@/api/admin'
+  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser } from '@/api/admin'
 import { Message } from 'element-ui'
 import { parseTime } from '@/utils'
 
@@ -271,7 +273,7 @@ export default {
   data() {
     return {
       search: '',
-      searchDate: [],
+      searchDate: '',
       tableData: [],
       tableDataSelection: [],
       currentPage: 1,
@@ -307,8 +309,15 @@ export default {
   },
   computed: {
     downUrl() {
-      var str = this.searchDate[0] || ''
-      var end = this.searchDate[1] || ''
+      var str
+      var end
+      if (this.searchDate) {
+        str = this.searchDate[0]
+        end = this.searchDate[1]
+      } else {
+        str = ''
+        end = ''
+      }
       return `/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
     }
   },
@@ -317,26 +326,46 @@ export default {
       this.tableData = res.content.list
       this.total = parseInt(res.content.count)
     })
-    getUserListExcel().then(res => {
-      console.log(res);
-      const content = res.content
-      const blob = new Blob([content])
-      const fileName = '测试表格123.xls'
-      if ('download' in document.createElement('a')) { // 非IE下载
-        const elink = document.createElement('a')
-        elink.download = fileName
-        elink.style.display = 'none'
-        elink.href = URL.createObjectURL(blob)
-        document.body.appendChild(elink)
-        elink.click()
-        URL.revokeObjectURL(elink.href) // 释放URL 对象
-        document.body.removeChild(elink)
-      } else { // IE10+下载
-        navigator.msSaveBlob(blob, fileName)
-      }
-    })
   },
   methods: {
+    // cc() {
+    //   getUserListExcel().then(res => {
+    //     console.log(res);
+    //     var blob = new Blob([res], { type: 'application/vnd.ms-excel' })
+    //     var fileName = '测试表格123.xlsx'
+    //     if ('download' in document.createElement('a')) { // 非IE下载
+    //       const elink = document.createElement('a')
+    //       elink.download = fileName
+    //       elink.style.display = 'none'
+    //       elink.href = URL.createObjectURL(blob)
+    //       document.body.appendChild(elink)
+    //       elink.click()
+    //       URL.revokeObjectURL(elink.href) // 释放URL 对象
+    //       document.body.removeChild(elink)
+    //     } else { // IE10+下载
+    //       navigator.msSaveBlob(blob, fileName)
+    //     }
+    //   })
+    // var reader = new FileReader()
+    // reader.readAsArrayBuffer(this.$refs.file.files[0])
+    // reader.onload = function() {
+    //   var blob = reader.result
+    //   var blob = new Blob([this.result], { type: 'application/vnd.ms-excel' })
+    //   var fileName = '测试表格123.xlsx'
+    //   if ('download' in document.createElement('a')) { // 非IE下载
+    //     const elink = document.createElement('a')
+    //     elink.download = fileName
+    //     elink.style.display = 'none'
+    //     elink.href = URL.createObjectURL(blob)
+    //     document.body.appendChild(elink)
+    //     elink.click()
+    //     URL.revokeObjectURL(elink.href) // 释放URL 对象
+    //     document.body.removeChild(elink)
+    //   } else { // IE10+下载
+    //     navigator.msSaveBlob(blob, fileName)
+    //   }
+    // }
+    // },
     searchRun() {
       if (this.searchDate === null) this.searchDate = ''
       getUserList(this.search, this.searchDate[0], this.searchDate[1], 1).then(res => {
@@ -460,7 +489,7 @@ export default {
     saveAddUser() {
       this.$refs['addUser'].validate((valid) => {
         if (valid) {
-          addUser(this.addData.ddUserName, this.addData.ddUserCode).then(res => {
+          addUser(this.addData.addUserName, this.addData.addUserCode).then(res => {
             Message({ message: res.msg, type: 'success' })
             this.dialogAddUser = false
             getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {

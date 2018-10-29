@@ -56,7 +56,7 @@ class Node extends \common\dzbase\DzModel
             'id' => Yii::t('app', 'ID'),
             'user_id' => Yii::t('app', '用户ID'),
             'type_id' => Yii::t('app', '节点类型ID'),
-            'name' => Yii::t('app', '机构/名称'),
+            'name' => Yii::t('app', '机构名称'),
             'grt' => Yii::t('app', '质压grt'),
             'tt' => Yii::t('app', '质压tt'),
             'bpt' => Yii::t('app', '质压bpt'),

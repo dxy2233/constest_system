@@ -107,7 +107,7 @@ class WithdrawController extends BaseController
     {
         $status = $this->pInt('status');
         $searchName = $this->pString('searchName', '');
-        $currency_id = $this->pInt('currencyId');
+        $currency_id = $this->pInt('currency_id');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
 
@@ -120,10 +120,10 @@ class WithdrawController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
         if ($searchName != '') {
-            $find->andWhere(['like', 'B.mobile', $searchName]);
+            $find->andWhere(['or',['like', 'B.mobile', $searchName], ['like', 'A.order_number', $searchName]]);
         }
         if ($currency_id != 0) {
-            $find->andWhere(['currency_id' => $currency_id]);
+            $find->andWhere(['A.currency_id' => $currency_id]);
         }
         if ($str_time != '') {
             $find->startTime($str_time, 'A.create_time');
@@ -201,7 +201,7 @@ class WithdrawController extends BaseController
         $currencyCode = $this->pString('currency_code');
         $currencyCode = $currencyCode ? strtoupper($currencyCode) : null;
 
-        if($type && isset(\Yii::$app->params['JTWallet'][$type])) {
+        if ($type && isset(\Yii::$app->params['JTWallet'][$type])) {
             $walletList = [
                 $type => \Yii::$app->params['JTWallet'][$type]
             ];
@@ -209,10 +209,10 @@ class WithdrawController extends BaseController
             $walletList = \Yii::$app->params['JTWallet'];
         }
         $data = [];
-        foreach($walletList AS $key => $wallet) {
+        foreach ($walletList as $key => $wallet) {
             $res = JingTumService::getInstance()->queryBalance($wallet['address'], $currencyCode) ;
 
-            if($res->code != 0) {
+            if ($res->code != 0) {
                 $res->content = "0.000000";
             }
             $data[$key] = $res->content;

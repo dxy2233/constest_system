@@ -90,12 +90,12 @@
           <el-tab-pane label="基本信息" name="0">
             <p style="color:#888;">logo</p>
             <img :src="nodeInfoBase.logo" alt="" style="display:block;width:100px;height:100px;border:1px solid #ddd;">
-            <p style="color:#888;margin-top:50px;">机构/个人名称</p>
+            <p style="color:#888;margin-top:50px;">节点名称</p>
             <p>{{ nodeInfoBase.name }}</p>
-            <p style="color:#888;margin-top:50px;">机构/个人简介</p>
+            <p style="color:#888;margin-top:50px;">节点简介</p>
             <p>{{ nodeInfoBase.desc }}</p>
             <p style="color:#888;margin-top:50px;">社区建设方案</p>
-            <p>{{ nodeInfoBase.scheme }}</p>
+            <p style="padding-bottom:50px;">{{ nodeInfoBase.scheme }}</p>
           </el-tab-pane>
           <el-tab-pane label="实名信息" name="1">
             <p>
@@ -140,6 +140,7 @@
         <el-upload
           :show-file-list="false"
           :on-success="handleAvatarSuccess"
+          :before-upload="beforeAvatarUpload"
           :data="{type:'logo'}"
           name="image_file"
           action="/upload/upload/image">
@@ -382,6 +383,7 @@
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgF"
+              :before-upload="beforeAvatarUpload"
               :data="{type:'identify'}"
               action="/upload/upload/image"
               name="image_file"
@@ -394,6 +396,7 @@
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgB"
+              :before-upload="beforeAvatarUpload"
               :data="{type:'identify'}"
               action="/upload/upload/image"
               name="image_file"
@@ -410,6 +413,7 @@
             <el-upload
               :show-file-list="false"
               :on-success="addNodeImgLogo"
+              :before-upload="beforeAvatarUpload"
               :data="{type:'logo'}"
               action="/upload/upload/image"
               name="image_file"
@@ -625,6 +629,7 @@ export default {
         this.tableData.forEach((item, index, arry) => {
           Object.assign(item, { index: index + 1 })
         })
+      }).then(() => {
         this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
       })
     })
@@ -637,6 +642,7 @@ export default {
         this.tableData.forEach((item, index, arry) => {
           Object.assign(item, { index: index + 1 })
         })
+      }).then(() => {
         this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
       })
     },
@@ -648,6 +654,7 @@ export default {
         this.tableData.forEach((item, index, arry) => {
           Object.assign(item, { index: index + 1 })
         })
+      }).then(() => {
         this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
       })
     },
@@ -772,6 +779,18 @@ export default {
     nodeBaseEdit() {
       this.dialogEdit = true
       this.changeTabs({ name: '0' })
+    },
+    // 上传图片的限制
+    beforeAvatarUpload(file) {
+      const isImage = file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/gif'
+      const isLt2M = file.size / 1024 / 1024 < 200
+      if (!isImage) {
+        this.$message.error('上传头像图片只能是jpeg/jpg/png/gif格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 200MB!')
+      }
+      return isImage && isLt2M
     },
     // 上传logo回调
     handleAvatarSuccess(res, file) {
@@ -988,25 +1007,13 @@ export default {
         })
       }
     },
-    //
+    // 新增节点节点类型增加默认值
     recommendSelect(val) {
-      if (val === '1') {
-        this.addNodeData.grt = 50000
-        this.addNodeData.bpt = 4000
-        this.addNodeData.tt = 5000
-      } else if (val === '2') {
-        this.addNodeData.grt = 20000
-        this.addNodeData.bpt = 1600
-        this.addNodeData.tt = 1800
-      } else if (val === '3') {
-        this.addNodeData.grt = 8000
-        this.addNodeData.bpt = 600
-        this.addNodeData.tt = 750
-      } else if (val === '4') {
-        this.addNodeData.grt = 2000
-        this.addNodeData.bpt = 160
-        this.addNodeData.tt = 200
-      }
+      getNodeSet(val).then(res => {
+        this.addNodeData.grt = res.content.grt
+        this.addNodeData.bpt = res.content.bpt
+        this.addNodeData.tt = res.content.tt
+      })
     },
     // 添加节点下一步
     addStep() {

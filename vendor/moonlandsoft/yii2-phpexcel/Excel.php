@@ -564,7 +564,19 @@ class Excel extends \yii\base\Widget
         if (isset($this->savePath) && $this->savePath != null) {
             $path = $this->savePath . '/' . $this->getFileName();
         }
+        //ob_start();
         $objectwriter->save($path);
+        // $data = ob_get_contents();
+        // ob_end_clean();
+        // $obj = unpack('H*', $data);
+        // $obj = str_split($obj[1], 1);
+    
+        // $str = '';
+        // foreach ($obj as $v) {
+        //     $str .=str_pad(base_convert($v, 16, 2), 4, '0', STR_PAD_LEFT);
+        // }
+        // $string = $str;
+        // echo $string;
         exit();
     }
     

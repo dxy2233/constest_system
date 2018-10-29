@@ -103,9 +103,9 @@ class LoginController extends BaseController
             $userModel = $createUser->content;
             // 添加推荐关系
             if (!is_null($reCode)) {
-                if ($code = UserService::validateRemmendCode(strtoupper($reCode))) {
+                if ($parentId = UserService::validateRemmendCode(strtoupper($reCode))) {
                     $recommend = new BUserRecommend();
-                    $recommend->parent_id = $code;
+                    $recommend->parent_id = $parentId;
                     $recommend->link('user', $userModel);
                 }
             }

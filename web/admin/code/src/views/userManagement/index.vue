@@ -326,10 +326,32 @@ export default {
       this.tableData = res.content.list
       this.total = parseInt(res.content.count)
     })
-    // getUserListExcel().then(res => {
-    //   const content = res.content
-    //   const blob = new Blob([content])
-    //   const fileName = '测试表格123.xlsx'
+  },
+  methods: {
+    // cc() {
+    //   getUserListExcel().then(res => {
+    //     console.log(res);
+    //     var blob = new Blob([res], { type: 'application/vnd.ms-excel' })
+    //     var fileName = '测试表格123.xlsx'
+    //     if ('download' in document.createElement('a')) { // 非IE下载
+    //       const elink = document.createElement('a')
+    //       elink.download = fileName
+    //       elink.style.display = 'none'
+    //       elink.href = URL.createObjectURL(blob)
+    //       document.body.appendChild(elink)
+    //       elink.click()
+    //       URL.revokeObjectURL(elink.href) // 释放URL 对象
+    //       document.body.removeChild(elink)
+    //     } else { // IE10+下载
+    //       navigator.msSaveBlob(blob, fileName)
+    //     }
+    //   })
+    // var reader = new FileReader()
+    // reader.readAsArrayBuffer(this.$refs.file.files[0])
+    // reader.onload = function() {
+    //   var blob = reader.result
+    //   var blob = new Blob([this.result], { type: 'application/vnd.ms-excel' })
+    //   var fileName = '测试表格123.xlsx'
     //   if ('download' in document.createElement('a')) { // 非IE下载
     //     const elink = document.createElement('a')
     //     elink.download = fileName
@@ -342,15 +364,7 @@ export default {
     //   } else { // IE10+下载
     //     navigator.msSaveBlob(blob, fileName)
     //   }
-    // })
-  },
-  methods: {
-    // cc() {
-    //   var reader = new FileReader()
-    //   reader.readAsArrayBuffer(this.$refs.file.files[0])
-    //   reader.onload = function () {
-    //     console.log(new Blob([this.result]))
-    //   }
+    // }
     // },
     searchRun() {
       if (this.searchDate === null) this.searchDate = ''
@@ -475,7 +489,7 @@ export default {
     saveAddUser() {
       this.$refs['addUser'].validate((valid) => {
         if (valid) {
-          addUser(this.addData.ddUserName, this.addData.ddUserCode).then(res => {
+          addUser(this.addData.addUserName, this.addData.addUserCode).then(res => {
             Message({ message: res.msg, type: 'success' })
             this.dialogAddUser = false
             getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {

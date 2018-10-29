@@ -52,7 +52,7 @@
       Swiper, SwiperItem, Tab, TabItem,
       rankList
     },
-    data() {
+      data()     {
       return {
         swiperList: [],
         nodeTab: [],

@@ -95,7 +95,7 @@ export default {
       allMoneyType: [],
       moneyType: '',
       allAmount: [
-        { value: 2, label: '冻结' },
+        { value: 2, label: '锁仓' },
         { value: 3, label: '可用' }
       ],
       amount: '',
@@ -139,6 +139,7 @@ export default {
     searchTableData() {
       getFinanceList(this.search, this.moneyType, this.amount, this.min, this.max).then(res => {
         this.tableData = res.content.list
+      }).then(() => {
         this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
       })
     },
@@ -146,6 +147,7 @@ export default {
     openLock() {
       getLockList().then(res => {
         this.lockTableData = res.content.list
+      }).then(() => {
         this.lockTableDataPage = pagination(this.lockTableData, this.lockCurrentPage, 20)
         this.dialogLock = true
       })
@@ -158,6 +160,7 @@ export default {
       if (this.lockDate === null) this.lockDate = ''
       getLockList(this.searchLockData, this.lockMoneyType, this.lockDate[0], this.lockDate[1]).then(res => {
         this.lockTableData = res.content.list
+      }).then(() => {
         this.lockTableDataPage = pagination(this.lockTableData, this.lockCurrentPage, 20)
       })
     },

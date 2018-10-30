@@ -5,8 +5,10 @@
       <el-radio-button label="已通过"/>
       <el-radio-button label="未通过"/>
     </el-radio-group>
-    <el-button class="btn-right" style="margin-left:10px;" @click="searchData">查询</el-button>
-    <el-input v-model="search" placeholder="姓名/手机号/身份证号" suffix-icon="el-icon-search" class="btn-right" style="width:200px;"/>
+    <!-- <el-button class="btn-right" style="margin-left:10px;" @click="searchData">查询</el-button> -->
+    <el-input v-model="search" clearable placeholder="姓名/手机号/身份证号" class="btn-right" style="width:256px;" @keyup.enter.native="searchData">
+      <el-button slot="append" icon="el-icon-search" @click.native="searchData"/>
+    </el-input>
     <br>
 
     已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项

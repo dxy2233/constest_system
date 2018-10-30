@@ -15,9 +15,13 @@ export function getUserList(searchName, str_time, end_time, page) {
 }
 export function getUserListExcel(searchName, str_time, end_time, page) {
   return request({
-    url: '/user/download',
+    // url: '/user/download',
+    url: 'http://localhost:3000/index',
+    // url: 'http://admin.contest_system.local/index/test',
+    // url: 'http://admin.contest_system.local/index/index',
     method: 'post',
-    responseType: 'blob',
+    // responseType: 'blob',
+    // responseType: 'arraybuffer',
     data: {
       searchName,
       str_time,

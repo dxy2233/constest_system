@@ -10,7 +10,9 @@
     <button @click="cc">text</button> -->
     <br>
 
-    <el-input v-model="search" placeholder="用户" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
+    <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchRun">
+      <el-button slot="append" icon="el-icon-search" @click.native="searchRun"/>
+    </el-input>
     <div style="float:right;margin-top:20px;">
       注册时间
       <el-date-picker
@@ -21,8 +23,8 @@
         end-placeholder="结束日期"
         format="yyyy 年 MM 月 dd 日"
         value-format="yyyy-MM-dd"
-        style="width:400px;"/>
-      <el-button @click="searchRun">查询</el-button>
+        style="width:400px;"
+        @change="searchRun"/>
     </div>
     <br>
 
@@ -158,33 +160,6 @@
                     <span>{{ item3.amount }}</span>
                   </div>
                 </div>
-                <!-- <el-tabs v-model="walletMoney" type="card">
-                  <el-tab-pane v-for="(item2,index2) in item.list" :key="index2" :label="item2.name" :name="item2.name">
-                    <div class="wallet-info">
-                      <span>合计：{{ item2.positionamount }}</span>
-                      <span>可用：{{ item2.useamount }}</span>
-                      <span>冻结：{{ item2.frozenamount }}</span>
-                    </div>
-                    <el-radio-group v-model="walletNote" class="radioTabs">
-                      <el-radio-button label="收支记录"/>
-                      <el-radio-button label="冻结记录"/>
-                    </el-radio-group>
-                    <div v-show="walletNote=='收支记录'" class="note">
-                      <div v-for="(item3,index3) in item2.inandout" :key="index3" class="row">
-                        <span>{{ item3.remark }}</span>
-                        <span>{{ item3.effecttime }}</span>
-                        <span>{{ item3.amount }}</span>
-                      </div>
-                    </div>
-                    <div v-show="walletNote=='冻结记录'" class="note">
-                      <div v-for="(item3,index3) in item2.frozen" :key="index3" class="row">
-                        <span>{{ item3.remark }}</span>
-                        <span>{{ item3.effecttime }}</span>
-                        <span>{{ item3.amount }}</span>
-                      </div>
-                    </div>
-                  </el-tab-pane>
-                </el-tabs> -->
               </el-tab-pane>
             </el-tabs>
           </el-tab-pane>
@@ -235,7 +210,6 @@
 
     <el-dialog :visible.sync="dialogEditUser" title="用户编辑">
       <el-form label-width="120px">
-        <!-- <el-form-item label="账号："><el-input v-model="rowInfo.mobile"/></el-form-item> -->
         <el-form-item label="账号：">{{ rowInfo.mobile }}</el-form-item>
         <el-form-item v-if="userInfoBase.referee=='-'" label="推荐人推荐码："><el-input v-model="rowInfo.code"/></el-form-item>
         <el-tabs v-model="edidWallet">
@@ -331,40 +305,23 @@ export default {
     // cc() {
     //   getUserListExcel().then(res => {
     //     console.log(res);
-    //     var blob = new Blob([res], { type: 'application/vnd.ms-excel' })
-    //     var fileName = '测试表格123.xlsx'
-    //     if ('download' in document.createElement('a')) { // 非IE下载
-    //       const elink = document.createElement('a')
-    //       elink.download = fileName
-    //       elink.style.display = 'none'
-    //       elink.href = URL.createObjectURL(blob)
-    //       document.body.appendChild(elink)
-    //       elink.click()
-    //       URL.revokeObjectURL(elink.href) // 释放URL 对象
-    //       document.body.removeChild(elink)
-    //     } else { // IE10+下载
-    //       navigator.msSaveBlob(blob, fileName)
-    //     }
+    //     // var blob = new Blob([res], { type: 'application/vnd.ms-excel' })
+    //     // var blob = res
+    //     //
+    //     // var fileName = '测试表格123.xlsx'
+    //     // if ('download' in document.createElement('a')) { // 非IE下载
+    //     //   const elink = document.createElement('a')
+    //     //   elink.download = fileName
+    //     //   elink.style.display = 'none'
+    //     //   elink.href = URL.createObjectURL(blob)
+    //     //   document.body.appendChild(elink)
+    //     //   elink.click()
+    //     //   URL.revokeObjectURL(elink.href) // 释放URL 对象
+    //     //   document.body.removeChild(elink)
+    //     // } else { // IE10+下载
+    //     //   navigator.msSaveBlob(blob, fileName)
+    //     // }
     //   })
-    // var reader = new FileReader()
-    // reader.readAsArrayBuffer(this.$refs.file.files[0])
-    // reader.onload = function() {
-    //   var blob = reader.result
-    //   var blob = new Blob([this.result], { type: 'application/vnd.ms-excel' })
-    //   var fileName = '测试表格123.xlsx'
-    //   if ('download' in document.createElement('a')) { // 非IE下载
-    //     const elink = document.createElement('a')
-    //     elink.download = fileName
-    //     elink.style.display = 'none'
-    //     elink.href = URL.createObjectURL(blob)
-    //     document.body.appendChild(elink)
-    //     elink.click()
-    //     URL.revokeObjectURL(elink.href) // 释放URL 对象
-    //     document.body.removeChild(elink)
-    //   } else { // IE10+下载
-    //     navigator.msSaveBlob(blob, fileName)
-    //   }
-    // }
     // },
     searchRun() {
       if (this.searchDate === null) this.searchDate = ''

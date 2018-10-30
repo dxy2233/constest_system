@@ -7,6 +7,7 @@ use common\services\NodeService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
+use common\models\business\BNode;
 use common\models\business\BVote;
 use common\services\SettingService;
 use common\models\business\BHistory;
@@ -176,8 +177,8 @@ class VoteController extends BaseController
         ->asArray()
         ->all();
         // 创建一个闭包函数
-        $history = function(int $nodeId, int $voteTime = NOW_TIME) {
-             $historyModel = BHistory::find()->select('id')
+        $history = function (int $nodeId, int $voteTime = NOW_TIME) {
+            $historyModel = BHistory::find()->select('id')
             ->where(['node_id' => $nodeId])
             ->andWhere(['>', 'create_time', $voteTime])
             ->orderBy(['update_number' => SORT_DESC]);
@@ -343,6 +344,20 @@ class VoteController extends BaseController
         if (!$nodeId) {
             return $this->respondJson(1, '节点不能为空');
         }
+        // 当前节点模型
+        $nodeModel = BNode::findOne($nodeId);
+        if (is_null($nodeModel)) {
+            return $this->respondJson(1, '节点不能为空');
+        }
+        // 当前节点类型是否开启投票功能
+        $nodeTypeModel = $nodeModel->nodeType;
+        if (is_null($nodeTypeModel) && !$nodeTypeModel->is_vote) {
+            return $this->respondJson(1, '该节点不能投票');
+        }
+        // 自己不能给自己投票
+        if ($nodeModel->user_id == $userModel->id) {
+            return $this->respondJson(1, '不能投票给自己');
+        }
         $type = $this->pInt('type', false);
         if (!$type) {
             return $this->respondJson(1, '投票方式不能为空');
@@ -360,7 +375,11 @@ class VoteController extends BaseController
         if ($userModel->trans_password !== $transPwdEncryption) {
             return $this->respondJson(1, '支付密码错误');
         }
+
         if (in_array($type, [BVote::TYPE_ORDINARY, BVote::TYPE_PAY])) {
+            // 当前节点最后生成快照的时间
+            $historyLastTime = BHistory::find()->where(['node_id' => $nodeId])->max('create_time');
+            // 参与投票的货币
             $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
             $currencyId = (int) BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
             // 消费货币是先进行资金重算
@@ -372,10 +391,24 @@ class VoteController extends BaseController
                 return $this->respondJson(1, '没有可用的货币');
             }
             if ($type === BVote::TYPE_ORDINARY) {
+                // 普通投票
                 $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
+                $singleMax = (int) SettingService::get('vote', 'single_total')->value;
             } elseif ($type === BVote::TYPE_PAY) {
+                // 支付投票
                 $scaling = (float) SettingService::get('vote', 'payment_price')->value;
+                $singleMax = (int) SettingService::get('vote', 'single_pay_total')->value;
             }
+            // 计算指定时间投票用户投票总和
+            $countConsume = BVote::find()
+            ->active()
+            ->where(['type' => $type, 'user_id' => $userModel->id])
+            ->andWhere(['>=', 'create_time', $historyLastTime])
+            ->sum('consume') ?? 0;
+            if ($countConsume >= $singleMax) {
+                return $this->respondJson(1, "已达本次投票竞选上限 $singleMax ".strtoupper($voteCurrencyCode));
+            }
+
             $useAmount = round($userCurrencyInfo->use_amount / $scaling, 8);
             if ($useAmount < $number) {
                 return $this->respondJson(1, '货币量不足');

@@ -5,16 +5,18 @@
     <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button>
     <br>
 
-    <el-input v-model="search" placeholder="用户" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
+    <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchTableData">
+      <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
+    </el-input>
     <div style="float:right;margin-top:20px;">
-      <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;">
+      <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;" @change="searchTableData">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
           :label="item.name"
           :value="item.id"/>
       </el-select>
-      <el-select v-model="amount" clearable placeholder="总额" style="width:100px;">
+      <el-select v-model="amount" clearable placeholder="总额" style="width:100px;" @change="searchTableData">
         <el-option
           v-for="(item,index) in allAmount"
           :key="index"
@@ -22,10 +24,9 @@
           :value="item.value"/>
       </el-select>
       <span style="margin-left:20px;">数量</span>
-      <el-input v-model="min" placeholder="最小" style="width:100px;"/>
+      <el-input v-model="min" clearable placeholder="最小" style="width:100px;" @change="searchTableData"/>
       ——
-      <el-input v-model="max" placeholder="最大" style="width:100px;"/>
-      <el-button @click="searchTableData">查询</el-button>
+      <el-input v-model="max" clearable placeholder="最大" style="width:100px;" @change="searchTableData"/>
     </div>
     <br>
 
@@ -44,8 +45,10 @@
       @current-change="changePage"/>
 
     <el-dialog :visible.sync="dialogLock" title="锁仓记录">
-      <el-input v-model="searchLockData" placeholder="用户" suffix-icon="el-icon-search" style="width:150px;"/>
-      <el-select v-model="lockMoneyType" clearable placeholder="币种" style="width:100px;">
+      <el-input v-model="searchLockData" clearable placeholder="用户" style="width:150px;" @keyup.enter.native="searchLock">
+        <el-button slot="append" icon="el-icon-search" @click.native="searchLock"/>
+      </el-input>
+      <el-select v-model="lockMoneyType" clearable placeholder="币种" style="width:100px;" @change="searchLock">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -61,10 +64,9 @@
           range-separator="至"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
-          format="yyyy 年 MM 月 dd 日 HH：mm"
-          value-format="yyyy-MM-dd HH:mm"
-          style="width:500px;"/>
-        <el-button @click="searchLock">查询</el-button>
+          format="yyyy 年 MM 月 dd 日"
+          value-format="yyyy-MM-dd"
+          @change="searchLock"/>
       </div>
       <el-table :data="lockTableDataPage" style="margin:10px 0;">
         <el-table-column prop="mobile" label="用户"/>

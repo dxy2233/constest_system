@@ -11,7 +11,9 @@
     <el-button style="float:right;" @click="addExcel">导出excel</el-button>
     <br>
 
-    <el-input v-model="search" placeholder="用户/节点名称" suffix-icon="el-icon-search" style="margin-top:20px;width:300px;"/>
+    <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @keyup.enter.native="searchTableData">
+      <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
+    </el-input>
     <div style="float:right;margin-top:20px;">
       投票时间
       <el-date-picker
@@ -21,8 +23,8 @@
         start-placeholder="开始日期"
         end-placeholder="结束日期"
         format="yyyy 年 MM 月 dd 日"
-        value-format="yyyy-MM-dd"/>
-      <el-button @click="searchTableData">查询</el-button>
+        value-format="yyyy-MM-dd"
+        @change="searchTableData"/>
     </div>
     <br>
 

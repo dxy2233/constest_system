@@ -8,19 +8,22 @@
     <el-button class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
     <br>
 
-    <el-input v-model="search" placeholder="流水号/手机号" suffix-icon="el-icon-search" style="width:200px;"/>
-    <el-button style="float:right;" @click="searchData">查询</el-button>
+    <el-input v-model="search" clearable placeholder="流水号/手机号" style="width:200px;" @keyup.enter.native="searchData">
+      <el-button slot="append" icon="el-icon-search" @click.native="searchData"/>
+    </el-input>
+    <!-- <el-button style="float:right;" @click="searchData">查询</el-button> -->
     <el-date-picker
       v-model="date"
       type="datetimerange"
       range-separator="至"
       start-placeholder="开始日期"
       end-placeholder="结束日期"
-      format="yyyy 年 MM 月 dd 日 HH：mm"
-      value-format="yyyy-MM-dd HH:mm"
-      style="width:500px;float:right;"/>
+      format="yyyy 年 MM 月 dd 日"
+      value-format="yyyy-MM-dd"
+      style="float:right;"
+      @change="searchData"/>
     <span style="float:right;line-height:2.5;padding:0 5px;">申请时间</span>
-    <el-select v-model="moneyType" placeholder="币种" style="float:right;">
+    <el-select v-model="moneyType" clearable placeholder="币种" style="float:right;" @change="searchData">
       <el-option
         v-for="item in allMoneyType"
         :key="item.id"

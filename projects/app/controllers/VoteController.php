@@ -323,7 +323,7 @@ class VoteController extends BaseController
             $data['show_currency'] = false;
             $data['amount'] = $voucherNumber;
             $data['number'] = $voucherNumber;
-            $data['max_number'] = 0;
+            $data['max_number'] = $voucherNumber;
             return $this->respondJson(0, '获取成功', $data);
         }
 

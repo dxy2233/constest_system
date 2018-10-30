@@ -305,10 +305,16 @@ class VoteController extends BaseController
         $data['unit_code'] = '票';
         $data['show_currency'] = true;
         $scaling = 1;
+        // 当前节点最后生成快照的时间
+        $historyLastTime = BHistory::find()->max('create_time');
         if ($type === BVote::TYPE_ORDINARY) {
+            // 普通投票
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
+            $singleMax = (float) SettingService::get('vote', 'single_total')->value;
         } elseif ($type === BVote::TYPE_PAY) {
+            // 支付投票
             $scaling = (float) SettingService::get('vote', 'payment_price')->value;
+            $singleMax = (float) SettingService::get('vote', 'single_pay_total')->value;
             // 货币单位
             $data['unit_code'] = strtoupper($voteCurrencyCode);
         } else {
@@ -317,8 +323,16 @@ class VoteController extends BaseController
             $data['show_currency'] = false;
             $data['amount'] = $voucherNumber;
             $data['number'] = $voucherNumber;
+            $data['max_number'] = 0;
             return $this->respondJson(0, '获取成功', $data);
         }
+
+        // 计算指定时间投票用户投票总和
+        $countNumber = BVote::find()
+        ->active()
+        ->where(['type' => $type, 'user_id' => $userModel->id])
+        ->andWhere(['>=', 'create_time', $historyLastTime])
+        ->sum('vote_number') ?? 0;
         
         $currencyId = BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
         $userCurrencyModel = $userModel->getUserCurrency()
@@ -328,6 +342,7 @@ class VoteController extends BaseController
             $useAmount = round($userCurrencyInfo->use_amount, 8);
             $data['amount'] = $useAmount;
             $data['number'] = $useAmount / $scaling;
+            $data['max_number'] = $singleMax / $scaling - $countNumber;
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -393,11 +408,11 @@ class VoteController extends BaseController
             if ($type === BVote::TYPE_ORDINARY) {
                 // 普通投票
                 $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
-                $singleMax = (int) SettingService::get('vote', 'single_total')->value;
+                $singleMax = (float) SettingService::get('vote', 'single_total')->value;
             } elseif ($type === BVote::TYPE_PAY) {
                 // 支付投票
                 $scaling = (float) SettingService::get('vote', 'payment_price')->value;
-                $singleMax = (int) SettingService::get('vote', 'single_pay_total')->value;
+                $singleMax = (float) SettingService::get('vote', 'single_pay_total')->value;
             }
             // 计算指定时间投票用户投票总和
             $countConsume = BVote::find()
@@ -405,15 +420,18 @@ class VoteController extends BaseController
             ->where(['type' => $type, 'user_id' => $userModel->id])
             ->andWhere(['>=', 'create_time', $historyLastTime])
             ->sum('consume') ?? 0;
-            if ($countConsume >= $singleMax) {
-                return $this->respondJson(1, "已达本次投票竞选上限 $singleMax ".strtoupper($voteCurrencyCode));
+            // 票数转换成 货币数量
+            $currencyAmount = $number * $scaling;
+            // 本次竞选剩余可支付货币数量
+            $surplusMax = $singleMax - $countConsume;
+            if ($currencyAmount >= $surplusMax) {
+                return $this->respondJson(1, "已达本次投票竞选上限");
             }
-
+            // 获取总票数
             $useAmount = round($userCurrencyInfo->use_amount / $scaling, 8);
             if ($useAmount < $number) {
                 return $this->respondJson(1, '货币量不足');
             }
-            $currencyAmount = $number * $scaling;
             $voteRes = [
                 'vote_number' => $number,
                 'amount' => $currencyAmount,

@@ -323,7 +323,7 @@ class VoteController extends BaseController
             $data['show_currency'] = false;
             $data['amount'] = $voucherNumber;
             $data['number'] = $voucherNumber;
-            $data['max_number'] = $voucherNumber;
+            $data['surplus_number'] = $voucherNumber;
             return $this->respondJson(0, '获取成功', $data);
         }
 
@@ -342,7 +342,7 @@ class VoteController extends BaseController
             $useAmount = round($userCurrencyInfo->use_amount, 8);
             $data['amount'] = $useAmount;
             $data['number'] = $useAmount / $scaling;
-            $data['max_number'] = $singleMax / $scaling - $countNumber;
+            $data['surplus_number'] = $singleMax / $scaling - $countNumber;
         }
         return $this->respondJson(0, '获取成功', $data);
     }

@@ -342,7 +342,11 @@ class VoteController extends BaseController
             $useAmount = round($userCurrencyInfo->use_amount, 8);
             $data['amount'] = $useAmount;
             $data['number'] = $useAmount / $scaling;
-            $data['surplus_number'] = $singleMax / $scaling - $countNumber;
+            $surplusNumber = $singleMax / $scaling - $countNumber;
+            if ($surplusNumber < 0) {
+                $surplusNumber = 0;
+            }
+            $data['surplus_number'] = $surplusNumber;
         }
         return $this->respondJson(0, '获取成功', $data);
     }

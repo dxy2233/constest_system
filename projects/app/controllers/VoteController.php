@@ -308,7 +308,7 @@ class VoteController extends BaseController
         // 当前节点最后生成快照的时间
         $historyLastTime = BHistory::find()->max('create_time');
         if ($type === BVote::TYPE_ORDINARY) {
-            // 普通投票
+            // 持有投票
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
             $singleMax = (float) SettingService::get('vote', 'single_total')->value;
         } elseif ($type === BVote::TYPE_PAY) {
@@ -323,7 +323,7 @@ class VoteController extends BaseController
             $data['show_currency'] = false;
             $data['amount'] = $voucherNumber;
             $data['number'] = $voucherNumber;
-            $data['max_number'] = $voucherNumber;
+            $data['surplus_number'] = $voucherNumber;
             return $this->respondJson(0, '获取成功', $data);
         }
 
@@ -342,7 +342,13 @@ class VoteController extends BaseController
             $useAmount = round($userCurrencyInfo->use_amount, 8);
             $data['amount'] = $useAmount;
             $data['number'] = $useAmount / $scaling;
-            $data['max_number'] = $singleMax / $scaling - $countNumber;
+            $surplusNumber = $singleMax / $scaling - $countNumber;
+            if ($surplusNumber < 0) {
+                $surplusNumber = 0;
+            } elseif ($surplusNumber > $data['number']) {
+                $surplusNumber = $data['number'];
+            }
+            $data['surplus_number'] = $surplusNumber;
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -406,7 +412,7 @@ class VoteController extends BaseController
                 return $this->respondJson(1, '没有可用的货币');
             }
             if ($type === BVote::TYPE_ORDINARY) {
-                // 普通投票
+                // 持有投票
                 $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
                 $singleMax = (float) SettingService::get('vote', 'single_total')->value;
             } elseif ($type === BVote::TYPE_PAY) {

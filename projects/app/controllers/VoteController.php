@@ -308,7 +308,7 @@ class VoteController extends BaseController
         // 当前节点最后生成快照的时间
         $historyLastTime = BHistory::find()->max('create_time');
         if ($type === BVote::TYPE_ORDINARY) {
-            // 普通投票
+            // 持有投票
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
             $singleMax = (float) SettingService::get('vote', 'single_total')->value;
         } elseif ($type === BVote::TYPE_PAY) {
@@ -406,7 +406,7 @@ class VoteController extends BaseController
                 return $this->respondJson(1, '没有可用的货币');
             }
             if ($type === BVote::TYPE_ORDINARY) {
-                // 普通投票
+                // 持有投票
                 $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
                 $singleMax = (float) SettingService::get('vote', 'single_total')->value;
             } elseif ($type === BVote::TYPE_PAY) {

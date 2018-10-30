@@ -424,7 +424,7 @@ class VoteController extends BaseController
             $currencyAmount = $number * $scaling;
             // 本次竞选剩余可支付货币数量
             $surplusMax = $singleMax - $countConsume;
-            if ($currencyAmount >= $surplusMax) {
+            if ($currencyAmount > $surplusMax) {
                 return $this->respondJson(1, "已达本次投票竞选上限");
             }
             // 获取总票数

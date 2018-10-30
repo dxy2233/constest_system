@@ -343,7 +343,7 @@ class VoteController extends BaseController
             $data['amount'] = $useAmount;
             $data['number'] = $useAmount / $scaling;
             $surplusNumber = $singleMax / $scaling - $countNumber;
-            if ($surplusNumber < 0) {
+            if ($surplusNumber <= 0) {
                 $surplusNumber = 0;
             } elseif ($surplusNumber > $data['number']) {
                 $surplusNumber = $data['number'];

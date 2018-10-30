@@ -35,14 +35,14 @@
             <div class="form-item-content">
               <div class="ipt-box number-box">
                 <input type="text" v-model="number" placeholder="请输入投票数量">
-                <span class="all" @click="number=typeInfo.number">全部</span>
+                <span class="all" @click="number=typeInfo.maxNumber">最大</span>
               </div>
             </div>
           </div>
           <div class="ps">
             <span v-if="typeInfo.showCurrency">可用GRT数量&nbsp;&nbsp;&nbsp;{{typeInfo.amount}}</span>
             <span v-else></span>
-            <span>{{typeInfo.number+'票'}}</span>
+            <span>{{typeInfo.maxNumber+'票'}}</span>
           </div>
           <x-button type="warn" class="sbm-btn" @click.native="sbmVote">确定</x-button>
         </div>
@@ -90,7 +90,7 @@
           cb('请输入有效的投票数量')
           return
         }
-        if (value-this.typeInfo.number>0){
+        if (value-this.typeInfo.maxNumber>0){
           cb('可用不足')
           return
         }

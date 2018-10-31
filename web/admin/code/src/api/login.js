@@ -24,3 +24,14 @@ export function logout() {
     method: 'post'
   })
 }
+
+// 修改用户密码
+export function resetPW({ ...data }) {
+  return request({
+    url: '/manager/change-password',
+    method: 'post',
+    data: {
+      ...data
+    }
+  })
+}

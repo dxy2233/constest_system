@@ -427,9 +427,9 @@ class VoteController extends BaseController
             ->andWhere(['>=', 'create_time', $historyLastTime])
             ->sum('consume') ?? 0;
             // 票数转换成 货币数量
-            $currencyAmount = $number * $scaling;
+            $currencyAmount = round($number * $scaling, 8);
             // 本次竞选剩余可支付货币数量
-            $surplusMax = $singleMax - $countConsume;
+            $surplusMax = round($singleMax - $countConsume, 8);
             if ($currencyAmount > $surplusMax) {
                 return $this->respondJson(1, "已达本次投票竞选上限");
             }

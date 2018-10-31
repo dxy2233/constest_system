@@ -10,6 +10,7 @@ namespace common\traits;
 
 use common\components\FuncHelper;
 use moonland\phpexcel\Excel;
+use common\models\AdminUser;
 use Yii;
 
 trait DzControllerTrait
@@ -18,21 +19,15 @@ trait DzControllerTrait
    
     final protected function download($list, $headers, $fileName = '')
     {
-        // echo json_encode($list);
-        // exit;
-        // $string="";
-
-        // $string .= implode(",", $headers)."\n";
-        // foreach ($list as $key => $value) {
-        //     $item = [];
-        //     foreach ($headers as $k => $val) {
-        //         $item[] = (string)$value[$k];
-        //     }
-        //     $string .= implode(",", $item)."\n"; //用英文逗号分开
-        // }
-        
-        // echo $string;
-        // exit;
+        $return = Yii::$app->request->get('download_code');
+        if (empty($return)) {
+            return false;
+        }
+        $code = FuncHelper::authCode($return);
+        $user_id = AdminUser::findIdentityByAccessToken($code);
+        if (!$user_id) {
+            return false;
+        }
         if ($fileName == '') {
             $fileName = time();
         }
@@ -56,7 +51,6 @@ trait DzControllerTrait
     */
     final protected function pFloat($name, $default = null)
     {
-        $return = Yii::$app->request->post($name, $default);
         if (!empty($return)) {
             return floatval($return);
         }

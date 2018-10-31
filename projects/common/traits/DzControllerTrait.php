@@ -25,10 +25,12 @@ trait DzControllerTrait
         }
         $code = FuncHelper::authCode($return);
         if ($code == '') {
+            var_dump($code);
             return false;
         }
         $user_id = AdminUser::findIdentityByAccessToken($code);
         if (!$user_id) {
+            var_dump($code);
             return false;
         }
         if ($fileName == '') {

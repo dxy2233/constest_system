@@ -33,7 +33,7 @@ class DownloadController extends BaseController
         $user = $this->user;
 
         $token = BAdminAccessToken::find()->where(['user_id' => $this->user_id])->andWhere(['>=', 'expire_time', time()+5 ])->one();
-        $code = FuncHelper::authCode($token->access_token, 'ENCODE', '', 5);
+        $code = FuncHelper::authCode($token->access_token, 'ENCODE', '', 10);
 
         return $this->respondJson(0, '获取成功', $code);
     }

@@ -32,7 +32,7 @@
           </div>
           <div class="form-item">
             <div class="label">投票数量
-              <span style="float: right">{{'本轮投票额剩余'+typeInfo.surplusNumber}}</span>
+              <!--<span style="float: right">{{'本轮投票额剩余'+typeInfo.surplusNumber}}</span>-->
             </div>
             <div class="form-item-content">
               <div class="ipt-box number-box">
@@ -42,7 +42,7 @@
             </div>
           </div>
           <div class="ps">
-            <span v-if="typeInfo.showCurrency">可用GRT数量&nbsp;&nbsp;&nbsp;{{typeInfo.amount}}</span>
+            <span v-if="typeInfo.showCurrency">可投GRT数量&nbsp;&nbsp;&nbsp;{{typeInfo.amount}}</span>
             <span v-else></span>
             <span>{{typeInfo.number+'票'}}</span>
           </div>
@@ -98,10 +98,10 @@
           cb('可用不足')
           return
         }
-        if (value - this.typeInfo.surplusNumber > 0) {
-          cb(`${this.currentTypeName}每个用户本次竞选活动累计不超过${this.typeInfo.surplusNumber}`)
-          return
-        }
+        // if (value - this.typeInfo.surplusNumber > 0) {
+        //   cb(`${this.currentTypeName}每个用户本次竞选活动累计不超过${this.typeInfo.surplusNumber}`)
+        //   return
+        // }
         cb('')
       },
       sbmVote() {

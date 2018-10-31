@@ -6,7 +6,7 @@
       <el-radio-button label="未通过"/>
     </el-radio-group>
     <!-- <el-button class="btn-right" style="margin-left:10px;" @click="searchData">查询</el-button> -->
-    <el-input v-model="search" clearable placeholder="节点名称/手机号" class="btn-right" style="width:210px;" @keyup.enter.native="searchData">
+    <el-input v-model="search" clearable placeholder="节点名称/手机号" class="btn-right" style="width:210px;" @change="searchData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchData"/>
     </el-input>
     <br>
@@ -16,7 +16,7 @@
     <el-button v-show="noticeChecktoNum==4" :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain @click="allFail">删除记录</el-button>
 
     <el-table
-      :data="tableDataPage"
+      :data="tableData"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
       @row-click="clickRow">
@@ -35,7 +35,8 @@
       :current-page.sync="currentPage"
       :total="total"
       :page-size="pageSize"
-      layout="total, prev, pager, next, jumper"/>
+      layout="total, prev, pager, next, jumper"
+      @current-change="changePage"/>
 
     <transition name="fade">
       <div v-show="showInfo" class="fade-slide">
@@ -65,7 +66,6 @@
 import { getCheckList, checkPass, checkFail, deleteNote } from '@/api/nodeCheck'
 import { getNodeBase } from '@/api/nodePage'
 import { Message } from 'element-ui'
-import { pagination } from '@/utils'
 
 export default {
   name: 'NodeCheck',
@@ -74,6 +74,7 @@ export default {
       checkType: '待审核',
       search: '',
       tableData: [],
+      total: 1,
       tableDataSelection: [],
       currentPage: 1,
       pageSize: 20,
@@ -83,12 +84,6 @@ export default {
     }
   },
   computed: {
-    total() {
-      return this.tableData.length
-    },
-    tableDataPage() {
-      return pagination(this.tableData, this.currentPage, this.pageSize)
-    },
     noticeChecktoNum() {
       if (this.checkType === '待审核') {
         return 2
@@ -100,16 +95,27 @@ export default {
     }
   },
   created() {
-    getCheckList(this.noticeChecktoNum).then(res => {
-      this.tableData = res.content
+    getCheckList(this.noticeChecktoNum, this.search, 1).then(res => {
+      this.tableData = res.content.list
+      this.total = res.content.count
     })
   },
   methods: {
+    // 分页
+    changePage(page) {
+      getCheckList(this.noticeChecktoNum, this.search, page).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
+      })
+    },
     // 切换审核数据类型
     changeCheckType() {
       this.showInfo = false
-      getCheckList(this.noticeChecktoNum).then(res => {
-        this.tableData = res.content
+      this.search = ''
+      this.currentPage = 1
+      getCheckList(this.noticeChecktoNum, null, 1).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
       })
     },
     // 选择table
@@ -118,8 +124,10 @@ export default {
     },
     // 搜索
     searchData() {
-      getCheckList(this.noticeChecktoNum, this.search).then(res => {
-        this.tableData = res.content
+      this.currentPage = 1
+      getCheckList(this.noticeChecktoNum, this.search, 1).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
       })
     },
     // 点击表格行
@@ -135,8 +143,9 @@ export default {
       checkPass(this.rowInfo.id).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.showInfo = false
-        getCheckList(this.noticeChecktoNum).then(res => {
-          this.tableData = res.content
+        getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
+          this.tableData = res.content.list
+          this.total = res.content.count
         })
       })
     },
@@ -154,8 +163,9 @@ export default {
         })
         checkPass(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getCheckList(this.noticeChecktoNum).then(res => {
-            this.tableData = res.content
+          getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
+            this.tableData = res.content.list
+            this.total = res.content.count
           })
         })
       })
@@ -171,8 +181,9 @@ export default {
         checkFail(this.rowInfo.id, value).then(res => {
           Message({ message: res.msg, type: 'success' })
           this.showInfo = false
-          getCheckList(this.noticeChecktoNum).then(res => {
-            this.tableData = res.content
+          getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
+            this.tableData = res.content.list
+            this.total = res.content.count
           })
         })
       })
@@ -182,8 +193,9 @@ export default {
       deleteNote(this.rowInfo.id).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.showInfo = false
-        getCheckList(this.noticeChecktoNum).then(res => {
-          this.tableData = res.content
+        getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
+          this.tableData = res.content.list
+          this.total = res.content.count
         })
       })
     },
@@ -201,8 +213,9 @@ export default {
         })
         deleteNote(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getCheckList(this.noticeChecktoNum).then(res => {
-            this.tableData = res.content
+          getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
+            this.tableData = res.content.list
+            this.total = res.content.count
           })
         })
       })

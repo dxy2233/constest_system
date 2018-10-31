@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">财务流水</h4>
-    <el-button class="btn-right" @click="addExcel">导出excel</el-button>
+    <el-button class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
-    <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchTableData">
+    <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @change="searchTableData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
@@ -24,17 +24,18 @@
       </el-select>
       <el-date-picker
         v-model="date"
-        type="datetimerange"
+        type="daterange"
         range-separator="至"
         start-placeholder="开始日期"
         end-placeholder="结束日期"
         format="yyyy 年 MM 月 dd 日"
         value-format="yyyy-MM-dd"
+        style="width:400px;"
         @change="searchTableData"/>
     </div>
     <br>
 
-    <el-table :data="tableDataPage" style="margin:10px 0;">
+    <el-table :data="tableData" style="margin:10px 0;">
       <el-table-column prop="id" label="流水号"/>
       <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="name" label="币种"/>
@@ -46,7 +47,7 @@
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
       @current-change="changePage"/>
@@ -55,7 +56,7 @@
 
 <script>
 import { getRuningList, getMoneyType } from '@/api/assets'
-import { parseTime, pagination } from '@/utils'
+import { getVerifiCode } from '@/api/public'
 
 export default {
   name: 'Finance',
@@ -71,60 +72,54 @@ export default {
       dataType: '',
       date: '',
       tableData: [],
-      tableDataPage: [],
+      total: 1,
       currentPage: 1
     }
   },
-  computed: {
-    total() {
-      return this.tableData.length
-    }
-  },
   created() {
-    getRuningList().then(res => {
-      this.tableData = res.content.list
-      this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
-    })
     getMoneyType().then(res => {
       this.allMoneyType = res.content
+    })
+    getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1], 1).then(res => {
+      this.tableData = res.content.list
+      this.total = res.content.count
     })
   },
   methods: {
     // 变页数
     changePage(page) {
-      this.tableDataPage = pagination(this.tableData, page, 20)
+      getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1], page).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
+      })
     },
     // 主表格搜索
     searchTableData() {
       if (this.date === null) this.date = ''
-      getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1]).then(res => {
+      this.currentPage = 1
+      getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1], 1).then(res => {
         this.tableData = res.content.list
-      }).then(() => {
-        this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
+        this.total = res.content.count
       })
     },
-    // 导出excel
-    addExcel() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['流水号', '用户', '币种', '收支', '类型', '数量', '状态', '时间']
-        const filterVal = ['id', 'mobile', 'name', 'type2', 'type', 'amount', 'status', 'createTime']
-        const list = this.tableData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '财务流水'
-        })
+    // 下载excel
+    downExcel() {
+      if (this.date) {
+        var str = this.date[0]
+        var end = this.date[1]
+      } else {
+        str = ''
+        end = ''
+      }
+      getVerifiCode().then(res => {
+        var url = `/finance/finance-download?download_code=${res.content}&searchName=${this.search}&currency_id=${this.moneyType}&type=${this.dataType}&str_time=${str}&end_time=${end}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
       })
-    },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
-        } else {
-          return v[j]
-        }
-      }))
     }
   }
 }

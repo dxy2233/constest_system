@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 // 获取节点列表
-export function getNodeList(searchName, str_time, end_time, type) {
+export function getNodeList(searchName, str_time, end_time, type, page) {
   return request({
     url: '/node/index',
     method: 'post',
@@ -9,7 +9,8 @@ export function getNodeList(searchName, str_time, end_time, type) {
       searchName,
       str_time,
       end_time,
-      type
+      type,
+      page
     }
   })
 }
@@ -217,23 +218,3 @@ export function checkNode(type_id, is_tenure) {
     }
   })
 }
-// // 添加节点第二步
-// export function addNodeTwo({ ...data }) {
-//   return request({
-//     url: '/node/set-identify',
-//     method: 'post',
-//     data: {
-//       ...data
-//     }
-//   })
-// }
-// // 添加节点第三步
-// export function addNodeThree({ ...data }) {
-//   return request({
-//     url: '/node/create-node',
-//     method: 'post',
-//     data: {
-//       ...data
-//     }
-//   })
-// }

@@ -116,7 +116,10 @@ class NodeController extends BaseController
             $v['status'] = BNode::getStatus($v['status']);
         }
         $headers = ['key'=> '排名', 'name' => '节点名称', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'create_time' => '加入时间', 'status' => '状态'];
-        $this->download($data, $headers, '节点列表'.date('YmdHis'));
+        $down = $this->download($data, $headers, '节点列表'.date('YmdHis'));
+        if (!$down) {
+            return $this->respondJson(1, "验证失败");
+        }
         return;
     }
     // 审核列表

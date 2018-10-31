@@ -13,18 +13,40 @@
           <el-dropdown-item>
             首页
           </el-dropdown-item>
-        </router-link> -->
-        <!-- <el-dropdown-item divided> -->
+        </router-link>
+        <el-dropdown-item divided> -->
+        <el-dropdown-item>
+          <span style="display:block;" @click="dialogPW = true">修改密码</span>
+        </el-dropdown-item>
         <el-dropdown-item>
           <span style="display:block;" @click="logout">注销</span>
         </el-dropdown-item>
       </el-dropdown-menu>
     </el-dropdown>
+    <el-dialog :visible.sync="dialogPW" title="修改密码">
+      <el-form ref="changePWform" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="原密码" prop="password">
+          <el-input v-model="form.password"/>
+        </el-form-item>
+        <el-form-item label="新密码" prop="new_password">
+          <el-input v-model="form.new_password"/>
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="new_password_2">
+          <el-input v-model="form.new_password_2"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogPW = false">取 消</el-button>
+        <el-button type="primary" @click="changePW">确 定</el-button>
+      </div>
+    </el-dialog>
   </el-menu>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+import { resetPW } from '@/api/login'
+import { Message } from 'element-ui'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
 
@@ -32,6 +54,37 @@ export default {
   components: {
     Breadcrumb,
     Hamburger
+  },
+  data() {
+    const validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'))
+      } else if (value !== this.form.new_password) {
+        callback(new Error('两次输入密码不一致!'))
+      } else {
+        callback()
+      }
+    }
+    return {
+      dialogPW: false,
+      form: {
+        password: '',
+        new_password: '',
+        new_password_2: ''
+      },
+      rules: {
+        password: [
+          { required: true, message: '请输入原密码', trigger: 'blur' }
+        ],
+        new_password: [
+          { required: true, message: '请输入新密码', trigger: 'blur' },
+          { max: 17, min: 6, message: '密码长度必须大于5小于18', trigger: 'blur' }
+        ],
+        new_password_2: [
+          { validator: validatePass2, required: true, trigger: 'blur' }
+        ]
+      }
+    }
   },
   computed: {
     ...mapGetters([
@@ -47,6 +100,19 @@ export default {
     logout() {
       this.$store.dispatch('LogOut').then(() => {
         location.reload() // 为了重新实例化vue-router对象 避免bug
+      })
+    },
+    changePW() {
+      this.$refs['changePWform'].validate((valid) => {
+        if (valid) {
+          resetPW(this.form).then(res => {
+            Message({ message: res.msg, type: 'success' })
+            this.dialogPW = false
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
       })
     }
   }

@@ -4,6 +4,7 @@ namespace common\modules\site\controllers;
 
 use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
+use common\components\FuncHelper;
 use common\services\UploadService;
 
 class SiteController extends BaseController
@@ -29,13 +30,5 @@ class SiteController extends BaseController
     /**
      * 获取网站信息
      */
-    public function actionGetSiteInfo()
-    {
-        $return = [
-            'imgAddress' => \Yii::$app->params['imgAddress'],
-            'home_platform_url' => \Yii::$app->params['home_platform_url'],
-        ];
 
-        return $this->respondJson(0, '获取成功', $return);
-    }
 }

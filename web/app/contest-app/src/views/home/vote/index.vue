@@ -23,7 +23,7 @@
             <ul class="form-item-content type-list">
               <!--<li class="ipt-box" v-for="item in typeList">fa</li>-->
               <li class="ipt-box" v-for="(item,index) in typeList" :class="{'act':item.id ===currentType}"
-                  @click="changeType(item.id,index)">
+                  @click="changeType(item)">
                 <h4>{{item.name}}</h4>
                 <p v-html="item.scaling">0.1GRT=1票 单次活动截止后可赎回</p>
                 <x-icon v-show="item.id ===currentType" type="ios-checkmark-empty" size="40" class="act-icon"></x-icon>
@@ -31,23 +31,26 @@
             </ul>
           </div>
           <div class="form-item">
-            <div class="label">投票数量</div>
+            <div class="label">投票数量
+              <!--<span style="float: right">{{'本轮投票额剩余'+typeInfo.surplusNumber}}</span>-->
+            </div>
             <div class="form-item-content">
               <div class="ipt-box number-box">
                 <input type="text" v-model="number" placeholder="请输入投票数量">
-                <span class="all" @click="number=typeInfo.number">全部</span>
+                <span class="all" @click="number=typeInfo.number">最大</span>
               </div>
             </div>
           </div>
           <div class="ps">
-            <span v-if="typeInfo.showCurrency">可用GRT数量&nbsp;&nbsp;&nbsp;{{typeInfo.amount}}</span>
+            <span v-if="typeInfo.showCurrency">可投GRT数量&nbsp;&nbsp;&nbsp;{{typeInfo.amount}}</span>
             <span v-else></span>
             <span>{{typeInfo.number+'票'}}</span>
           </div>
           <x-button type="warn" class="sbm-btn" @click.native="sbmVote">确定</x-button>
         </div>
       </div>
-      <choose-node v-show="chooseNodeShow" @close="chooseNodeShow=false" :selectId="nodeId" @selectedNode="selectedNode"></choose-node>
+      <choose-node v-show="chooseNodeShow" @close="chooseNodeShow=false" :selectId="nodeId"
+                   @selectedNode="selectedNode"></choose-node>
       <valid-pay-psw v-if="validPswShow" @validSuccess="validPswSuccess" @close="validPswShow=false"></valid-pay-psw>
     </div>
   </slide>
@@ -78,10 +81,11 @@
         nodeId: '',
         chooseNodeShow: false,
         validPswShow: false,
+        currentTypeName:''
       }
     },
     methods: {
-      clickAmount(value,cb) {
+      clickAmount(value, cb) {
         if (!value) {
           cb('请输入投票数量')
           return
@@ -90,10 +94,14 @@
           cb('请输入有效的投票数量')
           return
         }
-        if (value-this.typeInfo.number>0){
+        if (value - this.typeInfo.number > 0) {
           cb('可用不足')
           return
         }
+        // if (value - this.typeInfo.surplusNumber > 0) {
+        //   cb(`${this.currentTypeName}每个用户本次竞选活动累计不超过${this.typeInfo.surplusNumber}`)
+        //   return
+        // }
         cb('')
       },
       sbmVote() {
@@ -101,8 +109,8 @@
           this.$vux.toast.show('请选择投票节点')
           return
         }
-        this.clickAmount(this.number,(res)=>{
-          if (res){
+        this.clickAmount(this.number, (res) => {
+          if (res) {
             this.$vux.toast.show(res)
             return
           }
@@ -122,7 +130,7 @@
             toast: 3000,
             type: type
           })
-          if (res.code===0){
+          if (res.code === 0) {
             this.$router.go(-1)
           }
           this.validPswShow = false
@@ -143,8 +151,9 @@
         this.nodeName = item.name
         this.nodeId = item.id
       },
-      changeType(id, index) {
-        this.currentType = id
+      changeType(item) {
+        this.currentType = item.id
+        this.currentTypeName = item.name
         this.getTypeInfo()
       },
       getTypeInfo() {
@@ -158,15 +167,15 @@
           this.typeInfo = res.content
         })
       },
-      pageInt(){
-        if (!this.loginMsg){
+      pageInt() {
+        if (!this.loginMsg) {
           this.$router.push({
             path: `/login`
           })
           return
         }
 
-        if (!this.typeList.length){
+        if (!this.typeList.length) {
           this.getTypeList()
         }
         this.nodeId = this.$route.query.nodeId

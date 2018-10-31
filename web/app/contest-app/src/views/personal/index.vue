@@ -45,11 +45,36 @@
       </div>
     </div>
     <div class="bottom">
-      <group>
-        <!--<cell-box is-link v-for="item in personalRouter.children" :key="item.path" v-if="!item.hidden">
-          <icon type="circle" class="icon"></icon>
-          <span class="text">{{item.name}}</span>
-        </cell-box>-->
+      <ul class="link-list">
+        <router-link tag="li" to="/personal/vote">
+          <span class="text">我的投票</span>
+          <x-icon type="ios-arrow-right"></x-icon>
+        </router-link>
+        <router-link tag="li" to="/personal/voucher">
+          <span class="text">投票券</span>
+          <x-icon type="ios-arrow-right"></x-icon>
+        </router-link>
+        <router-link tag="li" to="/personal/rcmd">
+          <span class="text">我的推荐</span>
+          <x-icon type="ios-arrow-right"></x-icon>
+        </router-link>
+      </ul>
+
+      <ul class="link-list">
+        <router-link tag="li" to="/personal/psw/index">
+          <span class="text">支付密码</span>
+          <x-icon type="ios-arrow-right"></x-icon>
+        </router-link>
+        <router-link tag="li" :to="'/personal/identify/'+identifyPath">
+          <span class="text">实名认证</span>
+          <x-icon type="ios-arrow-right"></x-icon>
+        </router-link>
+        <router-link tag="li" to="/personal/set">
+          <span class="text">设置</span>
+          <x-icon type="ios-arrow-right"></x-icon>
+        </router-link>
+      </ul>
+      <!--<group>
         <cell-box is-link link="/personal/vote">
           <span class="text">我的投票</span>
         </cell-box>
@@ -68,10 +93,10 @@
           <span class="text">实名认证</span>
         </cell-box>
         <cell-box is-link link="/personal/set">
-          <!--<span class="icon icon-set"></span>-->
+          &lt;!&ndash;<span class="icon icon-set"></span>&ndash;&gt;
           <span class="text">设置</span>
         </cell-box>
-      </group>
+      </group>-->
     </div>
 
     <router-view></router-view>
@@ -207,6 +232,23 @@
     bottom: 50px
     background $color-background-sub
     overflow auto
+    .link-list
+      background white
+      margin-top 10px
+      border-top 1px solid $color-border
+      border-bottom 1px solid $color-border
+      li
+        display flex
+        justify-content space-between
+        align-items center
+        line-height 55px
+        padding-right $space-box
+        margin-left $space-box
+        border-top 1px solid $color-border
+        margin-top -1px
+        font-size $font-size-medium
+        .vux-x-icon
+          fill #e7effa
     & > .top
       padding $space-box
       background $color-background

@@ -340,15 +340,15 @@ class VoteController extends BaseController
         $userCurrencyInfo = $userCurrencyModel->one();
         if (!is_null($userCurrencyInfo)) {
             $useAmount = round($userCurrencyInfo->use_amount, 8);
-            $data['amount'] = $useAmount;
-            $data['number'] = $useAmount / $scaling;
+            $numberAll = $useAmount / $scaling;
             $surplusNumber = $singleMax / $scaling - $countNumber;
-            if ($surplusNumber < 0) {
+            if ($surplusNumber <= 0) {
                 $surplusNumber = 0;
-            } elseif ($surplusNumber > $data['number']) {
-                $surplusNumber = $data['number'];
+            } elseif ($surplusNumber > $numberAll) {
+                $surplusNumber = $numberAll;
             }
-            $data['surplus_number'] = $surplusNumber;
+            $data['number'] = $surplusNumber;
+            $data['amount'] = $surplusNumber * $scaling;
         }
         return $this->respondJson(0, '获取成功', $data);
     }
@@ -376,9 +376,9 @@ class VoteController extends BaseController
             return $this->respondJson(1, '该节点不能投票');
         }
         // 自己不能给自己投票
-        if ($nodeModel->user_id == $userModel->id) {
-            return $this->respondJson(1, '不能投票给自己');
-        }
+        // if ($nodeModel->user_id == $userModel->id) {
+        //     return $this->respondJson(1, '不能投票给自己');
+        // }
         $type = $this->pInt('type', false);
         if (!$type) {
             return $this->respondJson(1, '投票方式不能为空');

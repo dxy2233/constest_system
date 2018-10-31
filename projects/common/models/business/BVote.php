@@ -10,6 +10,7 @@ class BVote extends \common\models\Vote
     // 新增 赎回中状态
     const STATUS_INACTIVE_ING = 2;
 
+    const TYPE_ALL = 0; // 全部
     const TYPE_ORDINARY = 1; // 持有投票
     const TYPE_PAY = 2; // 支付投票
     const TYPE_VOUCHER = 3; // 券投票
@@ -17,6 +18,7 @@ class BVote extends \common\models\Vote
     public static function getType($key = '')
     {
         $arr = [
+            static::TYPE_ALL => \Yii::t('app', '全部'),
             static::TYPE_ORDINARY => \Yii::t('app', '持有投票'),
             static::TYPE_PAY => \Yii::t('app', '支付投票'),
             static::TYPE_VOUCHER => \Yii::t('app', '券投票'),

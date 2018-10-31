@@ -66,7 +66,7 @@ class VoteController extends BaseController
         }
         $find->orderBy($order. ' DESC');
         $count = $find->count();
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         if ($page != 0) {
             $find->page($page);
         }
@@ -177,13 +177,13 @@ class VoteController extends BaseController
         }
         return $this->respondJson(0, "获取成功", $data, false);
     }
-
+    //投票排名下载
     public function actionGetVoteOrder()
     {
         $type = $this->pInt('type', 0);
         $find = BVote::find()
         ->from(BVote::tableName()." A")
-        ->select(['B.mobile','sum(A.vote_number) as num','A.create_time'])
+        ->select(['B.mobile','sum(A.vote_number) as num','A.create_time', 'A.type'])
         ->where(['A.status' => BNotice::STATUS_ACTIVE])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->groupBy(['A.user_id'])
@@ -196,17 +196,51 @@ class VoteController extends BaseController
             $find->endTime($end_time, 'A.create_time');
         }
         $count = $find->count();
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         if ($page != 0) {
             $find->page($page);
         }
         $data = $find->asArray()->all();
-        foreach ($data as &$v) {
+        foreach ($data as $k => &$v) {
+            $v['order'] = ($page-1)*20 + $k +1;
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['type'] = BVote::getType($type);
         }
         $return = [];
         $return['count'] = $count;
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
+    }
+    //投票排名下载
+    public function actionVoteOrderDownload()
+    {
+        $type = $this->pInt('type', 0);
+        $find = BVote::find()
+        ->from(BVote::tableName()." A")
+        ->select(['B.mobile','sum(A.vote_number) as num','A.create_time', 'A.type'])
+        ->where(['A.status' => BNotice::STATUS_ACTIVE])
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->groupBy(['A.user_id'])
+        ->orderBy('sum(A.vote_number) desc');
+        if ($type != 0) {
+            $find->andWhere(['A.type' =>$type]);
+        }
+        $end_time = $this->pString('end_time', '');
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+        $data = $find->asArray()->all();
+        foreach ($data as $key => &$v) {
+            $v['order'] = $key + 1;
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['type'] = BVote::getType($type);
+        }
+        $headers = ['order'=> '排名', 'mobile' => '账号', 'num' => '票数', 'type' => '方式'];
+
+        $down = $this->download($data, $headers, '投票排名'.date('YmdHis'));
+        if (!$down) {
+            return $this->respondJson(1, "验证失败");
+        }
+        return;
     }
 }

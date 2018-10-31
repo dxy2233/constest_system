@@ -78,6 +78,56 @@ class NodeService extends ServiceBase
         
         return $data;
     }
+
+    public static function getIndexList(int $page = 0, string $searchName = '', string $str_time = '', string $end_time = '', int $type = 0, int $status = 0, $order = '')
+    {
+        $find = BNode::find()
+        ->from(BNode::tableName()." A")
+        ->join('left join', 'gr_user B', 'A.user_id = B.id')
+        ->join('left join', 'gr_vote C', 'A.id = C.node_id && C.status = '.BNotice::STATUS_ACTIVE)
+        ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
+        ->groupBy(['A.id'])
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name', 'D.id as type_id']);
+        // ->orderBy('sum(C.vote_number) desc');
+        
+        
+        if ($searchName != '') {
+            $find->andWhere(['or',['like','A.name',$searchName],['like','B.mobile',$searchName]]);
+        }
+        
+        if ($str_time != '') {
+            $find->startTime($str_time, 'A.create_time');
+        }
+        
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+
+        if ($type != '') {
+            $find->andWhere(['A.type_id' => $type]);
+        }
+
+        if ($status != '') {
+            $find->andWhere(['A.status' => $status]);
+        }
+        $count = $find->count();
+        
+        if ($order != '') {
+            $find->orderBy($order);
+        }
+        //echo $find->createCommand()->getRawSql();
+        if ($page != 0) {
+            $find->page($page);
+        }
+        $data = $find->asArray()->all();
+        foreach ($data as &$v) {
+            if ($v['vote_number'] == null) {
+                $v['vote_number'] = '0';
+            }
+        }
+        
+        return array('list' => $data, 'count' => $count);
+    }
     
 
     /**

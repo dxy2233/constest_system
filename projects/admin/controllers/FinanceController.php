@@ -86,7 +86,7 @@ class FinanceController extends BaseController
         }
         $find->orderBy($order. ' desc');
 
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         if ($page != 0) {
             $find->page($page);
         }
@@ -156,6 +156,8 @@ class FinanceController extends BaseController
         return;
     }
     
+    
+
     // 币种列表
 
     public function actionGetCurrencyList()
@@ -172,7 +174,7 @@ class FinanceController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
         ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
-        ->select(['A.*','B.mobile','D.name']);
+        ->select(['A.amount', 'A.remark', 'A.create_time', 'A.status','B.mobile','D.name']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
             $find->andWhere(['like','B.mobile',$searchName]);
@@ -192,7 +194,7 @@ class FinanceController extends BaseController
         }
         $find->orderBy('A.create_time DESC');
         $count = $find->count();
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         if ($page != 0) {
             $find->page($page);
         }
@@ -209,6 +211,50 @@ class FinanceController extends BaseController
         $return['count'] = $count;
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
+    }
+
+    // 锁仓记录下载
+    public function actionFrozenDownload()
+    {
+        $find = BUserCurrencyFrozen::find()
+       ->from(BUserCurrencyFrozen::tableName()." A")
+       ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+       ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
+       ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
+       ->select(['A.amount', 'A.remark', 'A.create_time','B.mobile','D.name']);
+        $searchName = $this->pString('searchName', '');
+        if ($searchName != '') {
+            $find->andWhere(['like','B.mobile',$searchName]);
+        }
+        $currency_id = $this->pInt('currency_id', 0);
+        if ($currency_id != 0) {
+            $find->andWhere(['A.currency_id' => $currency_id]);
+        }
+        $str_time = $this->pString('str_time', '');
+        $end_time = $this->pString('end_time', '');
+        if ($str_time != '') {
+            $find->startTime($str_time, 'A.create_time');
+        }
+       
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+        $find->orderBy('A.create_time DESC');
+        $data = $find->asArray()->all();
+        foreach ($data as &$v) {
+            if ($v['status'] == BUserCurrencyFrozen::STATUS_FROZEN) {
+                $v['amount'] = '-' . $v['amount'];
+            } else {
+                $v['amount'] = '+' . $v['amount'];
+            }
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+        }
+        $headers = ['mobile'=> '用户', 'name' => '币种', 'amount' => '数量', 'remark' => '描述', 'create_time' => '时间'];
+        $down = $this->download($data, $headers, '锁仓记录'.date('YmdHis'));
+        if (!$down) {
+            return $this->respondJson(1, "验证失败");
+        }
+        return;
     }
 
     // 财务流水
@@ -247,7 +293,7 @@ class FinanceController extends BaseController
         }
         $find->orderBy('A.create_time DESC');
         $count = $find->count();
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         if ($page != 0) {
             $find->page($page);
         }

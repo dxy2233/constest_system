@@ -59,7 +59,7 @@ class NodeController extends BaseController
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'A.create_time'];
@@ -67,13 +67,14 @@ class NodeController extends BaseController
         } else {
             $order = 'sum(C.vote_number) DESC,A.create_time ASC';
         }
-        $data = NodeService::getList($page, $searchName, $str_time, $end_time, $type, 0, $order);
+        $data = NodeService::getIndexList($page, $searchName, $str_time, $end_time, $type, 0, $order);
         $id_arr = [];
-        foreach ($data as $v) {
+        foreach ($data['list'] as $k => &$v) {
+            $v['order'] = ($page-1)*20 + $k +1;
             $id_arr[] = $v['id'];
         }
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
-        foreach ($data as &$v) {
+        foreach ($data['list'] as &$v) {
             if (isset($people[$v['id']])) {
                 $v['count'] = $people[$v['id']];
             } else {
@@ -132,7 +133,7 @@ class NodeController extends BaseController
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'A.create_time'];
@@ -296,7 +297,7 @@ class NodeController extends BaseController
         $data = BNodeType::find()->asArray()->all();
         return $this->respondJson(0, '获取成功', $data);
     }
-
+//历史排名
     public function actionGetHistoryOrder()
     {
         $type = $this->pInt('type');
@@ -307,22 +308,58 @@ class NodeController extends BaseController
         if ($endTime == '') {
             $endTime = date('Y-m-d H:i:s');
         }
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('vote_number DESC,create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }
         $find = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type]);
+        $count = $find->count();
         if ($page != 0) {
             $find->page($page);
         }
         $find->orderBy('vote_number DESC');
         $data = $find->asArray()->all();
-        foreach ($data as &$v) {
+        foreach ($data as $k => &$v) {
+            $v['order'] = ($page-1)*20 + $k +1;
             $v['count'] = $v['people_number'];
             $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
         }
-        return $this->respondJson(0, '获取成功', $data);
+        $return = [];
+        $return['count'] = $count;
+        $return['list'] = $data;
+        return $this->respondJson(0, "获取成功", $return);
+    }
+    // 历史排名下载
+    public function actionHistoryDownload()
+    {
+        $type = $this->pInt('type');
+        if (empty($type)) {
+            return $this->respondJson(1, '节点类型不能为空');
+        }
+        $endTime = $this->pString('endTime', '');
+        if ($endTime == '') {
+            $endTime = date('Y-m-d H:i:s');
+        }
+        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('vote_number DESC,create_time DESC')->one();
+        if (empty($history)) {
+            return $this->respondJson(0, '获取成功', []);
+        }
+        $find = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type]);
+        $find->orderBy('vote_number DESC');
+        $data = $find->asArray()->all();
+        foreach ($data as $k => &$v) {
+            $v['order'] = $k +1;
+            $v['count'] = $v['people_number'];
+            $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
+        }
+        $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
+
+        $down = $this->download($data, $headers, '历史排名'.date('YmdHis'));
+        if (!$down) {
+            return $this->respondJson(1, "验证失败");
+        }
+        return;
     }
     // 获取节点设置
     public function actionGetNodeSetting()

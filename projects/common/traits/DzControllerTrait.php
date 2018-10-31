@@ -24,6 +24,9 @@ trait DzControllerTrait
             return false;
         }
         $code = FuncHelper::authCode($return);
+        if ($code == '') {
+            return false;
+        }
         $user_id = AdminUser::findIdentityByAccessToken($code);
         if (!$user_id) {
             return false;

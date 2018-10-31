@@ -4,13 +4,14 @@
     <el-button class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
     <!-- <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button> -->
     <el-button class="btn-right" style="margin-right:10px;">
-      <a :href="downUrl">导出excel</a>
+      <!-- <a :href="downUrl">导出excel</a> -->
+      <a @click="downExcel">导出excel</a>
     </el-button>
     <!-- <input type="file" ref="file" name="" value="">
     <button @click="cc">text</button> -->
     <br>
 
-    <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchRun">
+    <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @change="searchRun">
       <el-button slot="append" icon="el-icon-search" @click.native="searchRun"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
@@ -230,8 +231,8 @@
 <script>
 import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
   getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser } from '@/api/admin'
+import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
-import { parseTime } from '@/utils'
 
 export default {
   name: 'UserManagement',
@@ -281,20 +282,6 @@ export default {
       dialogEditUser: false
     }
   },
-  computed: {
-    downUrl() {
-      var str
-      var end
-      if (this.searchDate) {
-        str = this.searchDate[0]
-        end = this.searchDate[1]
-      } else {
-        str = ''
-        end = ''
-      }
-      return `/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
-    }
-  },
   created() {
     getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
       this.tableData = res.content.list
@@ -328,7 +315,6 @@ export default {
       getUserList(this.search, this.searchDate[0], this.searchDate[1], 1).then(res => {
         this.tableData = res.content.list
         this.total = parseInt(res.content.count)
-        this.currentPage = 1
       })
     },
     // 表格选择
@@ -472,29 +458,48 @@ export default {
       })
       this.changeTabs({ name: 'Wallet' })
     },
-    // 导出excel
-    addExcel() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['用户', '类型', '拥有节点', '已投票数', '推荐人', '状态', '注册时间', '最近一次登录时间']
-        const filterVal = ['mobile', 'userType', 'nodeName', 'num', 'referee', 'status', 'createTime', 'lastLoginTime']
-        const list = this.tableData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '用户管理'
-        })
+    // 下载excel
+    downExcel() {
+      if (this.searchDate) {
+        var str = this.searchDate[0]
+        var end = this.searchDate[1]
+      } else {
+        str = ''
+        end = ''
+      }
+      getVerifiCode().then(res => {
+        var url = `/user/download?download_code=${res.content}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
       })
-    },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
-        } else {
-          return v[j]
-        }
-      }))
     }
+    // 导出excel
+    // addExcel() {
+    //   import('@/vendor/Export2Excel').then(excel => {
+    //     const tHeader = ['用户', '类型', '拥有节点', '已投票数', '推荐人', '状态', '注册时间', '最近一次登录时间']
+    //     const filterVal = ['mobile', 'userType', 'nodeName', 'num', 'referee', 'status', 'createTime', 'lastLoginTime']
+    //     const list = this.tableData
+    //     const data = this.formatJson(filterVal, list)
+    //     excel.export_json_to_excel({
+    //       header: tHeader,
+    //       data,
+    //       filename: '用户管理'
+    //     })
+    //   })
+    // },
+    // formatJson(filterVal, jsonData) {
+    //   return jsonData.map(v => filterVal.map(j => {
+    //     if (j === 'timestamp') {
+    //       return parseTime(v[j])
+    //     } else {
+    //       return v[j]
+    //     }
+    //   }))
+    // }
   }
 }
 </script>

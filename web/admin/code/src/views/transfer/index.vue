@@ -8,13 +8,13 @@
     <el-button class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
     <br>
 
-    <el-input v-model="search" clearable placeholder="流水号/手机号" style="width:200px;" @keyup.enter.native="searchData">
+    <el-input v-model="search" clearable placeholder="流水号/手机号" style="width:200px;" @change="searchData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchData"/>
     </el-input>
     <!-- <el-button style="float:right;" @click="searchData">查询</el-button> -->
     <el-date-picker
       v-model="date"
-      type="datetimerange"
+      type="daterange"
       range-separator="至"
       start-placeholder="开始日期"
       end-placeholder="结束日期"
@@ -36,7 +36,7 @@
     <el-button v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
 
     <el-table
-      :data="tableDataPage"
+      :data="tableData"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
       @row-click="clickRow">
@@ -57,9 +57,10 @@
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="pageSize"
-      layout="total, prev, pager, next, jumper"/>
+      layout="total, prev, pager, next, jumper"
+      @current-change="changePage"/>
 
     <transition name="fade">
       <div v-show="showInfo" class="fade-slide">
@@ -124,7 +125,6 @@
 import { getList, editSet, passTrial, failTrial, getSetValue, walletInfo } from '@/api/transfer'
 import { getMoneyType } from '@/api/assets'
 import { Message } from 'element-ui'
-import { pagination } from '@/utils'
 
 export default {
   name: 'Transfer',
@@ -134,6 +134,7 @@ export default {
       search: '',
       date: '',
       tableData: [],
+      total: 1,
       tableDataSelection: [],
       currentPage: 1,
       pageSize: 20,
@@ -170,12 +171,6 @@ export default {
     }
   },
   computed: {
-    total() {
-      return this.tableData.length
-    },
-    tableDataPage() {
-      return pagination(this.tableData, this.currentPage, this.pageSize)
-    },
     checkTypetoNum() {
       if (this.checkType === '待审核') {
         return 0
@@ -187,19 +182,30 @@ export default {
     }
   },
   created() {
-    getList(this.checkTypetoNum).then(res => {
-      this.tableData = res.content.list
-    })
     getMoneyType().then(res => {
       this.allMoneyType = res.content
     })
+    getList(this.checkTypetoNum, this.moneyType, this.search, 1, this.date[0], this.date[1]).then(res => {
+      this.tableData = res.content.list
+      this.total = res.content.count
+    })
   },
   methods: {
+    // 分页
+    changePage(page) {
+      getList(this.checkTypetoNum, this.moneyType, this.search, page, this.date[0], this.date[1]).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
+      })
+    },
     // 切换审核数据类型
     changeCheckType() {
       this.showInfo = false
-      getList(this.checkTypetoNum).then(res => {
+      this.search = ''
+      this.currentPage = 1
+      getList(this.checkTypetoNum, this.moneyType, this.search, 1, this.date[0], this.date[1]).then(res => {
         this.tableData = res.content.list
+        this.total = res.content.count
       })
     },
     // 选择table
@@ -209,8 +215,10 @@ export default {
     // 搜索
     searchData() {
       if (this.date === null) this.date = ''
-      getList(this.checkTypetoNum, this.moneyType, this.search, null, this.date[0], this.date[1]).then(res => {
+      this.currentPage = 1
+      getList(this.checkTypetoNum, this.moneyType, this.search, 1, this.date[0], this.date[1]).then(res => {
         this.tableData = res.content.list
+        this.total = res.content.count
       })
     },
     // 点击表格行
@@ -226,8 +234,9 @@ export default {
       passTrial(this.rowInfo.id).then(res => {
         this.showInfo = false
         Message({ message: res.msg, type: 'success' })
-        getList(this.checkTypetoNum).then(res => {
+        getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
           this.tableData = res.content.list
+          this.total = res.content.count
         })
       })
     },
@@ -246,8 +255,9 @@ export default {
         passTrial(allId.replace(',', '')).then(res => {
           this.showInfo = false
           Message({ message: res.msg, type: 'success' })
-          getList(this.checkTypetoNum).then(res => {
+          getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
             this.tableData = res.content.list
+            this.total = res.content.count
           })
         })
       })
@@ -263,8 +273,9 @@ export default {
         failTrial(this.rowInfo.id, value).then(res => {
           this.showInfo = false
           Message({ message: res.msg, type: 'success' })
-          getList(this.checkTypetoNum).then(res => {
+          getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
             this.tableData = res.content.list
+            this.total = res.content.count
           })
         })
       })

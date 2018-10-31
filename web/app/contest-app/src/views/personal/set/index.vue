@@ -8,10 +8,20 @@
         设置
       </app-header>
       <div class="h-main">
-        <group>
+        <!--<group>
           <cell title="当前账号" :value="hidMobile(loginMsg?loginMsg.mobile:'')"></cell>
           <cell title="关于" is-link link="/personal/set/about"></cell>
-        </group>
+        </group>-->
+        <ul class="link-list">
+          <li>
+            <span class="text">当前账号</span>
+            <span class="right-text">{{hidMobile(loginMsg?loginMsg.mobile:'')}}</span>
+          </li>
+          <router-link tag="li" to="/personal/set/about">
+            <span class="text">关于</span>
+            <x-icon type="ios-arrow-right"></x-icon>
+          </router-link>
+        </ul>
 
         <div class="btn-box">
           <x-button type="warn" class="login-out" @click.native="loginOut" :show-loading="btnLoading">退出登录</x-button>
@@ -83,4 +93,8 @@
       left $space-box
       right $space-box
       bottom 50px
+    .link-list
+      margin-top 0
+      .right-text
+        color $color-text-minor
 </style>

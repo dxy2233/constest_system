@@ -3698,7 +3698,7 @@ input.weui-btn_plain-default {
   -webkit-justify-content: space-around;
           justify-content: space-around;
   background-color: #fbfbfb;
-  border-top: 1px solid #dbdbdb;
+  border-top: 1px solid #e5e7e9;
   box-sizing: border-box;
   height: 50px;
   -webkit-box-align: center;
@@ -6004,6 +6004,9 @@ ins,
 a {
   text-decoration: none;
 }
+html {
+  touch-action: manipulation;
+}
 body,
 html {
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE\8F6F\96C5\9ED1", Arial, sans-serif;
@@ -6180,4 +6183,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=f42855c6401bdc48ebf5950ca3f23eba*/
+/*# sourceMappingURL=app.css.map?v=62a98ac9cc94d7e8f80bc9653acf9e75*/

@@ -637,7 +637,7 @@ class UserController extends BaseController
             } else {
                 $is_give = 0;
             }
-            $return = ['voucher_num' => $voucher_num, 'is_give' => $is_give, 'gdt' => $gdt];
+            $return = ['voucher_num' => $voucher_num, 'is_give' => $is_give, 'gdt' => $gdt, 'type_name' => $node_type->name];
             return $this->respondJson(0, '获取成功', $return);
         }
     }

@@ -73,19 +73,12 @@ class FinanceController extends BaseController
 
         $order = $this->pString('order');
         if ($order != '') {
-            if ($order == 1) {
-                $order = 'A.currency_id';
-            } elseif ($order == 2) {
-                $order = 'A.position_amount';
-            } elseif ($order == 3) {
-                $order = 'A.frozen_amount';
-            } else {
-                $order = 'A.use_amount';
-            }
+            $order_arr = [1 => 'A.currency_id', 2 => 'A.position_amount', 3 => 'A.frozen_amount', 4 => 'A.use_amount', 5 => 'A.currency_id desc', 6 => 'A.position_amount desc', 7 => 'A.frozen_amount desc', 8 => 'A.use_amount desc'];
+            $order = $order_arr[$order];
         } else {
-            $order = "A.position_amount";
+            $order = 'A.position_amount desc';
         }
-        $find->orderBy($order. ' desc');
+        $find->orderBy($order);
 
         $page = $this->pInt('page', 1);
         if ($page != 0) {
@@ -133,19 +126,12 @@ class FinanceController extends BaseController
 
         $order = $this->gString('order');
         if ($order != '') {
-            if ($order == 1) {
-                $order = 'A.currency_id';
-            } elseif ($order == 2) {
-                $order = 'A.position_amount';
-            } elseif ($order == 3) {
-                $order = 'A.frozen_amount';
-            } else {
-                $order = 'A.use_amount';
-            }
+            $order_arr = [1 => 'A.currency_id', 2 => 'A.position_amount', 3 => 'A.frozen_amount', 4 => 'A.use_amount', 5 => 'A.currency_id desc', 6 => 'A.position_amount desc', 7 => 'A.frozen_amount desc', 8 => 'A.use_amount desc'];
+            $order = $order_arr[$order];
         } else {
-            $order = "A.position_amount";
+            $order = 'A.position_amount desc';
         }
-        $find->orderBy($order. ' desc');
+        $find->orderBy($order);
 
         $data = $find->asArray()->all();
 

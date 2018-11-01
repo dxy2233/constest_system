@@ -63,7 +63,7 @@ class NodeController extends BaseController
         $page = $this->pInt('page', 1);
         $order = $this->pString('order');
         if ($order != '') {
-            $order_arr = [1 => 'A.create_time'];
+            $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
             $order = $order_arr[$order];
         } else {
             $order = 'sum(C.vote_number) DESC,A.create_time ASC';
@@ -96,7 +96,7 @@ class NodeController extends BaseController
         $end_time = $this->gString('end_time', '');
         $order = $this->gString('order');
         if ($order != '') {
-            $order_arr = [1 => 'A.create_time'];
+            $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
             $order = $order_arr[$order];
         } else {
             $order = 'sum(C.vote_number) DESC,A.create_time ASC';
@@ -140,7 +140,7 @@ class NodeController extends BaseController
         $page = $this->pInt('page', 1);
         $order = $this->pString('order');
         if ($order != '') {
-            $order_arr = [1 => 'A.create_time'];
+            $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
             $order = $order_arr[$order];
         } else {
             $order = 'A.create_time';

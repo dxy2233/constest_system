@@ -75,12 +75,12 @@ class UserController extends BaseController
         
         $order = $this->pString('order');
         if ($order != '') {
-            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
+            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time', 4 => 'sum(B.vote_number) desc', 5 => 'A.create_time desc', 6 => 'A.last_login_time desc'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'A.create_time desc';
         }
-        $find->orderBy($order . ' DESC');
+        $find->orderBy($order);
         $count = $find->count();
         $is_download = $this->pInt('is_download', 0);
         if ($page != 0 && $is_download == 0) {
@@ -158,12 +158,12 @@ class UserController extends BaseController
         
         $order = $this->gString('order');
         if ($order != '') {
-            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
+            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time', 4 => 'sum(B.vote_number) desc', 5 => 'A.create_time desc', 6 => 'A.last_login_time desc'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'A.create_time desc';
         }
-        $find->orderBy($order . ' DESC');
+        $find->orderBy($order);
 
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();

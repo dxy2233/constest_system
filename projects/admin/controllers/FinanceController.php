@@ -222,7 +222,7 @@ class FinanceController extends BaseController
        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
        ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
-       ->select(['A.amount', 'A.remark', 'A.create_time','B.mobile','D.name']);
+       ->select(['A.amount', 'A.remark', 'A.create_time', 'A.status','B.mobile','D.name']);
         $searchName = $this->gString('searchName', '');
         if ($searchName != '') {
             $find->andWhere(['like','B.mobile',$searchName]);

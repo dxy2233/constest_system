@@ -59,15 +59,6 @@ class IndexController extends \common\dzbase\DzController
     }
     public function actionSql()
     {
-        // INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES
-        // (29,	'vote',	'倒计时显示功能开关',	'count_down_is_open',	'1',	'1',	'radio',	'',	'开关',	1,	4,	0,	0);
-        // UPDATE `gr_setting` SET `sort` = '5' WHERE `id` = '10';
-        // UPDATE `gr_setting` SET `sort` = '6' WHERE `id` = '11';
-        // UPDATE `gr_setting` SET `sort` = '7' WHERE `id` = '13';
-        // UPDATE `gr_setting` SET `sort` = '8' WHERE `id` = '24';
-        // ALTER TABLE `gr_voucher` ADD `give_user_id` int(11) NOT NULL COMMENT '赠送人ID(被推荐人)' AFTER `user_id`;
-        // ALTER TABLE `gr_voucher` ADD `type` int(11) NOT NULL COMMENT '派发类型' AFTER `voucher_num`;
-        // ALTER TABLE `gr_voucher` ADD `remark` varchar(256) COLLATE 'utf8_general_ci' NOT NULL COMMENT '备注' AFTER `type`;
         return $this->respondJson(0, '获取成功');
     }
     public function actionText()

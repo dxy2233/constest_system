@@ -146,9 +146,10 @@ class NodeController extends BaseController
         } else {
             $order = 'A.create_time';
         }
-        $data = NodeService::getList($page, $searchName, $str_time, $end_time, 0, $status, $order);
+        $data = NodeService::getIndexList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
-        foreach ($data as $v) {
+        $return['count'] = $data['count'];
+        foreach ($data['list'] as $v) {
             $item = [];
             $item['id'] = $v['id'];
             $item['mobile'] = $v['mobile'];
@@ -160,8 +161,9 @@ class NodeController extends BaseController
             $item['status'] = BNode::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
-            $return[] = $item;
+            $return['list'][] = $item;
         }
+
         return $this->respondJson(0, '获取成功', $return);
     }
     // 审核通过
@@ -314,7 +316,7 @@ class NodeController extends BaseController
             $endTime = date('Y-m-d H:i:s');
         }
         $page = $this->pInt('page', 1);
-        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('vote_number DESC,create_time DESC')->one();
+        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }
@@ -323,7 +325,7 @@ class NodeController extends BaseController
         if ($page != 0) {
             $find->page($page);
         }
-        $find->orderBy('vote_number DESC');
+        $find->orderBy('vote_number DESC,create_time');
         $data = $find->asArray()->all();
         foreach ($data as $k => &$v) {
             $v['order'] = ($page-1)*20 + $k +1;

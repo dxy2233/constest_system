@@ -115,7 +115,7 @@ class NodeService extends ServiceBase
         if ($order != '') {
             $find->orderBy($order);
         }
-        //echo $find->createCommand()->getRawSql();
+
         if ($page != 0) {
             $find->page($page);
         }

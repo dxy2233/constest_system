@@ -2,13 +2,7 @@
   <div class="app-container" @click.self="showUserInfo=false">
     <h4 style="display:inline-block;">用户管理</h4>
     <el-button class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
-    <!-- <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button> -->
-    <el-button class="btn-right" style="margin-right:10px;">
-      <!-- <a :href="downUrl">导出excel</a> -->
-      <a @click="downExcel">导出excel</a>
-    </el-button>
-    <!-- <input type="file" ref="file" name="" value="">
-    <button @click="cc">text</button> -->
+    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @change="searchRun">
@@ -36,23 +30,24 @@
       :data="tableData"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
-      @row-click="clickRow">
+      @row-click="clickRow"
+      @sort-change="sortChange">
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="userType" label="类型"/>
       <el-table-column prop="nodeName" label="拥有节点"/>
-      <el-table-column prop="num" label="已投票数"/>
+      <el-table-column prop="num" label="已投票数" sortable="custom"/>
       <el-table-column prop="referee" label="推荐人"/>
       <el-table-column prop="status" label="状态"/>
-      <el-table-column prop="createTime" label="注册时间"/>
-      <el-table-column prop="lastLoginTime" label="最近一次登录时间"/>
+      <el-table-column prop="createTime" label="注册时间" sortable="custom"/>
+      <el-table-column prop="lastLoginTime" label="最近一次登录时间" sortable="custom"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showUserInfo" class="fade-slide">
@@ -253,6 +248,7 @@ export default {
       tableDataSelection: [],
       currentPage: 1,
       total: 1,
+      order: null,
       edidWallet: '',
       showUserInfo: false,
       rowInfo: [], // 表格选中的信息
@@ -283,10 +279,7 @@ export default {
     }
   },
   created() {
-    getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-      this.tableData = res.content.list
-      this.total = parseInt(res.content.count)
-    })
+    this.init()
   },
   methods: {
     // cc() {
@@ -310,12 +303,16 @@ export default {
     //     // }
     //   })
     // },
+    init() {
+      getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage, this.order).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
+      })
+    },
     searchRun() {
       if (this.searchDate === null) this.searchDate = ''
-      getUserList(this.search, this.searchDate[0], this.searchDate[1], 1).then(res => {
-        this.tableData = res.content.list
-        this.total = parseInt(res.content.count)
-      })
+      this.currentPage = 1
+      this.init()
     },
     // 表格选择
     handleSelectionChange(val) {
@@ -331,12 +328,17 @@ export default {
         this.changeTabs({ name: this.activeName })
       }
     },
-    // 变页面
-    changePage(page) {
-      getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-        this.tableData = res.content.list
-        this.total = parseInt(res.content.count)
-      })
+    // 排序
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'num' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'num' && val.order === 'descending') this.order = 4
+      else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 2
+      else if (val.prop === 'createTime' && val.order === 'descending') this.order = 5
+      else if (val.prop === 'lastLoginTime' && val.order === 'ascending') this.order = 3
+      else if (val.prop === 'lastLoginTime' && val.order === 'descending') this.order = 6
+      this.init()
     },
     // 选项卡切换
     changeTabs(val) {
@@ -410,11 +412,7 @@ export default {
         })
         freezeUser(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-        }).then(res => {
-          getUserList().then(res => {
-            this.tableData = res.content.list
-            this.total = parseInt(res.content.count)
-          })
+          this.init()
         })
       })
     },
@@ -435,10 +433,7 @@ export default {
           addUser(this.addData.addUserName, this.addData.addUserCode).then(res => {
             Message({ message: res.msg, type: 'success' })
             this.dialogAddUser = false
-            getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-              this.tableData = res.content.list
-              this.total = parseInt(res.content.count)
-            })
+            this.init()
           })
         } else {
           console.log('error submit!!')
@@ -451,10 +446,7 @@ export default {
       this.dialogEditUser = false
       editUser(this.rowInfo.id, this.rowInfo.mobile, this.rowInfo.code).then(res => {
         Message({ message: res.msg, type: 'success' })
-        getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-          this.tableData = res.content.list
-          this.total = parseInt(res.content.count)
-        })
+        this.init()
       })
       this.changeTabs({ name: 'Wallet' })
     },
@@ -471,6 +463,7 @@ export default {
         var url = `/user/download?download_code=${res.content}&searchName=${this.search}&str_time=${str}&end_time=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()

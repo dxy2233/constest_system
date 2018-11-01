@@ -1,6 +1,6 @@
 <template>
   <div class="app-container" @click.self="showNoticeInfo=false">
-    <el-radio-group v-model="noticeType" class="radioTabs" @change="changeNoticeType">
+    <el-radio-group v-model="noticeType" class="radioTabs" @change="showNoticeInfo=false;init()">
       <el-radio-button label="已上架"/>
       <el-radio-button label="下架中"/>
       <el-radio-button label="全部"/>
@@ -43,7 +43,7 @@
       :total="parseInt(total)"
       :page-size="pageSize"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showNoticeInfo" class="fade-slide">
@@ -258,23 +258,11 @@ export default {
     }
   },
   created() {
-    getNoticeList(this.noticeTypetoNum).then(res => {
-      this.tableData = res.content.list
-      this.total = res.content.count
-    })
+    this.init()
   },
   methods: {
-    // 分页
-    changePage(page) {
-      getNoticeList(this.noticeTypetoNum, page).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
-    },
-    // 切换公告类型
-    changeNoticeType(val) {
-      this.showNoticeInfo = false
-      getNoticeList(this.noticeTypetoNum).then(res => {
+    init() {
+      getNoticeList(this.noticeTypetoNum, this.currentPage).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
@@ -308,11 +296,8 @@ export default {
       }).then(() => {
         deleteNotice(this.rowInfo.id).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getNoticeList(this.noticeTypetoNum, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-            this.showNoticeInfo = false
-          })
+          this.init()
+          this.showNoticeInfo = false
         })
       })
     },
@@ -329,10 +314,7 @@ export default {
         })
         deleteNotice(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getNoticeList(this.noticeTypetoNum, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     },
@@ -345,19 +327,13 @@ export default {
     ifShelf(type) {
       if (type) {
         onShelf(this.rowInfo.id).then(res => {
-          getNoticeList(this.noticeTypetoNum, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
           this.rowInfo.status = 1
           Message({ message: res.msg, type: 'success' })
         })
       } else {
         offShelf(this.rowInfo.id).then(res => {
-          getNoticeList(this.noticeTypetoNum, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
           this.rowInfo.status = 0
           Message({ message: res.msg, type: 'success' })
         })
@@ -416,10 +392,7 @@ export default {
           addNotice(this.releaseData).then(res => {
             Message({ message: res.msg, type: 'success' })
             this.dialogRelease = false
-            getNoticeList(this.noticeTypetoNum, this.currentPage).then(res => {
-              this.tableData = res.content.list
-              this.total = res.content.count
-            })
+            this.init()
           })
         } else {
           console.log('error submit!!')

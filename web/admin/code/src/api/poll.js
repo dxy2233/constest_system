@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
-// 上传
-export function getVoteList(searchName, page, str_time, end_time) {
+// 获取投票列表
+export function getVoteList(searchName, page, str_time, end_time, order) {
   return request({
     url: '/vote/index',
     method: 'post',
@@ -9,7 +9,8 @@ export function getVoteList(searchName, page, str_time, end_time) {
       searchName,
       page,
       str_time,
-      end_time
+      end_time,
+      order
     }
   })
 }

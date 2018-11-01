@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">资产管理</h4>
-    <el-button class="btn-right" type="primary" @click="openLock">锁仓记录</el-button>
+    <el-button class="btn-right" type="primary" @click="dialogLock=true;initLock()">锁仓记录</el-button>
     <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
@@ -30,22 +30,22 @@
     </div>
     <br>
 
-    <el-table :data="tableData" style="margin:10px 0;">
+    <el-table :data="tableData" style="margin:10px 0;" @sort-change="sortChange">
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="name" label="币种"/>
-      <el-table-column prop="positionAmount" label="总额"/>
-      <el-table-column prop="useAmount" label="可用"/>
-      <el-table-column prop="frozenAmount" label="锁仓"/>
+      <el-table-column prop="name" label="币种" sortable="custom"/>
+      <el-table-column prop="positionAmount" label="总额" sortable="custom"/>
+      <el-table-column prop="useAmount" label="可用" sortable="custom"/>
+      <el-table-column prop="frozenAmount" label="锁仓" sortable="custom"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
       :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
-    <el-dialog :visible.sync="dialogLock" title="锁仓记录">
-      <el-input v-model="searchLockData" clearable placeholder="用户" style="width:150px;" @keyup.enter.native="searchLock">
+    <el-dialog :visible.sync="dialogLock" title="锁仓记录" @closed="lockCurrentPage=1;lockDate='';searchLockData='';lockMoneyType=''">
+      <el-input v-model="searchLockData" clearable placeholder="用户" style="width:150px;" @change="searchLock">
         <el-button slot="append" icon="el-icon-search" @click.native="searchLock"/>
       </el-input>
       <el-select v-model="lockMoneyType" clearable placeholder="币种" style="width:100px;" @change="searchLock">
@@ -81,7 +81,7 @@
         :total="parseInt(lockTotal)"
         :page-size="20"
         layout="total, prev, pager, next, jumper"
-        @current-change="changeLockPage"/>
+        @current-change="initLock"/>
     </el-dialog>
   </div>
 </template>
@@ -107,6 +107,7 @@ export default {
       tableData: [],
       total: 1,
       currentPage: 1,
+      order: null,
       dialogLock: false,
       searchLockData: '',
       lockMoneyType: '',
@@ -119,38 +120,37 @@ export default {
   created() {
     getMoneyType().then(res => {
       this.allMoneyType = res.content
-    })
-    getFinanceList(this.search, this.moneyType, this.amount, this.min, this.max, null, 1).then(res => {
-      this.tableData = res.content.list
-      this.total = res.content.count
+      this.init()
     })
   },
   methods: {
-    // 变页数
-    changePage(page) {
-      getFinanceList(this.search, this.moneyType, this.amount, this.min, this.max, null, page).then(res => {
+    init() {
+      getFinanceList(this.search, this.moneyType, this.amount, this.min, this.max, this.order, this.currentPage).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
+    },
+    // 排序
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'name' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'name' && val.order === 'descending') this.order = 5
+      else if (val.prop === 'positionAmount' && val.order === 'ascending') this.order = 2
+      else if (val.prop === 'positionAmount' && val.order === 'descending') this.order = 6
+      else if (val.prop === 'useAmount' && val.order === 'ascending') this.order = 3
+      else if (val.prop === 'useAmount' && val.order === 'descending') this.order = 7
+      else if (val.prop === 'frozenAmount' && val.order === 'descending') this.order = 4
+      else if (val.prop === 'frozenAmount' && val.order === 'descending') this.order = 8
+      this.init()
     },
     // 主表格搜索
     searchTableData() {
       this.currentPage = 1
-      getFinanceList(this.search, this.moneyType, this.amount, this.min, this.max, null, 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
-    // 打开锁仓记录
-    openLock() {
-      getLockList(null, null, null, null, 1).then(res => {
-        this.lockTableData = res.content.list
-        this.lockTotal = res.content.count
-        this.dialogLock = true
-      })
-    },
-    changeLockPage(page) {
-      getLockList(this.searchLockData, this.lockMoneyType, this.lockDate[0], this.lockDate[1], page).then(res => {
+    initLock() {
+      getLockList(this.searchLockData, this.lockMoneyType, this.lockDate[0], this.lockDate[1], this.lockCurrentPage).then(res => {
         this.lockTableData = res.content.list
         this.lockTotal = res.content.count
       })
@@ -159,10 +159,7 @@ export default {
     searchLock() {
       if (this.lockDate === null) this.lockDate = ''
       this.lockCurrentPage = 1
-      getLockList(this.searchLockData, this.lockMoneyType, this.lockDate[0], this.lockDate[1], 1).then(res => {
-        this.lockTableData = res.content.list
-        this.lockTotal = res.content.count
-      })
+      this.initLock()
     },
     // 下载excel
     downExcel() {
@@ -170,6 +167,7 @@ export default {
         var url = `/finance/download?download_code=${res.content}&searchName=${this.search}&currency_id=${this.moneyType}&type=${this.amount}&min=${this.min}&max=${this.max}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()
@@ -188,6 +186,7 @@ export default {
         var url = `/finance/frozen-download?download_code=${res.content}&searchName=${this.searchLockData}&currency_id=${this.lockMoneyType}&str_time=${str}&end_time=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()

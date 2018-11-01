@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">投票管理</h4>
-    <el-button class="btn-right" @click="openVoteRank">投票排名</el-button>
+    <el-button class="btn-right" @click="initRank();dialogRank=true">投票排名</el-button>
     <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openVoteSet">投票设置</el-button>
     <el-button class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
@@ -24,19 +24,19 @@
     </div>
     <br>
 
-    <el-table :data="tableData" style="margin:10px 0;">
+    <el-table :data="tableData" style="margin:10px 0;" @sort-change="sortChange">
       <el-table-column prop="mobile" label="投票用户"/>
       <el-table-column prop="name" label="投票节点"/>
-      <el-table-column prop="voteNumber" label="投出票数"/>
-      <el-table-column prop="type" label="投票方式"/>
-      <el-table-column prop="createTime" label="投票时间"/>
+      <el-table-column prop="voteNumber" label="投出票数" sortable="custom"/>
+      <el-table-column prop="type" label="投票方式" sortable="custom"/>
+      <el-table-column prop="createTime" label="投票时间" sortable="custom"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
       :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <el-dialog :visible.sync="dialogSet" title="投票设置" class="dialog-set">
       <div v-for="(item,index) in dialogSetData" :key="index">
@@ -76,8 +76,8 @@
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogRank" title="投票排名">
-      <el-select v-model="dialogRankType" @change="changeRankType">
+    <el-dialog :visible.sync="dialogRank" title="投票排名" @closed="rankCurrentPage=1;dialogRankType=0;dialogRankDate=''">
+      <el-select v-model="dialogRankType" @change="rankCurrentPage=1;initRank()">
         <el-option
           v-for="(item,index) in dialogRankAllType"
           :key="index"
@@ -93,7 +93,7 @@
           placeholder="选择日期时间"
           format="yyyy 年 MM 月 dd 日"
           value-format="yyyy-MM-dd"
-          @change="searchRank"/>
+          @change="rankCurrentPage=1;initRank()"/>
       </div>
       <el-table ref="multipleTable" :data="dialogRankData" style="margin:10px 0;">
         <el-table-column prop="order" label="排名"/>
@@ -110,7 +110,7 @@
         :total="parseInt(rankTotal)"
         :page-size="20"
         layout="total, prev, pager, next, jumper"
-        @current-change="changeRankPage"/>
+        @current-change="initRank"/>
     </el-dialog>
   </div>
 </template>
@@ -129,6 +129,7 @@ export default {
       tableData: [],
       total: 1,
       currentPage: 1,
+      order: null,
       dialogSet: false,
       dialogSetData: [],
       pushSetData: [],
@@ -149,26 +150,31 @@ export default {
     }
   },
   created() {
-    getVoteList(this.search, 1, this.searchDate[0], this.searchDate[1]).then(res => {
-      this.tableData = res.content.list
-      this.total = res.content.count
-    })
+    this.init()
   },
   methods: {
-    // 变页数
-    changePage(page) {
-      getVoteList(this.search, page, this.searchDate[0], this.searchDate[1]).then(res => {
+    init() {
+      getVoteList(this.search, this.currentPage, this.searchDate[0], this.searchDate[1], this.order).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
     },
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'voteNumber' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'voteNumber' && val.order === 'descending') this.order = 4
+      else if (val.prop === 'type' && val.order === 'ascending') this.order = 2
+      else if (val.prop === 'type' && val.order === 'descending') this.order = 5
+      else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 3
+      else if (val.prop === 'createTime' && val.order === 'descending') this.order = 6
+      this.init()
+    },
     // 主表格搜索
     searchTableData() {
       if (this.searchDate === null) this.searchDate = ''
-      getVoteList(this.search, 1, this.searchDate[0], this.searchDate[1]).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.currentPage = 1
+      this.init()
     },
     // 打开投票设置
     openVoteSet() {
@@ -208,31 +214,8 @@ export default {
         this.dialogSet = false
       })
     },
-    // 打开投票排名
-    openVoteRank() {
-      getVoteRank(null, this.dialogRankType, 1).then(res => {
-        this.dialogRankData = res.content.list
-        this.rankTotal = res.content.count
-        this.dialogRank = true
-      })
-    },
-    // 改变页数
-    changeRankPage(page) {
-      getVoteRank(this.dialogRankDate, this.dialogRankType, page).then(res => {
-        this.dialogRankData = res.content.list
-        this.rankTotal = res.content.count
-      })
-    },
-    // 切换投票类型
-    changeRankType(val) {
-      getVoteRank(this.dialogRankDate, val, 1).then(res => {
-        this.dialogRankData = res.content.list
-        this.rankTotal = res.content.count
-      })
-    },
-    // 排名搜索
-    searchRank() {
-      getVoteRank(this.dialogRankDate, this.dialogRankType, 1).then(res => {
+    initRank() {
+      getVoteRank(this.dialogRankDate, this.dialogRankType, this.rankCurrentPage).then(res => {
         this.dialogRankData = res.content.list
         this.rankTotal = res.content.count
       })
@@ -250,6 +233,7 @@ export default {
         var url = `/vote/download?download_code=${res.content}&searchName=${this.search}&str_time=${str}&end_time=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()
@@ -261,6 +245,7 @@ export default {
         var url = `/vote/vote-order-download?download_code=${res.content}&type=${this.dialogRankType}&end_time=${this.dialogRankDate}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()

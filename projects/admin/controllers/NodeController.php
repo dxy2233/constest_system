@@ -40,7 +40,8 @@ class NodeController extends BaseController
         
         $behaviors = [];
         $authActions = [
-            'download'
+            'download',
+            'history-download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -357,7 +358,7 @@ class NodeController extends BaseController
 
         $down = $this->download($data, $headers, '历史排名'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }

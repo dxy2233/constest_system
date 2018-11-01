@@ -25,7 +25,8 @@ class VoteController extends BaseController
         
         $behaviors = [];
         $authActions = [
-            'download'
+            'download',
+            'vote-order-download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {

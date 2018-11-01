@@ -24,7 +24,8 @@ class FinanceController extends BaseController
         $behaviors = [];
         $authActions = [
             'download',
-            'finance-download'
+            'finance-download',
+            'frozen-download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {

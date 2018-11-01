@@ -348,12 +348,12 @@ class NodeController extends BaseController
         if ($endTime == '') {
             $endTime = date('Y-m-d H:i:s');
         }
-        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('vote_number DESC,create_time DESC')->one();
+        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }
         $find = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type]);
-        $find->orderBy('vote_number DESC');
+        $find->orderBy('vote_number DESC,create_time');
         $data = $find->asArray()->all();
         foreach ($data as $k => &$v) {
             $v['order'] = $k +1;

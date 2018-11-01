@@ -68,7 +68,7 @@ class FinanceController extends BaseController
         if ($max != 0) {
             $find->andWhere(['<=', $field, $max]);
         }
-
+        //echo $find->createCommand()->getRawSql();
         $count = $find->count();
 
         $order = $this->pString('order');

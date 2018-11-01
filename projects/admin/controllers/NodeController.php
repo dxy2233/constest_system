@@ -119,9 +119,10 @@ class NodeController extends BaseController
             $v['key'] = $key+1;
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
             $v['status'] = BNode::getStatus($v['status']);
+            $v['is_tenure'] = $v['is_tenure'] == 1 ? '任职' : '候补';
         }
 
-        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'create_time' => '加入时间', 'status' => '状态'];
+        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态'];
         $down = $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
         if (!$down) {
             exit('验证失败');
@@ -348,12 +349,12 @@ class NodeController extends BaseController
         if ($endTime == '') {
             $endTime = date('Y-m-d H:i:s');
         }
-        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('vote_number DESC,create_time DESC')->one();
+        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
         if (empty($history)) {
             return $this->respondJson(0, '获取成功', []);
         }
         $find = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type]);
-        $find->orderBy('vote_number DESC');
+        $find->orderBy('vote_number DESC,create_time');
         $data = $find->asArray()->all();
         foreach ($data as $k => &$v) {
             $v['order'] = $k +1;

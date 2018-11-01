@@ -102,6 +102,7 @@ class VoteController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
+        $order = $this->pInt('order');
         if ($order != '') {
             $order_arr = [1 => 'A.vote_number', 2 => 'A.type', 3 => 'A.create_time', 4 => 'A.vote_number desc', 5 => 'A.type desc', 6 => 'A.create_time desc'];
             $order = $order_arr[$order];

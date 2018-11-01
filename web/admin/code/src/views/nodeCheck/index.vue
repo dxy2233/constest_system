@@ -5,7 +5,6 @@
       <el-radio-button label="已通过"/>
       <el-radio-button label="未通过"/>
     </el-radio-group>
-    <!-- <el-button class="btn-right" style="margin-left:10px;" @click="searchData">查询</el-button> -->
     <el-input v-model="search" clearable placeholder="节点名称/手机号" class="btn-right" style="width:210px;" @change="searchData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchData"/>
     </el-input>
@@ -19,7 +18,8 @@
       :data="tableData"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
-      @row-click="clickRow">
+      @row-click="clickRow"
+      @sort-change="sortChange">
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="name" label="节点名称"/>
       <el-table-column prop="typeName" label="节点类型"/>
@@ -28,15 +28,15 @@
       <el-table-column prop="bpt" label="质押BPT"/>
       <el-table-column prop="tt" label="质押TT"/>
       <el-table-column prop="status" label="状态"/>
-      <el-table-column prop="createTime" label="提交时间"/>
+      <el-table-column prop="createTime" label="提交时间" sortable="custom"/>
       <el-table-column v-if="noticeChecktoNum!=2" prop="examineTime" label="审核时间"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="pageSize"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showInfo" class="fade-slide">
@@ -75,6 +75,7 @@ export default {
       search: '',
       tableData: [],
       total: 1,
+      order: null,
       tableDataSelection: [],
       currentPage: 1,
       pageSize: 20,
@@ -95,28 +96,29 @@ export default {
     }
   },
   created() {
-    getCheckList(this.noticeChecktoNum, this.search, 1).then(res => {
-      this.tableData = res.content.list
-      this.total = res.content.count
-    })
+    this.init()
   },
   methods: {
-    // 分页
-    changePage(page) {
-      getCheckList(this.noticeChecktoNum, this.search, page).then(res => {
+    init() {
+      getCheckList(this.noticeChecktoNum, this.search, this.currentPage, this.order).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
+    },
+    // 排序
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'createTime' && val.order === 'descending') this.order = 2
+      this.init()
     },
     // 切换审核数据类型
     changeCheckType() {
       this.showInfo = false
       this.search = ''
       this.currentPage = 1
-      getCheckList(this.noticeChecktoNum, null, 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
     // 选择table
     handleSelectionChange(val) {
@@ -125,10 +127,7 @@ export default {
     // 搜索
     searchData() {
       this.currentPage = 1
-      getCheckList(this.noticeChecktoNum, this.search, 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
     // 点击表格行
     clickRow(row) {
@@ -143,10 +142,7 @@ export default {
       checkPass(this.rowInfo.id).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.showInfo = false
-        getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
-          this.tableData = res.content.list
-          this.total = res.content.count
-        })
+        this.init()
       })
     },
     // 批量通过审核
@@ -163,10 +159,7 @@ export default {
         })
         checkPass(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     },
@@ -181,10 +174,7 @@ export default {
         checkFail(this.rowInfo.id, value).then(res => {
           Message({ message: res.msg, type: 'success' })
           this.showInfo = false
-          getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     },
@@ -193,10 +183,7 @@ export default {
       deleteNote(this.rowInfo.id).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.showInfo = false
-        getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
-          this.tableData = res.content.list
-          this.total = res.content.count
-        })
+        this.init()
       })
     },
     // 批量删除记录
@@ -213,10 +200,7 @@ export default {
         })
         deleteNote(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getCheckList(this.noticeChecktoNum, this.search, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     }

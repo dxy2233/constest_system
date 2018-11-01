@@ -50,7 +50,7 @@
       :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
   </div>
 </template>
 
@@ -79,16 +79,12 @@ export default {
   created() {
     getMoneyType().then(res => {
       this.allMoneyType = res.content
-    })
-    getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1], 1).then(res => {
-      this.tableData = res.content.list
-      this.total = res.content.count
+      this.init()
     })
   },
   methods: {
-    // 变页数
-    changePage(page) {
-      getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1], page).then(res => {
+    init() {
+      getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1], this.currentPage).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
@@ -97,10 +93,7 @@ export default {
     searchTableData() {
       if (this.date === null) this.date = ''
       this.currentPage = 1
-      getRuningList(this.search, this.moneyType, this.dataType, this.date[0], this.date[1], 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
     // 下载excel
     downExcel() {
@@ -115,6 +108,7 @@ export default {
         var url = `/finance/finance-download?download_code=${res.content}&searchName=${this.search}&currency_id=${this.moneyType}&type=${this.dataType}&str_time=${str}&end_time=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()

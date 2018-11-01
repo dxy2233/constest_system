@@ -2,14 +2,15 @@ import request from '@/utils/request'
 
 // 节点审核列表
 // 1：已通过 2：未审核 4： 未通过
-export function getCheckList(status, searchName, page) {
+export function getCheckList(status, searchName, page, order) {
   return request({
     url: '/node/examine',
     method: 'post',
     data: {
       status,
       searchName,
-      page
+      page,
+      order
     }
   })
 }

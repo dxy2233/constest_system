@@ -6,7 +6,7 @@
       <el-radio-button v-for="(item,index) in allType" :key="index" :label="item.name"/>
     </el-radio-group>
     <el-button style="float:right;" @click="openNodeSet">节点设置</el-button>
-    <el-button style="float:right;margin-right:10px;" @click="openHistory">历史排名</el-button>
+    <el-button style="float:right;margin-right:10px;" @click="dialogHistory=true;initHistory()">历史排名</el-button>
     <el-button style="float:right;" type="primary" @click="dialogAddNode=true;step=0">新增节点</el-button>
     <el-button style="float:right;" @click="downExcel">导出excel</el-button>
     <br>
@@ -36,7 +36,8 @@
       :data="tableData"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
-      @row-click="clickRow">
+      @row-click="clickRow"
+      @sort-change="sortChange">
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="order" label="排名"/>
       <el-table-column prop="name" label="节点名称"/>
@@ -52,20 +53,15 @@
           <span v-if="scope.row.isTenure!=1">候补</span>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="加入时间"/>
-      <el-table-column label="状态">
-        <template slot-scope="scope">
-          <el-button v-if="scope.row.status==1" type="text" style="color:#67c23a">正常</el-button>
-          <el-button v-if="scope.row.status!=1" type="text" style="color:#f56c6c">停用</el-button>
-        </template>
-      </el-table-column>
+      <el-table-column prop="createTime" label="加入时间" sortable="custom"/>
+      <el-table-column prop="status" label="状态"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
       :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showNodeInfo" class="fade-slide">
@@ -73,8 +69,8 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ rowInfo.name }}<br><span>{{ rowInfo.typeName }}</span></span>
           <i class="el-icon-close btn" @click="showNodeInfo=false"/>
-          <el-button v-show="rowInfo.status==1" type="danger" plain class="btn" style="margin:0 10px;" @click="closeNode">停用</el-button>
-          <el-button v-show="rowInfo.status==0" type="primary" class="btn" style="margin:0 10px;" @click="openNode">启用</el-button>
+          <el-button v-show="rowInfo.status!='停用'" type="danger" plain class="btn" style="margin:0 10px;" @click="closeNode">停用</el-button>
+          <el-button v-show="rowInfo.status=='停用'" type="primary" class="btn" style="margin:0 10px;" @click="openNode">启用</el-button>
           <el-button type="primary" class="btn" @click="nodeBaseEdit">编辑</el-button>
           <el-button v-show="isCandidate&&rowInfo.isTenure==0" type="primary" class="btn" @click="openTenure">任职</el-button>
           <el-button v-show="isCandidate&&rowInfo.isTenure==1" type="danger" plain class="btn" @click="closeTenure">卸任</el-button>
@@ -298,8 +294,8 @@
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogHistory" title="历史排名">
-      <el-radio-group v-model="dialogHistoryType" @change="changeHistoryType">
+    <el-dialog :visible.sync="dialogHistory" title="历史排名" @closed="dialogHistoryType='超级节点';historyCurrentPage=1;dialogHistorySearch=''">
+      <el-radio-group v-model="dialogHistoryType" @change="historyCurrentPage=1;initHistory()">
         <el-radio-button v-for="(item,index) in allType" :key="index" :label="item.name"/>
       </el-radio-group>
       <el-button style="float:right;" @click="downExcelHistory">导出excel</el-button>
@@ -311,7 +307,7 @@
           format="yyyy 年 MM 月 dd 日"
           value-format="yyyy-MM-dd"
           placeholder="选择日期时间"
-          @change="historySearch"/>
+          @change="historyCurrentPage=1;initHistory()"/>
       </div>
       <el-table :data="dialogHistoryData" style="margin:10px 0;">
         <el-table-column prop="order" label="排名"/>
@@ -326,7 +322,7 @@
         :total="parseInt(historyTotal)"
         :page-size="20"
         layout="total, prev, pager, next, jumper"
-        @current-change="changeHistoryPage"/>
+        @current-change="initHistory()"/>
     </el-dialog>
 
     <el-dialog :visible.sync="dialogAddNode" title="新增节点" @closed="clearAddData">
@@ -463,6 +459,7 @@ export default {
       searchDate: '',
       tableData: [], // 表格总数据
       total: 1,
+      order: null,
       rowInfo: [],
       tableDataSelection: [],
       currentPage: 1,
@@ -618,38 +615,40 @@ export default {
       this.dialogSetType = res.content[0].name
       this.dialogHistoryType = res.content[0].name
     }).then(res => {
-      getNodeList(null, null, null, this.allType[0].id, 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     })
   },
   methods: {
-    // 切换节点类型
-    changeNodeType(val) {
-      getNodeList(null, null, null, this.allType[this.typeIndex].id, 1).then(res => {
+    init() {
+      getNodeList(this.search, this.searchDate[0], this.searchDate[1], this.allType[this.typeIndex].id, this.currentPage, this.order).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
     },
+    // 切换节点类型
+    changeNodeType(val) {
+      this.search = ''
+      this.searchDate = ''
+      this.currentPage = 1
+      this.init()
+    },
     // 主表格搜索
     searchTableData() {
       if (this.searchDate === null) this.searchDate = ''
-      getNodeList(this.search, this.searchDate[0], this.searchDate[1], this.allType[this.typeIndex].id, 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.currentPage = 1
+      this.init()
     },
     // 选择table
     handleSelectionChange(val) {
       this.tableDataSelection = val
     },
-    // 变页数
-    changePage(page) {
-      getNodeList(this.search, this.searchDate[0], this.searchDate[1], this.allType[this.typeIndex].id, page).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+    // 排序
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'createTime' && val.order === 'descending') this.order = 2
+      this.init()
     },
     // 点击表格行
     clickRow(row) {
@@ -719,7 +718,7 @@ export default {
       }).then(() => {
         onNode(this.rowInfo.id).then(res => {
           Message({ message: res.msg, type: 'success' })
-          this.rowInfo.status = 1
+          this.init()
         })
       })
     },
@@ -732,7 +731,7 @@ export default {
       }).then(() => {
         stopNode(this.rowInfo.id).then(res => {
           Message({ message: res.msg, type: 'success' })
-          this.rowInfo.status = 0
+          this.init()
         })
       })
     },
@@ -750,10 +749,7 @@ export default {
         })
         stopNode(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getNodeList(null, null, null, this.allType[this.typeIndex].id, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     },
@@ -777,7 +773,6 @@ export default {
     // 上传logo回调
     handleAvatarSuccess(res, file) {
       this.uploadLogo = res.content
-      // this.nodeInfoBase.logo = URL.createObjectURL(file.raw)
       this.nodeInfoBase.logo = res.content
     },
     // 修改节点基本信息
@@ -952,31 +947,8 @@ export default {
         Message({ message: res.msg, type: 'success' })
       })
     },
-    // 打开历史排名
-    openHistory() {
-      this.dialogHistory = true
-      getHistory(this.historyId, null, 1).then(res => {
-        this.dialogHistoryData = res.content.list
-        this.historyTotal = res.content.count
-      })
-    },
-    // 变页数
-    changeHistoryPage(page) {
-      getHistory(this.historyId, this.dialogHistorySearch, page).then(res => {
-        this.dialogHistoryData = res.content.list
-        this.historyTotal = res.content.count
-      })
-    },
-    // 切换历史排名的表格类型
-    changeHistoryType(val) {
-      getHistory(this.historyId, this.dialogHistorySearch, 1).then(res => {
-        this.dialogHistoryData = res.content.list
-        this.historyTotal = res.content.count
-      })
-    },
-    // 历史排名搜索
-    historySearch() {
-      getHistory(this.historyId, this.dialogHistorySearch, 1).then(res => {
+    initHistory() {
+      getHistory(this.historyId, this.dialogHistorySearch, this.historyCurrentPage).then(res => {
         this.dialogHistoryData = res.content.list
         this.historyTotal = res.content.count
       })
@@ -1064,9 +1036,10 @@ export default {
         end = ''
       }
       getVerifiCode().then(res => {
-        var url = `/node/download?download_code=${res.content}&type=${this.type}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        var url = `/node/download?download_code=${res.content}&type=${this.allType[this.typeIndex].id}&searchName=${this.search}&str_time=${str}&end_time=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()
@@ -1078,53 +1051,13 @@ export default {
         var url = `/node/history-download?download_code=${res.content}&type=${this.historyId}&endTime=${this.dialogHistorySearch}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
+        elink.target = '_blank'
         elink.href = url
         document.body.appendChild(elink)
         elink.click()
         document.body.removeChild(elink)
       })
     }
-    // 导出excel
-    // addExcel() {
-    //   import('@/vendor/Export2Excel').then(excel => {
-    //     const tHeader = ['排名', '节点名称', '用户', '票数', '支持人数', '质押GRT', '质押BPT', '质押TT', '身份', '加入时间', '状态']
-    //     const filterVal = ['index', 'name', 'mobile', 'voteNumber', 'count', 'grt', 'bpt', 'tt', 'isTenure', 'createTime', 'status']
-    //     const list = this.tableData
-    //     const data = this.formatJson(filterVal, list)
-    //     excel.export_json_to_excel({
-    //       header: tHeader,
-    //       data,
-    //       filename: '节点管理'
-    //     })
-    //   })
-    // },
-    // addExcelHistory() {
-    //   import('@/vendor/Export2Excel').then(excel => {
-    //     const tHeader = ['排名', '节点名称', '账号', '票数', '支持人数', '状态']
-    //     const filterVal = ['index', 'nodeName', 'username', 'voteNumber', 'count', 'isTenure']
-    //     const list = this.dialogHistoryData
-    //     const data = this.formatJson(filterVal, list)
-    //     excel.export_json_to_excel({
-    //       header: tHeader,
-    //       data,
-    //       filename: '历史排名'
-    //     })
-    //   })
-    // },
-    // formatJson(filterVal, jsonData) {
-    //   return jsonData.map(v => filterVal.map(j => {
-    //     if (j === 'isTenure') {
-    //       if (parseInt(v[j]) === 0) return '候补'
-    //       if (parseInt(v[j]) === 1) return '任职'
-    //       else return v[j]
-    //     } else if (j === 'status') {
-    //       if (parseInt(v[j]) === 0) return '停用'
-    //       if (parseInt(v[j]) === 1) return '正常'
-    //     } else {
-    //       return v[j].toString()
-    //     }
-    //   }))
-    // }
   }
 }
 </script>
@@ -1226,34 +1159,5 @@ export default {
   i:hover {
     cursor: pointer;
   }
-}
-
-.avatar-uploader /deep/.el-upload {
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-.avatar-uploader /deep/.el-upload:hover {
-  border-color: #409EFF;
-}
-.avatar-uploader-icon {
-  font-size: 28px;
-  color: #8c939d;
-  width: 178px;
-  height: 178px;
-  line-height: 178px;
-  text-align: center;
-}
-.avatar {
-  width: 178px;
-  height: 178px;
-  display: block;
-}
-
-.activeBtn {
-  background: #409eff;
-  color: #fff;
 }
 </style>

@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 // 获取节点列表
-export function getNodeList(searchName, str_time, end_time, type, page) {
+export function getNodeList(searchName, str_time, end_time, type, page, order) {
   return request({
     url: '/node/index',
     method: 'post',
@@ -10,7 +10,8 @@ export function getNodeList(searchName, str_time, end_time, type, page) {
       str_time,
       end_time,
       type,
-      page
+      page,
+      order
     }
   })
 }

@@ -32,7 +32,7 @@
       :total="parseInt(total)"
       :page-size="pageSize"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showInfo" class="fade-slide">
@@ -89,15 +89,11 @@ export default {
     }
   },
   created() {
-    getList(this.checkTypetoNum, this.search, 1).then(res => {
-      this.tableData = res.content.list
-      this.total = res.content.count
-    })
+    this.init()
   },
   methods: {
-    // 分页
-    changePage(page) {
-      getList(this.checkTypetoNum, this.search, page).then(res => {
+    init() {
+      getList(this.checkTypetoNum, this.search, this.currentPage).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
@@ -107,10 +103,7 @@ export default {
       this.showInfo = false
       this.search = ''
       this.currentPage = 1
-      getList(this.checkTypetoNum, this.search, 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
     // 选择table
     handleSelectionChange(val) {
@@ -119,10 +112,7 @@ export default {
     // 搜索
     searchData() {
       this.currentPage = 1
-      getList(this.checkTypetoNum, this.search, 1).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
     // 点击表格行
     clickRow(row) {
@@ -137,10 +127,7 @@ export default {
       passVerified(this.rowInfo.id).then(res => {
         this.showInfo = false
         Message({ message: res.msg, type: 'success' })
-        getList(this.checkTypetoNum, this.search, this.currentPage).then(res => {
-          this.tableData = res.content.list
-          this.total = res.content.count
-        })
+        this.init()
       })
     },
     // 批量通过
@@ -158,10 +145,7 @@ export default {
         passVerified(allId.replace(',', '')).then(res => {
           this.showInfo = false
           Message({ message: res.msg, type: 'success' })
-          getList(this.checkTypetoNum, this.search, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     },
@@ -176,10 +160,7 @@ export default {
         failVerified(this.rowInfo.id, value).then(res => {
           this.showInfo = false
           Message({ message: res.msg, type: 'success' })
-          getList(this.checkTypetoNum, this.search, this.currentPage).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     }

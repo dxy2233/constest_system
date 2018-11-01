@@ -11,7 +11,6 @@
     <el-input v-model="search" clearable placeholder="流水号/手机号" style="width:200px;" @change="searchData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchData"/>
     </el-input>
-    <!-- <el-button style="float:right;" @click="searchData">查询</el-button> -->
     <el-date-picker
       v-model="date"
       type="daterange"
@@ -20,7 +19,7 @@
       end-placeholder="结束日期"
       format="yyyy 年 MM 月 dd 日"
       value-format="yyyy-MM-dd"
-      style="float:right;"
+      style="float:right;width:400px;"
       @change="searchData"/>
     <span style="float:right;line-height:2.5;padding:0 5px;">申请时间</span>
     <el-select v-model="moneyType" clearable placeholder="币种" style="float:right;" @change="searchData">
@@ -60,7 +59,7 @@
       :total="parseInt(total)"
       :page-size="pageSize"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showInfo" class="fade-slide">
@@ -184,16 +183,12 @@ export default {
   created() {
     getMoneyType().then(res => {
       this.allMoneyType = res.content
-    })
-    getList(this.checkTypetoNum, this.moneyType, this.search, 1, this.date[0], this.date[1]).then(res => {
-      this.tableData = res.content.list
-      this.total = res.content.count
+      this.init()
     })
   },
   methods: {
-    // 分页
-    changePage(page) {
-      getList(this.checkTypetoNum, this.moneyType, this.search, page, this.date[0], this.date[1]).then(res => {
+    init() {
+      getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
@@ -203,10 +198,7 @@ export default {
       this.showInfo = false
       this.search = ''
       this.currentPage = 1
-      getList(this.checkTypetoNum, this.moneyType, this.search, 1, this.date[0], this.date[1]).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
     // 选择table
     handleSelectionChange(val) {
@@ -216,10 +208,7 @@ export default {
     searchData() {
       if (this.date === null) this.date = ''
       this.currentPage = 1
-      getList(this.checkTypetoNum, this.moneyType, this.search, 1, this.date[0], this.date[1]).then(res => {
-        this.tableData = res.content.list
-        this.total = res.content.count
-      })
+      this.init()
     },
     // 点击表格行
     clickRow(row) {
@@ -234,10 +223,7 @@ export default {
       passTrial(this.rowInfo.id).then(res => {
         this.showInfo = false
         Message({ message: res.msg, type: 'success' })
-        getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
-          this.tableData = res.content.list
-          this.total = res.content.count
-        })
+        this.init()
       })
     },
     // 批量通过
@@ -255,10 +241,7 @@ export default {
         passTrial(allId.replace(',', '')).then(res => {
           this.showInfo = false
           Message({ message: res.msg, type: 'success' })
-          getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     },
@@ -273,10 +256,7 @@ export default {
         failTrial(this.rowInfo.id, value).then(res => {
           this.showInfo = false
           Message({ message: res.msg, type: 'success' })
-          getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
-            this.tableData = res.content.list
-            this.total = res.content.count
-          })
+          this.init()
         })
       })
     },

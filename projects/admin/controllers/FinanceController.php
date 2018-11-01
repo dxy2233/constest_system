@@ -152,7 +152,7 @@ class FinanceController extends BaseController
         $headers = ['mobile'=> '用户', 'name' => '币种', 'position_amount' => '总额',  'use_amount' => '可用', 'frozen_amount' => '锁仓'];
         $down = $this->download($data, $headers, '资产管理'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }
@@ -223,16 +223,16 @@ class FinanceController extends BaseController
        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
        ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
        ->select(['A.amount', 'A.remark', 'A.create_time','B.mobile','D.name']);
-        $searchName = $this->pString('searchName', '');
+        $searchName = $this->gString('searchName', '');
         if ($searchName != '') {
             $find->andWhere(['like','B.mobile',$searchName]);
         }
-        $currency_id = $this->pInt('currency_id', 0);
+        $currency_id = $this->gInt('currency_id', 0);
         if ($currency_id != 0) {
             $find->andWhere(['A.currency_id' => $currency_id]);
         }
-        $str_time = $this->pString('str_time', '');
-        $end_time = $this->pString('end_time', '');
+        $str_time = $this->gString('str_time', '');
+        $end_time = $this->gString('end_time', '');
         if ($str_time != '') {
             $find->startTime($str_time, 'A.create_time');
         }
@@ -253,7 +253,7 @@ class FinanceController extends BaseController
         $headers = ['mobile'=> '用户', 'name' => '币种', 'amount' => '数量', 'remark' => '描述', 'create_time' => '时间'];
         $down = $this->download($data, $headers, '锁仓记录'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }
@@ -366,7 +366,7 @@ class FinanceController extends BaseController
         $headers = ['id'=> '流水号', 'mobile' => '用户', 'name' => '币种', 'type2' => '收支', 'type' => '类型', 'amount' => '数量', 'status' => '状态', 'create_time' => '时间'];
         $down = $this->download($data, $headers, '财务流水'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }

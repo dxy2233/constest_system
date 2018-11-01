@@ -119,7 +119,7 @@ class VoteController extends BaseController
         $headers = ['mobile'=> '投票用户', 'name' => '投票节点名称', 'vote_number' => '投出票数', 'type' => '投票方式', 'create_time' => '投票时间'];
         $down = $this->download($data, $headers, '投票列表'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }
@@ -215,7 +215,7 @@ class VoteController extends BaseController
     //投票排名下载
     public function actionVoteOrderDownload()
     {
-        $type = $this->pInt('type', 0);
+        $type = $this->gInt('type', 0);
         $find = BVote::find()
         ->from(BVote::tableName()." A")
         ->select(['B.mobile','sum(A.vote_number) as num','A.create_time', 'A.type'])
@@ -226,7 +226,7 @@ class VoteController extends BaseController
         if ($type != 0) {
             $find->andWhere(['A.type' =>$type]);
         }
-        $end_time = $this->pString('end_time', '');
+        $end_time = $this->gString('end_time', '');
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
@@ -240,7 +240,7 @@ class VoteController extends BaseController
 
         $down = $this->download($data, $headers, '投票排名'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }

@@ -120,7 +120,7 @@ class NodeController extends BaseController
         $headers = ['key'=> '排名', 'name' => '节点名称', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'create_time' => '加入时间', 'status' => '状态'];
         $down = $this->download($data, $headers, '节点列表'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }
@@ -334,11 +334,11 @@ class NodeController extends BaseController
     // 历史排名下载
     public function actionHistoryDownload()
     {
-        $type = $this->pInt('type');
+        $type = $this->gInt('type');
         if (empty($type)) {
             return $this->respondJson(1, '节点类型不能为空');
         }
-        $endTime = $this->pString('endTime', '');
+        $endTime = $this->gString('endTime', '');
         if ($endTime == '') {
             $endTime = date('Y-m-d H:i:s');
         }

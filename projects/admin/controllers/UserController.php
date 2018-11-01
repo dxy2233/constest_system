@@ -204,7 +204,7 @@ class UserController extends BaseController
 
         $down = $this->download($list, $headers, '用户列表'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }

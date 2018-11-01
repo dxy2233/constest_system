@@ -111,7 +111,7 @@ class WithdrawController extends BaseController
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
 
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])

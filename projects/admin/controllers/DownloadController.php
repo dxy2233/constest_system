@@ -5,6 +5,7 @@ use common\services\AclService;
 use common\services\TicketService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BAdminAccessToken;
+use common\models\AdminUser;
 use common\components\FuncHelper;
 
 /**
@@ -37,4 +38,15 @@ class DownloadController extends BaseController
 
         return $this->respondJson(0, '获取成功', $code);
     }
+
+    // public function actionCheckCode()
+    // {
+    //     $code = $this->gString('code');
+    //     var_dump($code);
+    //     $code = FuncHelper::authCode($code);
+    //     var_dump($code);
+
+    //     $user_id = AdminUser::findIdentityByAccessToken($code);
+    //     var_dump($user_id);
+    // }
 }

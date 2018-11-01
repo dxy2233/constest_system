@@ -142,21 +142,21 @@ class UserController extends BaseController
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         
-        $searchName = $this->pString('searchName');
+        $searchName = $this->gString('searchName');
         
         if ($searchName != '') {
             $find->andWhere(['like','A.username',$searchName]);
         }
-        $str_time = $this->pString('str_time');
+        $str_time = $this->gString('str_time');
         if ($str_time != '') {
             $find->startTime($str_time, 'A.create_time');
         }
-        $end_time = $this->pString('end_time');
+        $end_time = $this->gString('end_time');
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
         
-        $order = $this->pString('order');
+        $order = $this->gString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
             $order = $order_arr[$order];

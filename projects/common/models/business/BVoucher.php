@@ -7,6 +7,8 @@ class BVoucher extends \common\models\Voucher
     // 定义模型额外字段 用于join 查询调用
     public $use_amount = 0;
 
+    public static $TYPE_RECOMMEND = 1; // 推荐
+    
     public function getUseAmountText()
     {
         return (int) $this->use_amount;

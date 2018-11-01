@@ -596,4 +596,95 @@ class UserController extends BaseController
         $transaction->commit();
         return $this->respondJson(0, '注册成功');
     }
+
+    public function actionGetGiveInfo()
+    {
+        $type = $this->pInt('type');
+        if (!$type) {
+            return $this->respondJson(1, '派发类型不能为空');
+        }
+        $user_id = $this->pInt('user_id');
+        if (!$user_id) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        if ($type == BVoucher::$TYPE_RECOMMEND) {// 推荐类型
+            $mobile = $this->pInt('mobile');
+            if (!$type) {
+                return $this->respondJson(1, '被推荐人手机不能为空');
+            }
+            $user = BUser::find()->where(['mobile' => $mobile])->one();
+            if (!$user) {
+                return $this->respondJson(1, '被推荐人不存在');
+            }
+            $node = BNode::find()->where(['user_id' => $user->id])->one();
+            if (!$node) {
+                return $this->respondJson(1, '被推荐人不是节点');
+            }
+            $node_type = BNodeType::find()->where(['id' => $node->type_id])->one();
+            if ($node_type->name == '超级节点') {
+                $voucher_num = 0;
+            } elseif ($node_type->name == '高级节点') {
+                $voucher_num = 200000;
+            } elseif ($node_type->name == '中级节点') {
+                $voucher_num = 80000;
+            } else {
+                $voucher_num = 20000;
+            }
+            $gdt = $node->grt * 0.1;
+            $old_data = BVoucher::find()->where(['user_id' => $user_id, 'give_user_id' => $user->id])->one();
+            if ($old_data) {
+                $is_give = 1;
+            } else {
+                $is_give = 0;
+            }
+            $return = ['voucher_num' => $voucher_num, 'is_give' => $is_give, 'gdt' => $gdt];
+            return $this->respondJson(0, '获取成功', $return);
+        }
+    }
+
+    //赠送投票券
+    public function actionGive()
+    {
+        $type = $this->pInt('type');
+        if (!$type) {
+            return $this->respondJson(1, '派发类型不能为空');
+        }
+        $user_id = $this->pInt('user_id');
+        if (!$user_id) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        if ($type == BVoucher::$TYPE_RECOMMEND) {// 推荐类型
+            $mobile = $this->pInt('mobile');
+            if (!$type) {
+                return $this->respondJson(1, '被推荐人手机不能为空');
+            }
+            $user = BUser::find()->where(['mobile' => $mobile])->one();
+            if (!$user) {
+                return $this->respondJson(1, '被推荐人不存在');
+            }
+            $node = BNode::find()->where(['user_id' => $user->id])->one();
+            if (!$node) {
+                return $this->respondJson(1, '被推荐人不是节点');
+            }
+            $voucher_num = $this->pInt('voucher_num');
+            if (!$voucher_num) {
+                return $this->respondJson(1, '投票券数量不能为空');
+            }
+            $gdt = $this->pFloat('gdt');
+            $remark = $this->pString('remark', '');
+            $voucher = new BVoucher();
+            $voucher->user_id = $user_id;
+            $voucher->give_user_id = $user->id;
+            $voucher->node_id = $node->id;
+            $voucher->voucher_num = $voucher_num;
+            $voucher->type = $type;
+            $voucher->remark = $remark;
+            if ($voucher->save()) {
+                UserService::resetVoucher($user_id);
+                return $this->respondJson(0, '派发成功');
+            } else {
+                return $this->respondJson(1, '派发失败', $voucher->getFirstErrorText());
+            }
+        }
+    }
 }

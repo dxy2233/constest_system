@@ -57,30 +57,17 @@ class IndexController extends \common\dzbase\DzController
         }
         return $this->respondJson(0, '获取成功');
     }
-    public function actionTest()
+    public function actionSql()
     {
-        header('Access-Control-Allow-Origin:*');
-        $file = './a.xlsx';
-        if (file_exists($file)) {
-            // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            // header('Content-Disposition: attachment;filename="数据.xls"');
-            // header('Cache-Control: max-age=0');
-            // $data = file_get_contents($file);
-            // echo $data;
-            // exit;
-            $base64_image = '';
-            $image_data = fread(fopen($file, 'r'), filesize($file));
-            $base64_image = 'data:application/vnd.ms-excel;base64,' . chunk_split(base64_encode($image_data));
-            echo $base64_image;
-        }
-        // $image_file = './a.png';
-        // $base64_image = '';
-        // $image_info = getimagesize($image_file);
-        // $image_data = fread(fopen($image_file, 'r'), filesize($image_file));
-        // $base64_image = 'data:' . $image_info['mime'] . ';base64,' . chunk_split(base64_encode($image_data));
-        // echo $base64_image;
-        exit;
-
+        // INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES
+        // (29,	'vote',	'倒计时显示功能开关',	'count_down_is_open',	'1',	'1',	'radio',	'',	'开关',	1,	4,	0,	0);
+        // UPDATE `gr_setting` SET `sort` = '5' WHERE `id` = '10';
+        // UPDATE `gr_setting` SET `sort` = '6' WHERE `id` = '11';
+        // UPDATE `gr_setting` SET `sort` = '7' WHERE `id` = '13';
+        // UPDATE `gr_setting` SET `sort` = '8' WHERE `id` = '24';
+        // ALTER TABLE `gr_voucher` ADD `give_user_id` int(11) NOT NULL COMMENT '赠送人ID(被推荐人)' AFTER `user_id`;
+        // ALTER TABLE `gr_voucher` ADD `type` int(11) NOT NULL COMMENT '派发类型' AFTER `voucher_num`;
+        // ALTER TABLE `gr_voucher` ADD `remark` varchar(256) COLLATE 'utf8_general_ci' NOT NULL COMMENT '备注' AFTER `type`;
         return $this->respondJson(0, '获取成功');
     }
     public function actionText()

@@ -16,6 +16,8 @@ use Yii;
  */
 class Voucher extends \common\dzbase\DzModel
 {
+
+
     /**
      * {@inheritdoc}
      */
@@ -45,6 +47,9 @@ class Voucher extends \common\dzbase\DzModel
             'user_id' => '用户ID',
             'node_id' => '赠送节点ID',
             'voucher_num' => '券总量',
+            'give_user_id' => '赠送人ID',
+            'type' => '派发类型',
+            'remark' => '备注',
             'create_time' => 'Create Time',
         ];
     }

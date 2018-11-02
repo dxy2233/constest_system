@@ -45,7 +45,7 @@ class NoticeController extends BaseController
             $find->andWhere(['!=', 'status', BNotice::STATUS_DELETE]);
         }
         $count = $find->count();
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         if ($page != 0) {
             $find->page($page);
         }
@@ -60,7 +60,7 @@ class NoticeController extends BaseController
         $return = [];
         $return['list'] = $data;
         $return['count'] = $count;
-        return $this->respondJson(0, '获取成功', $data);
+        return $this->respondJson(0, '获取成功', $return);
     }
 
     // 置顶

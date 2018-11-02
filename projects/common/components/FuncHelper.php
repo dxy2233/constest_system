@@ -16,6 +16,11 @@ class FuncHelper
      */
     public static function authCode($string, $operation = 'DECODE', $key = '', $expiry = 60 * 5)
     {
+        if ($operation == 'DECODE') {
+            $string = str_replace('[a]', '+', $string);
+            $string = str_replace('[b]', '&', $string);
+            $string = str_replace('[c]', '/', $string);
+        }
         $ckey_length = 4;
         $key = md5($key != '' ? $key : \Yii::$app->params['authCodeKey']);
         $keya = md5(substr($key, 0, 16));
@@ -59,7 +64,11 @@ class FuncHelper
                 return '';
             }
         } else {
-            return $keyc . str_replace('=', '', base64_encode($result));
+            $ustr = $keyc.str_replace('=', '', base64_encode($result));
+            $ustr = str_replace('+', '[a]', $ustr);
+            $ustr = str_replace('&', '[b]', $ustr);
+            $ustr = str_replace('/', '[c]', $ustr);
+            return $ustr;
         }
     }
 

@@ -57,30 +57,8 @@ class IndexController extends \common\dzbase\DzController
         }
         return $this->respondJson(0, '获取成功');
     }
-    public function actionTest()
+    public function actionSql()
     {
-        header('Access-Control-Allow-Origin:*');
-        $file = './a.xlsx';
-        if (file_exists($file)) {
-            // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            // header('Content-Disposition: attachment;filename="数据.xls"');
-            // header('Cache-Control: max-age=0');
-            // $data = file_get_contents($file);
-            // echo $data;
-            // exit;
-            $base64_image = '';
-            $image_data = fread(fopen($file, 'r'), filesize($file));
-            $base64_image = 'data:application/vnd.ms-excel;base64,' . chunk_split(base64_encode($image_data));
-            echo $base64_image;
-        }
-        // $image_file = './a.png';
-        // $base64_image = '';
-        // $image_info = getimagesize($image_file);
-        // $image_data = fread(fopen($image_file, 'r'), filesize($image_file));
-        // $base64_image = 'data:' . $image_info['mime'] . ';base64,' . chunk_split(base64_encode($image_data));
-        // echo $base64_image;
-        exit;
-
         return $this->respondJson(0, '获取成功');
     }
     public function actionText()

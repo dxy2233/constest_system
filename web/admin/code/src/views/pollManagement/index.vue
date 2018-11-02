@@ -1,41 +1,42 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">投票管理</h4>
-    <el-button class="btn-right" @click="openVoteRank">投票排名</el-button>
+    <el-button class="btn-right" @click="initRank();dialogRank=true">投票排名</el-button>
     <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openVoteSet">投票设置</el-button>
-    <el-button class="btn-right" @click="addExcel">导出excel</el-button>
+    <el-button class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
-    <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @keyup.enter.native="searchTableData">
+    <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @change="searchTableData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
       投票时间
       <el-date-picker
         v-model="searchDate"
-        type="datetimerange"
+        type="daterange"
         range-separator="至"
         start-placeholder="开始日期"
         end-placeholder="结束日期"
         format="yyyy 年 MM 月 dd 日"
         value-format="yyyy-MM-dd"
+        style="width:400px;"
         @change="searchTableData"/>
     </div>
     <br>
 
-    <el-table :data="tableDataPage" style="margin:10px 0;">
+    <el-table :data="tableData" style="margin:10px 0;" @sort-change="sortChange">
       <el-table-column prop="mobile" label="投票用户"/>
       <el-table-column prop="name" label="投票节点"/>
-      <el-table-column prop="voteNumber" label="投出票数"/>
-      <el-table-column prop="type" label="投票方式"/>
-      <el-table-column prop="createTime" label="投票时间"/>
+      <el-table-column prop="voteNumber" label="投出票数" sortable="custom"/>
+      <el-table-column prop="type" label="投票方式" sortable="custom"/>
+      <el-table-column prop="createTime" label="投票时间" sortable="custom"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <el-dialog :visible.sync="dialogSet" title="投票设置" class="dialog-set">
       <div v-for="(item,index) in dialogSetData" :key="index">
@@ -75,28 +76,27 @@
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogRank" title="投票排名">
-      <el-select v-model="dialogRankType" @change="changeRankType">
+    <el-dialog :visible.sync="dialogRank" title="投票排名" @closed="rankCurrentPage=1;dialogRankType=0;dialogRankDate=''">
+      <el-select v-model="dialogRankType" @change="rankCurrentPage=1;initRank()">
         <el-option
           v-for="(item,index) in dialogRankAllType"
           :key="index"
           :label="item.label"
           :value="item.value"/>
       </el-select>
-      <el-button style="float:right;" @click="addExcelRank">导出excel</el-button>
+      <el-button style="float:right;" @click="downRankExcel">导出excel</el-button>
       <div style="margin-top:20px;">
         截止时间
         <el-date-picker
           v-model="dialogRankDate"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
-          format="yyyy 年 MM 月 dd 日 HH：mm"
-          value-format="yyyy-MM-dd HH:mm"
-          style="width:250px;"/>
-        <el-button @click="searchRank">查询</el-button>
+          format="yyyy 年 MM 月 dd 日"
+          value-format="yyyy-MM-dd"
+          @change="rankCurrentPage=1;initRank()"/>
       </div>
-      <el-table ref="multipleTable" :data="dialogRankDataPage" style="margin:10px 0;">
-        <el-table-column prop="index" label="排名"/>
+      <el-table ref="multipleTable" :data="dialogRankData" style="margin:10px 0;">
+        <el-table-column prop="order" label="排名"/>
         <el-table-column prop="mobile" label="账号"/>
         <el-table-column prop="num" label="票数"/>
         <el-table-column label="方式">
@@ -107,18 +107,18 @@
       </el-table>
       <el-pagination
         :current-page.sync="rankCurrentPage"
-        :total="rankTotal"
+        :total="parseInt(rankTotal)"
         :page-size="20"
         layout="total, prev, pager, next, jumper"
-        @current-change="changeRankPage"/>
+        @current-change="initRank"/>
     </el-dialog>
   </div>
 </template>
 
 <script>
 import { getVoteList, getVoteSet, pushVoteSet, getVoteRank, refresh } from '@/api/poll'
+import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
-import { parseTime, pagination } from '@/utils'
 
 export default {
   name: 'PollManagement',
@@ -127,8 +127,9 @@ export default {
       search: '',
       searchDate: '',
       tableData: [],
-      tableDataPage: [],
+      total: 1,
       currentPage: 1,
+      order: null,
       dialogSet: false,
       dialogSetData: [],
       pushSetData: [],
@@ -142,37 +143,38 @@ export default {
       dialogRankType: 0,
       dialogRankData: [],
       dialogRankDataPage: [],
+      rankTotal: 1,
       dialogRankDate: '',
       rankCurrentPage: 1,
       showTimeOver: null
     }
   },
-  computed: {
-    total() {
-      return this.tableData.length
-    },
-    rankTotal() {
-      return this.dialogRankData.length
-    }
-  },
   created() {
-    getVoteList().then(res => {
-      this.tableData = res.content.list
-      this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
-    })
+    this.init()
   },
   methods: {
-    // 变页数
-    changePage(page) {
-      this.tableDataPage = pagination(this.tableData, page, 20)
+    init() {
+      getVoteList(this.search, this.currentPage, this.searchDate[0], this.searchDate[1], this.order).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
+      })
+    },
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'voteNumber' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'voteNumber' && val.order === 'descending') this.order = 4
+      else if (val.prop === 'type' && val.order === 'ascending') this.order = 2
+      else if (val.prop === 'type' && val.order === 'descending') this.order = 5
+      else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 3
+      else if (val.prop === 'createTime' && val.order === 'descending') this.order = 6
+      this.init()
     },
     // 主表格搜索
     searchTableData() {
       if (this.searchDate === null) this.searchDate = ''
-      getVoteList(this.search, null, this.searchDate[0], this.searchDate[1]).then(res => {
-        this.tableData = res.content.list
-        this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
-      })
+      this.currentPage = 1
+      this.init()
     },
     // 打开投票设置
     openVoteSet() {
@@ -212,76 +214,43 @@ export default {
         this.dialogSet = false
       })
     },
-    // 打开投票排名
-    openVoteRank() {
-      getVoteRank(null, this.dialogRankType).then(res => {
+    initRank() {
+      getVoteRank(this.dialogRankDate, this.dialogRankType, this.rankCurrentPage).then(res => {
         this.dialogRankData = res.content.list
-        this.dialogRankData.forEach((item, index, arry) => {
-          Object.assign(item, { index: index + 1 })
-        })
-        this.dialogRankDataPage = pagination(this.dialogRankData, this.rankCurrentPage, 20)
-        this.dialogRank = true
+        this.rankTotal = res.content.count
       })
     },
-    // 改变页数
-    changeRankPage(page) {
-      this.dialogRankDataPage = pagination(this.dialogRankData, page, 20)
-    },
-    // 切换投票类型
-    changeRankType(val) {
-      getVoteRank(null, val).then(res => {
-        this.dialogRankData = res.content.list
-        this.dialogRankData.forEach((item, index, arry) => {
-          Object.assign(item, { index: index + 1 })
-        })
-        this.dialogRankDataPage = pagination(this.dialogRankData, this.rankCurrentPage, 20)
+    // 下载excel
+    downExcel() {
+      if (this.searchDate) {
+        var str = this.searchDate[0]
+        var end = this.searchDate[1]
+      } else {
+        str = ''
+        end = ''
+      }
+      getVerifiCode().then(res => {
+        var url = `/vote/download?download_code=${res.content}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
       })
     },
-    // 排名搜索
-    searchRank() {
-      getVoteRank(this.dialogRankDate, this.dialogRankType).then(res => {
-        this.dialogRankData = res.content.list
-        this.dialogRankData.forEach((item, index, arry) => {
-          Object.assign(item, { index: index + 1 })
-        })
-        this.dialogRankDataPage = pagination(this.dialogRankData, this.rankCurrentPage, 20)
+    downRankExcel() {
+      getVerifiCode().then(res => {
+        var url = `/vote/vote-order-download?download_code=${res.content}&type=${this.dialogRankType}&end_time=${this.dialogRankDate}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
       })
-    },
-    // 导出excel
-    addExcel() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['投票用户', '投票节点', '投出票数', '投票方式', '投票时间']
-        const filterVal = ['mobile', 'name', 'voteNumber', 'type', 'createTime']
-        const list = this.tableData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '投票管理'
-        })
-      })
-    },
-    addExcelRank() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['排名', '账号', '票数']
-        const filterVal = ['index', 'mobile', 'num']
-        const list = this.dialogRankData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '投票排名'
-        })
-      })
-    },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
-        } else {
-          return v[j]
-        }
-      }))
     }
   }
 }

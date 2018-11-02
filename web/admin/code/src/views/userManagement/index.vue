@@ -2,15 +2,10 @@
   <div class="app-container" @click.self="showUserInfo=false">
     <h4 style="display:inline-block;">用户管理</h4>
     <el-button class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
-    <!-- <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button> -->
-    <el-button class="btn-right" style="margin-right:10px;">
-      <a :href="downUrl">导出excel</a>
-    </el-button>
-    <!-- <input type="file" ref="file" name="" value="">
-    <button @click="cc">text</button> -->
+    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
-    <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchRun">
+    <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @change="searchRun">
       <el-button slot="append" icon="el-icon-search" @click.native="searchRun"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
@@ -35,23 +30,24 @@
       :data="tableData"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
-      @row-click="clickRow">
+      @row-click="clickRow"
+      @sort-change="sortChange">
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="userType" label="类型"/>
       <el-table-column prop="nodeName" label="拥有节点"/>
-      <el-table-column prop="num" label="已投票数"/>
+      <el-table-column prop="num" label="已投票数" sortable="custom"/>
       <el-table-column prop="referee" label="推荐人"/>
       <el-table-column prop="status" label="状态"/>
-      <el-table-column prop="createTime" label="注册时间"/>
-      <el-table-column prop="lastLoginTime" label="最近一次登录时间"/>
+      <el-table-column prop="createTime" label="注册时间" sortable="custom"/>
+      <el-table-column prop="lastLoginTime" label="最近一次登录时间" sortable="custom"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showUserInfo" class="fade-slide">
@@ -62,6 +58,7 @@
           <el-button type="primary" class="btn" style="margin: 0 10px;" @click="rowEdit">编辑</el-button>
           <el-button v-show="rowInfo.status=='正常'" type="danger" plain class="btn" @click="free">停用</el-button>
           <el-button v-show="rowInfo.status=='冻结'" type="primary" plain class="btn" @click="thaw">启用</el-button>
+          <el-button v-show="rowInfo.nodeName!='——'" type="primary" plain class="btn" @click="rewardForm.userId=rowInfo.id;dialogReward=true">派发奖励</el-button>
         </div>
         <div class="info">
           <el-row :gutter="5" class="info-row">
@@ -224,14 +221,63 @@
         <el-button @click="dialogEditUser = false">取 消</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog :visible.sync="dialogReward" title="派发奖励" class="dialog-reward" center>
+      <el-form ref="reward" :model="rewardForm" :rules="rewardRules" label-position="top" label-width="80px">
+        <div class="row">
+          <el-form-item label="账户">
+            <span style="font-size:18px;">{{ rowInfo.mobile }}</span>
+          </el-form-item>
+          <el-form-item label="当前节点">
+            <span style="font-size:18px;">{{ rowInfo.userType }}</span>
+          </el-form-item>
+        </div>
+        <el-form-item label="派发类型" prop="type">
+          <el-select v-model="rewardForm.type" placeholder="请选择" @change="changeRewardType">
+            <el-option
+              v-for="item in rewardType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"/>
+          </el-select>
+        </el-form-item>
+        <div class="row">
+          <el-form-item label="被推荐人手机号" prop="mobile">
+            <el-input v-model="rewardForm.mobile" style="width:95%;"/>
+          </el-form-item>
+          <el-form-item label="被推荐人节点">
+            {{ rewardForm.typeName }}
+          </el-form-item>
+        </div>
+        <el-form-item label="派发投票券" prop="voucherNum">
+          <el-input v-model="rewardForm.voucherNum" style="width:95%;"/> 票
+        </el-form-item>
+        <!-- <el-form-item label="赠送GDT">
+          <el-input v-model="rewardForm.gdt" style="width:95%;"/> GDT
+        </el-form-item> -->
+        <el-form-item>
+          <el-button type="primary" style="width:100%;" @click="readyReward">派发</el-button>
+        </el-form-item>
+      </el-form>
+      <el-dialog :visible.sync="dialogRewardTwo" width="30%" title="确认派发" class="dialog-reward2" center append-to-body>
+        <p v-if="rewardForm.isGive==1" class="txt">该推荐已发放过投票券，是否还要继续派发投票券</p>
+        <p class="txt"><span>派发账户</span>{{ rowInfo.mobile }}</p>
+        <p class="txt"><span>投票券</span>{{ rewardForm.voucherNum }}票</p>
+        <!-- <p><span>派发账户</span>{{ rowInfo.mobile }}</p> -->
+        <div slot="footer">
+          <el-button @click="dialogRewardTwo = false">取 消</el-button>
+          <el-button type="primary" @click="runReward">确认</el-button>
+        </div>
+      </el-dialog>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
-  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser } from '@/api/admin'
+  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser, giveInfo, saveGive } from '@/api/admin'
+import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
-import { parseTime } from '@/utils'
 
 export default {
   name: 'UserManagement',
@@ -252,6 +298,7 @@ export default {
       tableDataSelection: [],
       currentPage: 1,
       total: 1,
+      order: null,
       edidWallet: '',
       showUserInfo: false,
       rowInfo: [], // 表格选中的信息
@@ -278,28 +325,39 @@ export default {
       walletMoney: 'GRT',
       walletNote: '收支记录',
       voucherName: '获取记录',
-      dialogEditUser: false
-    }
-  },
-  computed: {
-    downUrl() {
-      var str
-      var end
-      if (this.searchDate) {
-        str = this.searchDate[0]
-        end = this.searchDate[1]
-      } else {
-        str = ''
-        end = ''
+      dialogEditUser: false,
+      dialogReward: false,
+      dialogRewardTwo: false,
+      rewardType: [
+        { value: 1, label: '推荐节点' }
+        // { value: 2, label: '普通派发' }
+      ],
+      rewardForm: {
+        typeName: '--',
+        isGive: '',
+        mobile: '',
+        type: '',
+        userId: '',
+        voucherNum: '',
+        remark: '',
+        gdt: ''
+      },
+      rewardRules: {
+        type: [
+          { required: true, message: '请选择派发类型', trigger: 'change' }
+        ],
+        mobile: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' },
+          { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+        ],
+        voucherNum: [
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+        ]
       }
-      return `/user/download?searchName=${this.search}&&str_time=${str}&&end_time=${end}`
     }
   },
   created() {
-    getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-      this.tableData = res.content.list
-      this.total = parseInt(res.content.count)
-    })
+    this.init()
   },
   methods: {
     // cc() {
@@ -323,13 +381,16 @@ export default {
     //     // }
     //   })
     // },
+    init() {
+      getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage, this.order).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
+      })
+    },
     searchRun() {
       if (this.searchDate === null) this.searchDate = ''
-      getUserList(this.search, this.searchDate[0], this.searchDate[1], 1).then(res => {
-        this.tableData = res.content.list
-        this.total = parseInt(res.content.count)
-        this.currentPage = 1
-      })
+      this.currentPage = 1
+      this.init()
     },
     // 表格选择
     handleSelectionChange(val) {
@@ -345,12 +406,17 @@ export default {
         this.changeTabs({ name: this.activeName })
       }
     },
-    // 变页面
-    changePage(page) {
-      getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-        this.tableData = res.content.list
-        this.total = parseInt(res.content.count)
-      })
+    // 排序
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'num' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'num' && val.order === 'descending') this.order = 4
+      else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 2
+      else if (val.prop === 'createTime' && val.order === 'descending') this.order = 5
+      else if (val.prop === 'lastLoginTime' && val.order === 'ascending') this.order = 3
+      else if (val.prop === 'lastLoginTime' && val.order === 'descending') this.order = 6
+      this.init()
     },
     // 选项卡切换
     changeTabs(val) {
@@ -424,11 +490,7 @@ export default {
         })
         freezeUser(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-        }).then(res => {
-          getUserList().then(res => {
-            this.tableData = res.content.list
-            this.total = parseInt(res.content.count)
-          })
+          this.init()
         })
       })
     },
@@ -449,10 +511,7 @@ export default {
           addUser(this.addData.addUserName, this.addData.addUserCode).then(res => {
             Message({ message: res.msg, type: 'success' })
             this.dialogAddUser = false
-            getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-              this.tableData = res.content.list
-              this.total = parseInt(res.content.count)
-            })
+            this.init()
           })
         } else {
           console.log('error submit!!')
@@ -465,36 +524,81 @@ export default {
       this.dialogEditUser = false
       editUser(this.rowInfo.id, this.rowInfo.mobile, this.rowInfo.code).then(res => {
         Message({ message: res.msg, type: 'success' })
-        getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage).then(res => {
-          this.tableData = res.content.list
-          this.total = parseInt(res.content.count)
-        })
+        this.init()
       })
       this.changeTabs({ name: 'Wallet' })
     },
-    // 导出excel
-    addExcel() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['用户', '类型', '拥有节点', '已投票数', '推荐人', '状态', '注册时间', '最近一次登录时间']
-        const filterVal = ['mobile', 'userType', 'nodeName', 'num', 'referee', 'status', 'createTime', 'lastLoginTime']
-        const list = this.tableData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '用户管理'
-        })
+    // 更改派发类型
+    changeRewardType(val) {
+      giveInfo(this.rowInfo.mobile, val, this.rewardForm.userId).then(res => {
+        this.rewardForm.voucherNum = res.content.voucherNum
+        this.rewardForm.isGive = res.content.isGive
+        this.rewardForm.gdt = res.content.gdt
+        this.rewardForm.typeName = res.content.typeName
       })
     },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
+    // 准备派发
+    readyReward() {
+      this.$refs['reward'].validate((valid) => {
+        if (valid) {
+          this.dialogRewardTwo = true
         } else {
-          return v[j]
+          console.log('error submit!!')
+          return false
         }
-      }))
+      })
+    },
+    // 确认派发
+    runReward() {
+      saveGive(this.rewardForm).then(res => {
+        Message({ message: res.msg, type: 'success' })
+        this.dialogReward = false
+        this.dialogRewardTwo = false
+      })
+    },
+    // 下载excel
+    downExcel() {
+      if (this.searchDate) {
+        var str = this.searchDate[0]
+        var end = this.searchDate[1]
+      } else {
+        str = ''
+        end = ''
+      }
+      getVerifiCode().then(res => {
+        var url = `/user/download?download_code=${res.content}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
+      })
     }
+    // 导出excel
+    // addExcel() {
+    //   import('@/vendor/Export2Excel').then(excel => {
+    //     const tHeader = ['用户', '类型', '拥有节点', '已投票数', '推荐人', '状态', '注册时间', '最近一次登录时间']
+    //     const filterVal = ['mobile', 'userType', 'nodeName', 'num', 'referee', 'status', 'createTime', 'lastLoginTime']
+    //     const list = this.tableData
+    //     const data = this.formatJson(filterVal, list)
+    //     excel.export_json_to_excel({
+    //       header: tHeader,
+    //       data,
+    //       filename: '用户管理'
+    //     })
+    //   })
+    // },
+    // formatJson(filterVal, jsonData) {
+    //   return jsonData.map(v => filterVal.map(j => {
+    //     if (j === 'timestamp') {
+    //       return parseTime(v[j])
+    //     } else {
+    //       return v[j]
+    //     }
+    //   }))
+    // }
   }
 }
 </script>
@@ -523,6 +627,25 @@ export default {
           text-align: right;
         }
       }
+    }
+  }
+}
+
+.dialog-reward {
+  .row {
+    display: flex;
+    justify-content: space-around;
+    > div {
+      flex: 1;
+    }
+  }
+}
+.dialog-reward2 {
+  .txt {
+    font-size: 18px;
+    span {
+      display: inline-block;
+      width: 150px;
     }
   }
 }

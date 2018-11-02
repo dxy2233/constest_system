@@ -25,10 +25,12 @@ trait DzControllerTrait
         }
         $code = FuncHelper::authCode($return);
         if ($code == '') {
+            // var_dump($code);
             return false;
         }
         $user_id = AdminUser::findIdentityByAccessToken($code);
         if (!$user_id) {
+            // var_dump($code);
             return false;
         }
         if ($fileName == '') {
@@ -54,6 +56,7 @@ trait DzControllerTrait
     */
     final protected function pFloat($name, $default = null)
     {
+        $return = Yii::$app->request->post($name, $default);
         if (!empty($return)) {
             return floatval($return);
         }

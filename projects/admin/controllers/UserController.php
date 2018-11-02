@@ -57,7 +57,7 @@ class UserController extends BaseController
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         
         $searchName = $this->pString('searchName');
         
@@ -75,12 +75,12 @@ class UserController extends BaseController
         
         $order = $this->pString('order');
         if ($order != '') {
-            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
+            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time', 4 => 'sum(B.vote_number) desc', 5 => 'A.create_time desc', 6 => 'A.last_login_time desc'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'A.create_time desc';
         }
-        $find->orderBy($order . ' DESC');
+        $find->orderBy($order);
         $count = $find->count();
         $is_download = $this->pInt('is_download', 0);
         if ($page != 0 && $is_download == 0) {
@@ -142,28 +142,28 @@ class UserController extends BaseController
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
         
-        $searchName = $this->pString('searchName');
+        $searchName = $this->gString('searchName');
         
         if ($searchName != '') {
             $find->andWhere(['like','A.username',$searchName]);
         }
-        $str_time = $this->pString('str_time');
+        $str_time = $this->gString('str_time');
         if ($str_time != '') {
             $find->startTime($str_time, 'A.create_time');
         }
-        $end_time = $this->pString('end_time');
+        $end_time = $this->gString('end_time');
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
         
-        $order = $this->pString('order');
+        $order = $this->gString('order');
         if ($order != '') {
-            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time'];
+            $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time', 4 => 'sum(B.vote_number) desc', 5 => 'A.create_time desc', 6 => 'A.last_login_time desc'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'A.create_time desc';
         }
-        $find->orderBy($order . ' DESC');
+        $find->orderBy($order);
 
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();
@@ -204,7 +204,7 @@ class UserController extends BaseController
 
         $down = $this->download($list, $headers, '用户列表'.date('YmdHis'));
         if (!$down) {
-            return $this->respondJson(1, "验证失败");
+            exit('验证失败');
         }
         return;
     }
@@ -595,5 +595,96 @@ class UserController extends BaseController
         
         $transaction->commit();
         return $this->respondJson(0, '注册成功');
+    }
+
+    public function actionGetGiveInfo()
+    {
+        $type = $this->pInt('type');
+        if (!$type) {
+            return $this->respondJson(1, '派发类型不能为空');
+        }
+        $user_id = $this->pInt('userId');
+        if (!$user_id) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        if ($type == BVoucher::$TYPE_RECOMMEND) {// 推荐类型
+            $mobile = $this->pInt('mobile');
+            if (!$type) {
+                return $this->respondJson(1, '被推荐人手机不能为空');
+            }
+            $user = BUser::find()->where(['mobile' => $mobile])->one();
+            if (!$user) {
+                return $this->respondJson(1, '被推荐人不存在');
+            }
+            $node = BNode::find()->where(['user_id' => $user->id])->one();
+            if (!$node) {
+                return $this->respondJson(1, '被推荐人不是节点');
+            }
+            $node_type = BNodeType::find()->where(['id' => $node->type_id])->one();
+            if ($node_type->name == '超级节点') {
+                $voucher_num = 0;
+            } elseif ($node_type->name == '高级节点') {
+                $voucher_num = 200000;
+            } elseif ($node_type->name == '中级节点') {
+                $voucher_num = 80000;
+            } else {
+                $voucher_num = 20000;
+            }
+            $gdt = $node->grt * 0.1;
+            $old_data = BVoucher::find()->where(['user_id' => $user_id, 'give_user_id' => $user->id])->one();
+            if ($old_data) {
+                $is_give = 1;
+            } else {
+                $is_give = 0;
+            }
+            $return = ['voucher_num' => $voucher_num, 'is_give' => $is_give, 'gdt' => $gdt, 'type_name' => $node_type->name];
+            return $this->respondJson(0, '获取成功', $return);
+        }
+    }
+
+    //赠送投票券
+    public function actionGive()
+    {
+        $type = $this->pInt('type');
+        if (!$type) {
+            return $this->respondJson(1, '派发类型不能为空');
+        }
+        $user_id = $this->pInt('userId');
+        if (!$user_id) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        if ($type == BVoucher::$TYPE_RECOMMEND) {// 推荐类型
+            $mobile = $this->pInt('mobile');
+            if (!$type) {
+                return $this->respondJson(1, '被推荐人手机不能为空');
+            }
+            $user = BUser::find()->where(['mobile' => $mobile])->one();
+            if (!$user) {
+                return $this->respondJson(1, '被推荐人不存在');
+            }
+            $node = BNode::find()->where(['user_id' => $user->id])->one();
+            if (!$node) {
+                return $this->respondJson(1, '被推荐人不是节点');
+            }
+            $voucher_num = $this->pInt('voucherNum');
+            if (!$voucher_num) {
+                return $this->respondJson(1, '投票券数量不能为空');
+            }
+            $gdt = $this->pFloat('gdt');
+            $remark = $this->pString('remark', '');
+            $voucher = new BVoucher();
+            $voucher->user_id = $user_id;
+            $voucher->give_user_id = $user->id;
+            $voucher->node_id = $node->id;
+            $voucher->voucher_num = $voucher_num;
+            $voucher->type = $type;
+            $voucher->remark = $remark;
+            if ($voucher->save()) {
+                UserService::resetVoucher($user_id);
+                return $this->respondJson(0, '派发成功');
+            } else {
+                return $this->respondJson(1, '派发失败', $voucher->getFirstErrorText());
+            }
+        }
     }
 }

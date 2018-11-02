@@ -14,6 +14,7 @@ use common\models\business\BVoucherDetail;
 use common\models\business\BWalletJingtum;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BUserCurrencyFrozen;
+use common\models\business\BCurrency;
 
 class VoteService extends ServiceBase
 {
@@ -221,31 +222,53 @@ class VoteService extends ServiceBase
                 'create_time' => $time,
                 'update_time' => $time,
             ];
+            $remark = '';
+            $amount = 0;
+            $type = 0;
             if ($isFrozen) {
                 // 冻结用户资金
                 $userFrozen = new BUserCurrencyFrozen();
                 $userFrozen->setAttributes($currencyData);
-                $userFrozen->type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
+                $userFrozen->type = $type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
                 $userFrozen->amount = round($res['amount'], 8); // 总数量
-                $userFrozen->remark = BUserCurrencyFrozen::getType(BUserCurrencyFrozen::$TYPE_VOTE) ?? '投票';
+                $userFrozen->remark = $remark = BUserCurrencyFrozen::getType(BUserCurrencyFrozen::$TYPE_VOTE) ?? '投票';
                 $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
                 $sign = $userFrozen->save();
                 if (!$sign) {
                     throw new ErrorException('user_currency_frozen table data is not inserted successfully');
                 }
+                $ordinaryGdt = (float) SettingService::get('vote', 'ordinary_gdt')->value;
+                $giveAmount = round($userFrozen->amount * $ordinaryGdt, 8);
             } else {
                 // 投票明细
                 $currencyDetail = new BUserCurrencyDetail();
                 $currencyDetail->setAttributes($currencyData);
-                $currencyDetail->type = BUserCurrencyDetail::$TYPE_VOTE; // 投票消费
+                $currencyDetail->type = $type = BUserCurrencyDetail::$TYPE_VOTE; // 投票消费
                 $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
                 $currencyDetail->effect_time = $time;
-                $currencyDetail->remark = BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE) ?? '投票';
+                $currencyDetail->remark = $remark = BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE) ?? '投票';
                 $currencyDetail->amount = -$res['amount'];
                 $sign = $currencyDetail->save();
                 if (!$sign) {
                     throw new ErrorException('user-currency-detail table data create is fail');
                 }
+                
+                $payGdt = (float) SettingService::get('vote', 'pay_gdt')->value;
+                $giveAmount = round($res['amount'] * $payGdt, 8);
+            }
+
+            // 赠送GDT
+            $giveDate = [
+                'user_id' => $res['user_id'],
+                'relate_table' => $relate_table,
+                'relate_id' => $res['id'],
+                'type' => $type,
+                'amount' => $giveAmount,
+                'remark' => $remark,
+            ];
+            $give = self::giveCurrency($giveDate);
+            if ($give->code) {
+                throw new ErrorException($give->msg);
             }
             // 手续费明细
             if ($res['poundage'] > 0) {
@@ -315,6 +338,46 @@ class VoteService extends ServiceBase
             return new FuncResult(0, '状态更改成功');
         } catch (\Exception $e) {
             $transaction->rollBack();
+            return new FuncResult(1, $e->getMessage());
+        }
+    }
+    
+    /**
+     * 赠送GDT
+     *
+     * @param array $res
+     * @return void
+     * 
+     * $res = [
+                'user_id' => 用户ID,
+                'type' => 类型,
+                'relate_table' => 赠送的关系,
+                'relate_id' => 赠送关系ID,
+                'amount' => 赠送数量,
+                'remark' => 赠送备注,
+            ];
+     */
+    public static function giveCurrency(array $res)
+    {
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            if (!$currencyId = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT)) {
+                throw new ErrorException(BCurrency::$CURRENCY_GDT . ' currency undefind');
+            }
+            // 赠送明细
+            $currencyDetail = new BUserCurrencyDetail();
+            $currencyDetail->setAttributes($res);
+            $currencyDetail->currency_id = $currencyId;
+            $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+            $currencyDetail->effect_time = NOW_TIME;
+            if (!$currencyDetail->save()) {
+                throw new ErrorException('user-currency-detail table data create is fail');
+            }
+            $transaction->commit();
+            return new FuncResult(0, '状态更改成功');
+        } catch(\Exception $e) {
+            $transaction->rollBack();
+            // var_dump($e->getMessage());
             return new FuncResult(1, $e->getMessage());
         }
     }

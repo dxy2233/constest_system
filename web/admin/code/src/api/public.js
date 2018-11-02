@@ -1,9 +1,9 @@
 import request from '@/utils/request'
 
-// 获取上传图片的域名
-export function upload() {
+// 获取下载excel的验证码
+export function getVerifiCode() {
   return request({
-    url: 'http://admin.contest_system.local/site/site/get-site-info',
+    url: '/download/get-download-code',
     method: 'post'
   })
 }

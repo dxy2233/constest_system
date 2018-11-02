@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 // 用户列表
-export function getUserList(searchName, str_time, end_time, page) {
+export function getUserList(searchName, str_time, end_time, page, order) {
   return request({
     url: '/user/index',
     method: 'post',
@@ -9,26 +9,26 @@ export function getUserList(searchName, str_time, end_time, page) {
       searchName,
       str_time,
       end_time,
-      page
+      page,
+      order
     }
   })
 }
-export function getUserListExcel(searchName, str_time, end_time, page) {
-  return request({
-    // url: '/user/download',
-    url: 'http://localhost:3000/index',
-    // url: 'http://admin.contest_system.local/index/test',
-    // url: 'http://admin.contest_system.local/index/index',
-    method: 'post',
-    // responseType: 'blob',
-    // responseType: 'arraybuffer',
-    data: {
-      searchName,
-      str_time,
-      end_time
-    }
-  })
-}
+// export function getUserListExcel(download_code, url) {
+//   return request({
+//     // url: '/user/download',
+//     url: url,
+//     // url: 'http://localhost:3000/index',
+//     // url: 'http://admin.contest_system.local/index/test',
+//     // url: 'http://admin.contest_system.local/index/index',
+//     method: 'get',
+//     responseType: 'blob',
+//     // responseType: 'arraybuffer',
+//     data: {
+//       download_code
+//     }
+//   })
+// }
 
 // tabs基础信息
 export function getUserBase(userId) {
@@ -133,6 +133,33 @@ export function addUser(mobile, code) {
     data: {
       mobile,
       code
+    }
+  })
+}
+
+// 派发查询
+export function giveInfo(mobile, type, userId) {
+  return request({
+    url: '/user/get-give-info',
+    method: 'post',
+    data: {
+      mobile,
+      type,
+      userId
+    }
+  })
+}
+// 确认派发
+export function saveGive({ mobile, type, userId, voucherNum, remark }) {
+  return request({
+    url: '/user/give',
+    method: 'post',
+    data: {
+      mobile,
+      type,
+      userId,
+      voucherNum,
+      remark
     }
   })
 }

@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">资产管理</h4>
-    <el-button class="btn-right" type="primary" @click="openLock">锁仓记录</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="addExcel">导出excel</el-button>
+    <el-button class="btn-right" type="primary" @click="dialogLock=true;initLock()">锁仓记录</el-button>
+    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchTableData">
@@ -30,22 +30,22 @@
     </div>
     <br>
 
-    <el-table :data="tableDataPage" style="margin:10px 0;">
+    <el-table :data="tableData" style="margin:10px 0;" @sort-change="sortChange">
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="name" label="币种"/>
-      <el-table-column prop="positionAmount" label="总额"/>
-      <el-table-column prop="useAmount" label="可用"/>
-      <el-table-column prop="frozenAmount" label="锁仓"/>
+      <el-table-column prop="name" label="币种" sortable="custom"/>
+      <el-table-column prop="positionAmount" label="总额" sortable="custom"/>
+      <el-table-column prop="useAmount" label="可用" sortable="custom"/>
+      <el-table-column prop="frozenAmount" label="锁仓" sortable="custom"/>
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="20"
       layout="total, prev, pager, next, jumper"
-      @current-change="changePage"/>
+      @current-change="init"/>
 
-    <el-dialog :visible.sync="dialogLock" title="锁仓记录">
-      <el-input v-model="searchLockData" clearable placeholder="用户" style="width:150px;" @keyup.enter.native="searchLock">
+    <el-dialog :visible.sync="dialogLock" title="锁仓记录" @closed="lockCurrentPage=1;lockDate='';searchLockData='';lockMoneyType=''">
+      <el-input v-model="searchLockData" clearable placeholder="用户" style="width:150px;" @change="searchLock">
         <el-button slot="append" icon="el-icon-search" @click.native="searchLock"/>
       </el-input>
       <el-select v-model="lockMoneyType" clearable placeholder="币种" style="width:100px;" @change="searchLock">
@@ -55,20 +55,21 @@
           :label="item.name"
           :value="item.id"/>
       </el-select>
-      <el-button style="float:right;" @click="addExcelLock">导出excel</el-button>
+      <el-button style="float:right;" @click="downLockExcel">导出excel</el-button>
       <div style="margin-top:20px;">
         <span>时间</span>
         <el-date-picker
           v-model="lockDate"
-          type="datetimerange"
+          type="daterange"
           range-separator="至"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           format="yyyy 年 MM 月 dd 日"
           value-format="yyyy-MM-dd"
+          style="width:400px;"
           @change="searchLock"/>
       </div>
-      <el-table :data="lockTableDataPage" style="margin:10px 0;">
+      <el-table :data="lockTableData" style="margin:10px 0;">
         <el-table-column prop="mobile" label="用户"/>
         <el-table-column prop="name" label="币种"/>
         <el-table-column prop="amount" label="数量"/>
@@ -77,17 +78,17 @@
       </el-table>
       <el-pagination
         :current-page.sync="lockCurrentPage"
-        :total="lockTotal"
+        :total="parseInt(lockTotal)"
         :page-size="20"
         layout="total, prev, pager, next, jumper"
-        @current-change="changeLockPage"/>
+        @current-change="initLock"/>
     </el-dialog>
   </div>
 </template>
 
 <script>
 import { getFinanceList, getMoneyType, getLockList } from '@/api/assets'
-import { parseTime, pagination } from '@/utils'
+import { getVerifiCode } from '@/api/public'
 
 export default {
   name: 'AssetsManagement',
@@ -104,103 +105,93 @@ export default {
       min: '',
       max: '',
       tableData: [],
-      tableDataPage: [],
+      total: 1,
       currentPage: 1,
+      order: null,
       dialogLock: false,
       searchLockData: '',
       lockMoneyType: '',
       lockDate: '',
       lockTableData: [],
-      lockTableDataPage: [],
+      lockTotal: 1,
       lockCurrentPage: 1
     }
   },
-  computed: {
-    total() {
-      return this.tableData.length
-    },
-    lockTotal() {
-      return this.lockTableData.length
-    }
-  },
   created() {
-    getFinanceList().then(res => {
-      this.tableData = res.content.list
-      this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
-    })
     getMoneyType().then(res => {
       this.allMoneyType = res.content
+      this.init()
     })
   },
   methods: {
-    // 变页数
-    changePage(page) {
-      this.tableDataPage = pagination(this.tableData, page, 20)
+    init() {
+      getFinanceList(this.search, this.moneyType, this.amount, this.min, this.max, this.order, this.currentPage).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
+      })
+    },
+    // 排序
+    sortChange(val) {
+      this.currentPage = 1
+      if (val.prop === null) this.order = null
+      else if (val.prop === 'name' && val.order === 'ascending') this.order = 1
+      else if (val.prop === 'name' && val.order === 'descending') this.order = 5
+      else if (val.prop === 'positionAmount' && val.order === 'ascending') this.order = 2
+      else if (val.prop === 'positionAmount' && val.order === 'descending') this.order = 6
+      else if (val.prop === 'useAmount' && val.order === 'ascending') this.order = 3
+      else if (val.prop === 'useAmount' && val.order === 'descending') this.order = 7
+      else if (val.prop === 'frozenAmount' && val.order === 'descending') this.order = 4
+      else if (val.prop === 'frozenAmount' && val.order === 'descending') this.order = 8
+      this.init()
     },
     // 主表格搜索
     searchTableData() {
-      getFinanceList(this.search, this.moneyType, this.amount, this.min, this.max).then(res => {
-        this.tableData = res.content.list
-      }).then(() => {
-        this.tableDataPage = pagination(this.tableData, this.currentPage, 20)
-      })
+      this.currentPage = 1
+      this.init()
     },
-    // 打开锁仓记录
-    openLock() {
-      getLockList().then(res => {
+    initLock() {
+      getLockList(this.searchLockData, this.lockMoneyType, this.lockDate[0], this.lockDate[1], this.lockCurrentPage).then(res => {
         this.lockTableData = res.content.list
-      }).then(() => {
-        this.lockTableDataPage = pagination(this.lockTableData, this.lockCurrentPage, 20)
-        this.dialogLock = true
+        this.lockTotal = res.content.count
       })
-    },
-    changeLockPage(page) {
-      this.lockTableDataPage = pagination(this.lockTableData, page, 20)
     },
     // 锁仓记录搜索
     searchLock() {
       if (this.lockDate === null) this.lockDate = ''
-      getLockList(this.searchLockData, this.lockMoneyType, this.lockDate[0], this.lockDate[1]).then(res => {
-        this.lockTableData = res.content.list
-      }).then(() => {
-        this.lockTableDataPage = pagination(this.lockTableData, this.lockCurrentPage, 20)
+      this.lockCurrentPage = 1
+      this.initLock()
+    },
+    // 下载excel
+    downExcel() {
+      getVerifiCode().then(res => {
+        var url = `/finance/download?download_code=${res.content}&searchName=${this.search}&currency_id=${this.moneyType}&type=${this.amount}&min=${this.min}&max=${this.max}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
       })
     },
-    // 导出excel
-    addExcel() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['用户', '币种', '总额', '可用', '锁仓']
-        const filterVal = ['mobile', 'name', 'positionAmount', 'useAmount', 'frozenAmount']
-        const list = this.tableData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '资产管理'
-        })
+    downLockExcel() {
+      if (this.lockDate) {
+        var str = this.lockDate[0]
+        var end = this.lockDate[1]
+      } else {
+        str = ''
+        end = ''
+      }
+      getVerifiCode().then(res => {
+        var url = `/finance/frozen-download?download_code=${res.content}&searchName=${this.searchLockData}&currency_id=${this.lockMoneyType}&str_time=${str}&end_time=${end}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
       })
-    },
-    addExcelLock() {
-      import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['用户', '币种', '数量', '描述', '时间']
-        const filterVal = ['mobile', 'name', 'amount', 'remark', 'createTime']
-        const list = this.lockTableData
-        const data = this.formatJson(filterVal, list)
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: '锁仓记录'
-        })
-      })
-    },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
-        } else {
-          return v[j]
-        }
-      }))
     }
   }
 }

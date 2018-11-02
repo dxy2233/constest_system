@@ -1,6 +1,6 @@
 <template>
   <div class="app-container" @click.self="showNoticeInfo=false">
-    <el-radio-group v-model="noticeType" class="radioTabs" @change="changeNoticeType">
+    <el-radio-group v-model="noticeType" class="radioTabs" @change="showNoticeInfo=false;init()">
       <el-radio-button label="已上架"/>
       <el-radio-button label="下架中"/>
       <el-radio-button label="全部"/>
@@ -11,7 +11,7 @@
     <el-button :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain style="margin-top:20px;" @click="allDelete">删除</el-button>
 
     <el-table
-      :data="tableDataPage"
+      :data="tableData"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
       @row-click="clickRow">
@@ -40,9 +40,10 @@
     </el-table>
     <el-pagination
       :current-page.sync="currentPage"
-      :total="total"
+      :total="parseInt(total)"
       :page-size="pageSize"
-      layout="total, prev, pager, next, jumper"/>
+      layout="total, prev, pager, next, jumper"
+      @current-change="init"/>
 
     <transition name="fade">
       <div v-show="showNoticeInfo" class="fade-slide">
@@ -195,7 +196,6 @@
 import { getNoticeList, deleteNotice, toTop, unTop, getNoticeSetList, pushNoticeSet,
   onShelf, offShelf, addNotice, editNotice } from '@/api/notice'
 import { Message } from 'element-ui'
-import { pagination } from '@/utils'
 import Tinymce from '@/components/Tinymce'
 
 export default {
@@ -205,6 +205,7 @@ export default {
     return {
       noticeType: '已上架',
       tableData: [],
+      total: 1,
       tableDataSelection: [],
       currentPage: 1,
       pageSize: 20,
@@ -246,12 +247,6 @@ export default {
     }
   },
   computed: {
-    total() {
-      return this.tableData.length
-    },
-    tableDataPage() {
-      return pagination(this.tableData, this.currentPage, this.pageSize)
-    },
     noticeTypetoNum() {
       if (this.noticeType === '已上架') {
         return 1
@@ -263,16 +258,13 @@ export default {
     }
   },
   created() {
-    getNoticeList(this.noticeTypetoNum).then(res => {
-      this.tableData = res.content
-    })
+    this.init()
   },
   methods: {
-    // 切换公告类型
-    changeNoticeType(val) {
-      this.showNoticeInfo = false
-      getNoticeList(this.noticeTypetoNum).then(res => {
-        this.tableData = res.content
+    init() {
+      getNoticeList(this.noticeTypetoNum, this.currentPage).then(res => {
+        this.tableData = res.content.list
+        this.total = res.content.count
       })
     },
     // 表格勾选
@@ -304,10 +296,8 @@ export default {
       }).then(() => {
         deleteNotice(this.rowInfo.id).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getNoticeList(this.noticeTypetoNum).then(res => {
-            this.tableData = res.content
-            this.showNoticeInfo = false
-          })
+          this.init()
+          this.showNoticeInfo = false
         })
       })
     },
@@ -324,9 +314,7 @@ export default {
         })
         deleteNotice(allId.replace(',', '')).then(res => {
           Message({ message: res.msg, type: 'success' })
-          getNoticeList(this.noticeTypetoNum).then(res => {
-            this.tableData = res.content
-          })
+          this.init()
         })
       })
     },
@@ -339,17 +327,13 @@ export default {
     ifShelf(type) {
       if (type) {
         onShelf(this.rowInfo.id).then(res => {
-          getNoticeList(this.noticeTypetoNum).then(res => {
-            this.tableData = res.content
-          })
+          this.init()
           this.rowInfo.status = 1
           Message({ message: res.msg, type: 'success' })
         })
       } else {
         offShelf(this.rowInfo.id).then(res => {
-          getNoticeList(this.noticeTypetoNum).then(res => {
-            this.tableData = res.content
-          })
+          this.init()
           this.rowInfo.status = 0
           Message({ message: res.msg, type: 'success' })
         })
@@ -408,9 +392,7 @@ export default {
           addNotice(this.releaseData).then(res => {
             Message({ message: res.msg, type: 'success' })
             this.dialogRelease = false
-            getNoticeList(this.noticeTypetoNum).then(res => {
-              this.tableData = res.content
-            })
+            this.init()
           })
         } else {
           console.log('error submit!!')

@@ -56,6 +56,7 @@ trait DzControllerTrait
     */
     final protected function pFloat($name, $default = null)
     {
+        $return = Yii::$app->request->post($name, $default);
         if (!empty($return)) {
             return floatval($return);
         }

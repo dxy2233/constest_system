@@ -136,3 +136,30 @@ export function addUser(mobile, code) {
     }
   })
 }
+
+// 派发查询
+export function giveInfo(mobile, type, userId) {
+  return request({
+    url: '/user/get-give-info',
+    method: 'post',
+    data: {
+      mobile,
+      type,
+      userId
+    }
+  })
+}
+// 确认派发
+export function saveGive({ mobile, type, userId, voucherNum, remark }) {
+  return request({
+    url: '/user/give',
+    method: 'post',
+    data: {
+      mobile,
+      type,
+      userId,
+      voucherNum,
+      remark
+    }
+  })
+}

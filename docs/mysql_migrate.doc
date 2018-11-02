@@ -6,3 +6,5 @@
         ALTER TABLE `gr_voucher` ADD `give_user_id` int(11) NOT NULL COMMENT '赠送人ID(被推荐人)' AFTER `user_id`;
         ALTER TABLE `gr_voucher` ADD `type` int(11) NOT NULL COMMENT '派发类型' AFTER `voucher_num`;
         ALTER TABLE `gr_voucher` ADD `remark` varchar(256) COLLATE 'utf8_general_ci' NOT NULL COMMENT '备注' AFTER `type`;
+
+        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (30,	'vote',	'赠送GDT百分比',	'pay_gdt',	'0.03',	'0.03',	'input',	'',	'GDT',	1,	4,	0,	0);

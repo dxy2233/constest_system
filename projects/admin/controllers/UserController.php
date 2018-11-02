@@ -603,7 +603,7 @@ class UserController extends BaseController
         if (!$type) {
             return $this->respondJson(1, '派发类型不能为空');
         }
-        $user_id = $this->pInt('user_id');
+        $user_id = $this->pInt('userId');
         if (!$user_id) {
             return $this->respondJson(1, '用户ID不能为空');
         }
@@ -649,7 +649,7 @@ class UserController extends BaseController
         if (!$type) {
             return $this->respondJson(1, '派发类型不能为空');
         }
-        $user_id = $this->pInt('user_id');
+        $user_id = $this->pInt('userId');
         if (!$user_id) {
             return $this->respondJson(1, '用户ID不能为空');
         }
@@ -666,7 +666,7 @@ class UserController extends BaseController
             if (!$node) {
                 return $this->respondJson(1, '被推荐人不是节点');
             }
-            $voucher_num = $this->pInt('voucher_num');
+            $voucher_num = $this->pInt('voucherNum');
             if (!$voucher_num) {
                 return $this->respondJson(1, '投票券数量不能为空');
             }

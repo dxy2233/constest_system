@@ -79,9 +79,8 @@
     fixed-full-screen()
     overflow auto
     background $color-background-sub
-    & > .vux-header
-      background none
-      border none
+    .app-header
+      background $color-background-sub !important
     .interests-content
       margin 20px
       margin-top 60px

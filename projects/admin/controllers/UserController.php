@@ -289,6 +289,7 @@ class UserController extends BaseController
                 foreach ($in_and_out_data as $val) {
                     $in_and_out = [];
                     $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
+                    $in_and_out['remark'] = $val['remark'];
                     $in_and_out['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
                     $in_and_out['amount'] = ($val['amount'] > 0) ? '+'.$val['amount'] : $val['amount'];
                     $v['in_and_out'][] = $in_and_out;
@@ -297,6 +298,7 @@ class UserController extends BaseController
                 foreach ($in_and_out_data as $val) {
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
+                    $frozen['remark'] = $val['remark'];
                     $frozen['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
                     $frozen['amount'] = ($val['amount'] > 0) ? '-'.$val['amount'] : '+'.abs($val['amount']);
                     $v['frozen'][] = $frozen;

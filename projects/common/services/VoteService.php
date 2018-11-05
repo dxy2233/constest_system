@@ -262,7 +262,7 @@ class VoteService extends ServiceBase
                 'user_id' => $res['user_id'],
                 'relate_table' => $relate_table,
                 'relate_id' => $res['id'],
-                'type' => $type,
+                'type' => BUserCurrencyDetail::$TYPE_REWARD,
                 'amount' => $giveAmount,
                 'remark' => $remark,
             ];
@@ -347,7 +347,7 @@ class VoteService extends ServiceBase
      *
      * @param array $res
      * @return void
-     * 
+     *
      * $res = [
                 'user_id' => 用户ID,
                 'type' => 类型,
@@ -375,7 +375,7 @@ class VoteService extends ServiceBase
             }
             $transaction->commit();
             return new FuncResult(0, '状态更改成功');
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $transaction->rollBack();
             // var_dump($e->getMessage());
             return new FuncResult(1, $e->getMessage());

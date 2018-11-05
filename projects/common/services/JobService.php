@@ -19,7 +19,7 @@ class JobService extends ServiceBase
     public static function beginPut($type = 0)
     {
         // 取出所有有效设置
-        $cycle = BCycle::find()->where(['>=','tenure_end_time',time()])->all();
+        $cycle = BCycle::find()->where(['>=','tenure_end_time',time()+60])->all();
         $put = $history = false;
         foreach ($cycle  as $v) {
             // 竞选截止 生成快照

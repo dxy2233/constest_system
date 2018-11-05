@@ -54,6 +54,7 @@ class NodeType extends \common\dzbase\DzModel
             'grt' => 'grt最低标准',
             'tt' => 'tt最低标准',
             'bpt' => 'bpt最低标准',
+            'gdt_reward' => '奖励gdt数量',
             'max_candidate' => '候选人上限',
             'is_examine' => '是否审核',
             'is_candidate' => '是否开启候选功能',

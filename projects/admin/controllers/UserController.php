@@ -681,10 +681,12 @@ class UserController extends BaseController
             $voucher->type = $type;
             $voucher->remark = $remark;
             $transaction = \Yii::$app->db->beginTransaction();
-            if (!$voucher->save()) {
+            $voucher_bool = $voucher->save();
+            if (!$voucher_bool) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '派发失败', $voucher->getFirstErrorText());
             }
+            
             UserService::resetVoucher($user_id);
             $res = [
                 'user_id' => $user_id,
@@ -694,11 +696,13 @@ class UserController extends BaseController
                 'amount' => $gdt,
                 'remark' => '推荐送GDT',
             ];
+            
             $json = VoteService::giveCurrency($res);
             if ($json->code) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '派发失败', $json->msg);
             }
+            $transaction->commit();
             $sign = UserService::resetCurrency($user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
             return $this->respondJson(0, '派发成功');
         }

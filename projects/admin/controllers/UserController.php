@@ -285,7 +285,7 @@ class UserController extends BaseController
         ->where(['A.user_id'=> $userId])->asArray()->all();
         if (!empty($currency_data)) {
             foreach ($currency_data as &$v) {
-                $in_and_out_data = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
+                $in_and_out_data = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->orderBy('id desc')->all();
                 foreach ($in_and_out_data as $val) {
                     $in_and_out = [];
                     $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
@@ -294,7 +294,7 @@ class UserController extends BaseController
                     $in_and_out['amount'] = ($val['amount'] > 0) ? '+'.$val['amount'] : $val['amount'];
                     $v['in_and_out'][] = $in_and_out;
                 }
-                $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
+                $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->orderBy('id desc')->all();
                 foreach ($in_and_out_data as $val) {
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
@@ -333,7 +333,7 @@ class UserController extends BaseController
         $vote_log = BVote::find()->from(BVote::tableName()." A")
         ->join('inner join', 'gr_node C', 'A.node_id = C.id')
         ->join('inner join', 'gr_node_type B', 'C.type_id = B.id')
-        ->select(['C.name as nodeName','B.name as typeName','A.type', 'A.vote_number', 'A.create_time'])->where(['A.user_id' => $userId])->asArray()->all();
+        ->select(['C.name as nodeName','B.name as typeName','A.type', 'A.vote_number', 'A.create_time'])->where(['A.user_id' => $userId])->orderBy('A.id desc')->asArray()->all();
         $vote_vote = [];
         if (count($vote_log)>0) {
             foreach ($vote_log as $v) {
@@ -386,7 +386,7 @@ class UserController extends BaseController
         ->join('inner join', BNode::tableName().' B', 'A.node_id = B.id')
         ->join('inner join', BNodeType::tableName().' C', 'B.type_id = C.id')
         ->select(['A.voucher_num', 'A.create_time','B.name as nodeName','C.name as typeName'])
-        ->where(['A.user_id' => $userId])->asArray()->all();
+        ->where(['A.user_id' => $userId])->orderBy('A.id desc')->asArray()->all();
         $all  = 0;
         foreach ($voucher_data as $v) {
             $voucher_item = [];
@@ -446,7 +446,7 @@ class UserController extends BaseController
         ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
         
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
-        ->where(['A.parent_id' => $userId])->asArray()->all();
+        ->where(['A.parent_id' => $userId])->orderBy('A.id desc')->asArray()->all();
         foreach ($recommend_data as $v) {
             $recommend_item = [];
             $recommend_item['nodeName'] = $v['nodeName'];

@@ -200,6 +200,10 @@
           <p>质押TT</p>
           <el-input v-model="dialogSetData.tt" placeholder="请输入内容" style="width:80%;"/> TT
         </div>
+        <div>
+          <p>赠送GDT</p>
+          <el-input v-model="dialogSetData.gdtReward" placeholder="请输入内容" style="width:80%;"/> GDT
+        </div>
       </div>
       <h3 style="padding:20px 0 0;">享有权益</h3>
       <div class="right">
@@ -1097,6 +1101,7 @@ export default {
     flex-wrap: wrap;
     > div {
       margin-right: 20px;
+      width: calc(33% - 20px);
     }
   }
   .right-checkbox {

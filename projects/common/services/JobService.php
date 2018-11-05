@@ -2,10 +2,16 @@
 
 namespace common\services;
 
+use common\services\NodeService;
+use common\services\UserService;
 use common\models\business\BSetting;
 use common\models\business\BNode;
 use common\models\business\BNotice;
 use common\models\business\BHistory;
+use common\models\business\BCycle;
+use common\models\business\BVote;
+use common\models\business\BUserCurrencyDetail;
+use common\models\business\BCurrency;
 use Yii;
 
 class JobService extends ServiceBase

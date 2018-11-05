@@ -16,12 +16,19 @@
           <swiper-item v-for="(item, index) in swiperList" class="notice-swiper-item"
                        :key="index">
             <div class="img-box" @click="goNoticeDts(item)"
-                         :style='{ backgroundImage: "url(" + item.image + ")"}'></div>
+                 :style='{ backgroundImage: "url(" + item.image + ")"}'></div>
           </swiper-item>
         </swiper>
         <router-link tag="p" to="/home/notice" class="and-more">更多 ></router-link>
       </div>
-      <div class="line"></div>
+      <div v-if="!countDownIsOpen" class="line"></div>
+      <div v-else class="count-down">
+        <img src="/static/images/time-bg.png" alt="">
+        <div class="content">
+          <p class="label">本轮竞选投票倒计时</p>
+          <p class="data">{{downTimeStr}}</p>
+        </div>
+      </div>
       <div class="ranking">
         <ul class="title-tab">
           <li v-for="(tab,index) in nodeTab" :class="{'act':tab.id===currentNodeId}" @click="selectTab(tab.id)">
@@ -52,13 +59,16 @@
       Swiper, SwiperItem, Tab, TabItem,
       rankList
     },
-      data()     {
+    data() {
       return {
         swiperList: [],
         nodeTab: [],
         currentNodeId: '',
         nodeList: [],
-        loadShow: true
+        loadShow: true,
+        downTime: 0,
+        countDownIsOpen: false,
+        timeInterval: '',
       }
     },
     methods: {
@@ -71,9 +81,9 @@
             this.$vux.toast.show(res.msg)
             return
           }
-          if (res.content.type == 0){
+          if (res.content.type == 0) {
             window.location.href = res.content.url
-          }else {
+          } else {
             sessionStorage.setItem("noticeInfo", JSON.stringify(res.content));
             this.$router.push({
               path: `/home/notice/dts${item.id}`
@@ -131,8 +141,28 @@
         this.nodeList = []
         this.nodeTab = []
         this.currentNodeId = ''
+        this.getCountTime()
         this.getNoticeList()
         this.getNodeTab()
+      },
+      getCountTime() {
+        http.post('/vote/count-time', {}, (res) => {
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.downTime = res.content.downTime
+          // this.downTime = 5
+          this.countDownIsOpen = res.content.countDownIsOpen
+          if (this.timeInterval) clearInterval(this.timeInterval)
+          this.timeInterval = setInterval(() => {
+            if (this.downTime) {
+              this.downTime--
+            } else {
+              clearInterval(this.timeInterval)
+            }
+          }, 1000)
+        })
       }
     },
     created() {
@@ -140,6 +170,33 @@
     },
     activated() {
 
+    },
+    computed: {
+      downTimeStr() {
+        if (!this.downTime) return '本轮竞选已结束'
+        const px_d = 60 * 60 * 24//一天的秒
+        const px_h = 60 * 60//一小时的秒
+        const px_m = 60//一分钟的秒
+        const px_s = 1//一秒
+        let d = Math.floor(this.downTime / px_d);
+        let h = Math.floor((this.downTime - d * px_d) / px_h)
+        let m = Math.floor((this.downTime - d * px_d - h * px_h) / px_m)
+        let s = Math.floor((this.downTime - d * px_d - h * px_h - m * px_m) / px_s)
+        let r = []
+        if (d > 0) {
+          r.push(`${d}天`)
+        }
+        if (r.length || (h > 0)) {
+          r.push(`${h}时`)
+        }
+        if (r.length || (m > 0)) {
+          r.push(`${m}分`)
+        }
+        if (r.length || (s > 0)) {
+          r.push(`${s}秒`)
+        }
+        return r.join('')
+      }
     },
     watch: {
       '$route': function (t, f) {
@@ -164,6 +221,27 @@
     overflow auto
     height 100%
     padding 0 $space-box
+    .count-down
+      overflow hidden
+      width 100%
+      position relative
+      img
+        width 100%
+        height 30px
+      .content
+        position absolute
+        top 0
+        left 0
+        width 100%
+      p
+        width 50%
+        float left
+        line-height 30px
+        text-align center
+      .label
+        color white
+      .data
+        color $color-theme
     .line
       height 1px
       width 100%

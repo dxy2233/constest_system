@@ -233,7 +233,7 @@
           </el-form-item>
         </div>
         <el-form-item label="派发类型" prop="type">
-          <el-select v-model="rewardForm.type" placeholder="请选择" @change="changeRewardType">
+          <el-select v-model="rewardForm.type" placeholder="请选择" @change="sureRewardMobile">
             <el-option
               v-for="item in rewardType"
               :key="item.value"
@@ -243,18 +243,18 @@
         </el-form-item>
         <div class="row">
           <el-form-item label="被推荐人手机号" prop="mobile">
-            <el-input v-model="rewardForm.mobile" style="width:95%;"/>
+            <el-input v-model="rewardForm.mobile" style="width:94%;" @change="sureRewardMobile"/>
           </el-form-item>
           <el-form-item label="被推荐人节点">
             {{ rewardForm.typeName }}
           </el-form-item>
         </div>
         <el-form-item label="派发投票券" prop="voucherNum">
-          <el-input v-model="rewardForm.voucherNum" style="width:95%;"/> 票
+          <el-input v-model="rewardForm.voucherNum" style="width:94%;"/> 票
         </el-form-item>
-        <!-- <el-form-item label="赠送GDT">
-          <el-input v-model="rewardForm.gdt" style="width:95%;"/> GDT
-        </el-form-item> -->
+        <el-form-item label="赠送GDT" prop="gdt">
+          <el-input v-model="rewardForm.gdt" style="width:94%;"/> GDT
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" style="width:100%;" @click="readyReward">派发</el-button>
         </el-form-item>
@@ -263,7 +263,7 @@
         <p v-if="rewardForm.isGive==1" class="txt">该推荐已发放过投票券，是否还要继续派发投票券</p>
         <p class="txt"><span>派发账户</span>{{ rowInfo.mobile }}</p>
         <p class="txt"><span>投票券</span>{{ rewardForm.voucherNum }}票</p>
-        <!-- <p><span>派发账户</span>{{ rowInfo.mobile }}</p> -->
+        <p class="txt"><span>GDT</span>{{ rewardForm.gdt }}</p>
         <div slot="footer">
           <el-button @click="dialogRewardTwo = false">取 消</el-button>
           <el-button type="primary" @click="runReward">确认</el-button>
@@ -336,7 +336,7 @@ export default {
         typeName: '--',
         isGive: '',
         mobile: '',
-        type: '',
+        type: 1,
         userId: '',
         voucherNum: '',
         remark: '',
@@ -351,7 +351,10 @@ export default {
           { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
         ],
         voucherNum: [
-          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
+          { pattern: /^(0|[1-9][0-9]*)$/, required: true, message: '请输入大于0的整数', trigger: 'blur' }
+        ],
+        gdt: [
+          { pattern: /^(0|[1-9]\d*)(\s|$|\.\d{1,6}\b)/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
         ]
       }
     }
@@ -529,8 +532,9 @@ export default {
       this.changeTabs({ name: 'Wallet' })
     },
     // 更改派发类型
-    changeRewardType(val) {
-      giveInfo(this.rowInfo.mobile, val, this.rewardForm.userId).then(res => {
+    sureRewardMobile(val) {
+      if (!/^1\d{10}$/.test(this.rewardForm.mobile)) return
+      giveInfo(this.rewardForm.mobile, this.rewardForm.type, this.rewardForm.userId).then(res => {
         this.rewardForm.voucherNum = res.content.voucherNum
         this.rewardForm.isGive = res.content.isGive
         this.rewardForm.gdt = res.content.gdt

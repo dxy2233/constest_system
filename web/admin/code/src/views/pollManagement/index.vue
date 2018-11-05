@@ -3,6 +3,7 @@
     <h4 style="display:inline-block;">投票管理</h4>
     <el-button class="btn-right" @click="initRank();dialogRank=true">投票排名</el-button>
     <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openVoteSet">投票设置</el-button>
+    <el-button class="btn-right" @click="openCamp">竞选设置</el-button>
     <el-button class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
@@ -42,12 +43,12 @@
       <div v-for="(item,index) in dialogSetData" :key="index">
         <div v-if="item.type=='radio'" class="switch">
           <span>{{ item.name }}</span>
-          <el-switch v-model="pushSetData[index][item.key]" active-value="1" inactive-value="0" @change="changeSwitch"/>
+          <el-switch v-model="pushSetData[index][item.key]" active-value="1" inactive-value="0"/>
         </div>
         <div v-if="item.type=='text'" class="txt">
           <span>{{ item.name }}{{ pushSetData[index][item.key] }}</span>
         </div>
-        <div v-if="item.type=='time' && showTimeOver==1" class="time">
+        <!-- <div v-if="item.type=='time' && showTimeOver==1" class="time">
           <span>{{ item.name }}</span>
           <el-date-picker
             v-model="pushSetData[index][item.key]"
@@ -57,12 +58,6 @@
             placeholder="选择日期时间"
             style="width:250px;"/>
           <el-button style="float:right;" @click="manuakStop">手动截止</el-button>
-        </div>
-        <!-- <div v-if="item.type=='select'">
-          <p>{{ item.name }}</p>
-          <el-select v-model="pushSetData[index][item.key]" placeholder="请选择" size="small">
-            <el-option v-for="(item2,index2) in item.initialize" :key="index2" :value="index2" :label="item2"/>
-          </el-select> /天
         </div> -->
         <div v-if="item.type=='input'" class="item">
           <span class="title">{{ item.name }}</span>
@@ -74,6 +69,84 @@
         <el-button type="primary" @click="saveVoteSet">确认修改</el-button>
         <el-button @click="dialogSet = false">取 消</el-button>
       </span>
+    </el-dialog>
+
+    <el-dialog :visible.sync="dialogCamp" :fullscreen="true" title="竞选设置">
+      <div v-for="(item,index) in dialogCampData" :key="index">
+        <h3 style="display:inline-block;">投票竞选{{ index + 1 }}</h3>
+        <el-button type="danger" plain style="float:right;" @click="delCamp(item.id)">删除</el-button>
+        <el-button style="float:right;margin-right:20px;" @click="openEditCamp(index)">编辑</el-button>
+        <br>
+        <div class="camp-info">
+          <div>
+            <span>竞选开始时间</span>
+            <span>{{ item.cycleStartTime }}</span>
+          </div>
+          <div>
+            <span>竞选截止时间</span>
+            <span>{{ item.cycleEndTime }}</span>
+          </div>
+          <div>
+            <span>任职开始时间</span>
+            <span>{{ item.tenureStartTime }}</span>
+          </div>
+          <div>
+            <span>任职到期时间</span>
+            <span>{{ item.tenureEndTime }}</span>
+          </div>
+        </div>
+      </div>
+      <el-button style="margin-top:20px;" @click="dialogAddCamp=true">+新增竞选投票</el-button>
+      <el-dialog
+        :visible.sync="dialogAddCamp"
+        title="新增竞选投票"
+        center
+        append-to-body
+        @closed="addCampForm.camp='';addCampForm.hold='';addCampForm.id=''">
+        <h3>竞选投票</h3>
+        <el-form ref="camp" :model="addCampForm" :rules="addCampFormRules" label-position="top" label-width="80px">
+          <el-form-item label="竞选开始时间——竞选截止时间" prop="camp">
+            <el-date-picker
+              v-model="addCampForm.camp"
+              type="datetimerange"
+              range-separator="至"
+              start-placeholder="竞选开始时间"
+              end-placeholder="竞选截止时间"
+              format="yyyy 年 MM 月 dd 日 HH:mm"
+              value-format="yyyy-MM-dd HH:mm"
+              style="width:100%;"/>
+          </el-form-item>
+          <el-form-item label="任职开始时间——任职截止时间" prop="hold">
+            <el-date-picker
+              v-model="addCampForm.hold"
+              type="datetimerange"
+              range-separator="至"
+              start-placeholder="竞选开始时间"
+              end-placeholder="竞选截止时间"
+              format="yyyy 年 MM 月 dd 日 HH:mm"
+              value-format="yyyy-MM-dd HH:mm"
+              style="width:100%;"/>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogAddCamp = false">取 消</el-button>
+          <el-button type="primary" @click="saveCamp">确 定</el-button>
+        </span>
+      </el-dialog>
+      <p>历史记录</p>
+      <el-table :data="dialogCampHistoryData" style="margin: 10px 0;">
+        <el-table-column prop="id" label="序号"/>
+        <el-table-column prop="cycleStartTime" label="竞选开始时间"/>
+        <el-table-column prop="cycleEndTime" label="竞选截止时间"/>
+        <el-table-column prop="tenureStartTime" label="任职时间"/>
+        <el-table-column prop="tenureEndTime" label="到期时间"/>
+      </el-table>
+      <el-pagination
+        :current-page.sync="campCurrentPage"
+        :total="parseInt(campTotal)"
+        :page-size="20"
+        layout="total, prev, pager, next, jumper"
+        @current-change="initCampHistory"/>
     </el-dialog>
 
     <el-dialog :visible.sync="dialogRank" title="投票排名" @closed="rankCurrentPage=1;dialogRankType=0;dialogRankDate=''">
@@ -95,7 +168,7 @@
           value-format="yyyy-MM-dd"
           @change="rankCurrentPage=1;initRank()"/>
       </div>
-      <el-table ref="multipleTable" :data="dialogRankData" style="margin:10px 0;">
+      <el-table :data="dialogRankData" style="margin:10px 0;">
         <el-table-column prop="order" label="排名"/>
         <el-table-column prop="mobile" label="账号"/>
         <el-table-column prop="num" label="票数"/>
@@ -116,13 +189,23 @@
 </template>
 
 <script>
-import { getVoteList, getVoteSet, pushVoteSet, getVoteRank, refresh } from '@/api/poll'
+import { getVoteList, getVoteSet, pushVoteSet, getVoteRank, getCampHistory, getCamp,
+  addCamp, deleteCamp, editCamp } from '@/api/poll'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 
 export default {
   name: 'PollManagement',
   data() {
+    const validate = (rule, value, callback) => {
+      if (value === '' || value === null) {
+        callback(new Error('请输入日期'))
+      } else if (new Date(this.addCampForm.hold[0]).getTime() < new Date(this.addCampForm.camp[1]).getTime()) {
+        callback(new Error('任职日期必须在竞选结束后!'))
+      } else {
+        callback()
+      }
+    }
     return {
       search: '',
       searchDate: '',
@@ -146,7 +229,25 @@ export default {
       rankTotal: 1,
       dialogRankDate: '',
       rankCurrentPage: 1,
-      showTimeOver: null
+      dialogCamp: false,
+      dialogCampData: [],
+      dialogAddCamp: false,
+      addCampForm: {
+        camp: '',
+        hold: '',
+        id: ''
+      },
+      addCampFormRules: {
+        camp: [
+          { required: true, message: '请选择日期', trigger: 'change' }
+        ],
+        hold: [
+          { validator: validate, required: true, trigger: 'change' }
+        ]
+      },
+      dialogCampHistoryData: [],
+      campTotal: 1,
+      campCurrentPage: 1
     }
   },
   created() {
@@ -183,26 +284,20 @@ export default {
         this.pushSetData = []
         this.dialogSetData.forEach((item, index, arry) => {
           this.pushSetData.push({ [item.key]: item.value.toString() })
-          if (item.key === 'stop_vote') {
-            this.showTimeOver = item.value
-          }
         })
       })
       this.dialogSet = true
     },
-    changeSwitch(val) {
-      this.showTimeOver = val
-    },
     // 手动截至投票时间
-    manuakStop(index) {
-      var nowDate = new Date()
-      var time = nowDate.getFullYear() + '-' + (nowDate.getMonth() + 1) + '-' +
-        nowDate.getDate() + ' ' + nowDate.toLocaleTimeString('chinese', { hour12: false })
-      this.pushSetData.map((item, index, arry) => {
-        if (item.hasOwnProperty('end_update_time')) arry[index].end_update_time = time
-      })
-      refresh()
-    },
+    // manuakStop(index) {
+    //   var nowDate = new Date()
+    //   var time = nowDate.getFullYear() + '-' + (nowDate.getMonth() + 1) + '-' +
+    //     nowDate.getDate() + ' ' + nowDate.toLocaleTimeString('chinese', { hour12: false })
+    //   this.pushSetData.map((item, index, arry) => {
+    //     if (item.hasOwnProperty('end_update_time')) arry[index].end_update_time = time
+    //   })
+    //   refresh()
+    // },
     // 保存投票设置
     saveVoteSet() {
       var temList = {}
@@ -218,6 +313,74 @@ export default {
       getVoteRank(this.dialogRankDate, this.dialogRankType, this.rankCurrentPage).then(res => {
         this.dialogRankData = res.content.list
         this.rankTotal = res.content.count
+      })
+    },
+    initCampHistory() {
+      getCampHistory(this.campCurrentPage).then(res => {
+        this.dialogCampHistoryData = res.content.list
+        this.campTotal = res.content.count
+      })
+    },
+    openCamp() {
+      getCamp().then(res => {
+        this.dialogCampData = res.content
+        this.dialogCamp = true
+      })
+      this.initCampHistory()
+    },
+    // 增加||修改竞选投票
+    saveCamp() {
+      this.$refs['camp'].validate((valid) => {
+        if (valid) {
+          if (this.addCampForm.id === '') {
+            addCamp(this.addCampForm.camp[0], this.addCampForm.camp[1], this.addCampForm.hold[0],
+              this.addCampForm.hold[1]).then(res => {
+              Message({ message: res.msg, type: 'success' })
+              getCamp().then(res => {
+                this.dialogCampData = res.content
+                this.dialogAddCamp = false
+              })
+            })
+          } else {
+            editCamp(this.addCampForm.id, this.addCampForm.camp[0], this.addCampForm.camp[1], this.addCampForm.hold[0],
+              this.addCampForm.hold[1]).then(res => {
+              Message({ message: res.msg, type: 'success' })
+              getCamp().then(res => {
+                this.dialogCampData = res.content
+                this.dialogAddCamp = false
+              })
+            })
+          }
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
+    // 编辑竞选投票
+    openEditCamp(index) {
+      this.addCampForm.id = this.dialogCampData[index].id
+      this.addCampForm.camp = []
+      this.addCampForm.camp[0] = this.dialogCampData[index].cycleStartTime
+      this.addCampForm.camp[1] = this.dialogCampData[index].cycleEndTime
+      this.addCampForm.hold = []
+      this.addCampForm.hold[0] = this.dialogCampData[index].tenureStartTime
+      this.addCampForm.hold[1] = this.dialogCampData[index].tenureEndTime
+      this.dialogAddCamp = true
+    },
+    // 删除竞选投票
+    delCamp(id) {
+      this.$confirm('确定删除吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        deleteCamp(id).then(res => {
+          Message({ message: res.msg, type: 'success' })
+          getCamp().then(res => {
+            this.dialogCampData = res.content
+          })
+        })
       })
     },
     // 下载excel
@@ -263,13 +426,11 @@ export default {
     justify-content: space-between;
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid #ddd;
   }
   .txt {
     margin-top: 20px;
     margin-bottom: 10px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
   }
   .time {
     margin-top: 20px;
@@ -279,6 +440,20 @@ export default {
     .title {
       display: inline-block;
       width: 90px;
+    }
+  }
+}
+
+.camp-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  margin-bottom: 20px;
+  > div {
+    flex: 1;
+    > span:nth-child(1) {
+      display: block;
+      margin-bottom: 10px;
     }
   }
 }

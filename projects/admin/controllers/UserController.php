@@ -5,6 +5,7 @@ use common\services\AclService;
 use common\services\TicketService;
 use common\services\RechargeService;
 use common\services\UserService;
+use common\services\VoteService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BNode;
@@ -679,12 +680,27 @@ class UserController extends BaseController
             $voucher->voucher_num = $voucher_num;
             $voucher->type = $type;
             $voucher->remark = $remark;
-            if ($voucher->save()) {
-                UserService::resetVoucher($user_id);
-                return $this->respondJson(0, '派发成功');
-            } else {
+            $transaction = \Yii::$app->db->beginTransaction();
+            if (!$voucher->save()) {
+                $transaction->rollBack();
                 return $this->respondJson(1, '派发失败', $voucher->getFirstErrorText());
             }
+            UserService::resetVoucher($user_id);
+            $res = [
+                'user_id' => $user_id,
+                'type' => BUserCurrencyDetail::$TYPE_REWARD,
+                'relate_table' => BVoucher::tableName(),
+                'relate_id' => $voucher->id,
+                'amount' => $gdt,
+                'remark' => '推荐送GDT',
+            ];
+            $json = VoteService::giveCurrency($res);
+            if ($json->code) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '派发失败', $json->msg);
+            }
+            $sign = UserService::resetCurrency($user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+            return $this->respondJson(0, '派发成功');
         }
     }
 }

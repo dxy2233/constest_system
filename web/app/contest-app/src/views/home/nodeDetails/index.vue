@@ -69,7 +69,6 @@
         </div>
       </div>
       <div class="btn-box" v-if="nodeInfo.isVote">
-        <!--<button>支持TA</button>-->
         <router-link tag="button" :to="{path:'/home/vote',query:{nodeId:nodeInfo.id,nodeName:nodeInfo.name}}">支持TA
         </router-link>
       </div>
@@ -217,7 +216,7 @@
       button
         display block
         width 100%
-        line-height 45px
+        line-height 42px
         color white
         border 0
         background $color-theme

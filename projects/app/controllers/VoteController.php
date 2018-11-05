@@ -22,7 +22,8 @@ class VoteController extends BaseController
         $behaviors = [];
         // 需登录访问
         $authActions = [
-            'index'
+            'index',
+            'count-time',
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -32,6 +33,20 @@ class VoteController extends BaseController
         }
 
         return ArrayHelper::merge($parentBehaviors, $behaviors);
+    }
+
+    /**
+     * 投票统计剩余时间或是否开启
+     *
+     * @return void
+     */
+    public function actionCountTime()
+    {
+        $countTime = (int) SettingService::get('vote', 'count_time')->value;
+        $downTime = $countTime - NOW_TIME;
+        $data['count_down_is_open'] = (bool) SettingService::get('vote', 'count_down_is_open')->value;
+        $data['down_time'] = $downTime > 0 ? $downTime : 0;
+        return $this->respondJson(0, '获取成功', $data);
     }
 
     /**

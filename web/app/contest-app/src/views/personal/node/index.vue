@@ -1,40 +1,46 @@
 <template>
   <slide>
-    <div class="node-details">
-      <app-header>
-        我的节点
-        <router-link tag="span" to="/personal/node/interests" slot="right">当前权益</router-link>
-      </app-header>
-      <div class="node-details-content">
-        <div class="top" :style="bgStyle">
-          <img :src="nodeInfo.logo" alt="" class="avatar-icon img">
-          <p class="name">{{nodeInfo.name}}</p>
-          <span class="sign right-sign" v-if="nodeInfo.isTenure">任职</span>
-          <span class="sign left-sign" v-if="nodeInfo.typeName">{{nodeInfo.typeName}}</span>
-        </div>
-        <div class="bottom">
-          <div class="nav">
-            <div>
-              <h2>{{nodeInfo.voteNumber}}</h2>
-              <p>票</p>
-            </div>
-            <div>
-              <h4>{{nodeInfo.peopleNumber}}</h4>
-              <p>人支持</p>
-            </div>
+    <div class="node-index-wrapper">
+      <div class="node-index">
+        <app-header>
+          我的节点
+          <router-link tag="span" to="/personal/node/interests" slot="right">当前权益</router-link>
+        </app-header>
+        <div class="node-details-content">
+          <div class="top" :style="bgStyle">
+            <img :src="nodeInfo.logo" alt="" class="avatar-icon img">
+            <p class="name">{{nodeInfo.name}}</p>
+            <span class="sign right-sign" v-if="nodeInfo.isTenure">任职</span>
+            <span class="sign left-sign" v-if="nodeInfo.typeName">{{nodeInfo.typeName}}</span>
           </div>
-          <dl>
-            <dt>简介</dt>
-            <dd>
-              {{nodeInfo.desc}}
-            </dd>
-          </dl>
-          <dl>
-            <dt>建设方案</dt>
-            <dd>
-              {{nodeInfo.scheme}}
-            </dd>
-          </dl>
+          <div class="bottom">
+            <div class="nav">
+              <div>
+                <h2>{{nodeInfo.voteNumber}}</h2>
+                <p>票</p>
+              </div>
+              <div>
+                <h4>{{nodeInfo.peopleNumber}}</h4>
+                <p>人支持</p>
+              </div>
+            </div>
+            <dl>
+              <dt>简介</dt>
+              <dd>
+                {{nodeInfo.desc}}
+              </dd>
+            </dl>
+            <dl>
+              <dt>建设方案</dt>
+              <dd>
+                {{nodeInfo.scheme}}
+              </dd>
+            </dl>
+          </div>
+        </div>
+        <div class="btn-box">
+          <router-link tag="button" to='/personal/node/invite'>拉票
+          </router-link>
         </div>
       </div>
       <router-view></router-view>
@@ -81,10 +87,12 @@
 <style lang="stylus" rel="stylesheet/stylus">
   @import "~stylus/variable"
   @import "~stylus/mixin"
-  .node-details
+  .node-index-wrapper
     fixed-full-screen()
-    overflow auto
+  .node-index
+    fixed-full-screen()
     background $color-background-sub
+    overflow auto
     .app-header
       background $color-background-sub !important
     .node-details-content
@@ -93,6 +101,7 @@
       background $color-background
       border-radius 20px
       overflow hidden
+      margin-bottom 75px
       .top
         position relative
         height 200px
@@ -149,6 +158,24 @@
           align-items center
           font-size $font-size-small
           line-height 1.5em
-
+    .btn-box
+      position fixed
+      bottom 0
+      left 0
+      right 0
+      padding 15px 20px
+      background-image: -webkit-linear-gradient(top, rgba(243, 240, 243, 0) 0%, rgba(243, 240, 243, 1) 100%);
+      background-image: -moz-linear-gradient(top, rgba(243, 240, 243, 0) 0%, rgba(243, 240, 243, 1) 100%);
+      background-image: -o-linear-gradient(top, rgba(243, 240, 243, 0) 0%, rgba(243, 240, 243, 1) 100%);
+      background-image: linear-gradient(top, rgba(243, 240, 243, 0) 0%, rgba(243, 240, 243, 1) 100%);
+      button
+        display block
+        width 100%
+        line-height 42px
+        color white
+        border 0
+        background $color-theme
+        font-size $font-size-medium-x
+        border-radius 10px
 
 </style>

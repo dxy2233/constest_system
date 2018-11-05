@@ -132,6 +132,10 @@ export let mainRouter = [
             path: 'interests',
             component: () => import('views/personal/node/interests'),
           },
+          {
+            path: 'invite',
+            component: () => import('views/personal/node/invite'),
+          },
         ]
       },
       {

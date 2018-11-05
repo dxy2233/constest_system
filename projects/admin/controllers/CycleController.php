@@ -102,19 +102,19 @@ class CycleController extends BaseController
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
         }
-        $cycle_start_time = strtotime($this->pString('cycle_start_time'));
+        $cycle_start_time = strtotime($this->pString('cycleStartTime'));
         if (empty($cycle_start_time)) {
             return $this->respondJson(1, '竞选开始时间不能为空');
         }
-        $cycle_end_time = strtotime($this->pString('cycle_end_time'));
+        $cycle_end_time = strtotime($this->pString('cycleEndTime'));
         if (empty($cycle_end_time)) {
             return $this->respondJson(1, '竞选结束时间不能为空');
         }
-        $tenure_start_time = strtotime($this->pString('tenure_start_time'));
+        $tenure_start_time = strtotime($this->pString('tenureStartTime'));
         if (empty($tenure_start_time)) {
             return $this->respondJson(1, '任职开始时间不能为空');
         }
-        $tenure_end_time = strtotime($this->pString('tenure_end_time'));
+        $tenure_end_time = strtotime($this->pString('tenureEndTime'));
         if (empty($tenure_end_time)) {
             return $this->respondJson(1, '任职结束时间不能为空');
         }

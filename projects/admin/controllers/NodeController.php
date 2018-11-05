@@ -26,6 +26,7 @@ use common\models\business\BUserRecommend;
 use common\models\business\BSetting;
 use common\models\business\BCurrency;
 use common\models\business\BHistory;
+use common\models\business\BCycle;
 use common\models\business\BUserRechargeWithdraw;
 use common\components\FuncHelper;
 

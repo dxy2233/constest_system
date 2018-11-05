@@ -290,6 +290,10 @@ class VoteService extends ServiceBase
             if ($sign === false) {
                 throw new ErrorException('reset user position fail');
             }
+            $sign = UserService::resetCurrency($res['user_id'], BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+            if ($sign === false) {
+                throw new ErrorException('reset user position fail');
+            }
 
             $transaction->commit();
 

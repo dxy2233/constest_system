@@ -66,15 +66,15 @@ export function getCamp() {
   })
 }
 // 添加投票周期
-export function addCamp(cycle_start_time, cycle_end_time, tenure_start_time, tenure_end_time) {
+export function addCamp(cycleStartTime, cycleEndTime, tenureStartTime, tenureEndTime) {
   return request({
     url: '/cycle/create-cycle',
     method: 'post',
     data: {
-      cycle_start_time,
-      cycle_end_time,
-      tenure_start_time,
-      tenure_end_time
+      cycleStartTime,
+      cycleEndTime,
+      tenureStartTime,
+      tenureEndTime
     }
   })
 }
@@ -89,16 +89,16 @@ export function deleteCamp(id) {
   })
 }
 // 修改投票周期
-export function editCamp(id, cycle_start_time, cycle_end_time, tenure_start_time, tenure_end_time) {
+export function editCamp(id, cycleStartTime, cycleEndTime, tenureStartTime, tenureEndTime) {
   return request({
     url: '/cycle/update-cycle',
     method: 'post',
     data: {
       id,
-      cycle_start_time,
-      cycle_end_time,
-      tenure_start_time,
-      tenure_end_time
+      cycleStartTime,
+      cycleEndTime,
+      tenureStartTime,
+      tenureEndTime
     }
   })
 }

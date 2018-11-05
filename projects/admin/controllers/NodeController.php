@@ -465,7 +465,7 @@ class NodeController extends BaseController
         if (empty($bpt)) {
             return $this->respondJson(1, '质押bpt必须大于0');
         }
-        $gdtReward = $this->pInt('gdtReward',0);
+        $gdt_reward = $this->pInt('gdtReward',0);
         $node->is_examine = $is_examine;
         $node->gdt_reward = $gdt_reward;
         $node->is_candidate = $is_candidate;

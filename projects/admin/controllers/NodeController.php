@@ -530,6 +530,16 @@ class NodeController extends BaseController
         if (empty($node)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        $cycle = BCycle::find()->where(['>=','tenure_end_time',time()])->all();
+        $bool = false;
+        foreach($cycle as $v){
+            if($v->tenure_start_time <= time() && $v->tenure_end_time>=time()){
+                $bool = true;
+            }
+        }
+        if(!$bool){
+            return $this->respondJson(1, '当前处于不可任职时间');
+        }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
         if ($now_count >= $setting->tenure_num) {

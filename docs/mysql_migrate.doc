@@ -18,3 +18,14 @@
         UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '24';
         UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '4';
         UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '21';
+
+        CREATE TABLE `gr_cycle` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `cycle_start_time` int(11) NOT NULL COMMENT '竞选开始时间',
+        `cycle_end_time` int(11) NOT NULL COMMENT '竞选截止时间',
+        `tenure_start_time` int(11) NOT NULL COMMENT '任职时间',
+        `tenure_end_time` int(11) NOT NULL COMMENT '到期时间',
+        `create_time` int(11) NOT NULL,
+        `update_time` int(11) NOT NULL,
+        PRIMARY KEY (`id`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='投票周期表';

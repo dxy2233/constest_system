@@ -117,6 +117,7 @@ class JobService extends ServiceBase
                 $currencyDetail->effect_time = NOW_TIME;
                 $currencyDetail->remark = '投中奖励';
                 $currencyDetail->user_id = $val->user_id;
+                $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
                 $currencyDetail->relate_table = BVote::tableName();
                 $currencyDetail->relate_id = $val->id;
                 $user_arr[$val->user_id] = $val->user_id;

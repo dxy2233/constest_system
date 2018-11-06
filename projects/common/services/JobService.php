@@ -19,10 +19,12 @@ class JobService extends ServiceBase
     public static function beginPut($type = 0)
     {
         // 取出所有有效设置
+
         $cycle = BCycle::find()->where(['>=','tenure_end_time',time()-60])->all();
         $put = $history = false;
         foreach ($cycle  as $v) {
             // 竞选截止 生成快照
+            
             if (abs($v->cycle_end_time - time()) <= 30 && !$history) {
                 $res = self::HistoryDo();
                 $history = true;
@@ -98,7 +100,6 @@ class JobService extends ServiceBase
     public static function PutDo($cycle)
     {
         $data = BNode::find()->where(['is_tenure' => BNotice::STATUS_ACTIVE])->all();
-
         $msg = [];
         $user_arr = [];
         $setting = BSetting::find()->where(['in', 'key', ['pay_reward', 'ordinary_reward', 'voucher_reward']])->all();
@@ -106,10 +107,12 @@ class JobService extends ServiceBase
         foreach ($setting as $v) {
             $reward[$v->key] = $v->value;
         }
+        
         $transaction = \Yii::$app->db->beginTransaction();
         foreach ($data as $v) {
             // 发放投中奖励
             $vote = BVote::find()->where(['node_id'=>$v->id])->andWhere(['>=','create_time',$cycle->cycle_start_time])->andWhere(['<=','create_time',$cycle->cycle_end_time])->all();
+
             foreach ($vote as $val) {
                 $currencyDetail = new BUserCurrencyDetail();
                 $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
@@ -132,6 +135,7 @@ class JobService extends ServiceBase
                     $msg[] = $currencyDetail->getFirstErrorText().'发放选中奖励'.$val->id;
                 }
             }
+            
             // 清空任职状态
             $v->is_tenure = BNotice::STATUS_INACTIVE;
             if (!$v->save()) {

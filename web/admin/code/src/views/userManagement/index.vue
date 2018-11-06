@@ -145,14 +145,14 @@
                 </el-radio-group>
                 <div v-show="walletNote=='收支记录'" class="note">
                   <div v-for="(item2,index2) in item.inAndOut" :key="index2" class="row">
-                    <span>{{ item2.type }}</span>
+                    <span>{{ item2.remark }}</span>
                     <span>{{ item2.createTime }}</span>
                     <span>{{ item2.amount }}</span>
                   </div>
                 </div>
                 <div v-show="walletNote=='锁仓记录'" class="note">
                   <div v-for="(item3,index3) in item.frozen" :key="index3" class="row">
-                    <span>{{ item3.type }}</span>
+                    <span>{{ item3.remark }}</span>
                     <span>{{ item3.createTime }}</span>
                     <span>{{ item3.amount }}</span>
                   </div>

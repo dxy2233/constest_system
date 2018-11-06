@@ -74,8 +74,8 @@
     <el-dialog :visible.sync="dialogCamp" :fullscreen="true" title="竞选设置">
       <div v-for="(item,index) in dialogCampData" :key="index">
         <h3 style="display:inline-block;">投票竞选{{ index + 1 }}</h3>
-        <el-button type="danger" plain style="float:right;" @click="delCamp(item.id)">删除</el-button>
-        <el-button style="float:right;margin-right:20px;" @click="openEditCamp(index)">编辑</el-button>
+        <el-button v-if="new Date().getTime() + 1000 * 60 * 60 * 24 < new Date(item.cycleStartTime).getTime()" type="danger" plain style="float:right;margin-left:20px;" @click="delCamp(item.id)">删除</el-button>
+        <el-button style="float:right;" @click="openEditCamp(index)">编辑</el-button>
         <br>
         <div class="camp-info">
           <div>
@@ -96,33 +96,62 @@
           </div>
         </div>
       </div>
-      <el-button style="margin-top:20px;" @click="dialogAddCamp=true">+新增竞选投票</el-button>
+      <el-button style="margin-top:20px;" @click="openAddCamp">+新增竞选投票</el-button>
       <el-dialog
         :visible.sync="dialogAddCamp"
-        title="新增竞选投票"
+        title="竞选投票"
         center
         append-to-body
-        @closed="addCampForm.camp='';addCampForm.hold='';addCampForm.id=''">
+        @closed="$refs['camp'].clearValidate();addCampForm.id='';addCampForm.cycleStartTime='';addCampForm.cycleEndTime='';addCampForm.tenureStartTime='';addCampForm.tenureEndTime='';">
         <h3>竞选投票</h3>
-        <el-form ref="camp" :model="addCampForm" :rules="addCampFormRules" label-position="top" label-width="80px">
-          <el-form-item label="竞选开始时间——竞选截止时间" prop="camp">
+        <el-form ref="camp" :model="addCampForm" :rules="addCampFormRules" label-position="top" label-width="80px" class="timeForm">
+          <el-form-item label="竞选开始时间" prop="id" style="display:none;">
+            <el-input v-model="addCampForm.id"/>
+          </el-form-item>
+          <el-form-item label="竞选开始时间" prop="cycleStartTime">
             <el-date-picker
-              v-model="addCampForm.camp"
-              type="datetimerange"
-              range-separator="至"
-              start-placeholder="竞选开始时间"
-              end-placeholder="竞选截止时间"
+              :picker-options="timePcik0"
+              :clearable="false"
+              :disabled="new Date(addCampForm.cycleStartTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
+              v-model="addCampForm.cycleStartTime"
+              popper-class="cleartxt"
+              type="datetime"
               format="yyyy 年 MM 月 dd 日 HH:mm"
               value-format="yyyy-MM-dd HH:mm"
               style="width:100%;"/>
           </el-form-item>
-          <el-form-item label="任职开始时间——任职截止时间" prop="hold">
+          <el-form-item label="竞选截止时间" prop="cycleEndTime">
             <el-date-picker
-              v-model="addCampForm.hold"
-              type="datetimerange"
-              range-separator="至"
-              start-placeholder="竞选开始时间"
-              end-placeholder="竞选截止时间"
+              :picker-options="timePcik0"
+              :clearable="false"
+              :disabled="new Date(addCampForm.cycleEndTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
+              v-model="addCampForm.cycleEndTime"
+              popper-class="cleartxt"
+              type="datetime"
+              format="yyyy 年 MM 月 dd 日 HH:mm"
+              value-format="yyyy-MM-dd HH:mm"
+              style="width:100%;"/>
+          </el-form-item>
+          <el-form-item label="任职开始时间" prop="tenureStartTime">
+            <el-date-picker
+              :picker-options="timePcik0"
+              :clearable="false"
+              :disabled="new Date(addCampForm.tenureStartTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
+              v-model="addCampForm.tenureStartTime"
+              popper-class="cleartxt"
+              type="datetime"
+              format="yyyy 年 MM 月 dd 日 HH:mm"
+              value-format="yyyy-MM-dd HH:mm"
+              style="width:100%;"/>
+          </el-form-item>
+          <el-form-item label="任职截止时间" prop="tenureEndTime">
+            <el-date-picker
+              :picker-options="timePcik0"
+              :clearable="false"
+              :disabled="new Date(addCampForm.tenureEndTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
+              v-model="addCampForm.tenureEndTime"
+              popper-class="cleartxt"
+              type="datetime"
               format="yyyy 年 MM 月 dd 日 HH:mm"
               value-format="yyyy-MM-dd HH:mm"
               style="width:100%;"/>
@@ -197,11 +226,54 @@ import { Message } from 'element-ui'
 export default {
   name: 'PollManagement',
   data() {
-    const validate = (rule, value, callback) => {
+    const validate0 = (rule, value, callback) => {
       if (value === '' || value === null) {
         callback(new Error('请输入日期'))
-      } else if (new Date(this.addCampForm.hold[0]).getTime() < new Date(this.addCampForm.camp[1]).getTime()) {
-        callback(new Error('任职日期必须在竞选结束后!'))
+      } else if (new Date().getTime() + 1000 * 60 * 60 * 24 >= new Date(value).getTime()) {
+        callback(new Error('竞选开始时间必须在24小时之后!'))
+      } else if (this.addCampForm.id === '' && new Date(this.dialogCampData[this.dialogCampData.length - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
+        callback(new Error('必须在上一个竞选截止时间之后!'))
+      } else if (this.addCampForm.id !== '' && this.campIndex > 0 && new Date(this.dialogCampData[this.campIndex - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
+        callback(new Error('必须在上一个竞选截止时间之后!'))
+      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].cycleStartTime).getTime() <= new Date(value).getTime()) {
+        callback(new Error('必须在下一个竞选开始时间之前!'))
+      } else {
+        callback()
+      }
+    }
+    const validate1 = (rule, value, callback) => {
+      if (value === '' || value === null) {
+        callback(new Error('请输入日期'))
+      } else if (new Date(this.addCampForm.cycleStartTime).getTime() >= new Date(value).getTime()) {
+        callback(new Error('竞选截止时间必须在开始时间之后!'))
+      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].cycleStartTime).getTime() <= new Date(value).getTime()) {
+        callback(new Error('必须在下一个竞选开始时间之前!'))
+      } else {
+        callback()
+      }
+    }
+    const validate2 = (rule, value, callback) => {
+      if (value === '' || value === null) {
+        callback(new Error('请输入日期'))
+      } else if (new Date(this.addCampForm.cycleEndTime).getTime() >= new Date(value).getTime()) {
+        callback(new Error('任职开始时间必须在竞选截止时间之后!'))
+      } else if (this.addCampForm.id === '' && new Date(this.dialogCampData[this.dialogCampData.length - 1].tenureEndTime).getTime() >= new Date(value).getTime()) {
+        callback(new Error('必须在上一个任职到期时间之后!'))
+      } else if (this.addCampForm.id !== '' && this.campIndex > 0 && new Date(this.dialogCampData[this.campIndex - 1].tenureEndTime).getTime() >= new Date(value).getTime()) {
+        callback(new Error('必须在上一个任职到期时间之后!'))
+      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].tenureStartTime).getTime() <= new Date(value).getTime()) {
+        callback(new Error('必须在下一个任职开始时间之前!'))
+      } else {
+        callback()
+      }
+    }
+    const validate3 = (rule, value, callback) => {
+      if (value === '' || value === null) {
+        callback(new Error('请输入日期'))
+      } else if (new Date(this.addCampForm.cycleEndTime).getTime() >= new Date(value).getTime()) {
+        callback(new Error('任职截止时间必须在任职开始时间之后!'))
+      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].tenureStartTime).getTime() <= new Date(value).getTime()) {
+        callback(new Error('必须在下一个任职开始时间之前!'))
       } else {
         callback()
       }
@@ -231,19 +303,34 @@ export default {
       rankCurrentPage: 1,
       dialogCamp: false,
       dialogCampData: [],
+      campIndex: null,
       dialogAddCamp: false,
+      timePcik0: {
+        disabledDate: (time) => {
+          return time.getTime() < Date.now()
+        }
+      },
       addCampForm: {
-        camp: '',
-        hold: '',
+        cycleStartTime: '',
+        cycleEndTime: '',
+        tenureStartTime: '',
+        tenureEndTime: '',
         id: ''
       },
       addCampFormRules: {
-        camp: [
-          { required: true, message: '请选择日期', trigger: 'change' }
+        cycleStartTime: [
+          { validator: validate0, required: true, trigger: 'change' }
         ],
-        hold: [
-          { validator: validate, required: true, trigger: 'change' }
-        ]
+        cycleEndTime: [
+          { validator: validate1, required: true, trigger: 'change' }
+        ],
+        tenureStartTime: [
+          { validator: validate2, required: true, trigger: 'change' }
+        ],
+        tenureEndTime: [
+          { validator: validate3, required: true, trigger: 'change' }
+        ],
+        id: []
       },
       dialogCampHistoryData: [],
       campTotal: 1,
@@ -328,13 +415,20 @@ export default {
       })
       this.initCampHistory()
     },
+    openAddCamp() {
+      if (this.dialogCampData.length >= 3) {
+        Message({ message: '当前最多3个投票竞选', type: 'warning' })
+      } else {
+        this.dialogAddCamp = true
+      }
+    },
     // 增加||修改竞选投票
     saveCamp() {
       this.$refs['camp'].validate((valid) => {
         if (valid) {
           if (this.addCampForm.id === '') {
-            addCamp(this.addCampForm.camp[0], this.addCampForm.camp[1], this.addCampForm.hold[0],
-              this.addCampForm.hold[1]).then(res => {
+            addCamp(this.addCampForm.cycleStartTime, this.addCampForm.cycleEndTime, this.addCampForm.tenureStartTime,
+              this.addCampForm.tenureEndTime).then(res => {
               Message({ message: res.msg, type: 'success' })
               getCamp().then(res => {
                 this.dialogCampData = res.content
@@ -342,8 +436,8 @@ export default {
               })
             })
           } else {
-            editCamp(this.addCampForm.id, this.addCampForm.camp[0], this.addCampForm.camp[1], this.addCampForm.hold[0],
-              this.addCampForm.hold[1]).then(res => {
+            editCamp(this.addCampForm.id, this.addCampForm.cycleStartTime, this.addCampForm.cycleEndTime, this.addCampForm.tenureStartTime,
+              this.addCampForm.tenureEndTime).then(res => {
               Message({ message: res.msg, type: 'success' })
               getCamp().then(res => {
                 this.dialogCampData = res.content
@@ -359,13 +453,12 @@ export default {
     },
     // 编辑竞选投票
     openEditCamp(index) {
+      this.campIndex = index
       this.addCampForm.id = this.dialogCampData[index].id
-      this.addCampForm.camp = []
-      this.addCampForm.camp[0] = this.dialogCampData[index].cycleStartTime
-      this.addCampForm.camp[1] = this.dialogCampData[index].cycleEndTime
-      this.addCampForm.hold = []
-      this.addCampForm.hold[0] = this.dialogCampData[index].tenureStartTime
-      this.addCampForm.hold[1] = this.dialogCampData[index].tenureEndTime
+      this.addCampForm.cycleStartTime = this.dialogCampData[index].cycleStartTime
+      this.addCampForm.cycleEndTime = this.dialogCampData[index].cycleEndTime
+      this.addCampForm.tenureStartTime = this.dialogCampData[index].tenureStartTime
+      this.addCampForm.tenureEndTime = this.dialogCampData[index].tenureEndTime
       this.dialogAddCamp = true
     },
     // 删除竞选投票
@@ -456,5 +549,12 @@ export default {
       margin-bottom: 10px;
     }
   }
+}
+
+.timeForm {
+ > div {
+   display: inline-block;
+   width: 49%;
+ }
 }
 </style>

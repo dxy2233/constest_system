@@ -121,7 +121,7 @@ class JobService extends ServiceBase
                 $currencyDetail->remark = '投中奖励';
                 $currencyDetail->user_id = $val->user_id;
                 $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
-                $currencyDetail->relate_table = BVote::tableName();
+                $currencyDetail->relate_table = 'vote';
                 $currencyDetail->relate_id = $val->id;
                 $user_arr[$val->user_id] = $val->user_id;
                 if ($val->type == BVote::TYPE_PAY) {

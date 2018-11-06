@@ -302,7 +302,7 @@ class UserController extends BaseController
                     if ($val['amount'] == 0) {
                         continue;
                     }
-                    
+
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
                     $frozen['remark'] = $val['remark'];
@@ -701,7 +701,7 @@ class UserController extends BaseController
                 $res = [
                     'user_id' => $user_id,
                     'type' => BUserCurrencyDetail::$TYPE_REWARD,
-                    'relate_table' => BVoucher::tableName(),
+                    'relate_table' => 'voucher',
                     'relate_id' => $voucher->id,
                     'amount' => $gdt,
                     'remark' => '推荐送GDT',

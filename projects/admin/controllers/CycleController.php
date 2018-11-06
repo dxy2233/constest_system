@@ -33,7 +33,7 @@ class CycleController extends BaseController
     //获取未结束周期
     public function actionIndex()
     {
-        $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id desc')->asArray()->all();
+        $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->asArray()->all();
         foreach ($data as &$v) {
             $v['cycle_start_time'] =  date('Y-m-d H:i:s', $v['cycle_start_time']);
             $v['cycle_end_time'] =  date('Y-m-d H:i:s', $v['cycle_end_time']);
@@ -65,6 +65,10 @@ class CycleController extends BaseController
     // 添加竞选周期
     public function actionCreateCycle()
     {
+        $old_count = BCycle::find()->where(['>', 'tenure_end_time', time()])->count();
+        if ($old_count>=3) {
+            return $this->respondJson(1, '最多只能预设三个周期');
+        }
         $cycle_start_time = strtotime($this->pString('cycleStartTime'));
         if (empty($cycle_start_time)) {
             return $this->respondJson(1, '竞选开始时间不能为空');

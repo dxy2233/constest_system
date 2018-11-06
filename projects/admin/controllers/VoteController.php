@@ -159,10 +159,10 @@ class VoteController extends BaseController
         return $this->respondJson(0, "操作成功");
     }
 
-    // public function actionNowReload()
-    // {
-    //     $bool = JobService::beginPut(1);
-    // }
+    public function actionNowReload()
+    {
+        $bool = JobService::beginPut(1);
+    }
     public function actionGetSettingList()
     {
         $data = BSetting::find()->active(BNotice::STATUS_ACTIVE)->where(['group' => BSetting::$GROUP_VOTE])->orderBy('sort')->asArray()->all();

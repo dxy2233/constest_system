@@ -8,6 +8,7 @@ use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
 use common\models\business\BNode;
+use common\models\business\BCycle;
 use common\models\business\BVote;
 use common\services\SettingService;
 use common\models\business\BHistory;

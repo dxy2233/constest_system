@@ -229,16 +229,24 @@ export default {
     const validate0 = (rule, value, callback) => {
       if (value === '' || value === null) {
         callback(new Error('请输入日期'))
-      } else if (new Date().getTime() + 1000 * 60 * 60 * 24 >= new Date(value).getTime()) {
-        callback(new Error('竞选开始时间必须在24小时之后!'))
-      } else if (this.addCampForm.id === '' && new Date(this.dialogCampData[this.dialogCampData.length - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
-        callback(new Error('必须在上一个竞选截止时间之后!'))
-      } else if (this.addCampForm.id !== '' && this.campIndex > 0 && new Date(this.dialogCampData[this.campIndex - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
-        callback(new Error('必须在上一个竞选截止时间之后!'))
-      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].cycleStartTime).getTime() <= new Date(value).getTime()) {
-        callback(new Error('必须在下一个竞选开始时间之前!'))
-      } else {
-        callback()
+      }
+      if (this.addCampForm.id === '') {
+        if (new Date().getTime() + 1000 * 60 * 60 * 24 >= new Date(value).getTime()) {
+          callback(new Error('竞选开始时间必须在24小时之后!'))
+        } else if (new Date(this.dialogCampData[this.dialogCampData.length - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
+          callback(new Error('必须在上一个竞选截止时间之后!'))
+        } else {
+          callback()
+        }
+      }
+      if (this.addCampForm.id !== '') {
+        if (this.campIndex > 0 && new Date(this.dialogCampData[this.campIndex - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
+          callback(new Error('必须在上一个竞选截止时间之后!'))
+        } else if (this.campIndex < this.dialogCampData.length - 1 && new Date(this.dialogCampData[this.campIndex + 1].cycleStartTime).getTime() <= new Date(value).getTime()) {
+          callback(new Error('必须在下一个竞选开始时间之前!'))
+        } else {
+          callback()
+        }
       }
     }
     const validate1 = (rule, value, callback) => {
@@ -246,7 +254,7 @@ export default {
         callback(new Error('请输入日期'))
       } else if (new Date(this.addCampForm.cycleStartTime).getTime() >= new Date(value).getTime()) {
         callback(new Error('竞选截止时间必须在开始时间之后!'))
-      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].cycleStartTime).getTime() <= new Date(value).getTime()) {
+      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length - 1 && new Date(this.dialogCampData[this.campIndex + 1].cycleStartTime).getTime() <= new Date(value).getTime()) {
         callback(new Error('必须在下一个竞选开始时间之前!'))
       } else {
         callback()
@@ -261,7 +269,7 @@ export default {
         callback(new Error('必须在上一个任职到期时间之后!'))
       } else if (this.addCampForm.id !== '' && this.campIndex > 0 && new Date(this.dialogCampData[this.campIndex - 1].tenureEndTime).getTime() >= new Date(value).getTime()) {
         callback(new Error('必须在上一个任职到期时间之后!'))
-      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].tenureStartTime).getTime() <= new Date(value).getTime()) {
+      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length - 1 && new Date(this.dialogCampData[this.campIndex + 1].tenureStartTime).getTime() <= new Date(value).getTime()) {
         callback(new Error('必须在下一个任职开始时间之前!'))
       } else {
         callback()
@@ -270,9 +278,9 @@ export default {
     const validate3 = (rule, value, callback) => {
       if (value === '' || value === null) {
         callback(new Error('请输入日期'))
-      } else if (new Date(this.addCampForm.cycleEndTime).getTime() >= new Date(value).getTime()) {
+      } else if (new Date(this.addCampForm.tenureStartTime).getTime() >= new Date(value).getTime()) {
         callback(new Error('任职截止时间必须在任职开始时间之后!'))
-      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length && new Date(this.dialogCampData[this.campIndex + 1].tenureStartTime).getTime() <= new Date(value).getTime()) {
+      } else if (this.addCampForm.id !== '' && this.campIndex < this.dialogCampData.length - 1 && new Date(this.dialogCampData[this.campIndex + 1].tenureStartTime).getTime() <= new Date(value).getTime()) {
         callback(new Error('必须在下一个任职开始时间之前!'))
       } else {
         callback()

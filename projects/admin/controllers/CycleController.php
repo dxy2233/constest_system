@@ -88,7 +88,7 @@ class CycleController extends BaseController
         if ($cycle_start_time > $cycle_end_time || $cycle_end_time > $tenure_start_time || $tenure_start_time > $tenure_end_time) {
             return $this->respondJson(1, '时间关系错误');
         }
-        $cycle = BCycle::find()->all();
+        $cycle = BCycle::find()->where(['>', 'tenure_end_time', time()])->all();
         foreach ($cycle as $v) {
             if ($v->cycle_start_time < $cycle_end_time && $v->cycle_end_time > $cycle_start_time) {
                 return $this->respondJson(1, '与其它竞选周期时间冲突');
@@ -134,9 +134,13 @@ class CycleController extends BaseController
         if ($cycle_start_time > $cycle_end_time || $cycle_end_time > $tenure_start_time || $tenure_start_time > $tenure_end_time) {
             return $this->respondJson(1, '时间关系错误');
         }
-        $cycle = BCycle::find()->all();
+        $cycle = BCycle::find()->where(['>', 'tenure_end_time', time()])->all();
         foreach ($cycle as $v) {
+            if ($id == $v->id) {
+                continue;
+            }
             if ($v->cycle_start_time < $cycle_end_time && $v->cycle_end_time > $cycle_start_time) {
+                echo $v->cycle_start_time,$cycle_end_time,$v->cycle_end_time,$cycle_start_time;
                 return $this->respondJson(1, '与其它竞选周期时间冲突');
             }
             if ($v->tenure_start_time < $tenure_end_time && $v->tenure_end_time > $tenure_start_time) {

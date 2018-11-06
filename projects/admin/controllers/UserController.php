@@ -302,6 +302,7 @@ class UserController extends BaseController
                     if ($val['amount'] == 0) {
                         continue;
                     }
+                    
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
                     $frozen['remark'] = $val['remark'];

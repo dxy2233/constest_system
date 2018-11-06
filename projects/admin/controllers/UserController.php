@@ -287,6 +287,9 @@ class UserController extends BaseController
             foreach ($currency_data as &$v) {
                 $in_and_out_data = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->orderBy('create_time desc')->all();
                 foreach ($in_and_out_data as $val) {
+                    if ($val['amount'] == 0) {
+                        continue;
+                    }
                     $in_and_out = [];
                     $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
                     $in_and_out['remark'] = $val['remark'];
@@ -296,6 +299,9 @@ class UserController extends BaseController
                 }
                 $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->orderBy('create_time desc')->all();
                 foreach ($in_and_out_data as $val) {
+                    if ($val['amount'] == 0) {
+                        continue;
+                    }
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
                     $frozen['remark'] = $val['remark'];
@@ -690,22 +696,25 @@ class UserController extends BaseController
             }
             
             UserService::resetVoucher($user_id);
-            $res = [
-                'user_id' => $user_id,
-                'type' => BUserCurrencyDetail::$TYPE_REWARD,
-                'relate_table' => BVoucher::tableName(),
-                'relate_id' => $voucher->id,
-                'amount' => $gdt,
-                'remark' => '推荐送GDT',
-            ];
-            
-            $json = VoteService::giveCurrency($res);
-            if ($json->code) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '派发失败', $json->msg);
+            if ($gdt != 0) {
+                $res = [
+                    'user_id' => $user_id,
+                    'type' => BUserCurrencyDetail::$TYPE_REWARD,
+                    'relate_table' => BVoucher::tableName(),
+                    'relate_id' => $voucher->id,
+                    'amount' => $gdt,
+                    'remark' => '推荐送GDT',
+                ];
+                
+                $json = VoteService::giveCurrency($res);
+                if ($json->code) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '派发失败', $json->msg);
+                }
+                $transaction->commit();
+                $sign = UserService::resetCurrency($user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
             }
-            $transaction->commit();
-            $sign = UserService::resetCurrency($user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+
             return $this->respondJson(0, '派发成功');
         }
     }

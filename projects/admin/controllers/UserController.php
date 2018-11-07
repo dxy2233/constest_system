@@ -5,6 +5,7 @@ use common\services\AclService;
 use common\services\TicketService;
 use common\services\RechargeService;
 use common\services\UserService;
+use common\services\VoteService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BNode;
@@ -284,18 +285,27 @@ class UserController extends BaseController
         ->where(['A.user_id'=> $userId])->asArray()->all();
         if (!empty($currency_data)) {
             foreach ($currency_data as &$v) {
-                $in_and_out_data = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
+                $in_and_out_data = BUserCurrencyDetail::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->orderBy('create_time desc')->all();
                 foreach ($in_and_out_data as $val) {
+                    if ($val['amount'] == 0) {
+                        continue;
+                    }
                     $in_and_out = [];
                     $in_and_out['type'] = UserCurrencyTrait::getType($val['type']);
+                    $in_and_out['remark'] = $val['remark'];
                     $in_and_out['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
                     $in_and_out['amount'] = ($val['amount'] > 0) ? '+'.$val['amount'] : $val['amount'];
                     $v['in_and_out'][] = $in_and_out;
                 }
-                $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->all();
+                $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->orderBy('create_time desc')->all();
                 foreach ($in_and_out_data as $val) {
+                    if ($val['amount'] == 0) {
+                        continue;
+                    }
+
                     $frozen = [];
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
+                    $frozen['remark'] = $val['remark'];
                     $frozen['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
                     $frozen['amount'] = ($val['amount'] > 0) ? '-'.$val['amount'] : '+'.abs($val['amount']);
                     $v['frozen'][] = $frozen;
@@ -330,7 +340,7 @@ class UserController extends BaseController
         $vote_log = BVote::find()->from(BVote::tableName()." A")
         ->join('inner join', 'gr_node C', 'A.node_id = C.id')
         ->join('inner join', 'gr_node_type B', 'C.type_id = B.id')
-        ->select(['C.name as nodeName','B.name as typeName','A.type', 'A.vote_number', 'A.create_time'])->where(['A.user_id' => $userId])->asArray()->all();
+        ->select(['C.name as nodeName','B.name as typeName','A.type', 'A.vote_number', 'A.create_time'])->where(['A.user_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();
         $vote_vote = [];
         if (count($vote_log)>0) {
             foreach ($vote_log as $v) {
@@ -383,7 +393,7 @@ class UserController extends BaseController
         ->join('inner join', BNode::tableName().' B', 'A.node_id = B.id')
         ->join('inner join', BNodeType::tableName().' C', 'B.type_id = C.id')
         ->select(['A.voucher_num', 'A.create_time','B.name as nodeName','C.name as typeName'])
-        ->where(['A.user_id' => $userId])->asArray()->all();
+        ->where(['A.user_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();
         $all  = 0;
         foreach ($voucher_data as $v) {
             $voucher_item = [];
@@ -443,7 +453,7 @@ class UserController extends BaseController
         ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
         
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
-        ->where(['A.parent_id' => $userId])->asArray()->all();
+        ->where(['A.parent_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();
         foreach ($recommend_data as $v) {
             $recommend_item = [];
             $recommend_item['nodeName'] = $v['nodeName'];
@@ -679,12 +689,34 @@ class UserController extends BaseController
             $voucher->voucher_num = $voucher_num;
             $voucher->type = $type;
             $voucher->remark = $remark;
-            if ($voucher->save()) {
-                UserService::resetVoucher($user_id);
-                return $this->respondJson(0, '派发成功');
-            } else {
+            $transaction = \Yii::$app->db->beginTransaction();
+            $voucher_bool = $voucher->save();
+            if (!$voucher_bool) {
+                $transaction->rollBack();
                 return $this->respondJson(1, '派发失败', $voucher->getFirstErrorText());
             }
+            
+            UserService::resetVoucher($user_id);
+            if ($gdt != 0) {
+                $res = [
+                    'user_id' => $user_id,
+                    'type' => BUserCurrencyDetail::$TYPE_REWARD,
+                    'relate_table' => 'voucher',
+                    'relate_id' => $voucher->id,
+                    'amount' => $gdt,
+                    'remark' => '推荐送GDT',
+                ];
+                
+                $json = VoteService::giveCurrency($res);
+                if ($json->code) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '派发失败', $json->msg);
+                }
+                $transaction->commit();
+                $sign = UserService::resetCurrency($user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+            }
+
+            return $this->respondJson(0, '派发成功');
         }
     }
 }

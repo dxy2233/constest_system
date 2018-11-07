@@ -149,7 +149,7 @@ class FinanceController extends BaseController
 
     public function actionGetCurrencyList()
     {
-        $data = BCurrency::find()->active(BNotice::STATUS_ACTIVE)->asArray()->all();
+        $data = BCurrency::find()->asArray()->all();
         return $this->respondJson(0, "获取成功", $data);
     }
 

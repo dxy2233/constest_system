@@ -150,7 +150,7 @@ export function giveInfo(mobile, type, userId) {
   })
 }
 // 确认派发
-export function saveGive({ mobile, type, userId, voucherNum, remark }) {
+export function saveGive({ mobile, type, userId, voucherNum, gdt, remark }) {
   return request({
     url: '/user/give',
     method: 'post',
@@ -159,6 +159,7 @@ export function saveGive({ mobile, type, userId, voucherNum, remark }) {
       type,
       userId,
       voucherNum,
+      gdt,
       remark
     }
   })

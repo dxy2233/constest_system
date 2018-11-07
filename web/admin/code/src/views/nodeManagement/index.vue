@@ -200,6 +200,10 @@
           <p>质押TT</p>
           <el-input v-model="dialogSetData.tt" placeholder="请输入内容" style="width:80%;"/> TT
         </div>
+        <div>
+          <p>赠送GDT</p>
+          <el-input v-model="dialogSetData.gdtReward" placeholder="请输入内容" style="width:80%;"/> GDT
+        </div>
       </div>
       <h3 style="padding:20px 0 0;">享有权益</h3>
       <div class="right">
@@ -367,6 +371,9 @@
           <el-form-item prop="bpt" label="质押BPT数量">
             <el-input v-model="addNodeData.bpt"/>
           </el-form-item>
+          <el-form-item prop="gdtReward" label="赠送GDT数量">
+            <el-input v-model="addNodeData.gdtReward"/>
+          </el-form-item>
         </el-form>
       </div>
       <div v-show="step==1" style="margin-top:30px;">
@@ -513,6 +520,7 @@ export default {
         grt: '',
         tt: '',
         bpt: '',
+        gdtReward: '',
         realname: '',
         identify: '',
         pic_front: '',
@@ -545,8 +553,11 @@ export default {
           // { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
           { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
         ],
+        gdtReward: [
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
+        ],
         realname: [
-          { required: true, message: '请输入姓名', trigger: 'blur' }
+          { pattern: /^[\u4e00-\u9fa5]+$/, required: true, message: '请输入中文姓名', trigger: 'blur' }
         ],
         identify: [
           { pattern: /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$|^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/,
@@ -562,13 +573,16 @@ export default {
           { required: true, message: '请上传图片', trigger: 'change' }
         ],
         name: [
-          { required: true, message: '必填', trigger: 'blur' }
+          { required: true, message: '必填', trigger: 'blur' },
+          { max: 14, message: '最多14个字', trigger: 'blur' }
         ],
         desc: [
-          { required: true, message: '必填', trigger: 'blur' }
+          { required: true, message: '必填', trigger: 'blur' },
+          { max: 300, message: '最多300个字', trigger: 'blur' }
         ],
         scheme: [
-          { required: true, message: '必填', trigger: 'blur' }
+          { required: true, message: '必填', trigger: 'blur' },
+          { max: 1000, message: '最多1000个字', trigger: 'blur' }
         ]
       }
     }
@@ -654,7 +668,7 @@ export default {
     clickRow(row) {
       this.rowInfo = row
       this.showNodeInfo = true
-      this.cardData[0].value = row.index
+      this.cardData[0].value = row.order
       this.cardData[1].value = row.mobile
       this.cardData[2].value = row.voteNumber
       this.cardData[3].value = row.count
@@ -959,6 +973,7 @@ export default {
         this.addNodeData.grt = res.content.grt
         this.addNodeData.bpt = res.content.bpt
         this.addNodeData.tt = res.content.tt
+        this.addNodeData.gdtReward = res.content.gdtReward
       })
     },
     // 添加节点下一步
@@ -1097,6 +1112,7 @@ export default {
     flex-wrap: wrap;
     > div {
       margin-right: 20px;
+      width: calc(33% - 20px);
     }
   }
   .right-checkbox {

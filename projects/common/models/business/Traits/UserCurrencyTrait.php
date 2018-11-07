@@ -13,6 +13,8 @@ trait UserCurrencyTrait
     public static $TYPE_VOTE = 4;
     // 手续费
     public static $TYPE_POUNDAGE = 5;
+    // 奖励
+    public static $TYPE_REWARD = 6;
 
     // 弃用
     // 赎回选举
@@ -28,6 +30,7 @@ trait UserCurrencyTrait
             static::$TYPE_ELECTION => \Yii::t('app', '选举'),
             static::$TYPE_VOTE => \Yii::t('app', '投票'),
             static::$TYPE_POUNDAGE => \Yii::t('app', '手续费'),
+            static::$TYPE_REWARD => \Yii::t('app', '奖励'),
             // static::$TYPE_ELECTION_REDEEM => \Yii::t('app', '赎回选举'),
             // static::$TYPE_VOTE_REDEEM => \Yii::t('app', '赎回投票'),
         ];
@@ -47,6 +50,7 @@ trait UserCurrencyTrait
     {
         $arr = [
             static::$TYPE_RECHARGE,
+            static::$TYPE_REWARD,
         ];
         if (!is_null($key)) {
             return in_array($key, $arr) ? true : false;

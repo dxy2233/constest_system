@@ -26,6 +26,7 @@ use common\models\business\BUserRecommend;
 use common\models\business\BSetting;
 use common\models\business\BCurrency;
 use common\models\business\BHistory;
+use common\models\business\BCycle;
 use common\models\business\BUserRechargeWithdraw;
 use common\components\FuncHelper;
 
@@ -106,7 +107,6 @@ class NodeController extends BaseController
         $id_arr = [];
 
         foreach ($data['list'] as $v) {
-            
             $id_arr[] = $v['id'];
         }
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
@@ -178,6 +178,30 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
+        $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
+        if ($now_count >= $node_type->max_candidate) {
+            return $this->respondJson(1, '候选数量已达上限');
+        }
+
+        // 赠送gdt
+        $currencyDetail = new BUserCurrencyDetail();
+        $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
+        $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $currencyDetail->effect_time = NOW_TIME;
+        $currencyDetail->remark = '申请节点奖励';
+        $currencyDetail->user_id = $data->user_id;
+        $currencyDetail->relate_table = 'node';
+        $currencyDetail->relate_id = $data->id;
+        $currencyDetail->amount = $node_type->gdt_reward;
+        if (!$currencyDetail->save()) {
+            return $this->respondJson(1, '审核失败', $currencyDetail->getFirstErrorText());
+        }
+
+        //重算gdt
+        UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+
+
         $data->status = BNode::STATUS_ON;
         $data->status_remark = '已开启';
         if (!$data->save()) {
@@ -305,7 +329,7 @@ class NodeController extends BaseController
         $data = BNodeType::find()->asArray()->all();
         return $this->respondJson(0, '获取成功', $data);
     }
-//历史排名
+    //历史排名
     public function actionGetHistoryOrder()
     {
         $type = $this->pInt('type');
@@ -441,7 +465,9 @@ class NodeController extends BaseController
         if (empty($bpt)) {
             return $this->respondJson(1, '质押bpt必须大于0');
         }
+        $gdt_reward = $this->pInt('gdtReward',0);
         $node->is_examine = $is_examine;
+        $node->gdt_reward = $gdt_reward;
         $node->is_candidate = $is_candidate;
         $node->is_vote = $is_vote;
         $node->is_order = $is_order;
@@ -529,6 +555,16 @@ class NodeController extends BaseController
         $node = BNode::find()->where(['id' => $nodeId])->one();
         if (empty($node)) {
             return $this->respondJson(1, '不存在的节点');
+        }
+        $cycle = BCycle::find()->where(['>=','tenure_end_time',time()])->all();
+        $bool = false;
+        foreach ($cycle as $v) {
+            if ($v->tenure_start_time <= time() && $v->tenure_end_time>=time()) {
+                $bool = true;
+            }
+        }
+        if (!$bool) {
+            return $this->respondJson(1, '当前处于不可任职时间');
         }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
@@ -762,8 +798,8 @@ class NodeController extends BaseController
             }
         }
         $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
-        $setting = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $setting->max_candidate) {
+        $node_type = BNodeType::find()->where(['id' => $type_id])->one();
+        if ($now_count >= $node_type->max_candidate) {
             return $this->respondJson(1, '候选数量已达上限');
         }
         $node = new BNode();
@@ -1006,18 +1042,26 @@ class NodeController extends BaseController
         
         UserService::resetCurrency($user->id, $currency_id['bpt']);
 
-        
-        //     return $this->respondJson(0, '注册成功', ['user_id' => $user->id, 'is_identify' => $identify]);
-        // }
+        // 赠送gdt
+        $currencyDetail = new BUserCurrencyDetail();
+        $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
+        $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $currencyDetail->effect_time = NOW_TIME;
+        $currencyDetail->remark = '申请节点奖励';
+        $currencyDetail->user_id = $user->id;
+        $currencyDetail->relate_table = 'node';
+        $currencyDetail->relate_id = $node->id;
+        $currencyDetail->amount = $node_type->gdt_reward;
 
-
-        // public function actionSetIdentify()
-        // {
+        if (!$currencyDetail->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $currencyDetail->getFirstErrorText());
+        }
+        //重算gdt
+        UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+        // 实名认证信息
         $user_id = $user->id;
-        // $user_id = $this->pInt('user_id');
-        // if (empty($user_id)) {
-        //     return $this->respondJson(1, '用户ID不能为空');
-        // }
+        
         if (!$identify) {
             $user_identify = BUserIdentify::find()->where(['user_id' => $user->id])->andWhere(['status' => BUserIdentify::STATUS_INACTIVE])->one();
             if ($user_identify) {

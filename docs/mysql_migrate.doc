@@ -7,4 +7,25 @@
         ALTER TABLE `gr_voucher` ADD `type` int(11) NOT NULL COMMENT '派发类型' AFTER `voucher_num`;
         ALTER TABLE `gr_voucher` ADD `remark` varchar(256) COLLATE 'utf8_general_ci' NOT NULL COMMENT '备注' AFTER `type`;
 
-        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (30,	'vote',	'赠送GDT百分比',	'pay_gdt',	'0.03',	'0.03',	'input',	'',	'GDT',	1,	4,	0,	0);
+        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (30,	'vote',	'支付投票赠送GDT百分比',	'pay_gdt',	'2',	'2',	'input',	'',	'GDT',	1,	6,	0,	0);
+        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (31,	'vote',	'支付投票投中奖励',	'pay_reward',	'0.1',	'0.1',	'input',	'',	'GDT',	1,	7,	0,	0);
+        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (32,	'vote',	'持有投票赠送GDT百分比',	'ordinary_gdt',	'0.03',	'0.03',	'input',	'',	'GDT',	1,	9,	0,	0);
+        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (33,	'vote',	'持有投票投中奖励',	'ordinary_reward',	'0.01',	'0.01',	'input',	'',	'GDT',	1,	10,	0,	0);
+        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (34,	'vote',	'投票券投中奖励',	'voucher_reward',	'0.004',	'0.004',	'input',	'',	'GDT',	1,	11,	0,	0);
+        UPDATE `gr_setting` SET `sort` = '8' WHERE `id` = '11';
+        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '13';
+        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '14';
+        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '24';
+        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '4';
+        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '21';
+
+        CREATE TABLE `gr_cycle` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `cycle_start_time` int(11) NOT NULL COMMENT '竞选开始时间',
+        `cycle_end_time` int(11) NOT NULL COMMENT '竞选截止时间',
+        `tenure_start_time` int(11) NOT NULL COMMENT '任职时间',
+        `tenure_end_time` int(11) NOT NULL COMMENT '到期时间',
+        `create_time` int(11) NOT NULL,
+        `update_time` int(11) NOT NULL,
+        PRIMARY KEY (`id`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='投票周期表';

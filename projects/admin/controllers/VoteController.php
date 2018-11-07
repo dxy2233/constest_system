@@ -143,8 +143,11 @@ class VoteController extends BaseController
             if (strstr($v->key, 'time')) {
                 $post_item = strtotime($post_item);
             }
-
+            // if (in_array($v->key, ['pay_gdt','pay_gdt','ordinary_gdt','ordinary_reward','voucher_reward'])) {
+            //     $v->value = $post_item / 100;
+            // } else {
             $v->value = $post_item;
+            // }
             
             if (!$v->save()) {
                 $transaction->rollBack();
@@ -159,11 +162,6 @@ class VoteController extends BaseController
     public function actionNowReload()
     {
         $bool = JobService::beginPut(1);
-        if ($bool) {
-            return $this->respondJson(0, "操作成功");
-        } else {
-            return $this->respondJson(1, "操作失败");
-        }
     }
     public function actionGetSettingList()
     {

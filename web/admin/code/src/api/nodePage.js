@@ -154,7 +154,7 @@ export function pushRuleList(data) {
 
 // 修改节点总设置
 export function pushNodeSet({ id, name, isExamine, isCandidate, isVote, isOrder,
-  tenureNum, maxCandidate, grt, tt, bpt, ruleList }) {
+  tenureNum, maxCandidate, grt, tt, bpt, gdtReward, ruleList }) {
   return request({
     url: '/node/update',
     method: 'post',
@@ -170,6 +170,7 @@ export function pushNodeSet({ id, name, isExamine, isCandidate, isVote, isOrder,
       grt,
       tt,
       bpt,
+      gdtReward,
       rule: JSON.stringify(ruleList)
     }
   })

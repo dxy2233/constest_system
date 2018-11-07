@@ -8,6 +8,7 @@ use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
 use common\models\business\BNode;
+use common\models\business\BCycle;
 use common\models\business\BVote;
 use common\services\SettingService;
 use common\models\business\BHistory;
@@ -42,7 +43,14 @@ class VoteController extends BaseController
      */
     public function actionCountTime()
     {
-        $countTime = (int) SettingService::get('vote', 'count_time')->value;
+        //$countTime = (int) SettingService::get('vote', 'count_time')->value;
+        $cycle = BCycle::find()->all();
+        $countTime = NOW_TIME;
+        foreach ($cycle as $v) {
+            if ($v->cycle_start_time <= time() && $v->cycle_end_time>=time()) {
+                $countTime = $v->cycle_end_time;
+            }
+        }
         $downTime = $countTime - NOW_TIME;
         $data['count_down_is_open'] = (bool) SettingService::get('vote', 'count_down_is_open')->value;
         $data['down_time'] = $downTime > 0 ? $downTime : 0;

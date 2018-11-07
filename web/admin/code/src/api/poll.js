@@ -48,10 +48,75 @@ export function getVoteRank(end_time, type, page) {
   })
 }
 
-// 手动刷新
-export function refresh() {
+// 获取投票周期历史记录
+export function getCampHistory(page) {
   return request({
-    url: '/vote/now-reload',
+    url: '/cycle/history',
+    method: 'post',
+    data: {
+      page
+    }
+  })
+}
+// 获取投票周期列表
+export function getCamp() {
+  return request({
+    url: '/cycle/index',
+    method: 'post'
+  })
+}
+// 添加投票周期
+export function addCamp(cycleStartTime, cycleEndTime, tenureStartTime, tenureEndTime) {
+  return request({
+    url: '/cycle/create-cycle',
+    method: 'post',
+    data: {
+      cycleStartTime,
+      cycleEndTime,
+      tenureStartTime,
+      tenureEndTime
+    }
+  })
+}
+// 删除投票周期
+export function deleteCamp(id) {
+  return request({
+    url: '/cycle/del',
+    method: 'post',
+    data: {
+      id
+    }
+  })
+}
+// 修改投票周期
+export function editCamp(id, cycleStartTime, cycleEndTime, tenureStartTime, tenureEndTime) {
+  return request({
+    url: '/cycle/update-cycle',
+    method: 'post',
+    data: {
+      id,
+      cycleStartTime,
+      cycleEndTime,
+      tenureStartTime,
+      tenureEndTime
+    }
+  })
+}
+
+// 修改倒计时设置
+export function editCountDown(value) {
+  return request({
+    url: '/cycle/set-setting',
+    method: 'post',
+    data: {
+      value
+    }
+  })
+}
+// 获取倒计时设置
+export function getCountDown() {
+  return request({
+    url: '/cycle/get-setting',
     method: 'post'
   })
 }

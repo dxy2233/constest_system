@@ -74,7 +74,7 @@
     <el-dialog :visible.sync="dialogCamp" :fullscreen="true" title="竞选设置">
       <div v-for="(item,index) in dialogCampData" :key="index">
         <h3 style="display:inline-block;">投票竞选{{ index + 1 }}</h3>
-        <el-button v-if="new Date().getTime() + 1000 * 60 * 60 * 24 < new Date(item.cycleStartTime).getTime()" type="danger" plain style="float:right;margin-left:20px;" @click="delCamp(item.id)">删除</el-button>
+        <el-button v-if="new Date().getTime() < new Date(item.cycleStartTime).getTime()" type="danger" plain style="float:right;margin-left:20px;" @click="delCamp(item.id)">删除</el-button>
         <el-button style="float:right;" @click="openEditCamp(index)">编辑</el-button>
         <br>
         <div class="camp-info">
@@ -111,8 +111,8 @@
           <el-form-item label="竞选开始时间" prop="cycleStartTime">
             <el-date-picker
               :picker-options="timePcik0"
+              :disabled="new Date().getTime() >= new Date(addCampForm.cycleStartTime).getTime()"
               :clearable="false"
-              :disabled="new Date(addCampForm.cycleStartTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
               v-model="addCampForm.cycleStartTime"
               popper-class="cleartxt"
               type="datetime"
@@ -123,8 +123,8 @@
           <el-form-item label="竞选截止时间" prop="cycleEndTime">
             <el-date-picker
               :picker-options="timePcik0"
+              :disabled="new Date().getTime() >= new Date(addCampForm.cycleEndTime).getTime()"
               :clearable="false"
-              :disabled="new Date(addCampForm.cycleEndTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
               v-model="addCampForm.cycleEndTime"
               popper-class="cleartxt"
               type="datetime"
@@ -135,8 +135,8 @@
           <el-form-item label="任职开始时间" prop="tenureStartTime">
             <el-date-picker
               :picker-options="timePcik0"
+              :disabled="new Date().getTime() >= new Date(addCampForm.tenureStartTime).getTime()"
               :clearable="false"
-              :disabled="new Date(addCampForm.tenureStartTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
               v-model="addCampForm.tenureStartTime"
               popper-class="cleartxt"
               type="datetime"
@@ -147,8 +147,8 @@
           <el-form-item label="任职截止时间" prop="tenureEndTime">
             <el-date-picker
               :picker-options="timePcik0"
+              :disabled="new Date().getTime() >= new Date(addCampForm.tenureEndTime).getTime()"
               :clearable="false"
-              :disabled="new Date(addCampForm.tenureEndTime).getTime() - 1000 * 60 * 60 * 24 < new Date().getTime()"
               v-model="addCampForm.tenureEndTime"
               popper-class="cleartxt"
               type="datetime"
@@ -231,9 +231,9 @@ export default {
         callback(new Error('请输入日期'))
       }
       if (this.addCampForm.id === '') {
-        if (new Date().getTime() + 1000 * 60 * 60 * 24 >= new Date(value).getTime()) {
+        if (new Date().getTime() >= new Date(value).getTime()) {
           callback(new Error('竞选开始时间必须在24小时之后!'))
-        } else if (new Date(this.dialogCampData[this.dialogCampData.length - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
+        } else if (this.dialogCampData.length > 0 && new Date(this.dialogCampData[this.dialogCampData.length - 1].cycleEndTime).getTime() >= new Date(value).getTime()) {
           callback(new Error('必须在上一个竞选截止时间之后!'))
         } else {
           callback()
@@ -265,7 +265,7 @@ export default {
         callback(new Error('请输入日期'))
       } else if (new Date(this.addCampForm.cycleEndTime).getTime() >= new Date(value).getTime()) {
         callback(new Error('任职开始时间必须在竞选截止时间之后!'))
-      } else if (this.addCampForm.id === '' && new Date(this.dialogCampData[this.dialogCampData.length - 1].tenureEndTime).getTime() >= new Date(value).getTime()) {
+      } else if (this.addCampForm.id === '' && new Date(this.dialogCampData.length > 0 && this.dialogCampData[this.dialogCampData.length - 1].tenureEndTime).getTime() >= new Date(value).getTime()) {
         callback(new Error('必须在上一个任职到期时间之后!'))
       } else if (this.addCampForm.id !== '' && this.campIndex > 0 && new Date(this.dialogCampData[this.campIndex - 1].tenureEndTime).getTime() >= new Date(value).getTime()) {
         callback(new Error('必须在上一个任职到期时间之后!'))

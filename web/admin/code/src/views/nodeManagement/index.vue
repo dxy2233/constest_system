@@ -973,6 +973,7 @@ export default {
         this.addNodeData.grt = res.content.grt
         this.addNodeData.bpt = res.content.bpt
         this.addNodeData.tt = res.content.tt
+        this.addNodeData.gdtReward = res.content.gdtReward
       })
     },
     // 添加节点下一步

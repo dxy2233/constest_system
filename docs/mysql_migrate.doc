@@ -18,6 +18,7 @@
         UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '24';
         UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '4';
         UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '21';
+        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '29';
 
         CREATE TABLE `gr_cycle` (
         `id` int(11) NOT NULL AUTO_INCREMENT,

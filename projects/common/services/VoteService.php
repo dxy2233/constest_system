@@ -269,7 +269,7 @@ class VoteService extends ServiceBase
                 $payGdt = (float) SettingService::get('vote', 'pay_gdt')->value;
                 $giveAmount = round($res['amount'] * $payGdt, 8);
             }
-            $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->asArray()->all();
+            $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
             $bool = false;
             foreach ($data as $v) {
                 if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {

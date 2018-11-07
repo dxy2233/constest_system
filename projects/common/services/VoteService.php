@@ -10,6 +10,7 @@ use common\components\FuncResult;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BVote;
+use common\models\business\BCycle;
 use common\models\business\BVoucherDetail;
 use common\models\business\BWalletJingtum;
 use common\models\business\BUserCurrencyDetail;

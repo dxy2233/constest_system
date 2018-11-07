@@ -466,7 +466,14 @@ class VoteController extends BaseController
             $currencyAmount = round($number * $scaling, 8);
             // 本次竞选剩余可支付货币数量
             $surplusMax = round($singleMax - $countConsume, 8);
-            if ($currencyAmount > $surplusMax) {
+            $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
+            $bool = false;
+            foreach ($data as $v) {
+                if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {
+                    $bool = true;
+                }
+            }
+            if ($bool && $currencyAmount > $surplusMax) {
                 return $this->respondJson(1, "已达本次投票竞选上限");
             }
             // 获取总票数

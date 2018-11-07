@@ -30,4 +30,129 @@
         PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投票周期表';
 
-        ALTER TABLE `gr_node_type` ADD `gdt_reward` decimal(18,8) NOT NULL COMMENT '奖励GDT数量' AFTER `bpt`;
+
+
+
+/* Alter table in target */
+ALTER TABLE `gr_node_type` 
+	CHANGE `max_candidate` `max_candidate` int(11)   NOT NULL COMMENT '候选人上限' after `gdt_reward` ;
+
+/* Alter table in target */
+ALTER TABLE `gr_user_currency_detail` 
+	CHANGE `type` `type` tinyint(3)   NOT NULL DEFAULT 0 COMMENT '类型，1 收款 2 提现  4 投票 5 手续费 6奖励' after `currency_id` ;
+
+/* Alter table in target */
+ALTER TABLE `gr_vote` 
+	CHANGE `type` `type` tinyint(4) unsigned   NOT NULL COMMENT '投标类型 1持有2支付3券4推荐' after `consume` ;
+
+/* Alter table in target */
+ALTER TABLE `gr_voucher` 
+	CHANGE `node_id` `node_id` int(11)   NOT NULL COMMENT '赠送人节点ID' after `give_user_id` , 
+	CHANGE `voucher_num` `voucher_num` int(11)   NOT NULL COMMENT '投票券数量' after `node_id` , 
+	CHANGE `create_time` `create_time` int(11)   NOT NULL after `remark` ;
+
+
+        ALTER TABLE `gr_cycle`
+CHANGE `cycle_start_time` `cycle_start_time` int(11) NOT NULL DEFAULT '0' COMMENT '竞选开始时间' AFTER `id`,
+CHANGE `cycle_end_time` `cycle_end_time` int(11) NOT NULL DEFAULT '0' COMMENT '竞选截止时间' AFTER `cycle_start_time`,
+CHANGE `tenure_start_time` `tenure_start_time` int(11) NOT NULL DEFAULT '0' COMMENT '任职时间' AFTER `cycle_end_time`,
+CHANGE `tenure_end_time` `tenure_end_time` int(11) NOT NULL DEFAULT '0' COMMENT '到期时间' AFTER `tenure_start_time`,
+CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' AFTER `tenure_end_time`,
+CHANGE `update_time` `update_time` int(11) NOT NULL DEFAULT '0' AFTER `create_time`;
+
+ALTER TABLE `gr_history`
+CHANGE `node_id` `node_id` int(11) NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER `id`,
+CHANGE `node_type` `node_type` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '节点类型ID' AFTER `node_id`,
+CHANGE `username` `username` varchar(64) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '用户名' AFTER `node_type`,
+CHANGE `node_name` `node_name` char(64) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '节点名' AFTER `username`,
+CHANGE `vote_number` `vote_number` int(11) NOT NULL DEFAULT '0' COMMENT '票数' AFTER `node_name`,
+CHANGE `people_number` `people_number` int(11) NOT NULL DEFAULT '0' COMMENT '支持人数' AFTER `vote_number`,
+CHANGE `is_tenure` `is_tenure` tinyint(4) NOT NULL DEFAULT '1' COMMENT '0:未任职 1:已任职' AFTER `people_number`,
+CHANGE `update_number` `update_number` varchar(16) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '0' COMMENT '更新次数' AFTER `is_tenure`,
+CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' AFTER `update_number`;
+
+ALTER TABLE `gr_node`
+CHANGE `user_id` `user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '用户ID' AFTER `id`,
+CHANGE `type_id` `type_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '节点类型ID' AFTER `user_id`,
+CHANGE `name` `name` varchar(255) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '机构/名称' AFTER `type_id`,
+CHANGE `grt` `grt` int(11) NOT NULL DEFAULT '0' COMMENT '质压grt' AFTER `name`,
+CHANGE `tt` `tt` int(11) NOT NULL DEFAULT '0' COMMENT '质压tt' AFTER `grt`,
+CHANGE `bpt` `bpt` int(11) NOT NULL DEFAULT '0' COMMENT '质压bpt' AFTER `tt`,
+CHANGE `desc` `desc` text COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '简介' AFTER `bpt`,
+CHANGE `scheme` `scheme` text COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '建设方案' AFTER `desc`,
+CHANGE `examine_time` `examine_time` int(11) NOT NULL DEFAULT '0' COMMENT '审核时间' AFTER `logo`,
+CHANGE `create_time` `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间' AFTER `examine_time`;
+
+ALTER TABLE `gr_node_rule`
+CHANGE `name` `name` varchar(128) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '权限名称' AFTER `id`,
+CHANGE `content` `content` text COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '权限内容' AFTER `name`,
+CHANGE `is_tenure` `is_tenure` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否任职' AFTER `content`,
+CHANGE `create_time` `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '添加时间' AFTER `is_tenure`;
+
+ALTER TABLE `gr_node_type`
+CHANGE `name` `name` varchar(16) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '节点名' AFTER `id`,
+CHANGE `grt` `grt` decimal(18,8) NOT NULL DEFAULT '0' COMMENT 'GRT最小量' AFTER `name`,
+CHANGE `tt` `tt` decimal(18,8) NOT NULL DEFAULT '0' COMMENT 'TT最小量' AFTER `grt`,
+CHANGE `bpt` `bpt` decimal(18,8) NOT NULL DEFAULT '0' COMMENT 'BPT最小量' AFTER `tt`,
+CHANGE `gdt_reward` `gdt_reward` decimal(18,8) NOT NULL DEFAULT '0' COMMENT '奖励GDT数量' AFTER `bpt`,
+CHANGE `max_candidate` `max_candidate` int(11) NOT NULL DEFAULT '0' COMMENT '候选人上限' AFTER `gdt_reward`,
+CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' AFTER `sort`;
+
+ALTER TABLE `gr_notice`
+CHANGE `title` `title` varchar(255) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '标题' AFTER `id`,
+CHANGE `desc` `desc` varchar(255) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '描述' AFTER `title`,
+CHANGE `detail` `detail` text COLLATE 'utf8_general_ci' NULL DEFAULT '' COMMENT '详情' AFTER `desc`,
+CHANGE `image` `image` varchar(255) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '展示图' AFTER `type`,
+CHANGE `url` `url` varchar(255) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '链接地址' AFTER `image`,
+CHANGE `is_top` `is_top` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '是否置顶' AFTER `sort`,
+CHANGE `status` `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '状态：0 下架 1 上架 2 删除' AFTER `is_top`,
+CHANGE `start_time` `start_time` int(11) unsigned NULL DEFAULT '0' COMMENT '开始时间' AFTER `status`,
+CHANGE `end_time` `end_time` int(11) unsigned NULL DEFAULT '0' COMMENT '结束时间' AFTER `start_time`,
+CHANGE `click` `click` bigint(20) NOT NULL DEFAULT '0' COMMENT '点击量' AFTER `end_time`,
+CHANGE `create_time` `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间' AFTER `click`,
+CHANGE `update_time` `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间' AFTER `create_time`;
+
+ALTER TABLE `gr_type_rule_contrast`
+CHANGE `type_id` `type_id` int(11) NOT NULL DEFAULT '0' COMMENT '分类ID' AFTER `id`,
+CHANGE `min_order` `min_order` int(11) NOT NULL DEFAULT '0' COMMENT '最小排名' AFTER `type_id`,
+CHANGE `max_order` `max_order` int(11) NOT NULL DEFAULT '0' COMMENT '最大排名' AFTER `min_order`,
+CHANGE `is_tenure` `is_tenure` tinyint(4) NOT NULL DEFAULT '0' COMMENT '权限种 类 1：2 排名 1：任职 0：候选' AFTER `max_order`,
+CHANGE `rule_id` `rule_id` int(11) NOT NULL DEFAULT '0' COMMENT '权限ID' AFTER `is_tenure`,
+CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' AFTER `rule_id`;
+
+ALTER TABLE `gr_user_recommend`
+CHANGE `user_id` `user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '用户ID' AFTER `id`,
+CHANGE `parent_id` `parent_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '推荐人ID' AFTER `user_id`,
+CHANGE `amount` `amount` int(11) NOT NULL DEFAULT '0' COMMENT '投票数量' AFTER `node_id`,
+CHANGE `create_time` `create_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '推荐时间' AFTER `amount`;
+
+ALTER TABLE `gr_user_voucher`
+CHANGE `user_id` `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID' AFTER `id`,
+CHANGE `position_amount` `position_amount` int(11) NOT NULL DEFAULT '0' COMMENT '持券总量' AFTER `user_id`,
+CHANGE `surplus_amount` `surplus_amount` int(11) NOT NULL DEFAULT '0' COMMENT '剩余数量' AFTER `position_amount`,
+CHANGE `use_amount` `use_amount` int(11) NOT NULL DEFAULT '0' COMMENT '使用数量' AFTER `surplus_amount`,
+CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' AFTER `use_amount`,
+CHANGE `update_time` `update_time` int(11) NOT NULL DEFAULT '0' AFTER `create_time`;
+
+ALTER TABLE `gr_vote`
+CHANGE `user_id` `user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '用户ID' AFTER `id`,
+CHANGE `node_id` `node_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER `user_id`,
+CHANGE `vote_number` `vote_number` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '投票数量' AFTER `node_id`,
+CHANGE `type` `type` tinyint(4) unsigned NOT NULL DEFAULT '1' COMMENT '投标类型 1持有2支付3券4推荐' AFTER `consume`,
+CHANGE `create_time` `create_time` int(11) unsigned NOT NULL DEFAULT '0' AFTER `undo_time`;
+
+ALTER TABLE `gr_voucher`
+CHANGE `user_id` `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID' AFTER `id`,
+CHANGE `give_user_id` `give_user_id` int(11) NOT NULL DEFAULT '0' COMMENT '赠送人ID(被推荐人)' AFTER `user_id`,
+CHANGE `node_id` `node_id` int(11) NOT NULL DEFAULT '0' COMMENT '赠送人节点ID' AFTER `give_user_id`,
+CHANGE `voucher_num` `voucher_num` int(11) NOT NULL DEFAULT '0' COMMENT '投票券数量' AFTER `node_id`,
+CHANGE `type` `type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '派发类型' AFTER `voucher_num`,
+CHANGE `remark` `remark` varchar(256) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '备注' AFTER `type`,
+CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' AFTER `remark`;
+
+ALTER TABLE `gr_voucher_detail`
+CHANGE `user_id` `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID' AFTER `id`,
+CHANGE `node_id` `node_id` int(11) NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER `user_id`,
+CHANGE `vote_id` `vote_id` int(11) NOT NULL DEFAULT '0' COMMENT '投票记录ID' AFTER `node_id`,
+CHANGE `amount` `amount` int(11) NOT NULL DEFAULT '0' COMMENT '使用数量' AFTER `vote_id`,
+CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间' AFTER `amount`;

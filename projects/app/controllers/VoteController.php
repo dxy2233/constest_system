@@ -349,29 +349,42 @@ class VoteController extends BaseController
             $data['surplus_number'] = $voucherNumber;
             return $this->respondJson(0, '获取成功', $data);
         }
-
-        // 计算指定时间投票用户投票总和
-        $countNumber = BVote::find()
-        ->active()
-        ->where(['type' => $type, 'user_id' => $userModel->id])
-        ->andWhere(['>=', 'create_time', $historyLastTime])
-        ->sum('vote_number') ?? 0;
         
+        $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->asArray()->all();
+        $bool = false;
+        foreach ($data as $v) {
+            if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {
+                $bool = true;
+            }
+        }
         $currencyId = BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
         $userCurrencyModel = $userModel->getUserCurrency()
         ->where(['currency_id' => $currencyId]);
         $userCurrencyInfo = $userCurrencyModel->one();
         if (!is_null($userCurrencyInfo)) {
-            $useAmount = round($userCurrencyInfo->use_amount, 8);
-            $numberAll = $useAmount / $scaling;
-            $surplusNumber = $singleMax / $scaling - $countNumber;
-            if ($surplusNumber <= 0) {
-                $surplusNumber = 0;
-            } elseif ($surplusNumber > $numberAll) {
-                $surplusNumber = $numberAll;
+            if ($bool) {
+                // 计算指定时间投票用户投票总和
+                $countNumber = BVote::find()
+                ->active()
+                ->where(['type' => $type, 'user_id' => $userModel->id])
+                ->andWhere(['>=', 'create_time', $historyLastTime])
+                ->sum('vote_number') ?? 0;
+                $useAmount = round($userCurrencyInfo->use_amount, 8);
+                $numberAll = $useAmount / $scaling;
+                $surplusNumber = $singleMax / $scaling - $countNumber;
+                if ($surplusNumber <= 0) {
+                    $surplusNumber = 0;
+                } elseif ($surplusNumber > $numberAll) {
+                    $surplusNumber = $numberAll;
+                }
+                $data['number'] = $surplusNumber;
+                $data['amount'] = $surplusNumber * $scaling;
+            } else {
+                $useAmount = round($userCurrencyInfo->use_amount, 8);
+                $numberAll = $useAmount / $scaling;
+                $data['number'] = $numberAll;
+                $data['amount'] = $userCurrencyInfo->use_amount;
             }
-            $data['number'] = $surplusNumber;
-            $data['amount'] = $surplusNumber * $scaling;
         }
         return $this->respondJson(0, '获取成功', $data);
     }

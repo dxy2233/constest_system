@@ -42,11 +42,23 @@ class VoteService extends ServiceBase
         if (is_null($vote)) {
             return new FuncResult(0, '该投票不存在或不能赎回', false);
         }
-        $historyModelExists = $vote->getHistorys()
-        ->select('id')
-        ->andWhere(['>', 'create_time', $vote->create_time])
-        ->orderBy(['update_number' => SORT_DESC])
-        ->exists();
+
+        $historyModelExists = true;
+
+        $data = BCycle::find()->orderBy('id asc')->asArray()->all();
+        $bool = false;
+        $cycle_end_time = time();
+        foreach ($data as $v) {
+            if ($v->cycle_start_time <= $vote->create_time && $v->cycle_end_time >= $vote->create_time) {
+                $cycle_end_time = $v->cycle_end_time;
+                $bool = true;
+            }
+        }
+        
+        if ($bool && time() > $cycle_end_time) {
+            $historyModelExists = false;
+        }
+
         return new FuncResult(0, '校验结果', $historyModelExists);
     }
 

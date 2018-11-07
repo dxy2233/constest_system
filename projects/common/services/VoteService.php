@@ -45,7 +45,7 @@ class VoteService extends ServiceBase
 
         $historyModelExists = false;
 
-        $data = BCycle::find()->orderBy('id asc')->asArray()->all();
+        $data = BCycle::find()->orderBy('id asc')->all();
         $bool = false;
         $cycle_end_time = time();
         foreach ($data as $v) {

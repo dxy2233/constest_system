@@ -350,7 +350,7 @@ class VoteController extends BaseController
             return $this->respondJson(0, '获取成功', $data);
         }
         
-        $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->asArray()->all();
+        $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
         $bool = false;
         foreach ($data as $v) {
             if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {

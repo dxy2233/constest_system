@@ -146,12 +146,12 @@ export let mainRouter = [
             path: 'rules',
             component: () => import('views/personal/node/rules'),
           },
+          {
+            path: 'submit',
+            component: () => import('views/personal/node/submit'),
+          },
         ]
       },
-      /*{
-        path:'applynode',
-        component: () => import('views/personal/node/applynode'),
-      },*/
       {
         path: 'identify',
         component: () => import('components/emptyRouter/index'),
@@ -227,6 +227,16 @@ export let mainRouter = [
       {
         path:'set',
         component: () => import('views/personal/set/index'),
+        children:[
+          {
+            path:'about',
+            component: () => import('views/personal/set/about'),
+          }
+        ]
+      },
+      {
+        path:'address',
+        component: () => import('views/personal/address/index'),
         children:[
           {
             path:'about',

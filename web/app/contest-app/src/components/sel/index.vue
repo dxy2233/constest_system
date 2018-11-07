@@ -31,17 +31,7 @@
         type: Array,
         default: function () {
           // return [];//或者是return {}
-          return [
-            {
-              value: '选项1',
-              label: '黄金糕'
-            },
-            {
-              value: '选项2',
-              label: '双皮奶',
-              disabled: true
-            }
-          ]
+          return []
         }
       },
       label: {
@@ -107,7 +97,7 @@
   .sel
     position relative
     .sel-box
-      height 30px
+      /*height 30px*/
       width 100%
     .popup
       .mask

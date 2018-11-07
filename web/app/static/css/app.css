@@ -5770,7 +5770,7 @@ i.weui-tabbar__icon,
   border-top: 1px solid #E5E5E5;
 }
 
-.app-header[data-v-9e47aed4] {
+.app-header[data-v-d6154f76] {
   padding: 0 15px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -5791,13 +5791,13 @@ i.weui-tabbar__icon,
   z-index: 5;
   background: #fff;
 }
-.app-header .left[data-v-9e47aed4] {
+.app-header .left[data-v-d6154f76] {
   float: left;
 }
-.app-header .icon-back[data-v-9e47aed4] {
+.app-header .icon-back[data-v-d6154f76] {
   font-size: 20px;
 }
-.app-header .center[data-v-9e47aed4] {
+.app-header .center[data-v-d6154f76] {
   position: absolute;
   text-align: center;
   top: 0;
@@ -5807,7 +5807,7 @@ i.weui-tabbar__icon,
   font-size: 16px;
   z-index: -1;
 }
-.app-header .right[data-v-9e47aed4] {
+.app-header .right[data-v-d6154f76] {
   float: right;
   font-size: 14px;
 }
@@ -6045,7 +6045,7 @@ html .vux-header {
   left: 0;
   top: 0;
   right: 0;
-  background: #f3f0f3;
+  background: #f7f7f7;
   border-bottom: 1px solid #dbdbdb;
   box-sizing: border-box;
 }
@@ -6089,6 +6089,15 @@ body .weui-toast_text .weui-toast__content,
 html .weui-toast_text .weui-toast__content {
   padding: 10px 5px;
   line-height: 25px;
+}
+.base-btn {
+  background-color: #ff4800;
+  font-size: 20px;
+  line-height: 45px;
+  width: 100%;
+  border-radius: 10px;
+  border: 0;
+  color: #fff;
 }
 .pay-tool-keyboard {
   position: absolute;
@@ -6183,4 +6192,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=62a98ac9cc94d7e8f80bc9653acf9e75*/
+/*# sourceMappingURL=app.css.map?v=10a2a2df94609ed39d4fdade57468ae9*/

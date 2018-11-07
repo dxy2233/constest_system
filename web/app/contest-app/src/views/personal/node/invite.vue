@@ -42,7 +42,8 @@
         let url = window.location.href
         let aurl = url.split('#')
         // return `${aurl[0]}#/login?re_code=${this.rcmdCode}`
-        return `${aurl[0]}#/home/vote?nodeId=${this.nodeInfo.id}&nodeName=${this.nodeInfo.name}`
+        // return `${aurl[0]}#/home/vote?nodeId=${this.nodeInfo.id}&nodeName=${this.nodeInfo.name}`
+        return `${aurl[0]}#/home/node/dts${this.nodeInfo.id}`
       }
     },
     mounted(){

@@ -5,6 +5,7 @@ use common\services\AclService;
 use common\services\TicketService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BCycle;
+use common\models\business\BSetting;
 
 /**
  * Site controller
@@ -168,5 +169,23 @@ class CycleController extends BaseController
         $cycle = BCycle::find()->where(['id' => $id])->one();
         $cycle->delete();
         return $this->respondJson(0, '删除成功');
+    }
+
+    public function actionGetSetting()
+    {
+        $data = BSetting::find()->where(['key' => 'count_down_is_open'])->one();
+        return $this->respondJson(0, '获取成功', [(bool)$data->value]);
+    }
+
+    public function actionSetSetting()
+    {
+        $value = $this->pInt('value');
+        $data = BSetting::find()->where(['key' => 'count_down_is_open'])->one();
+        $data->value = $value;
+        if (!$data->save()) {
+            return $this->respondJson(1, '修改失败', $data->getFirstErrorText());
+        } else {
+            return $this->respondJson(0, '修改成功');
+        }
     }
 }

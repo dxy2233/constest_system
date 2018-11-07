@@ -1,58 +1,57 @@
-        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (29,	'vote',	'倒计时显示功能开关',	'count_down_is_open',	'1',	'1',	'radio',	'',	'开关',	1,	4,	0,	0);
-        UPDATE `gr_setting` SET `sort` = '5' WHERE `id` = '10';
-        UPDATE `gr_setting` SET `sort` = '6' WHERE `id` = '11';
-        UPDATE `gr_setting` SET `sort` = '7' WHERE `id` = '13';
-        UPDATE `gr_setting` SET `sort` = '8' WHERE `id` = '24';
-        ALTER TABLE `gr_voucher` ADD `give_user_id` int(11) NOT NULL COMMENT '赠送人ID(被推荐人)' AFTER `user_id`;
-        ALTER TABLE `gr_voucher` ADD `type` int(11) NOT NULL COMMENT '派发类型' AFTER `voucher_num`;
-        ALTER TABLE `gr_voucher` ADD `remark` varchar(256) COLLATE 'utf8_general_ci' NOT NULL COMMENT '备注' AFTER `type`;
+INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (29,	'vote',	'倒计时显示功能开关',	'count_down_is_open',	'1',	'1',	'radio',	'',	'开关',	1,	4,	0,	0);
+UPDATE `gr_setting` SET `sort` = '5' WHERE `id` = '10';
+UPDATE `gr_setting` SET `sort` = '6' WHERE `id` = '11';
+UPDATE `gr_setting` SET `sort` = '7' WHERE `id` = '13';
+UPDATE `gr_setting` SET `sort` = '8' WHERE `id` = '24';
+ALTER TABLE `gr_voucher` ADD `give_user_id` int(11) NOT NULL COMMENT '赠送人ID(被推荐人)' AFTER `user_id`;
+ALTER TABLE `gr_voucher` ADD `type` int(11) NOT NULL COMMENT '派发类型' AFTER `voucher_num`;
+ALTER TABLE `gr_voucher` ADD `remark` varchar(256) COLLATE 'utf8_general_ci' NOT NULL COMMENT '备注' AFTER `type`;
 
-        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (30,	'vote',	'支付投票赠送GDT',	'pay_gdt',	'2',	'2',	'input',	'',	'GDT',	1,	6,	0,	0);
-        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (31,	'vote',	'支付投票投中奖励',	'pay_reward',	'0.1',	'0.1',	'input',	'',	'GDT',	1,	7,	0,	0);
-        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (32,	'vote',	'持有投票赠送GDT',	'ordinary_gdt',	'0.03',	'0.03',	'input',	'',	'GDT',	1,	9,	0,	0);
-        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (33,	'vote',	'持有投票投中奖励',	'ordinary_reward',	'0.01',	'0.01',	'input',	'',	'GDT',	1,	10,	0,	0);
-        INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (34,	'vote',	'投票券投中奖励',	'voucher_reward',	'0.004',	'0.004',	'input',	'',	'GDT',	1,	11,	0,	0);
-        UPDATE `gr_setting` SET `sort` = '8' WHERE `id` = '11';
-        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '13';
-        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '14';
-        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '24';
-        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '4';
-        UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '21';
+INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (30,	'vote',	'支付投票赠送GDT',	'pay_gdt',	'2',	'2',	'input',	'',	'GDT',	1,	6,	0,	0);
+INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (31,	'vote',	'支付投票投中奖励',	'pay_reward',	'0.1',	'0.1',	'input',	'',	'GDT',	1,	7,	0,	0);
+INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (32,	'vote',	'持有投票赠送GDT',	'ordinary_gdt',	'0.03',	'0.03',	'input',	'',	'GDT',	1,	9,	0,	0);
+INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (33,	'vote',	'持有投票投中奖励',	'ordinary_reward',	'0.01',	'0.01',	'input',	'',	'GDT',	1,	10,	0,	0);
+INSERT INTO `gr_setting` (`id`, `group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES        (34,	'vote',	'投票券投中奖励',	'voucher_reward',	'0.004',	'0.004',	'input',	'',	'GDT',	1,	11,	0,	0);
+UPDATE `gr_setting` SET `sort` = '8' WHERE `id` = '11';
+UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '13';
+UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '14';
+UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '24';
+UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '4';
+UPDATE `gr_setting` SET `status` = '0' WHERE `id` = '21';
 
-        CREATE TABLE `gr_cycle` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `cycle_start_time` int(11) NOT NULL COMMENT '竞选开始时间',
-        `cycle_end_time` int(11) NOT NULL COMMENT '竞选截止时间',
-        `tenure_start_time` int(11) NOT NULL COMMENT '任职时间',
-        `tenure_end_time` int(11) NOT NULL COMMENT '到期时间',
-        `create_time` int(11) NOT NULL,
-        `update_time` int(11) NOT NULL,
-        PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投票周期表';
-
-
+CREATE TABLE `gr_cycle` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`cycle_start_time` int(11) NOT NULL COMMENT '竞选开始时间',
+`cycle_end_time` int(11) NOT NULL COMMENT '竞选截止时间',
+`tenure_start_time` int(11) NOT NULL COMMENT '任职时间',
+`tenure_end_time` int(11) NOT NULL COMMENT '到期时间',
+`create_time` int(11) NOT NULL,
+`update_time` int(11) NOT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投票周期表';
 
 
 /* Alter table in target */
 ALTER TABLE `gr_node_type` 
-	CHANGE `max_candidate` `max_candidate` int(11)   NOT NULL COMMENT '候选人上限' after `gdt_reward` ;
+ADD `gdt_reward` decimal(18,8)  NOT NULL COMMENT '奖励GDT数量' AFTER `bpt`,
+CHANGE `max_candidate` `max_candidate` int(11)   NOT NULL COMMENT '候选人上限' after `gdt_reward` ;
 
 /* Alter table in target */
 ALTER TABLE `gr_user_currency_detail` 
-	CHANGE `type` `type` tinyint(3)   NOT NULL DEFAULT 0 COMMENT '类型，1 收款 2 提现  4 投票 5 手续费 6奖励' after `currency_id` ;
+CHANGE `type` `type` tinyint(3)   NOT NULL DEFAULT 0 COMMENT '类型，1 收款 2 提现  4 投票 5 手续费 6奖励' after `currency_id` ;
 
 /* Alter table in target */
 ALTER TABLE `gr_vote` 
-	CHANGE `type` `type` tinyint(4) unsigned   NOT NULL COMMENT '投标类型 1持有2支付3券4推荐' after `consume` ;
+CHANGE `type` `type` tinyint(4) unsigned   NOT NULL COMMENT '投标类型 1持有2支付3券4推荐' after `consume` ;
 
 /* Alter table in target */
 ALTER TABLE `gr_voucher` 
-	CHANGE `node_id` `node_id` int(11)   NOT NULL COMMENT '赠送人节点ID' after `give_user_id` , 
-	CHANGE `voucher_num` `voucher_num` int(11)   NOT NULL COMMENT '投票券数量' after `node_id` , 
-	CHANGE `create_time` `create_time` int(11)   NOT NULL after `remark` ;
+CHANGE `node_id` `node_id` int(11)   NOT NULL COMMENT '赠送人节点ID' after `give_user_id` , 
+CHANGE `voucher_num` `voucher_num` int(11)   NOT NULL COMMENT '投票券数量' after `node_id` , 
+CHANGE `create_time` `create_time` int(11)   NOT NULL after `remark` ;
 
 
-        ALTER TABLE `gr_cycle`
+ALTER TABLE `gr_cycle`
 CHANGE `cycle_start_time` `cycle_start_time` int(11) NOT NULL DEFAULT '0' COMMENT '竞选开始时间' AFTER `id`,
 CHANGE `cycle_end_time` `cycle_end_time` int(11) NOT NULL DEFAULT '0' COMMENT '竞选截止时间' AFTER `cycle_start_time`,
 CHANGE `tenure_start_time` `tenure_start_time` int(11) NOT NULL DEFAULT '0' COMMENT '任职时间' AFTER `cycle_end_time`,

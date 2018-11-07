@@ -155,3 +155,6 @@ CHANGE `node_id` `node_id` int(11) NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER
 CHANGE `vote_id` `vote_id` int(11) NOT NULL DEFAULT '0' COMMENT '投票记录ID' AFTER `node_id`,
 CHANGE `amount` `amount` int(11) NOT NULL DEFAULT '0' COMMENT '使用数量' AFTER `vote_id`,
 CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间' AFTER `amount`;
+
+以上sql 2018-11-07 20:00已同步线上
+=============================================================

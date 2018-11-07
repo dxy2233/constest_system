@@ -200,7 +200,7 @@ class VoteController extends BaseController
         ->asArray()
         ->all();
         // 创建一个闭包函数
-        $history = function (int $nodeId, int $voteTime = NOW_TIME) {
+        $history = function (int $voteId) {
             $historyModel = BHistory::find()->select('id')
             ->where(['node_id' => $nodeId])
             ->andWhere(['>', 'create_time', $voteTime])
@@ -211,7 +211,7 @@ class VoteController extends BaseController
             if (in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
                 $vote['is_revoke'] = false;
             } else {
-                $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? $history($vote['node_id'], $vote['create_time']) : false;
+                $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? VoteService::hasRevoke($this->user, $vote['id']) : false;
             }
             $vote['undo_time'] = FuncHelper::formateDate($vote['undo_time']);
             $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);
@@ -350,9 +350,9 @@ class VoteController extends BaseController
             return $this->respondJson(0, '获取成功', $data);
         }
         
-        $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
+        $data_2 = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
         $bool = false;
-        foreach ($data as $v) {
+        foreach ($data_2 as $v) {
             if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {
                 $bool = true;
             }

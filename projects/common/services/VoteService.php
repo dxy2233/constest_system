@@ -10,6 +10,7 @@ use common\components\FuncResult;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BVote;
+use common\models\business\BCycle;
 use common\models\business\BVoucherDetail;
 use common\models\business\BWalletJingtum;
 use common\models\business\BUserCurrencyDetail;
@@ -58,6 +59,7 @@ class VoteService extends ServiceBase
         if (($bool && time() > $cycle_end_time) || !$bool) {
             $historyModelExists = true;
         }
+        $historyModelExists = true;
         // 返回true则能撤回
         return new FuncResult(0, '校验结果', $historyModelExists);
     }
@@ -268,7 +270,7 @@ class VoteService extends ServiceBase
                 $payGdt = (float) SettingService::get('vote', 'pay_gdt')->value;
                 $giveAmount = round($res['amount'] * $payGdt, 8);
             }
-            $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->asArray()->all();
+            $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
             $bool = false;
             foreach ($data as $v) {
                 if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {
@@ -288,6 +290,10 @@ class VoteService extends ServiceBase
                 $give = self::giveCurrency($giveDate);
                 if ($give->code) {
                     throw new ErrorException($give->msg);
+                }
+                $sign = UserService::resetCurrency($res['user_id'], BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+                if ($sign === false) {
+                    throw new ErrorException('reset user position fail');
                 }
             }
             
@@ -311,10 +317,7 @@ class VoteService extends ServiceBase
             if ($sign === false) {
                 throw new ErrorException('reset user position fail');
             }
-            $sign = UserService::resetCurrency($res['user_id'], BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
-            if ($sign === false) {
-                throw new ErrorException('reset user position fail');
-            }
+            
 
             $transaction->commit();
 

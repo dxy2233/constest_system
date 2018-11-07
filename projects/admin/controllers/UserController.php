@@ -298,7 +298,7 @@ class UserController extends BaseController
                     $v['in_and_out'][] = $in_and_out;
                 }
                 $frozen_data = BUserCurrencyFrozen::find()->where(['user_id' => $userId, 'currency_id' => $v['currency_id'], 'status' => BNotice::STATUS_ACTIVE])->orderBy('create_time desc')->all();
-                foreach ($in_and_out_data as $val) {
+                foreach ($frozen_data as $val) {
                     if ($val['amount'] == 0) {
                         continue;
                     }
@@ -375,7 +375,6 @@ class UserController extends BaseController
         return $this->respondJson(0, '获取成功', $vote);
     }
 
-    // 获取用户钱包信息
 
 
 

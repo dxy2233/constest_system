@@ -256,20 +256,29 @@ class VoteService extends ServiceBase
                 $payGdt = (float) SettingService::get('vote', 'pay_gdt')->value;
                 $giveAmount = round($res['amount'] * $payGdt, 8);
             }
-
-            // 赠送GDT
-            $giveDate = [
+            $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->asArray()->all();
+            $bool = false;
+            foreach ($data as $v) {
+                if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {
+                    $bool = true;
+                }
+            }
+            if ($bool) {
+                // 赠送GDT
+                $giveDate = [
                 'user_id' => $res['user_id'],
                 'relate_table' => $relate_table,
                 'relate_id' => $res['id'],
                 'type' => BUserCurrencyDetail::$TYPE_REWARD,
                 'amount' => $giveAmount,
                 'remark' => $remark,
-            ];
-            $give = self::giveCurrency($giveDate);
-            if ($give->code) {
-                throw new ErrorException($give->msg);
+                ];
+                $give = self::giveCurrency($giveDate);
+                if ($give->code) {
+                    throw new ErrorException($give->msg);
+                }
             }
+            
             // 手续费明细
             if ($res['poundage'] > 0) {
                 $currencyDetailPoundage = new BUserCurrencyDetail();

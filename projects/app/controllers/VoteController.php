@@ -435,7 +435,7 @@ class VoteController extends BaseController
 
         if (in_array($type, [BVote::TYPE_ORDINARY, BVote::TYPE_PAY])) {
             // 当前节点最后生成快照的时间
-            $historyLastTime = BHistory::find()->where(['node_id' => $nodeId])->max('create_time');
+            //$historyLastTime = BHistory::find()->where(['node_id' => $nodeId])->max('create_time');
             // 参与投票的货币
             $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
             $currencyId = (int) BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
@@ -456,23 +456,27 @@ class VoteController extends BaseController
                 $scaling = (float) SettingService::get('vote', 'payment_price')->value;
                 $singleMax = (float) SettingService::get('vote', 'single_pay_total')->value;
             }
-            // 计算指定时间投票用户投票总和
-            $countConsume = BVote::find()
-            ->active()
-            ->where(['type' => $type, 'user_id' => $userModel->id])
-            ->andWhere(['>=', 'create_time', $historyLastTime])
-            ->sum('consume') ?? 0;
+
             // 票数转换成 货币数量
             $currencyAmount = round($number * $scaling, 8);
             // 本次竞选剩余可支付货币数量
-            $surplusMax = round($singleMax - $countConsume, 8);
+            
             $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
             $bool = false;
+            $historyLastTime = time();
             foreach ($data as $v) {
                 if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {
                     $bool = true;
+                    $historyLastTime = $v->cycle_start_time;
                 }
             }
+            // 计算指定时间投票用户投票总和
+            $countConsume = BVote::find()
+                        ->active()
+                        ->where(['type' => $type, 'user_id' => $userModel->id])
+                        ->andWhere(['>=', 'create_time', $historyLastTime])
+                        ->sum('consume') ?? 0;
+            $surplusMax = round($singleMax - $countConsume, 8);
             if ($bool && $currencyAmount > $surplusMax) {
                 return $this->respondJson(1, "已达本次投票竞选上限");
             }

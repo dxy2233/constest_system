@@ -329,7 +329,7 @@ class VoteController extends BaseController
         $data['show_currency'] = true;
         $scaling = 1;
         // 当前节点最后生成快照的时间
-        $historyLastTime = BHistory::find()->max('create_time');
+        //$historyLastTime = BHistory::find()->max('create_time');
         if ($type === BVote::TYPE_ORDINARY) {
             // 持有投票
             $scaling = (float) SettingService::get('vote', 'ordinary_price')->value;
@@ -352,9 +352,11 @@ class VoteController extends BaseController
         
         $data_2 = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
         $bool = false;
+        $historyLastTime = time();
         foreach ($data_2 as $v) {
             if ($v->cycle_start_time <= time() && $v->cycle_end_time >= time()) {
                 $bool = true;
+                $historyLastTime = $v->cycle_start_time;
             }
         }
         $currencyId = BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();

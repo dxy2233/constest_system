@@ -29,3 +29,5 @@
         `update_time` int(11) NOT NULL,
         PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投票周期表';
+
+        ALTER TABLE `gr_node_type` ADD `gdt_reward` decimal(18,8) NOT NULL COMMENT '奖励GDT数量' AFTER `bpt`;

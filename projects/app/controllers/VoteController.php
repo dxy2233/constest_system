@@ -483,7 +483,7 @@ class VoteController extends BaseController
             ];
             $voteAction = VoteService::currencyVote($userModel, $voteRes, $type);
             if ($voteAction->code) {
-                return $this->respondJson(1, '投票失败');
+                return $this->respondJson(1, '投票失败', $voteAction);
             }
         } else {
             $this->actionVoucherInfo();

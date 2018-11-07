@@ -143,11 +143,11 @@ class VoteController extends BaseController
             if (strstr($v->key, 'time')) {
                 $post_item = strtotime($post_item);
             }
-            if (in_array($v->key, ['pay_gdt','pay_gdt','ordinary_gdt','ordinary_reward','voucher_reward'])) {
-                $v->value = $post_item / 100;
-            } else {
-                $v->value = $post_item;
-            }
+            // if (in_array($v->key, ['pay_gdt','pay_gdt','ordinary_gdt','ordinary_reward','voucher_reward'])) {
+            //     $v->value = $post_item / 100;
+            // } else {
+            $v->value = $post_item;
+            // }
             
             if (!$v->save()) {
                 $transaction->rollBack();

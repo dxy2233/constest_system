@@ -28,4 +28,4 @@
         `create_time` int(11) NOT NULL,
         `update_time` int(11) NOT NULL,
         PRIMARY KEY (`id`)
-        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='投票周期表';
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投票周期表';

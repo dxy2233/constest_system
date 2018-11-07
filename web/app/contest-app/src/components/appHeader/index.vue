@@ -33,9 +33,13 @@
     },
     methods: {
       backPage() {
+        // console.log(window.history)
+        // console.log(document.referrer)
+        // console.log(window.history.length)
         this.$router.back()
       }
-    }
+    },
+
   }
 </script>
 

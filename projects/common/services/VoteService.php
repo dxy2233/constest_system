@@ -43,7 +43,7 @@ class VoteService extends ServiceBase
             return new FuncResult(0, '该投票不存在或不能赎回', false);
         }
 
-        $historyModelExists = true;
+        $historyModelExists = false;
 
         $data = BCycle::find()->orderBy('id asc')->asArray()->all();
         $bool = false;
@@ -55,10 +55,10 @@ class VoteService extends ServiceBase
             }
         }
         
-        if ($bool && time() > $cycle_end_time) {
-            $historyModelExists = false;
+        if (($bool && time() > $cycle_end_time) || !$bool) {
+            $historyModelExists = true;
         }
-
+        // 返回true则能撤回
         return new FuncResult(0, '校验结果', $historyModelExists);
     }
 

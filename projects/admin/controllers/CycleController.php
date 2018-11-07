@@ -179,8 +179,12 @@ class CycleController extends BaseController
 
     public function actionSetSetting()
     {
-        $value = $this->pInt('value');
-        $value = $value ? 1 : 0;
+        $value = $this->pString('value');
+        if ($value == 'true') {
+            $value = 1;
+        } else {
+            $value = 0;
+        }
         $data = BSetting::find()->where(['key' => 'count_down_is_open'])->one();
         $data->value = $value;
         if (!$data->save()) {

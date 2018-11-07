@@ -71,11 +71,15 @@
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogCamp" :fullscreen="true" title="竞选设置">
+    <el-dialog :visible.sync="dialogCamp" title="竞选设置">
+      <div class="dialog-camp-switch">
+        <span>首页倒计时展示</span>
+        <el-switch v-model="indexCountDown" :active-value="true" :inactive-value="false" @change="changeIndexCountDown"/>
+      </div>
       <div v-for="(item,index) in dialogCampData" :key="index">
         <h3 style="display:inline-block;">投票竞选{{ index + 1 }}</h3>
-        <el-button v-if="new Date().getTime() < new Date(item.cycleStartTime).getTime()" type="danger" plain style="float:right;margin-left:20px;" @click="delCamp(item.id)">删除</el-button>
-        <el-button style="float:right;" @click="openEditCamp(index)">编辑</el-button>
+        <el-button v-if="new Date().getTime() < new Date(item.cycleStartTime).getTime()" type="danger" size="small" plain style="float:right;margin:10px 0 0 20px;" @click="delCamp(item.id)">删除</el-button>
+        <el-button size="small" style="float:right;margin-top:10px;" @click="openEditCamp(index)">编辑</el-button>
         <br>
         <div class="camp-info">
           <div>
@@ -87,11 +91,11 @@
             <span>{{ item.cycleEndTime }}</span>
           </div>
           <div>
-            <span>任职开始时间</span>
+            <span>任职时间</span>
             <span>{{ item.tenureStartTime }}</span>
           </div>
           <div>
-            <span>任职到期时间</span>
+            <span>到期时间</span>
             <span>{{ item.tenureEndTime }}</span>
           </div>
         </div>
@@ -167,8 +171,8 @@
         <el-table-column prop="id" label="序号"/>
         <el-table-column prop="cycleStartTime" label="竞选开始时间"/>
         <el-table-column prop="cycleEndTime" label="竞选截止时间"/>
-        <el-table-column prop="tenureStartTime" label="任职时间"/>
-        <el-table-column prop="tenureEndTime" label="到期时间"/>
+        <el-table-column prop="tenureStartTime" label="任职开始时间"/>
+        <el-table-column prop="tenureEndTime" label="任职到期时间"/>
       </el-table>
       <el-pagination
         :current-page.sync="campCurrentPage"
@@ -219,7 +223,7 @@
 
 <script>
 import { getVoteList, getVoteSet, pushVoteSet, getVoteRank, getCampHistory, getCamp,
-  addCamp, deleteCamp, editCamp } from '@/api/poll'
+  addCamp, deleteCamp, editCamp, editCountDown, getCountDown } from '@/api/poll'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 
@@ -305,12 +309,12 @@ export default {
       ],
       dialogRankType: 0,
       dialogRankData: [],
-      dialogRankDataPage: [],
       rankTotal: 1,
       dialogRankDate: '',
       rankCurrentPage: 1,
       dialogCamp: false,
       dialogCampData: [],
+      indexCountDown: false,
       campIndex: null,
       dialogAddCamp: false,
       timePcik0: {
@@ -416,10 +420,14 @@ export default {
         this.campTotal = res.content.count
       })
     },
+    // 打开竞选设置
     openCamp() {
       getCamp().then(res => {
         this.dialogCampData = res.content
         this.dialogCamp = true
+      })
+      getCountDown().then(res => {
+        this.indexCountDown = res.content[0]
       })
       this.initCampHistory()
     },
@@ -429,6 +437,12 @@ export default {
       } else {
         this.dialogAddCamp = true
       }
+    },
+    // 修改是否在首页展示
+    changeIndexCountDown(val) {
+      editCountDown(val).then(res => {
+        Message({ message: res.msg, type: 'success' })
+      })
     },
     // 增加||修改竞选投票
     saveCamp() {
@@ -543,6 +557,14 @@ export default {
       width: 90px;
     }
   }
+}
+
+.dialog-camp-switch {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
 }
 
 .camp-info {

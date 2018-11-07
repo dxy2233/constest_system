@@ -102,3 +102,21 @@ export function editCamp(id, cycleStartTime, cycleEndTime, tenureStartTime, tenu
     }
   })
 }
+
+// 修改倒计时设置
+export function editCountDown(value) {
+  return request({
+    url: '/cycle/set-setting',
+    method: 'post',
+    data: {
+      value
+    }
+  })
+}
+// 获取倒计时设置
+export function getCountDown() {
+  return request({
+    url: '/cycle/get-setting',
+    method: 'post'
+  })
+}

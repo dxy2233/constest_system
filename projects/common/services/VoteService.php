@@ -55,7 +55,8 @@ class VoteService extends ServiceBase
                 $bool = true;
             }
         }
-        
+        var_dump(time() > $cycle_end_time);
+        var_dump($bool);
         if (($bool && time() > $cycle_end_time) || !$bool) {
             $historyModelExists = true;
         }

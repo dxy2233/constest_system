@@ -229,11 +229,11 @@ class FinanceController extends BaseController
         $find->orderBy('A.create_time DESC');
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
-            if ($v['status'] == BUserCurrencyFrozen::STATUS_FROZEN) {
-                $v['amount'] = '-' . $v['amount'];
-            } else {
-                $v['amount'] = '+' . $v['amount'];
-            }
+            // if ($v['status'] == BUserCurrencyFrozen::STATUS_FROZEN) {
+            //     $v['amount'] = '-' . $v['amount'];
+            // } else {
+            $v['amount'] = '+' . $v['amount'];
+            // }
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $headers = ['mobile'=> '用户', 'name' => '币种', 'amount' => '数量', 'remark' => '描述', 'create_time' => '时间'];

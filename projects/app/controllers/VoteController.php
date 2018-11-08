@@ -214,7 +214,7 @@ class VoteController extends BaseController
                 $vote['is_revoke'] = false;
             } else {
                 $return  = VoteService::hasRevoke($this->user, $vote['id']);
-                $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? $return['content'] : false;
+                $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? $return->content : false;
             }
             $vote['undo_time'] = FuncHelper::formateDate($vote['undo_time']);
             $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);

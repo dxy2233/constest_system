@@ -206,8 +206,8 @@ class VoteController extends BaseController
             // ->andWhere(['>', 'create_time', $voteTime])
             // ->orderBy(['update_number' => SORT_DESC]);
             // return $historyModel->exists();
-            $return  = VoteService::hasRevoke($user, $voteId);
-            return $return['content'];
+            // $return  = VoteService::hasRevoke($user, $voteId);
+            // return $return['content'];
         };
         foreach ($data['list'] as &$vote) {
             if (in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {

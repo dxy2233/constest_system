@@ -55,11 +55,14 @@ class VoteService extends ServiceBase
                 $bool = true;
             }
         }
-        
+        // var_dump($voteId);
+        // var_dump(time() > $cycle_end_time);
+        // var_dump($bool);
         if (($bool && time() > $cycle_end_time) || !$bool) {
             $historyModelExists = true;
         }
-        $historyModelExists = true;
+        // var_dump(time());
+        // var_dump($historyModelExists);
         // 返回true则能撤回
         return new FuncResult(0, '校验结果', $historyModelExists);
     }

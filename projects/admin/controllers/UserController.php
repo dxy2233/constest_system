@@ -307,7 +307,8 @@ class UserController extends BaseController
                     $frozen['type'] = UserCurrencyTrait::getType($val['type']);
                     $frozen['remark'] = $val['remark'];
                     $frozen['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
-                    $frozen['amount'] = ($val['amount'] > 0) ? '-'.$val['amount'] : '+'.abs($val['amount']);
+                    //$frozen['amount'] = ($val['amount'] > 0) ? '-'.$val['amount'] : '+'.abs($val['amount']);
+                    $frozen['amount'] = '+'.abs($val['amount']);
                     $v['frozen'][] = $frozen;
                 }
             }

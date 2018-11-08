@@ -187,11 +187,11 @@ class FinanceController extends BaseController
         }
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
-            if ($v['status'] == BUserCurrencyFrozen::STATUS_FROZEN) {
-                $v['amount'] = '-' . $v['amount'];
-            } else {
-                $v['amount'] = '+' . $v['amount'];
-            }
+            // if ($v['status'] == BUserCurrencyFrozen::STATUS_FROZEN) {
+            //     $v['amount'] = '-' . $v['amount'];
+            // } else {
+            $v['amount'] = '+' . $v['amount'];
+            // }
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $return = [];

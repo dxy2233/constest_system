@@ -200,18 +200,20 @@ class VoteController extends BaseController
         ->asArray()
         ->all();
         // 创建一个闭包函数
-        $history = function (int $voteId) {
-            $historyModel = BHistory::find()->select('id')
-            ->where(['node_id' => $nodeId])
-            ->andWhere(['>', 'create_time', $voteTime])
-            ->orderBy(['update_number' => SORT_DESC]);
-            return $historyModel->exists();
+        $history = function ($user, int $voteId) {
+            // $historyModel = BHistory::find()->select('id')
+            // ->where(['node_id' => $nodeId])
+            // ->andWhere(['>', 'create_time', $voteTime])
+            // ->orderBy(['update_number' => SORT_DESC]);
+            // return $historyModel->exists();
+            $return  = VoteService::hasRevoke($user, $voteId);
+            return $return['content'];
         };
         foreach ($data['list'] as &$vote) {
             if (in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
                 $vote['is_revoke'] = false;
             } else {
-                $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? VoteService::hasRevoke($this->user, $vote['id']) : false;
+                $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? $history($this->user, $vote['id']) : false;
             }
             $vote['undo_time'] = FuncHelper::formateDate($vote['undo_time']);
             $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);

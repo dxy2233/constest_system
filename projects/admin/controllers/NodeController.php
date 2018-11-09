@@ -9,6 +9,7 @@ use common\services\RechargeService;
 use common\services\VoucherService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
+use common\models\business\BArea;
 use common\models\business\BNode;
 use common\models\business\BVote;
 use common\models\business\BNotice;
@@ -186,7 +187,7 @@ class NodeController extends BaseController
         if ($now_count >= $node_type->max_candidate) {
             return $this->respondJson(1, '候选数量已达上限');
         }
-
+        $transaction = \Yii::$app->db->beginTransaction();
         // 赠送gdt
         $currencyDetail = new BUserCurrencyDetail();
         $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
@@ -198,18 +199,26 @@ class NodeController extends BaseController
         $currencyDetail->relate_id = $data->id;
         $currencyDetail->amount = $node_type->gdt_reward;
         if (!$currencyDetail->save()) {
+            $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $currencyDetail->getFirstErrorText());
         }
 
         //重算gdt
         UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
-
+        // 补全充值冻结信息
+        $log = NodeService::addNodeMakeLogs($data);
+        if ($log->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $log->content);
+        }
 
         $data->status = BNode::STATUS_ON;
         $data->status_remark = '已开启';
         if (!$data->save()) {
+            $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
+        $transaction->commit();
         return $this->respondJson(0, '审核成功');
     }
 
@@ -298,8 +307,8 @@ class NodeController extends BaseController
             return $this->respondJson(1, '未填写收货地址');
         }
         $return = [];
-        $return['area_province_id'] = $other->area_province_id;
-        $return['area_city_id'] = $other->area_city_id;
+        $return['area_province_id'] = BArea::getAreaOneName($other->area_province_id);
+        $return['area_city_id'] = BArea::getAreaOneName($other->area_city_id);
         $return['address'] = $other->address;
         $return['zip_code'] = $other->zip_code;
         $return['consignee'] = $other->consignee;
@@ -873,6 +882,31 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $node->getFirstErrorText());
         }
+
+        $weixin = $this->pString('weixin', '');
+        $recommend_mobile = $this->pString('recommend_mobile', '');
+        $recommend_name = $this->pString('recommend_name', '');
+        $grt_address = $this->pString('grt_address', '');
+        $tt_address = $this->pString('tt_address', '');
+        $bpt_address = $this->pString('bpt_address', '');
+        if ($bpt_address || $weixin || $recommend_mobile || $recommend_name || $grt_address || $tt_address) {
+            // 添加个人其它信息
+            $other = BUserOther::find()->where(['user_id' => $user->id])->one();
+            if (empty($other)) {
+                $other = new BUserOther();
+                $other->user_id = $user->id;
+            }
+            $other->weixin = $weixin;
+            $other->recommend_mobile = $recommend_mobile;
+            $other->recommend_name = $recommend_name;
+            $other->grt_address = $grt_address;
+            $other->tt_address = $tt_address;
+            $other->bpt_address = $bpt_address;
+            if (!$other->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '注册失败', $other->getFirstErrorText());
+            }
+        }
         $code = $this->pString('code');
         // 取出比例
         $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
@@ -951,7 +985,8 @@ class NodeController extends BaseController
         }
         // 补全充值冻结信息
         $log = NodeService::addNodeMakeLogs($node);
-        if($log->code != 0){
+        if ($log->code != 0) {
+            $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $log->content);
         }
         // 赠送gdt

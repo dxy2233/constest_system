@@ -7,12 +7,14 @@ use common\services\RechargeService;
 use common\services\UserService;
 use common\services\VoteService;
 use yii\helpers\ArrayHelper;
+use common\models\business\BArea;
 use common\models\business\BUser;
 use common\models\business\BNode;
 use common\models\business\BVote;
 use common\models\business\BNotice;
 use common\models\business\BUserIdentify;
 use common\models\business\BUserWallet;
+use common\models\business\BUserOther;
 use common\models\business\BUserVoucher;
 use common\models\business\BUserCurrency;
 use common\models\business\BVoucher;
@@ -731,8 +733,8 @@ class UserController extends BaseController
             return $this->respondJson(1, '未填写收货地址');
         }
         $return = [];
-        $return['area_province_id'] = $other->area_province_id;
-        $return['area_city_id'] = $other->area_city_id;
+        $return['area_province_id'] = BArea::getAreaOneName($other->area_province_id);
+        $return['area_city_id'] = BArea::getAreaOneName($other->area_city_id);
         $return['address'] = $other->address;
         $return['zip_code'] = $other->zip_code;
         $return['consignee'] = $other->consignee;

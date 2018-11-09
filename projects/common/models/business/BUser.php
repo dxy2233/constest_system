@@ -3,6 +3,7 @@
 namespace common\models\business;
 
 use yii\behaviors\TimestampBehavior;
+use common\models\business\BUserOther;
 
 class BUser extends \common\models\User
 {
@@ -115,7 +116,7 @@ class BUser extends \common\models\User
      */
     public function getNode()
     {
-        return $this->hasOne(BNode::className(), ['user_id' => 'id']);
+        return $this->hasOne(BNode::className(), ['user_id' => 'id'])->where(['<>', 'status', BNode::STATUS_DEL]);
     }
     
     /**
@@ -146,5 +147,14 @@ class BUser extends \common\models\User
     public function getVotes()
     {
         return $this->hasMany(BVote::className(), ['user_id' => 'id']);
+    }
+    /**
+     * 用户的其他信息
+     *
+     * @return void
+     */
+    public function getUserOther()
+    {
+        return $this->hasOne(BUserOther::className(), ['user_id' => 'id']);
     }
 }

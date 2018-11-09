@@ -349,4 +349,78 @@ class NodeService extends ServiceBase
         $cache->set($cacheKey, $ranking);
         return $ranking;
     }
+
+    // 添加节点模拟数据
+    public static function addNodeMakeLogs($node)
+    {
+        // 补全充值冻结信息
+        $currency_arr = BCurrency::find()->all();
+        $currency_id = [];
+        foreach ($currency_arr  as $v) {
+            $currency_id[$v['code']] = $v['id'];
+        }
+        $user = BNode::find()->where(['id' => $node->user_id])->one();
+        //GRT
+        $grt_return = self::addCurrencyLogs($user, $currency_id['grt'], $node->grt, $node->id);
+        if ($grt_return->code != 0) {
+            return new FuncResult(1, '模拟失败', $grt_return->content);
+        }
+        $tt_return = self::addCurrencyLogs($user, $currency_id['tt'], $node->tt, $node->id);
+        if ($grt_return->code != 0) {
+            return new FuncResult(1, '模拟失败', $tt_return->content);
+        }
+        $bpt_return = self::addCurrencyLogs($user, $currency_id['bpt'], $node->bpt, $node->id);
+        if ($grt_return->code != 0) {
+            return new FuncResult(1, '模拟失败', $bpt_return->content);
+        }
+        return new FuncResult(0, '模拟完成');
+    }
+    // 模拟数据
+    public static function addCurrencyLogs($user, $currency_id, $amount, $transaction_id)
+    {
+        $withdraw = new BUserRechargeWithdraw();
+        $withdraw ->currency_id = $currency_id;
+        $withdraw ->user_id = $user->id;
+        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
+        $withdraw ->amount = $amount;
+        $withdraw ->transaction_id = (string)$transaction_id;
+        $withdraw ->order_number = FuncHelper::generateOrderCode();
+        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
+        $withdraw ->remark = "添加节点充币";
+        $withdraw ->audit_time = time();
+        if (!$withdraw->save()) {
+            return new FuncResult(1, '模拟失败', $withdraw->getFirstErrorText());
+        }
+        $userRechargeWithdrawId = $withdraw->id;
+
+        $user_c_detail = new BUserCurrencyDetail();
+        $user_c_detail->user_id = $user->id;
+        $user_c_detail->currency_id = $currency_id;
+        $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
+        $user_c_detail->amount = $amount;
+        $user_c_detail->remark = '充币';
+        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        $user_c_detail->relate_table = 'user_recharge_withdraw';
+        $user_c_detail->relate_id = $userRechargeWithdrawId;
+        $user_c_detail->effect_time = time();
+        if (!$user_c_detail->save()) {
+            return new FuncResult(1, '模拟失败', $user_c_detail->getFirstErrorText());
+        }
+
+        $frozen = new BUserCurrencyFrozen();
+        $frozen->user_id = $user->id;
+        $frozen->currency_id = $currency_id;
+        $frozen->amount = $amount;
+        $frozen->remark = '节点竞选';
+        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
+        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
+        $frozen->relate_table = 'node';
+        $frozen->relate_id = $transaction_id;
+        if (!$frozen->save()) {
+            return new FuncResult(1, '模拟失败', $frozen->getFirstErrorText());
+        }
+
+        UserService::resetCurrency($user->id, $currency_id);
+        return new FuncResult(0, '模拟完成');
+    }
 }

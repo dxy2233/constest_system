@@ -719,4 +719,24 @@ class UserController extends BaseController
             return $this->respondJson(0, '派发成功');
         }
     }
+
+    public function actionGetAddress()
+    {
+        $userId = $this->pInt('userId');
+        if (empty($userId)) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        $other = BUserOther::find()->where(['user_id' => $userId])->one();
+        if (empty($other)) {
+            return $this->respondJson(1, '未填写收货地址');
+        }
+        $return = [];
+        $return['area_province_id'] = $other->area_province_id;
+        $return['area_city_id'] = $other->area_city_id;
+        $return['address'] = $other->address;
+        $return['zip_code'] = $other->zip_code;
+        $return['consignee'] = $other->consignee;
+        $return['consignee_mobile'] = $other->consignee_mobile;
+        return $this->respondJson(0, '获取成功', $return);
+    }
 }

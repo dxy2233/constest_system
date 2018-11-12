@@ -609,6 +609,27 @@ class UserController extends BaseController
         return $this->respondJson(0, '注册成功');
     }
 
+    public function actionGetRecommendList()
+    {
+        $user_id = $this->pInt('userId');
+        if (!$user_id) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        $list = BUserRecommend::find()
+        ->from(BUserRecommend::tableName()." A")
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->select(['B.mobile','B.id'])->where(['parent_id' => $user_id])->asArray()->all();
+        foreach ($list as &$v) {
+            $old_data = BVoucher::find()->where(['user_id' => $user_id, 'give_user_id' => $v['id']])->one();
+            if ($old_data) {
+                $v['is_give'] = 1;
+            } else {
+                $v['is_give'] = 0;
+            }
+        }
+        return $this->respondJson(0, '获取成功', $list);
+    }
+
     public function actionGetGiveInfo()
     {
         $type = $this->pInt('type');

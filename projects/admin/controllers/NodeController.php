@@ -275,18 +275,23 @@ class NodeController extends BaseController
         $return = [];
         if ($other) {
             $return['weixin'] = $other->weixin;
-            $return['recommend_name'] = $other->recommend_name;
-            $return['recommend_mobile'] = $other->recommend_mobile;
+            // $return['recommend_name'] = $other->recommend_name;
+            // $return['recommend_mobile'] = $other->recommend_mobile;
             $return['grt_address'] = $other->grt_address;
             $return['tt_address'] = $other->tt_address;
             $return['bpt_address'] = $other->bpt_address;
-        }else{
-            $return['weixin'] = $return['recommend_name'] = $return['recommend_mobile'] = $return['grt_address'] = $return['tt_address'] = $return['bpt_address'] = '';
+        } else {
+            $return['weixin'] =  $return['grt_address'] = $return['tt_address'] = $return['bpt_address'] = '';
         }
         
-        $return['username'] = $identify->realname;
+        if ($identify) {
+            $return['username'] = $identify->realname;
+        }else{
+            $return['username'] = '';
+        }
         $return['mobile'] = $user->mobile;
         $return['type_name'] = $node_type->name;
+        $return['status_remark'] = $data->status_remark;
 
         $return['grt'] = $data->grt;
         $return['tt'] = $data->tt;
@@ -307,11 +312,11 @@ class NodeController extends BaseController
         $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
         if (empty($other)) {
             $return = [];
-            $return['area_province_id'] = 
-            $return['area_city_id'] = 
-            $return['address'] = 
-            $return['zip_code'] = 
-            $return['consignee'] = 
+            $return['area_province_id'] =
+            $return['area_city_id'] =
+            $return['address'] =
+            $return['zip_code'] =
+            $return['consignee'] =
             $return['consignee_mobile'] = '';
             return $this->respondJson(0, '获取成功', $return);
         }
@@ -893,8 +898,8 @@ class NodeController extends BaseController
         }
 
         $weixin = $this->pString('weixin', '');
-        $recommend_mobile = $this->pString('recommend_mobile', '');
-        $recommend_name = $this->pString('recommend_name', '');
+        // $recommend_mobile = $this->pString('recommend_mobile', '');
+        // $recommend_name = $this->pString('recommend_name', '');
         $grt_address = $this->pString('grt_address', '');
         $tt_address = $this->pString('tt_address', '');
         $bpt_address = $this->pString('bpt_address', '');

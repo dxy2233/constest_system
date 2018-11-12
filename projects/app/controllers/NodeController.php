@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use ErrorException;
 use yii\helpers\ArrayHelper;
 use common\services\NodeService;
 use common\components\FuncHelper;
@@ -9,6 +10,7 @@ use common\models\business\BNode;
 use common\models\business\BVote;
 use common\services\SettingService;
 use common\models\business\BNodeType;
+use common\models\business\BUserOther;
 
 class NodeController extends BaseController
 {
@@ -19,6 +21,8 @@ class NodeController extends BaseController
         $behaviors = [];
         // 需登录访问
         $authActions = [
+            'apply',
+            'edit',
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -30,7 +34,7 @@ class NodeController extends BaseController
         return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
 
-    /**
+    /** 无需登录
      * 节点列表
      *
      * @return void
@@ -41,7 +45,7 @@ class NodeController extends BaseController
         $pageSize = $this->pInt('page_size', 15);
         
         $nodeTypeQuery = BNodeType::find()
-        ->select(['id', 'name'])
+        ->select(['id', 'name', 'grt', 'tt', 'bpt'])
         ->where(['is_order' => BNodeType::STATUS_ACTIVE])
         ->active();
         if ($page) {
@@ -52,7 +56,7 @@ class NodeController extends BaseController
         $data = $page ? array_merge($data, ['list' => $nodeType]) : $nodeType;
         return $this->respondJson(0, '获取成功', $data);
     }
-    /**
+    /** 无需登录
      * 节点列表 选举结果
      *
      * @return void
@@ -87,7 +91,7 @@ class NodeController extends BaseController
         return $this->respondJson(0, '获取成功', $data);
     }
     
-    /**
+    /** 无需登录
      * 节点详情
      *
      * @return void
@@ -104,14 +108,21 @@ class NodeController extends BaseController
         if (empty($nodeId) && !is_null($userModel)) {
             $nodeModel = $userModel->node;
             if (is_null($nodeModel)) {
-                return $this->respondJson(0, '节点不存在', false);
+                return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
             } else {
-                $nodeId = $userModel->node->id;
+                if ($nodeModel->status !== $nodeModel::STATUS_ON) {
+                    $nodeInfo = FuncHelper::arrayOnly($nodeModel->toArray(), ['status', 'statusRemark', 'name']);
+                    $nodeInfo['status_str'] = $nodeModel::getStatus($nodeInfo['status']);
+                    $nodeInfo['type_id'] = $nodeModel->nodeType->id;
+                    $nodeInfo['type_name'] = $nodeModel->nodeType->name;
+                    return $this->respondJson(0, '获取成功', $nodeInfo);
+                }
+                $nodeId = $nodeModel->id;
             }
         }
 
         $nodeModel = BNode::find()
-        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.scheme', 'n.is_tenure', 'nt.name as type_name', 'n.type_id', 'nt.is_vote'])
+        ->select(['n.id', 'n.name', 'n.desc', 'n.logo', 'n.scheme', 'n.is_tenure', 'nt.name as type_name', 'n.type_id', 'nt.is_vote', 'n.status'])
         ->alias('n')
         ->joinWith(['nodeType nt'], false)
         ->active(BNode::STATUS_ACTIVE, 'n.')
@@ -134,10 +145,12 @@ class NodeController extends BaseController
         $nodeList['is_tenure'] = $nodeModel->isTenureText;
         $nodeList['type_name'] = $nodeModel->type_name;
         $nodeList['is_vote'] = (bool) $nodeModel->is_vote;
+        $nodeList['status'] = $nodeModel->status;
+        $nodeList['status_str'] = $nodeModel::getStatus($nodeModel->status);
         return $this->respondJson(0, '获取成功', $nodeList);
     }
 
-    /**
+    /** 无需登录
      * 节点投票明细
      *
      * @return void
@@ -186,15 +199,74 @@ class NodeController extends BaseController
     }
 
     /**
-     * 所有节点权益详情
+     * 节点申请
      *
      * @return void
      */
-    public function actionAllRuleInfo()
+    public function actionApply()
     {
-        // 节点类型
-        $typeId = $this->pInt('id');
-        $TypeRuleModel = BTypeRuleContrast::find()
-        ->where(['type_id' => $typeId]);
+        $typeId = $this->pInt('type_id', 1);
+        $userModel = $this->user;
+        $nodeModel = $userModel->node;
+        if ($nodeModel) {
+            return $this->respondJson(1, '节点已存在', $nodeModel->toArray());
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $maxId = BNode::find()->max('id') + 1;
+            $nodeModel = new BNode();
+            $nodeModel->status = $nodeModel::STATUS_WAIT;
+            $nodeModel->type_id = $typeId;
+            $nodeModel->user_id = $userModel->id;
+            $nodeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
+            $nodeModel->desc = '该节点很懒什么都没有写';
+            $nodeModel->scheme = '该节点很懒什么都没有写';
+            if (!$nodeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
+            $otherModel = $userModel->userOther;
+            if (!$otherModel) {
+                $otherModel = new BUserOther();
+                $otherModel->user_id = $userModel->id;
+            }
+            $otherModel->scenario = 'apply';
+            // 应用场景为 申请节点
+            $otherModel->attributes = \Yii::$app->request->post();
+            if (!$otherModel->validate() || !$otherModel->save()) {
+                throw new ErrorException($otherModel->getFirstErrorText());
+            }
+            $transaction->commit();
+            return $this->respondJson(0, '申请成功');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            // var_dump($e->getMessage());
+            return $this->respondJson(1, $e->getMessage());
+        }
+    }
+    
+    /**
+     * 节点编辑
+     *
+     * @return void
+     */
+    public function actionEdit()
+    {
+        $userModel = $this->user;
+        $nodeModel = $userModel->node;
+        if (!$nodeModel) {
+            return $this->respondJson(1, '节点不存在', $nodeModel->toArray());
+        }
+        if ($nodeModel->status !== $nodeModel::STATUS_ON) {
+            return $this->respondJson(1, '当前节点状态不能修改', ['status' => $nodeModel::getStatus($nodeModel->status)]);
+        }
+        $nodeModel->scenario = 'edit';
+        $nodeModel->attributes = \Yii::$app->request->post();
+        if ($logo = $this->pImage('logo')) {
+            $nodeModel->logo = $logo;
+        }
+        if ($nodeModel->validate() && $nodeModel->save()) {
+            return $this->respondJson(0, '修改成功');
+        }
+        return $this->respondJson(1, $nodeModel->getFirstErrorText());
     }
 }

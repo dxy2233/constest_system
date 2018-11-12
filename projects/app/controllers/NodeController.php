@@ -211,6 +211,24 @@ class NodeController extends BaseController
         if ($nodeModel) {
             return $this->respondJson(1, '节点已存在', $nodeModel->toArray());
         }
+        $grtNum = $this->pFloat('grt_num', 0);
+        $grtAddress = $this->pString('grt_address');
+        $ttNum = $this->pFloat('tt_num', 0);
+        $ttAddress = $this->pString('tt_address');
+        $bptNum = $this->pFloat('bpt_num', 0);
+        $bptAddress = $this->pString('bpt_address');
+        if ($grtNum <= 0 && $ttNum <= 0 && $bptNum <= 0) {
+            return $this->respondJson(1, '质押数量不正确');
+        }
+        if ($grtNum > 0 && is_null($grtAddress)) {
+            return $this->respondJson(1, '贵人通地址不能为空');
+        }
+        if ($ttNum > 0 && is_null($ttAddress)) {
+            return $this->respondJson(1, '茶通地址不能为空');
+        }
+        if ($bptNum > 0 && is_null($bptAddress)) {
+            return $this->respondJson(1, '美食通地址不能为空');
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             $maxId = BNode::find()->max('id') + 1;
@@ -221,6 +239,9 @@ class NodeController extends BaseController
             $nodeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
             $nodeModel->desc = '该节点很懒什么都没有写';
             $nodeModel->scheme = '该节点很懒什么都没有写';
+            $nodeModel->grt = $grtNum;
+            $nodeModel->tt = $ttNum;
+            $nodeModel->bpt = $bptNum;
             if (!$nodeModel->save()) {
                 throw new ErrorException($voteModel->getFirstError());
             }

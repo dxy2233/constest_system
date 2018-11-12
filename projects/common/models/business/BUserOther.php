@@ -27,7 +27,7 @@ class BUserOther extends \common\models\UserOther
     {
         return array_merge(parent::rules(), [
             [['consignee_mobile', 'recommend_mobile'], 'match', 'pattern' => '/^1\d{10}$/'],
-            [['user_id', 'grt_address', 'tt_address', 'bpt_address', 'weixing', 'area_province_id', 'area_city_id', 'address', 'consignee_mobile', 'consignee'], 'required']
+            [['user_id', 'weixing', 'area_province_id', 'area_city_id', 'address', 'consignee_mobile', 'consignee'], 'required']
         ]);
     }
 

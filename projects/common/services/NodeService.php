@@ -361,17 +361,23 @@ class NodeService extends ServiceBase
         }
         $user = BNode::find()->where(['id' => $node->user_id])->one();
         //GRT
-        $grt_return = self::addCurrencyLogs($user, $currency_id['grt'], $node->grt, $node->id);
-        if ($grt_return->code != 0) {
-            return new FuncResult(1, '模拟失败', $grt_return->content);
+        if ($node->grt != 0) {
+            $grt_return = self::addCurrencyLogs($user, $currency_id['grt'], $node->grt, $node->id);
+            if ($grt_return->code != 0) {
+                return new FuncResult(1, '模拟失败', $grt_return->content);
+            }
         }
-        $tt_return = self::addCurrencyLogs($user, $currency_id['tt'], $node->tt, $node->id);
-        if ($grt_return->code != 0) {
-            return new FuncResult(1, '模拟失败', $tt_return->content);
+        if ($node->tt != 0) {
+            $tt_return = self::addCurrencyLogs($user, $currency_id['tt'], $node->tt, $node->id);
+            if ($grt_return->code != 0) {
+                return new FuncResult(1, '模拟失败', $tt_return->content);
+            }
         }
-        $bpt_return = self::addCurrencyLogs($user, $currency_id['bpt'], $node->bpt, $node->id);
-        if ($grt_return->code != 0) {
-            return new FuncResult(1, '模拟失败', $bpt_return->content);
+        if ($node->bpt != 0) {
+            $bpt_return = self::addCurrencyLogs($user, $currency_id['bpt'], $node->bpt, $node->id);
+            if ($grt_return->code != 0) {
+                return new FuncResult(1, '模拟失败', $bpt_return->content);
+            }
         }
         return new FuncResult(0, '模拟完成');
     }

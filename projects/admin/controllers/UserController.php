@@ -663,7 +663,8 @@ class UserController extends BaseController
             } else {
                 $voucher_num = 20000;
             }
-            $gdt = $node->grt * 0.1;
+            //$gdt = $node->grt * 0.1;
+            $gdt = $voucher_num * 0.01;
             $old_data = BVoucher::find()->where(['user_id' => $user_id, 'give_user_id' => $user->id])->one();
             if ($old_data) {
                 $is_give = 1;

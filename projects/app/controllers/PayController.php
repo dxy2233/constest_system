@@ -49,8 +49,8 @@ class PayController extends BaseController
      */
     public function actionCreatePass()
     {
-        $payPass = $this->pInt('pass', false);
-        $rePass = $this->pInt('repass', false);
+        $payPass = $this->pString('pass', false);
+        $rePass = $this->pString('repass', false);
         $userModel = $this->user;
         if (!empty($userModel->trans_password)) {
             return $this->respondJson(1, '支付密码已存在');
@@ -79,9 +79,9 @@ class PayController extends BaseController
      */
     public function actionUpdatePass()
     {
-        $payPass = $this->pInt('pass', false);
-        $rePass = $this->pInt('repass', false);
-        $oldpass = $this->pInt('oldpass', false);
+        $payPass = $this->pString('pass', false);
+        $rePass = $this->pString('repass', false);
+        $oldpass = $this->pString('oldpass', false);
         $userModel = $this->user;
         if (!$oldpass) {
             return $this->respondJson(1, '旧支付密码不能为空');
@@ -119,8 +119,8 @@ class PayController extends BaseController
      */
     public function actionResetPass()
     {
-        $payPass = $this->pInt('pass', false);
-        $rePass = $this->pInt('repass', false);
+        $payPass = $this->pString('pass', false);
+        $rePass = $this->pString('repass', false);
         $vcode = $this->pString('vcode');
         $userModel = $this->user;
         if (!$payPass) {
@@ -160,7 +160,7 @@ class PayController extends BaseController
      */
     public function actionValidatePass()
     {
-        $payPass = $this->pInt('pass', false);
+        $payPass = $this->pString('pass', false);
         if (!$payPass) {
             return $this->respondJson(1, '支付密码不能为空');
         }

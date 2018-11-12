@@ -31,12 +31,12 @@ class AreaController extends BaseController
     public function actionGetCityList()
     {
         $id = $this->pInt('id', 1);
-        $res = BArea::find()->where(['parentid'=>$id])->all();
+        $res = BArea::find()->select(['id', 'areaname'])->where(['parentid'=>$id])->all();
         
         if (count($res) == 1) {
-            $res = BArea::find()->where(['parentid'=>$res[0]->id])->all();
+            $res = BArea::find()->select(['id', 'areaname'])->where(['parentid'=>$res[0]->id])->all();
         }
-        return $this->respondJson(0, null, \yii\helpers\ArrayHelper::map($res, 'id', 'areaname'));
+        return $this->respondJson(0, null, $res);
     }
 
     public function actionGetAddressName()

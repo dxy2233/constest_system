@@ -730,7 +730,14 @@ class UserController extends BaseController
         }
         $other = BUserOther::find()->where(['user_id' => $userId])->one();
         if (empty($other)) {
-            return $this->respondJson(1, '未填写收货地址');
+            $return = [];
+            $return['area_province_id'] =
+            $return['area_city_id'] =
+            $return['address'] =
+            $return['zip_code'] =
+            $return['consignee'] =
+            $return['consignee_mobile'] = '';
+            return $this->respondJson(0, '获取成功', $return);
         }
         $return = [];
         $return['area_province_id'] = BArea::getAreaOneName($other->area_province_id);

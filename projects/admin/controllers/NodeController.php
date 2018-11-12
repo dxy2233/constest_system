@@ -280,6 +280,8 @@ class NodeController extends BaseController
             $return['grt_address'] = $other->grt_address;
             $return['tt_address'] = $other->tt_address;
             $return['bpt_address'] = $other->bpt_address;
+        }else{
+            $return['weixin'] = $return['recommend_name'] = $return['recommend_mobile'] = $return['grt_address'] = $return['tt_address'] = $return['bpt_address'] = '';
         }
         
         $return['username'] = $identify->realname;
@@ -304,7 +306,14 @@ class NodeController extends BaseController
         }
         $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
         if (empty($other)) {
-            return $this->respondJson(1, '未填写收货地址');
+            $return = [];
+            $return['area_province_id'] = 
+            $return['area_city_id'] = 
+            $return['address'] = 
+            $return['zip_code'] = 
+            $return['consignee'] = 
+            $return['consignee_mobile'] = '';
+            return $this->respondJson(0, '获取成功', $return);
         }
         $return = [];
         $return['area_province_id'] = BArea::getAreaOneName($other->area_province_id);

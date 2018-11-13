@@ -208,6 +208,9 @@ class NodeController extends BaseController
         $typeId = $this->pInt('type_id', 1);
         $userModel = $this->user;
         $nodeModel = $userModel->node;
+        if (!$userModel->is_identified) {
+            return $this->respondJson(1, '未实名认证');
+        }
         if ($nodeModel) {
             return $this->respondJson(1, '节点已存在', $nodeModel->toArray());
         }

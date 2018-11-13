@@ -4,42 +4,53 @@
       <div class="node-index">
         <app-header>
           我的节点
-          <router-link tag="span" to="/personal/node/interests" slot="right">当前权益</router-link>
+          <router-link tag="span" to="/personal/node/index/edit" slot="right">编辑</router-link>
         </app-header>
         <div class="node-details-content">
           <div class="top" :style="bgStyle">
-            <img :src="nodeInfo.logo" alt="" class="avatar-icon img">
-            <p class="name">{{nodeInfo.name}}</p>
-            <span class="sign right-sign" v-if="nodeInfo.isTenure">任职</span>
-            <span class="sign left-sign" v-if="nodeInfo.typeName">{{nodeInfo.typeName}}</span>
+            <img :src="myNodeInfo.logo||'/static/images/node-avatar-default.jpg'" alt="" class="avatar-icon img">
+            <!--<img src="/static/images/node-avatar-default.jpg" alt="">-->
+            <p class="name">{{myNodeInfo.name}}</p>
+            <span class="sign right-sign" v-if="myNodeInfo.isTenure">任职</span>
+            <span class="sign left-sign" v-if="myNodeInfo.typeName">{{myNodeInfo.typeName}}</span>
           </div>
+          <ul class="center">
+            <router-link tag="li" :to="'/home/node/dts'+myNodeInfo.id+'/voting'">
+              <img src="/static/images/my-node0.png" alt="">
+              <h3>投票明细</h3>
+            </router-link>
+            <router-link tag="li" to="/personal/node/index/interests">
+              <img src="/static/images/my-node1.png" alt="">
+              <h3>当前权益</h3>
+            </router-link>
+          </ul>
           <div class="bottom">
             <div class="nav">
               <div>
-                <h2>{{nodeInfo.voteNumber}}</h2>
+                <h2>{{myNodeInfo.voteNumber}}</h2>
                 <p>票</p>
               </div>
               <div>
-                <h4>{{nodeInfo.peopleNumber}}</h4>
+                <h4>{{myNodeInfo.peopleNumber}}</h4>
                 <p>人支持</p>
               </div>
             </div>
             <dl>
               <dt>简介</dt>
               <dd>
-                {{nodeInfo.desc}}
+                {{myNodeInfo.desc}}
               </dd>
             </dl>
             <dl>
               <dt>建设方案</dt>
               <dd>
-                {{nodeInfo.scheme}}
+                {{myNodeInfo.scheme}}
               </dd>
             </dl>
           </div>
         </div>
         <div class="btn-box">
-          <router-link tag="button" to='/personal/node/invite'>拉票
+          <router-link tag="button" to='/personal/node/index/invite'>拉票
           </router-link>
         </div>
       </div>
@@ -51,36 +62,39 @@
 <script>
   import slide from 'components/slide/index'
   import http from 'js/http'
+  import {mapState, mapMutations, mapGetters} from 'vuex'
 
   export default {
     name: "index",
-    components:{
+    components: {
       slide
     },
-    data(){
-      return{
-        nodeInfo:{}
+    data() {
+      return {
       }
     },
     computed: {
       bgStyle() {
-        let id = this.nodeInfo.typeId
+        let id = this.myNodeInfo.typeId
         if (!id) id = 1
         return {
           backgroundImage: "url(/static/images/personal-node/bg_" + id + ".jpg)"
         }
-      }
+      },
+      ...mapGetters([
+        'myNodeInfo'
+      ]),
     },
-    methods:{
-      goVoting(){
+    methods: {
+      goVoting() {
         this.$router.push({
           path: `/home/node/dts${this.$route.params.id}/voting`
         })
       },
     },
-    created(){
-      this.nodeInfo = JSON.parse(sessionStorage.getItem('myNodeInfo'))
-    }
+    created() {
+    },
+
   }
 </script>
 
@@ -89,6 +103,7 @@
   @import "~stylus/mixin"
   .node-index-wrapper
     fixed-full-screen()
+
   .node-index
     fixed-full-screen()
     background $color-background-sub
@@ -129,13 +144,30 @@
           left 20px
         .right-sign
           right 20px
+      .center
+        overflow hidden
+        border-bottom 1px solid $color-border
+        li
+          width 50%
+          float left
+          box-sizing border-box
+          border-left 1px solid $color-border
+          margin-left -1px
+          display flex
+          align-items center
+          justify-content center
+          height 55px
+          font-size $font-size-medium-x
+          img
+            margin-right 20px
+            width 26px
       .bottom
         padding 30px 25px
         min-height 250px
         .nav
           text-align center
           padding-bottom 20px
-          &>div
+          & > div
             display flex
             align-items flex-end
             justify-content center

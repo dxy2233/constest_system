@@ -8,7 +8,8 @@ const state={
   },
   loginMsg:JSON.parse(sessionStorage.getItem('loginMsg')) || null,
   identifyMsg:JSON.parse(sessionStorage.getItem("identifyMsg")) || null,
-  payPsw:sessionStorage.getItem('payPsw')||'0'
+  payPsw:sessionStorage.getItem('payPsw')||'0',
+  myNodeInfo:JSON.parse(sessionStorage.getItem('myNodeInfo')) || null,
 }
 
 export default state

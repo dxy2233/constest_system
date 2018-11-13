@@ -6115,7 +6115,7 @@ html .weui-toast_text .weui-toast__content {
 }
 .pay-tool-keyboard ul li {
   width: 33.3333%;
-  line-height: 60px;
+  line-height: 50px;
   text-align: center;
   border-right: 1px solid #aeaeae;
   border-bottom: 1px solid #aeaeae;
@@ -6146,6 +6146,9 @@ html .weui-toast_text .weui-toast__content {
 }
 .pay-tool-keyboard ul li:nth-child(12):active {
   background-color: #fff;
+}
+.vux-confirm .weui-dialog__btn_primary {
+  color: #ff4800;
 }
 @media only screen and (max-width: 320px) {
   .psw-field .pay-tool-keyboard ul li {
@@ -6192,4 +6195,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=10a2a2df94609ed39d4fdade57468ae9*/
+/*# sourceMappingURL=app.css.map?v=ec50f2fe81538243d4615b7b211d5f45*/

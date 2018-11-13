@@ -2,6 +2,7 @@
   <div class="sel">
     <div class="sel-box" @click="showPop=true">
       <input type="text" :value="selectedLabel" :placeholder="placeholder">
+      <x-icon type="ios-arrow-down"></x-icon>
     </div>
     <div class="popup">
       <transition name="fade">
@@ -26,7 +27,7 @@
     components: {
       slide,
     },
-    props: {
+    /*props: {
       dataList: {
         type: Array,
         default: function () {
@@ -50,7 +51,8 @@
         type:String,
         default:''
       }
-    },
+    },*/
+    props:['dataList','label','value','placeholder','select'],
     data() {
       return {
         selected: '',
@@ -69,17 +71,35 @@
         this.selectedLabel = item[this.label]
         this.showPop = false
         this.$emit('changeSel', item)
+      },
+      setDefault(){
+        if (this.select&&this.dataList.length){
+          let idx = this.dataList.findIndex((item)=>{
+            return this.select===item[this.value]
+          })
+          this.selected = this.select
+          this.selectedLabel = this.dataList[idx][this.label]
+        }
       }
     },
     computed: {
     },
     created(){
+      /*console.log(this.select)
       if (this.select){
         let idx = this.dataList.findIndex((item)=>{
           return this.select===item[this.value]
         })
         this.selected = this.select
         this.selectedLabel = this.dataList[idx][this.label]
+      }*/
+    },
+    watch:{
+      select(v){
+        this.setDefault()
+      },
+      dataList(v){
+        this.setDefault()
       }
     }
   }
@@ -99,6 +119,13 @@
     .sel-box
       /*height 30px*/
       width 100%
+      .vux-x-icon
+        position absolute
+        right 5px
+        top 50%
+        margin-top -12px
+        z-index 2
+        fill #e7effa
     .popup
       .mask
         position fixed
@@ -117,7 +144,8 @@
         z-index 101
         background white
         margin-bottom -1px
-        overflow hidden
+        max-height 60%
+        overflow auto
         li
           text-align center
           line-height 40px

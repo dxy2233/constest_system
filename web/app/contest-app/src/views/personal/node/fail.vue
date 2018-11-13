@@ -13,10 +13,11 @@
         </div>
         <div class="bottom">
           <p>节点申请失败原因：</p>
-          <p>描述描述描述描述描述描述描述描述
-            描述描述描述描述描述</p>
+          <p>{{myNodeInfo.remark}}</p>
           <div class="again">
-            <x-button type="warn" class="again-btn">重新申请</x-button>
+            <router-link to="/personal/applynode/submit">
+              <x-button type="warn" class="again-btn">重新申请</x-button>
+            </router-link>
           </div>
         </div>
       </div>
@@ -27,11 +28,23 @@
 <script>
   import slide from 'components/slide/index'
   import http from 'js/http'
+  import {mapState, mapMutations, mapGetters} from 'vuex'
 
   export default {
     name: "index",
     components: {
       slide
+    },
+    data(){
+      return{
+      }
+    },
+    created(){
+    },
+    computed: {
+      ...mapGetters([
+        'myNodeInfo'
+      ]),
     },
   }
 </script>

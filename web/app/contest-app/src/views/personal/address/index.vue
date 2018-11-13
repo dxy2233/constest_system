@@ -1,34 +1,40 @@
 <template>
   <slide>
     <div class="receive-address">
-      <div v-if="have" class="edit">
-        <app-header>
-          收获地址
-          <router-link tag="span" to="/personal/applynode/rules" slot="right">编辑</router-link>
-        </app-header>
-        <div class="h-main">
-          <ul class="address-list">
-            <li>
-              <p>
-                郭德纲
-                <span>13100056895</span>
-              </p>
-              <h4>重庆市 南岸区 铜元局街道亚太一路郭德纲4栋</h4>
-            </li>
-          </ul>
+      <load-more tip="正在加载" v-show="loading" class="load-box"></load-more>
+      <div v-if="!loading">
+        <div v-if="addressList.length" class="edit">
+          <app-header>
+            收获地址
+            <router-link tag="span" slot="right" to="/personal/address/edit1">编辑</router-link>
+          </app-header>
+          <div class="h-main">
+            <ul class="address-list">
+              <li v-for="item in addressList">
+                <p>
+                  {{item.consignee}}
+                  <span>{{item.consigneeMobile}}</span>
+                </p>
+                <h4>{{item.address}}</h4>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
-      <div v-else class="add">
-        <app-header>
-          收获地址
-        </app-header>
-        <div class="h-main">
-          <div class="add-content">
-            <img src="/static/images/add-address.png" alt="">
-            <button class="base-btn">添加收获地址</button>
+        <div v-else class="add">
+          <app-header>
+            收获地址
+          </app-header>
+          <div class="h-main">
+            <div class="add-content">
+              <img src="/static/images/add-address.png" alt="">
+              <!--<button class="base-btn">添加收获地址</button>-->
+              <router-link tag="button" class="base-btn" to="/personal/address/edit0">添加收获地址</router-link>
+            </div>
           </div>
         </div>
       </div>
+      <router-view></router-view>
+      <!--<submit-temp v-if="submitShow" @close="submitShow=false"></submit-temp>-->
     </div>
   </slide>
 </template>
@@ -36,15 +42,44 @@
 <script>
   import slide from 'components/slide/index'
   import http from 'js/http'
+  import submitTemp from './submit'
 
   export default {
     name: "index",
     components: {
-      slide
+      slide,
+      submitTemp
     },
-    data(){
-      return{
-        have:false
+    data() {
+      return {
+        loading: true,
+        submitShow: false,
+        addressList:[]
+      }
+    },
+    methods:{
+      getAddressList(){
+        http.post('/user/address-list',{},(res)=>{
+          if (res.code!==0){
+            this.loading = false
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.addressList = res.content.list
+          this.loading = false
+        })
+      }
+    },
+    created(){
+      this.getAddressList()
+    },
+    activated() {
+    },
+    watch: {
+      '$route': function (t, f) {
+        if (t.path === '/personal/address') {
+          this.getAddressList()
+        }
       }
     }
   }
@@ -55,6 +90,8 @@
   @import "~stylus/mixin"
   .receive-address
     fixed-full-screen()
+    .load-box
+      margin-top 100px
     .edit
       .app-header
         border-bottom 1px solid $color-border

@@ -15,6 +15,9 @@ const mutations = {
   },
   [types.PAY_PSW](state,payPsw){
     state.payPsw = payPsw
+  },
+  [types.MY_NODE_INFO](state,myNodeInfo){
+    state.myNodeInfo = myNodeInfo
   }
 }
 export default mutations

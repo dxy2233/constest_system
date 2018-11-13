@@ -14,7 +14,7 @@
                      v-model="loginForm.mobile" :max="11"></x-input>
             <x-input title="" placeholder="图片验证码" v-model="loginForm.captcha_code">
               <div class="img-code-box" slot="right-full-height">
-                <img class="img-code"
+                <img class="img-code" v-if="imgCode.imageData"
                      :src="imgCode.imageData" @click="getImgCode">
               </div>
             </x-input>

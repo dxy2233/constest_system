@@ -12,7 +12,7 @@
                    style='background-image: url("/static/images/person-node.png")'>
       </router-link>-->
       <div class="node-brief">
-        <div v-if="!nodeInfo" class="node_0">
+        <div v-if="nodeInfo.status===-1" class="node_0">
           <img src="/static/images/personal-node/bg.png" alt="" class="bg">
           <div class="node-content">
             <div class="left">
@@ -26,7 +26,7 @@
         </div>
         <div v-else class="node_x">
           <img :src="'/static/images/personal-node/bg'+nodeTypeId+'.png'" alt="" class="bg">
-          <router-link tag="div" class="node-content" to="/personal/node">
+          <router-link tag="div" class="node-content" to="/personal/node/index" v-if="nodeInfo.status===1">
             <div class="img-box">
               <img :src="'/static/images/personal-node/icon_'+nodeTypeId+'.png'" alt="" class="img">
             </div>
@@ -41,6 +41,21 @@
               </p>
             </div>
           </router-link>
+          <div class="node-content" v-else>
+            <div class="img-box">
+              <img :src="'/static/images/personal-node/icon_'+nodeTypeId+'.png'" alt="" class="img">
+            </div>
+            <div class="info_x">
+              <div class="left">
+                <h2>{{nodeInfo.name}}</h2>
+                <p>{{nodeInfo.statusStr}}</p>
+              </div>
+              <div class="right">
+                <!--<button>查看</button>-->
+                <router-link tag="button" :to="'/personal/node/'+nodePath">查看</router-link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -141,8 +156,20 @@
         return this.nodeInfo.typeId
 
       },
+      nodePath() {
+        //0 停用 1 已生效 2 审核中 3 撤销 4 审核未通过 5 删除'
+        if (!this.nodeInfo) return ''
+        switch (this.nodeInfo.status) {
+          case 2:
+            return 'wait'
+          case 4:
+            return 'fail'
+        }
+
+      },
       ...mapGetters([
         "loginMsg",
+        'myNodeInfo'
       ]),
     },
     methods: {
@@ -153,11 +180,11 @@
             this.$vux.toast.show(res.msg)
             return
           }
-          /*if (!res.content){
-            this.nodeInfo
-          }*/
+          // res.content.desc.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
+          // res.content.scheme.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
           this.nodeInfo = res.content
           sessionStorage.setItem("myNodeInfo", JSON.stringify(res.content));
+          this.setMyNodeInfo(res.content)
         })
       },
       getIdentifyMsg() {
@@ -201,6 +228,7 @@
       },
       ...mapMutations({
         setIdentifyMsg: 'IDENTIFY_MSG',
+        setMyNodeInfo: 'MY_NODE_INFO'
       })
     },
     data() {
@@ -212,9 +240,10 @@
       }
     },
     created() {
+      this.pageInt()
     },
     activated() {
-      this.pageInt()
+
     },
     watch: {
       '$route': function (t, f) {
@@ -297,7 +326,7 @@
       position relative
       .bg
         width 100%
-        /*box-shadow 0 4px 15px 4px RGBA(240, 208, 172, 0.5)*/
+      /*box-shadow 0 4px 15px 4px RGBA(240, 208, 172, 0.5)*/
       .node-content
         position absolute
         top 15%
@@ -344,7 +373,23 @@
           font-size $font-size-small-s
           background rgba(150, 150, 150, .3)
           padding 5px 10px
+        .info_x
+          align-items center
+          flex 1
+          justify-content space-between
+          display flex
+          p
+            margin-top 2px
+            color #bfbfbf
+          button
+            background none
+            border 1px solid color #ddcfac
+            color #ddcfac
+            font-size $font-size-medium
+            padding 5px 15px
+            border-radius 20px
 </style>
+
 
 <style lang="stylus" rel="stylesheet/stylus">
   @import "~stylus/variable"

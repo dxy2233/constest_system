@@ -44,6 +44,7 @@ class IdentifyController extends BaseController
     public function actionIndex()
     {
         $find = BUser::find()
+        ->groupBy('A.id')
         ->from(BUser::tableName()." A")
         ->join('left join', BUserIdentify::tableName().' B', 'B.user_id = A.id');
         $page = $this->pInt('page', 1);

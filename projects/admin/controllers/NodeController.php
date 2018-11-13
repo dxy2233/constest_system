@@ -844,16 +844,12 @@ class NodeController extends BaseController
         }
         $grt = $this->pInt('grt');
         if (empty($grt)) {
-            return $this->respondJson(1, '质压GRT数量不能为空');
+            return $this->respondJson(1, '质押GRT数量不能为空');
         }
-        $tt = $this->pInt('tt');
-        if (empty($tt)) {
-            return $this->respondJson(1, '质压TT数量不能为空');
-        }
-        $bpt = $this->pInt('bpt');
-        if (empty($bpt)) {
-            return $this->respondJson(1, '质压BPT数量不能为空');
-        }
+        $tt = $this->pInt('tt',0);
+
+        $bpt = $this->pInt('bpt',0);
+
         $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息

@@ -911,8 +911,8 @@ class NodeController extends BaseController
                 $other->user_id = $user->id;
             }
             $other->weixin = $weixin;
-            $other->recommend_mobile = $recommend_mobile;
-            $other->recommend_name = $recommend_name;
+            // $other->recommend_mobile = $recommend_mobile;
+            // $other->recommend_name = $recommend_name;
             $other->grt_address = $grt_address;
             $other->tt_address = $tt_address;
             $other->bpt_address = $bpt_address;

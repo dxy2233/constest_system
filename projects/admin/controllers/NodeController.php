@@ -256,7 +256,12 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['status_remark'] = $data->status_remark;
-        $return['quota'] = $data->quota;
+        
+        if ($data->quota === null) {
+            $return['quota'] = '';
+        } else {
+            $return['quota'] = $data->quota;
+        }
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);

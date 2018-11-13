@@ -373,6 +373,7 @@ export default {
     },
     // 上传图片
     uploadSuccess(res, file) {
+      if (res.code !== 0) return
       this.releaseData.image = res.content
     },
     // 打开公告发布

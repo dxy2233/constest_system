@@ -204,7 +204,7 @@ class NodeController extends BaseController
         }
 
         //重算gdt
-        UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+        UserService::resetCurrency($data->user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
         // 补全充值冻结信息
         $log = NodeService::addNodeMakeLogs($data);
         if ($log->code != 0) {

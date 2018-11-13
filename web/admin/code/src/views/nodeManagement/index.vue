@@ -864,6 +864,7 @@ export default {
     },
     // 上传logo回调
     handleAvatarSuccess(res, file) {
+      if (res.code !== 0) return
       this.uploadLogo = res.content
       this.nodeInfoBase.logo = res.content
     },
@@ -1103,14 +1104,17 @@ export default {
     },
     // 身份证正面回调
     addNodeImgF(res, file) {
+      if (res.code !== 0) return
       this.addNodeData.pic_front = res.content
     },
     // 身份证背面回调
     addNodeImgB(res, file) {
+      if (res.code !== 0) return
       this.addNodeData.pic_back = res.content
     },
     // LOGO回调
     addNodeImgLogo(res, file) {
+      if (res.code !== 0) return
       this.addNodeData.logo = res.content
     },
     // 清除添加节点的信息

@@ -165,5 +165,22 @@ ADD `quota` decimal(12,2) NOT NULL DEFAULT '0' COMMENT '销售配额' AFTER `gdt
 ALTER TABLE `gr_node`
 ADD `quota` decimal(12,2) NULL COMMENT '配额' AFTER `scheme`;
 
-ALTER TABLE `gr_user_other`
-CHANGE `weixing` `weixin` varchar(128) COLLATE 'utf8mb4_general_ci' NOT NULL DEFAULT '' COMMENT '微信号' AFTER `zip_code`;
+CREATE TABLE `gr_user_other` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `consignee` varchar(64) NOT NULL DEFAULT '' COMMENT '收货人姓名',
+  `consignee_mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '收货人电话',
+  `area_province_id` int(11) NOT NULL DEFAULT '0' COMMENT '省级ID',
+  `area_city_id` int(11) NOT NULL DEFAULT '0' COMMENT '市级ID',
+  `address` varchar(128) NOT NULL DEFAULT '' COMMENT '详细地址',
+  `zip_code` int(11) NOT NULL DEFAULT '0' COMMENT '邮编',
+  `weixin` varchar(128) NOT NULL DEFAULT '' COMMENT '微信号',
+  `recommend_mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '推荐人手机号',
+  `recommend_name` varchar(32) NOT NULL DEFAULT '' COMMENT '推荐人姓名',
+  `grt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '贵人通地址',
+  `tt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '茶通地址',
+  `bpt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '美食通地址',
+  `create_time` int(11) NOT NULL DEFAULT '0',
+  `update_time` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='用户其它信息表';

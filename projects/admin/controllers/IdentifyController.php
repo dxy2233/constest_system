@@ -76,7 +76,7 @@ class IdentifyController extends BaseController
         if (empty($user_id)) {
             return $this->respondJson(1, '用户ID不能为空');
         }
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->asArray()->one();
+        $data = BUserIdentify::find()->where(['user_id' => $user_id])->andWhere(['status' => 0])->asArray()->one();
         if (empty($data)) {
             return $this->respondJson(1, '此用户没有实名信息');
         }

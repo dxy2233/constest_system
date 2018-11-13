@@ -25,11 +25,12 @@ return [
         'validate' => [
             'class' => 'common\modules\validate\Module',
         ],
-        'site' => [
-            'class' => 'common\modules\site\Module',
-        ],
         'area' => [
             'class' => 'common\modules\area\Module',
+        ],
+        // 提供外部接口
+        'site' => [
+            'class' => 'common\modules\site\Module',
         ],
     ],
     'components' => [

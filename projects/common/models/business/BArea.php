@@ -40,9 +40,12 @@ class BArea extends \common\models\Area
         }
     }
 
-    public static function getAreaOneName($id, $type)
+    public static function getAreaOneName($id, $type = 0)
     {
         $data = self::find()->where(['id' => $id])->one();
+        if ($type == 0) {
+            return $data->areaname;
+        }
         if ($data->level == $type) {
             return $data->areaname;
         } elseif ($type == 2) {

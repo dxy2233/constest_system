@@ -34,7 +34,7 @@
       }
     },
     created(){
-      this.nodeInfo = JSON.parse(sessionStorage.getItem('myNodeInfo'))
+      this.nodeInfo = JSON.parse(localStorage.getItem('myNodeInfo'))
       console.log(this.nodeInfo)
     },
     computed:{

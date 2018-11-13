@@ -766,7 +766,7 @@ class UserController extends BaseController
         $return = [];
         $return['area_province_id'] = BArea::getAreaOneName($other->area_province_id);
         $return['area_city_id'] = BArea::getAreaOneName($other->area_city_id);
-        $return['address'] = $other->address;
+        $return['address'] = BArea::getAreaOneName($other->area_province_id).' '.BArea::getAreaOneName($other->area_city_id).' '.$other->address;
         $return['zip_code'] = $other->zip_code;
         $return['consignee'] = $other->consignee;
         $return['consignee_mobile'] = $other->consignee_mobile;

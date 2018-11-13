@@ -46,7 +46,7 @@
       }
     },
     created() {
-      this.nodeInfo = JSON.parse(sessionStorage.getItem('myNodeInfo'))
+      this.nodeInfo = JSON.parse(localStorage.getItem('myNodeInfo'))
       this.getInterests()
     },
     computed: {

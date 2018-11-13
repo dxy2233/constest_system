@@ -4,7 +4,7 @@
       <loading :show="show" text=""></loading>
       <app-header>
         <!--<span slot="left" class="icon-back" @click="backPage"></span>-->
-        收获地址
+        收货地址
       </app-header>
       <div class="h-main">
         <div class="form">

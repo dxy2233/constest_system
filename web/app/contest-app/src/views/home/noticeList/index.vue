@@ -120,7 +120,7 @@
           if (res.content.type == 0){
             window.location.href = res.content.url
           }else {
-            sessionStorage.setItem("noticeInfo", JSON.stringify(res.content));
+            localStorage.setItem("noticeInfo", JSON.stringify(res.content));
             this.$router.push({
               path: `/home/notice/dts${id}`
             })

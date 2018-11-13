@@ -55,7 +55,7 @@ let checkToken = function (callback) {
     },500)
     return
   }
-  let loginMsg = JSON.parse(sessionStorage.getItem('loginMsg'))
+  let loginMsg = JSON.parse(localStorage.getItem('loginMsg'))
   // let loginMsg = {};
   if (!!loginMsg){
     let timestamp = parseInt(Date.parse(new Date())/ 1000)
@@ -83,7 +83,7 @@ let refreshToken = (callback)=>{
   }).then((response) => {
     response = response.data
     if (response.code === 0){
-      sessionStorage.setItem("loginMsg", JSON.stringify(response.content));
+      localStorage.setItem("loginMsg", JSON.stringify(response.content));
     }else {
       cancelLogin()
     }

@@ -129,7 +129,7 @@
             return
           }
           let newData = Object.assign({},this.myNodeInfo,this.form)
-          sessionStorage.setItem('myNodeInfo',JSON.stringify(newData))
+          localStorage.setItem('myNodeInfo',JSON.stringify(newData))
           this.setMyNodeInfo(newData)
           this.$vux.toast.show({
             text: res.msg,

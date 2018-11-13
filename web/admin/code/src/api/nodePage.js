@@ -128,7 +128,7 @@ export function offTenure(nodeId) {
 }
 
 // 编辑节点基本信息
-export function updataBase(nodeId, logo, name, desc, scheme) {
+export function updataBase(nodeId, logo, name, desc, scheme, quota) {
   return request({
     url: '/node/update-node',
     method: 'post',
@@ -137,7 +137,8 @@ export function updataBase(nodeId, logo, name, desc, scheme) {
       logo,
       name,
       desc,
-      scheme
+      scheme,
+      quota
     }
   })
 }
@@ -174,7 +175,7 @@ export function pushRuleList(data) {
 
 // 修改节点总设置
 export function pushNodeSet({ id, name, isExamine, isCandidate, isVote, isOrder,
-  tenureNum, maxCandidate, grt, tt, bpt, gdtReward, ruleList }) {
+  tenureNum, maxCandidate, grt, tt, bpt, gdtReward, quota, ruleList }) {
   return request({
     url: '/node/update',
     method: 'post',
@@ -191,6 +192,7 @@ export function pushNodeSet({ id, name, isExamine, isCandidate, isVote, isOrder,
       tt,
       bpt,
       gdtReward,
+      quota,
       rule: JSON.stringify(ruleList)
     }
   })

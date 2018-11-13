@@ -286,7 +286,7 @@ class NodeController extends BaseController
         
         if ($identify) {
             $return['username'] = $identify->realname;
-        }else{
+        } else {
             $return['username'] = '';
         }
         $return['mobile'] = $user->mobile;
@@ -545,6 +545,7 @@ class NodeController extends BaseController
         if (empty($bpt)) {
             return $this->respondJson(1, '质押bpt必须大于0');
         }
+        $quota = $this->pInt('quota', 0);
         $gdt_reward = $this->pInt('gdtReward', 0);
         $node->is_examine = $is_examine;
         $node->gdt_reward = $gdt_reward;
@@ -554,6 +555,7 @@ class NodeController extends BaseController
         $node->tenure_num = $tenure_num;
         $node->max_candidate = $max_candidate;
         $node->grt = $grt;
+        $node->quota = $quota;
         $node->tt = $tt;
         $node->bpt = $bpt;
         $transaction = \Yii::$app->db->beginTransaction();
@@ -903,7 +905,7 @@ class NodeController extends BaseController
         $grt_address = $this->pString('grt_address', '');
         $tt_address = $this->pString('tt_address', '');
         $bpt_address = $this->pString('bpt_address', '');
-        if ($bpt_address || $weixin || $recommend_mobile || $recommend_name || $grt_address || $tt_address) {
+        if ($bpt_address || $weixin || $grt_address || $tt_address) {
             // 添加个人其它信息
             $other = BUserOther::find()->where(['user_id' => $user->id])->one();
             if (empty($other)) {

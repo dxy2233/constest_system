@@ -158,3 +158,6 @@ CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '创建�
 
 以上sql 2018-11-07 20:00已同步线上
 =============================================================
+
+ALTER TABLE `gr_node_type`
+ADD `quota` decimal(12,2) NOT NULL DEFAULT '0' COMMENT '销售配额' AFTER `gdt_reward`;

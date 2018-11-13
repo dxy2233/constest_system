@@ -80,6 +80,16 @@ export function getUserVoucher(userId) {
     }
   })
 }
+// tabs收货地址信息
+export function getUserAddress(userId) {
+  return request({
+    url: '/user/get-address',
+    method: 'post',
+    data: {
+      userId
+    }
+  })
+}
 // tabs推荐信息
 export function getUserRecommend(userId) {
   return request({
@@ -145,6 +155,16 @@ export function giveInfo(mobile, type, userId) {
     data: {
       mobile,
       type,
+      userId
+    }
+  })
+}
+// 派发查询推荐人信息
+export function getRecommendList(userId) {
+  return request({
+    url: '/user/get-recommend-list',
+    method: 'post',
+    data: {
       userId
     }
   })

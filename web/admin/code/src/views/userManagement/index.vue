@@ -58,7 +58,7 @@
           <el-button type="primary" class="btn" style="margin: 0 10px;" @click="rowEdit">编辑</el-button>
           <el-button v-show="rowInfo.status=='正常'" type="danger" plain class="btn" @click="free">停用</el-button>
           <el-button v-show="rowInfo.status=='冻结'" type="primary" plain class="btn" @click="thaw">启用</el-button>
-          <el-button v-show="rowInfo.nodeName!='——'" type="primary" plain class="btn" @click="rewardForm.userId=rowInfo.id;dialogReward=true">派发奖励</el-button>
+          <el-button v-show="rowInfo.nodeName!='——'" type="primary" plain class="btn" @click="opendReward">派发奖励</el-button>
         </div>
         <div class="info">
           <el-row :gutter="5" class="info-row">
@@ -182,6 +182,16 @@
               <el-table-column prop="createTime" label="使用时间"/>
             </el-table>
           </el-tab-pane>
+          <el-tab-pane label="收货地址" name="Address">
+            <p>
+              <span style="margin-right:150px;">姓名：{{ userInfoAddress.consignee | noContent }}</span>
+              <span>电话：{{ userInfoAddress.consigneeMobile | noContent }}</span>
+            </p>
+            <p style="margin-top:50px;">收货地址</p>
+            <p>{{ userInfoAddress.address | noContent }}</p>
+            <p style="margin-top:50px;">邮编</p>
+            <p>{{ userInfoAddress.zipCode | noContent }}</p>
+          </el-tab-pane>
           <el-tab-pane label="推荐记录" name="Recommend">
             <el-table :data="userInfoRecommend">
               <el-table-column prop="username" label="推荐用户"/>
@@ -212,7 +222,7 @@
         <el-tabs v-model="edidWallet">
           <el-tab-pane v-for="(item,index) in rowInfo.walletData" :key="index" :label="item.name" :name="item.name">
             <p>收款地址</p>
-            <p>{{ item.address | address }}</p>
+            <p>{{ item.address | noContent }}</p>
           </el-tab-pane>
         </el-tabs>
       </el-form>
@@ -222,7 +232,7 @@
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogReward" title="派发奖励" class="dialog-reward" center>
+    <el-dialog :visible.sync="dialogReward" title="派发奖励" class="dialog-reward" center @closed="$refs['reward'].resetFields()">
       <el-form ref="reward" :model="rewardForm" :rules="rewardRules" label-position="top" label-width="80px">
         <div class="row">
           <el-form-item label="账户">
@@ -243,7 +253,15 @@
         </el-form-item>
         <div class="row">
           <el-form-item label="被推荐人手机号" prop="mobile">
-            <el-input v-model="rewardForm.mobile" style="width:94%;" @change="sureRewardMobile"/>
+            <!-- <el-input v-model="rewardForm.mobile" style="width:94%;" @change="sureRewardMobile"/> -->
+            <el-select v-model="rewardForm.mobile" :placeholder="rewardMobilePlaceholder" @change="sureRewardMobile">
+              <el-option
+                v-for="item in rewardRecommend"
+                :key="item.mobile"
+                :value="item.mobile">
+                {{ item.mobile }} <span v-show="item.isGive==1">已派发</span>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="被推荐人节点">
             {{ rewardForm.typeName }}
@@ -275,19 +293,17 @@
 
 <script>
 import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
-  getUserRecommend, getUserWallet, freezeUser, thawUser, editUser, addUser, giveInfo, saveGive } from '@/api/admin'
+  getUserRecommend, getUserAddress, getUserWallet, freezeUser, thawUser, editUser,
+  addUser, giveInfo, saveGive, getRecommendList } from '@/api/admin'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 
 export default {
   name: 'UserManagement',
   filters: {
-    address(value) {
-      if (!value) {
-        return '-'
-      } else {
-        return value
-      }
+    noContent(value) {
+      if (value === '' || !value) return '—'
+      else return value
     }
   },
   data() {
@@ -307,6 +323,7 @@ export default {
       userInfoVote: [], // 投票
       userInfoWallet: [], // 原钱包现资产
       userInfoVoucher: [], // 投票券
+      userInfoAddress: [], // 收货地址
       userInfoRecommend: [], // 推荐记录
       activeName: 'Base',
       dialogAddUser: false,
@@ -332,6 +349,8 @@ export default {
         { value: 1, label: '推荐节点' }
         // { value: 2, label: '普通派发' }
       ],
+      rewardRecommend: [],
+      rewardMobilePlaceholder: '暂无推荐',
       rewardForm: {
         typeName: '--',
         isGive: '',
@@ -445,6 +464,10 @@ export default {
         getUserVoucher(this.rowInfo.id).then(res => {
           this.userInfoVoucher = res.content
         })
+      } else if (val.name === 'Address') {
+        getUserAddress(this.rowInfo.id).then(res => {
+          this.userInfoAddress = res.content
+        })
       } else if (val.name === 'Recommend') {
         getUserRecommend(this.rowInfo.id).then(res => {
           this.userInfoRecommend = res.content
@@ -531,9 +554,18 @@ export default {
       })
       this.changeTabs({ name: 'Wallet' })
     },
+    // 打开派发奖励
+    opendReward() {
+      this.rewardForm.userId = this.rowInfo.id
+      getRecommendList(this.rewardForm.userId).then(res => {
+        this.rewardRecommend = res.content
+        if (this.rewardRecommend.length < 1) this.rewardMobilePlaceholder = '暂无推荐'
+        else this.rewardMobilePlaceholder = '请选择'
+        this.dialogReward = true
+      })
+    },
     // 更改派发类型
     sureRewardMobile(val) {
-      if (!/^1\d{10}$/.test(this.rewardForm.mobile)) return
       giveInfo(this.rewardForm.mobile, this.rewardForm.type, this.rewardForm.userId).then(res => {
         this.rewardForm.voucherNum = res.content.voucherNum
         this.rewardForm.isGive = res.content.isGive

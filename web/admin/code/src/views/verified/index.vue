@@ -48,11 +48,15 @@
           <span>身份证号：{{ rowInfo.number }}</span>
         </p>
         <p>手持身份证正面</p>
-        <img :src="rowDetail.picFront" alt="" class="image">
+        <img :src="rowDetail.picFront" alt="" class="image" @click="showLargeImg(rowDetail.picFront)">
         <p>手持身份证背面</p>
-        <img :src="rowDetail.picBack" alt="" class="image" style="margin-bottom:50px;">
+        <img :src="rowDetail.picBack" alt="" class="image" style="margin-bottom:50px;" @click="showLargeImg(rowDetail.picBack)">
       </div>
     </transition>
+
+    <el-dialog :visible.sync="dialogLargeImg">
+      <img :src="largeImg" alt="" style="display:block;margin:0 auto;">
+    </el-dialog>
   </div>
 </template>
 
@@ -73,7 +77,9 @@ export default {
       pageSize: 20,
       showInfo: false,
       rowInfo: [],
-      rowDetail: []
+      rowDetail: [],
+      dialogLargeImg: false,
+      largeImg: ''
     }
   },
   computed: {
@@ -162,6 +168,11 @@ export default {
           this.init()
         })
       })
+    },
+    // 放大图片
+    showLargeImg(src) {
+      this.largeImg = src
+      this.dialogLargeImg = true
     }
   }
 }
@@ -176,5 +187,8 @@ export default {
   display: block;
   height: 400px;
   border: 1px solid #ddd;
+  &:hover {
+    cursor: pointer;
+  }
 }
 </style>

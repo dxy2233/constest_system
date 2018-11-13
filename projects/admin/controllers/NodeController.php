@@ -9,10 +9,12 @@ use common\services\RechargeService;
 use common\services\VoucherService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
+use common\models\business\BArea;
 use common\models\business\BNode;
 use common\models\business\BVote;
 use common\models\business\BNotice;
 use common\models\business\BNodeType;
+use common\models\business\BUserOther;
 use common\models\business\BNodeRule;
 use common\models\business\BUserIdentify;
 use common\models\business\BTypeRuleContrast;
@@ -167,6 +169,8 @@ class NodeController extends BaseController
 
         return $this->respondJson(0, '获取成功', $return);
     }
+
+
     // 审核通过
     public function actionExamineOn()
     {
@@ -183,7 +187,7 @@ class NodeController extends BaseController
         if ($now_count >= $node_type->max_candidate) {
             return $this->respondJson(1, '候选数量已达上限');
         }
-
+        $transaction = \Yii::$app->db->beginTransaction();
         // 赠送gdt
         $currencyDetail = new BUserCurrencyDetail();
         $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
@@ -195,18 +199,26 @@ class NodeController extends BaseController
         $currencyDetail->relate_id = $data->id;
         $currencyDetail->amount = $node_type->gdt_reward;
         if (!$currencyDetail->save()) {
+            $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $currencyDetail->getFirstErrorText());
         }
 
         //重算gdt
         UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
-
+        // 补全充值冻结信息
+        $log = NodeService::addNodeMakeLogs($data);
+        if ($log->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $log->content);
+        }
 
         $data->status = BNode::STATUS_ON;
         $data->status_remark = '已开启';
         if (!$data->save()) {
+            $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
+        $transaction->commit();
         return $this->respondJson(0, '审核成功');
     }
 
@@ -244,11 +256,85 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['status_remark'] = $data->status_remark;
+        
+        if ($data->quota === null) {
+            $return['quota'] = '';
+        } else {
+            $return['quota'] = $data->quota;
+        }
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
     }
+    // 节点基本信息
+    public function actionGetNodeUserData()
+    {
+        $nodeId = $this->pInt('nodeId');
+        $data = BNode::find()->where(['id' => $nodeId])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $node_type = BNodeType::find()->where(['id' => $data['type_id']])->one();
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
+        $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
+        $return = [];
+        if ($other) {
+            $return['weixin'] = $other->weixin;
+            // $return['recommend_name'] = $other->recommend_name;
+            // $return['recommend_mobile'] = $other->recommend_mobile;
+            $return['grt_address'] = $other->grt_address;
+            $return['tt_address'] = $other->tt_address;
+            $return['bpt_address'] = $other->bpt_address;
+        } else {
+            $return['weixin'] =  $return['grt_address'] = $return['tt_address'] = $return['bpt_address'] = '';
+        }
+        
+        if ($identify) {
+            $return['username'] = $identify->realname;
+        } else {
+            $return['username'] = '';
+        }
+        $return['mobile'] = $user->mobile;
+        $return['type_name'] = $node_type->name;
+        $return['status_remark'] = $data->status_remark;
 
+        $return['grt'] = $data->grt;
+        $return['tt'] = $data->tt;
+        $return['bpt'] = $data->bpt;
+        return $this->respondJson(0, '获取成功', $return);
+    }
+
+    public function actionGetAddress()
+    {
+        $nodeId = $this->pInt('nodeId');
+        if (empty($nodeId)) {
+            return $this->respondJson(1, '节点ID不能为空');
+        }
+        $data = BNode::find()->where(['id' => $nodeId])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
+        if (empty($other)) {
+            $return = [];
+            $return['area_province_id'] =
+            $return['area_city_id'] =
+            $return['address'] =
+            $return['zip_code'] =
+            $return['consignee'] =
+            $return['consignee_mobile'] = '';
+            return $this->respondJson(0, '获取成功', $return);
+        }
+        $return = [];
+        $return['area_province_id'] = BArea::getAreaOneName($other->area_province_id);
+        $return['area_city_id'] = BArea::getAreaOneName($other->area_city_id);
+        $return['address'] = $other->address;
+        $return['zip_code'] = $other->zip_code;
+        $return['consignee'] = $other->consignee;
+        $return['consignee_mobile'] = $other->consignee_mobile;
+        return $this->respondJson(0, '获取成功', $return);
+    }
     
     // 获取节点实名信息
     public function actionGetNodeIdentify()
@@ -465,7 +551,8 @@ class NodeController extends BaseController
         if (empty($bpt)) {
             return $this->respondJson(1, '质押bpt必须大于0');
         }
-        $gdt_reward = $this->pInt('gdtReward',0);
+        $quota = $this->pInt('quota', 0);
+        $gdt_reward = $this->pInt('gdtReward', 0);
         $node->is_examine = $is_examine;
         $node->gdt_reward = $gdt_reward;
         $node->is_candidate = $is_candidate;
@@ -474,6 +561,7 @@ class NodeController extends BaseController
         $node->tenure_num = $tenure_num;
         $node->max_candidate = $max_candidate;
         $node->grt = $grt;
+        $node->quota = $quota;
         $node->tt = $tt;
         $node->bpt = $bpt;
         $transaction = \Yii::$app->db->beginTransaction();
@@ -667,9 +755,11 @@ class NodeController extends BaseController
         if (empty($scheme)) {
             return $this->respondJson(1, '建设方案不能为空');
         }
-        $is_tenure = $this->pInt('is_tenure', '');
+        $is_tenure = $this->pInt('is_tenure', 0);
+        $quota = $this->pInt('quota', 0);
         $data->logo = $logo;
         $data->name = $name;
+        $data->quota = $quota;
         $data->desc = $desc;
         $data->scheme = $scheme;
         $data->is_tenure = $is_tenure;
@@ -754,16 +844,12 @@ class NodeController extends BaseController
         }
         $grt = $this->pInt('grt');
         if (empty($grt)) {
-            return $this->respondJson(1, '质压GRT数量不能为空');
+            return $this->respondJson(1, '质押GRT数量不能为空');
         }
-        $tt = $this->pInt('tt');
-        if (empty($tt)) {
-            return $this->respondJson(1, '质压TT数量不能为空');
-        }
-        $bpt = $this->pInt('bpt');
-        if (empty($bpt)) {
-            return $this->respondJson(1, '质压BPT数量不能为空');
-        }
+        $tt = $this->pInt('tt',0);
+
+        $bpt = $this->pInt('bpt',0);
+
         $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息
@@ -815,6 +901,31 @@ class NodeController extends BaseController
         if (!$node->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败', $node->getFirstErrorText());
+        }
+
+        $weixin = $this->pString('weixin', '');
+        // $recommend_mobile = $this->pString('recommend_mobile', '');
+        // $recommend_name = $this->pString('recommend_name', '');
+        $grt_address = $this->pString('grt_address', '');
+        $tt_address = $this->pString('tt_address', '');
+        $bpt_address = $this->pString('bpt_address', '');
+        if ($bpt_address || $weixin || $grt_address || $tt_address) {
+            // 添加个人其它信息
+            $other = BUserOther::find()->where(['user_id' => $user->id])->one();
+            if (empty($other)) {
+                $other = new BUserOther();
+                $other->user_id = $user->id;
+            }
+            $other->weixin = $weixin;
+            // $other->recommend_mobile = $recommend_mobile;
+            // $other->recommend_name = $recommend_name;
+            $other->grt_address = $grt_address;
+            $other->tt_address = $tt_address;
+            $other->bpt_address = $bpt_address;
+            if (!$other->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '注册失败', $other->getFirstErrorText());
+            }
         }
         $code = $this->pString('code');
         // 取出比例
@@ -893,155 +1004,11 @@ class NodeController extends BaseController
             }
         }
         // 补全充值冻结信息
-        $currency_arr = BCurrency::find()->all();
-        $currency_id = [];
-        foreach ($currency_arr  as $v) {
-            $currency_id[$v['code']] = $v['id'];
-        }
-        //GRT
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['grt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $grt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        $withdraw ->remark = "添加节点充币";
-        $withdraw ->audit_time = time();
-        if (!$withdraw->save()) {
+        $log = NodeService::addNodeMakeLogs($node);
+        if ($log->code != 0) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
+            return $this->respondJson(1, '注册失败', $log->content);
         }
-        $userRechargeWithdrawId = $withdraw->id;
-
-        $user_c_detail = new BUserCurrencyDetail();
-        $user_c_detail->user_id = $user->id;
-        $user_c_detail->currency_id = $currency_id['grt'];
-        $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
-        $user_c_detail->amount = $grt;
-        $user_c_detail->remark = '充币';
-        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-        $user_c_detail->relate_table = 'user_recharge_withdraw';
-        $user_c_detail->relate_id = $userRechargeWithdrawId;
-        $user_c_detail->effect_time = time();
-        if (!$user_c_detail->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
-        }
-
-        $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
-        $frozen->currency_id = $currency_id['grt'];
-        $frozen->amount = $grt;
-        $frozen->remark = '节点竞选';
-        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
-        $frozen->relate_table = 'node';
-        $frozen->relate_id = $node->id;
-        if (!$frozen->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
-        }
-
-        UserService::resetCurrency($user->id, $currency_id['grt']);
-
-        //TT
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['tt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $tt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        $withdraw ->remark = "添加节点充币";
-        $withdraw ->audit_time = time();
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        $userRechargeWithdrawId = $withdraw->id;
-
-        $user_c_detail = new BUserCurrencyDetail();
-        $user_c_detail->user_id = $user->id;
-        $user_c_detail->currency_id = $currency_id['tt'];
-        $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
-        $user_c_detail->amount = $tt;
-        $user_c_detail->remark = '充币';
-        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-        $user_c_detail->relate_table = 'user_recharge_withdraw';
-        $user_c_detail->relate_id = $userRechargeWithdrawId;
-        $user_c_detail->effect_time = time();
-        if (!$user_c_detail->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
-        }
-
-        $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
-        $frozen->currency_id = $currency_id['tt'];
-        $frozen->amount = $tt;
-        $frozen->remark = '节点竞选';
-        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
-        $frozen->relate_table = 'node';
-        $frozen->relate_id = $node->id;
-        if (!$frozen->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
-        }
-
-        UserService::resetCurrency($user->id, $currency_id['tt']);
-
-        //BPT
-        $withdraw = new BUserRechargeWithdraw();
-        $withdraw ->currency_id = $currency_id['bpt'];
-        $withdraw ->user_id = $user->id;
-        $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
-        $withdraw ->amount = $bpt;
-        $withdraw ->transaction_id = (string)$node->id;
-        $withdraw ->order_number = FuncHelper::generateOrderCode();
-        $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        $withdraw ->remark = "添加节点充币";
-        $withdraw ->audit_time = time();
-        if (!$withdraw->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $withdraw->getFirstErrorText());
-        }
-        $userRechargeWithdrawId = $withdraw->id;
-
-        $user_c_detail = new BUserCurrencyDetail();
-        $user_c_detail->user_id = $user->id;
-        $user_c_detail->currency_id = $currency_id['bpt'];
-        $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
-        $user_c_detail->amount = $bpt;
-        $user_c_detail->remark = '充币';
-        $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-        $user_c_detail->relate_table = 'user_recharge_withdraw';
-        $user_c_detail->relate_id = $userRechargeWithdrawId;
-        $user_c_detail->effect_time = time();
-        if (!$user_c_detail->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $user_c_detail->getFirstErrorText());
-        }
-
-        $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
-        $frozen->currency_id = $currency_id['bpt'];
-        $frozen->amount = $bpt;
-        $frozen->remark = '节点竞选';
-        $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
-        $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
-        $frozen->relate_table = 'node';
-        $frozen->relate_id = $node->id;
-        if (!$frozen->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $frozen->getFirstErrorText());
-        }
-        
-        UserService::resetCurrency($user->id, $currency_id['bpt']);
-
         // 赠送gdt
         $currencyDetail = new BUserCurrencyDetail();
         $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);

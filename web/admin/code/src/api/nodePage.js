@@ -27,6 +27,16 @@ export function getNodeType() {
 // 获取节点基本信息
 export function getNodeBase(nodeId) {
   return request({
+    url: '/node/get-node-user-data',
+    method: 'post',
+    data: {
+      nodeId
+    }
+  })
+}
+// 获取节点信息
+export function getNodeInfo(nodeId) {
+  return request({
     url: '/node/get-node-data',
     method: 'post',
     data: {
@@ -54,10 +64,20 @@ export function getNodeVote(nodeId) {
     }
   })
 }
-// 获取节点权限信息
+// 获取节点权益信息
 export function getNodeRule(nodeId) {
   return request({
     url: '/node/get-rule',
+    method: 'post',
+    data: {
+      nodeId
+    }
+  })
+}
+// 获取节点收获地址信息
+export function getNodeAddress(nodeId) {
+  return request({
+    url: '/node/get-address',
     method: 'post',
     data: {
       nodeId

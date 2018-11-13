@@ -27,7 +27,10 @@ return [
         ],
         'site' => [
             'class' => 'common\modules\site\Module',
-        ]
+        ],
+        'area' => [
+            'class' => 'common\modules\area\Module',
+        ],
     ],
     'components' => [
         'cache' => [

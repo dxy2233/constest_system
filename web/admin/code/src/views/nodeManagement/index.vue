@@ -34,6 +34,7 @@
 
     <el-table
       :data="tableData"
+      :row-class-name="tableRowClassName"
       style="margin:10px 0;"
       @selection-change="handleSelectionChange"
       @row-click="clickRow"
@@ -86,7 +87,21 @@
           </el-row>
         </div>
         <el-tabs v-model="activeName" class="tabs" @tab-click="changeTabs">
-          <el-tab-pane label="基本信息" name="0">
+          <el-tab-pane label="基本信息" name="-1">
+            <div class="row"> <span>姓名</span> {{ nodeInfoOther.username | noContent }} </div>
+            <div class="row"> <span>手机号</span> {{ nodeInfoOther.mobile | noContent }} </div>
+            <div class="row"> <span>微信号</span> {{ nodeInfoOther.weixin | noContent }} </div>
+            <div class="row"> <span>节点类型</span> {{ nodeInfoOther.typeName | noContent }} </div>
+            <div class="row"> <span>推荐人姓名</span> {{ nodeInfoOther.recommendName | noContent }} </div>
+            <div class="row"> <span>推荐人手机号</span> {{ nodeInfoOther.recommendMobile | noContent }} </div>
+            <div class="row"> <span>质押GRT数量</span> {{ nodeInfoOther.grt | noContent }} </div>
+            <div class="row"> <span>GRT钱包地址</span> {{ nodeInfoOther.grtAddress | noContent }} </div>
+            <div class="row"> <span>质押BPT数量</span> {{ nodeInfoOther.bpt | noContent }} </div>
+            <div class="row"> <span>BPT钱包地址</span> {{ nodeInfoOther.bptAddress | noContent }} </div>
+            <div class="row"> <span>质押TT数量</span> {{ nodeInfoOther.tt | noContent }} </div>
+            <div class="row"> <span>TT钱包地址</span> {{ nodeInfoOther.ttAddress | noContent }} </div>
+          </el-tab-pane>
+          <el-tab-pane label="节点信息" name="0">
             <p style="color:#888;">logo</p>
             <img :src="nodeInfoBase.logo" alt="" style="display:block;width:100px;height:100px;border:1px solid #ddd;">
             <p style="color:#888;margin-top:50px;">节点名称</p>
@@ -94,7 +109,7 @@
             <p style="color:#888;margin-top:50px;">节点简介</p>
             <p>{{ nodeInfoBase.desc }}</p>
             <p style="color:#888;margin-top:50px;">社区建设方案</p>
-            <p style="padding-bottom:50px;">{{ nodeInfoBase.scheme }}</p>
+            <p v-html="nodeInfoBase.scheme2"/>
           </el-tab-pane>
           <el-tab-pane label="实名信息" name="1">
             <p>
@@ -128,6 +143,16 @@
               <el-table-column prop="content" label="描述" align="center"/>
             </el-table>
           </el-tab-pane>
+          <el-tab-pane label="收货地址" name="4">
+            <p>
+              <span style="margin-right:150px;">姓名：{{ nodeInfoAddress.consignee | noContent }}</span>
+              <span>电话：{{ nodeInfoAddress.consigneeMobile | noContent }}</span>
+            </p>
+            <p style="margin-top:50px;">收货地址</p>
+            <p>{{ nodeInfoAddress.address | noContent }}</p>
+            <p style="margin-top:50px;">邮编</p>
+            <p>{{ nodeInfoAddress.zipCode | noContent }}</p>
+          </el-tab-pane>
         </el-tabs>
       </div>
     </transition>
@@ -152,7 +177,7 @@
       </div>
       <div class="item">
         <div class="title">节点简介</div>
-        <el-input v-model="nodeInfoBase.desc" :rows="2" type="textarea"/>
+        <el-input v-model="nodeInfoBase.desc" :rows="2"/>
       </div>
       <div class="item">
         <div class="title">社区建设方案</div>
@@ -340,9 +365,15 @@
           <el-form-item prop="mobile" label="手机号">
             <el-input v-model="addNodeData.mobile"/>
           </el-form-item>
-          <el-form-item prop="code" label="推荐人（推荐码）">
-            <el-input v-model="addNodeData.code"/>
+          <el-form-item label="微信">
+            <el-input v-model="addNodeData.weixin"/>
           </el-form-item>
+          <!-- <el-form-item prop="recommend_name" label="推荐人姓名">
+            <el-input v-model="addNodeData.recommend_name"/>
+          </el-form-item>
+          <el-form-item prop="recommend_mobile" label="推荐人手机号">
+            <el-input v-model="addNodeData.recommend_mobile"/>
+          </el-form-item> -->
           <el-form-item prop="type_id" label="节点类型">
             <el-select v-model="addNodeData.type_id" placeholder="请选择" @change="recommendSelect">
               <el-option
@@ -365,11 +396,20 @@
           <el-form-item prop="grt" label="质押GRT数量">
             <el-input v-model="addNodeData.grt"/>
           </el-form-item>
-          <el-form-item prop="tt" label="质押TT数量">
-            <el-input v-model="addNodeData.tt"/>
+          <el-form-item label="GRT钱包地址">
+            <el-input v-model="addNodeData.grt_address"/>
           </el-form-item>
           <el-form-item prop="bpt" label="质押BPT数量">
             <el-input v-model="addNodeData.bpt"/>
+          </el-form-item>
+          <el-form-item label="BPT钱包地址">
+            <el-input v-model="addNodeData.bpt_address"/>
+          </el-form-item>
+          <el-form-item prop="tt" label="质押TT数量">
+            <el-input v-model="addNodeData.tt"/>
+          </el-form-item>
+          <el-form-item label="TT钱包地址">
+            <el-input v-model="addNodeData.tt_address"/>
           </el-form-item>
           <el-form-item prop="gdtReward" label="赠送GDT数量">
             <el-input v-model="addNodeData.gdtReward"/>
@@ -434,7 +474,7 @@
             <el-input v-model="addNodeData.desc"/>
           </el-form-item>
           <el-form-item prop="scheme" label="社区建设方案">
-            <el-input v-model="addNodeData.scheme"/>
+            <el-input v-model="addNodeData.scheme" type="textarea" wrap="hard"/>
           </el-form-item>
         </el-form>
       </div>
@@ -450,14 +490,20 @@
 </template>
 
 <script>
-import { getNodeList, getNodeType, getNodeBase, getNodeIdentify, getNodeVote, getNodeRule,
-  onTenure, offTenure, stopNode, onNode, updataBase, getNodeSet, getRuleList, pushRuleList,
+import { getNodeList, getNodeType, getNodeBase, getNodeInfo, getNodeIdentify, getNodeVote, getNodeRule,
+  getNodeAddress, onTenure, offTenure, stopNode, onNode, updataBase, getNodeSet, getRuleList, pushRuleList,
   getHistory, pushNodeSet, addNode, checkMobile, checkNode } from '@/api/nodePage'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 
 export default {
   name: 'NodeManagement',
+  filters: {
+    noContent(value) {
+      if (value === '' || !value) return '—'
+      else return value
+    }
+  },
   data() {
     return {
       allType: [],
@@ -467,7 +513,7 @@ export default {
       tableData: [], // 表格总数据
       total: 1,
       order: null,
-      rowInfo: [],
+      rowIndex: '',
       tableDataSelection: [],
       currentPage: 1,
       showNodeInfo: false,
@@ -480,11 +526,13 @@ export default {
         { name: '质押BPT', value: null },
         { name: '质押TT', value: null }
       ],
-      activeName: 0,
-      nodeInfoBase: [], // 基本信息
+      activeName: '-1',
+      nodeInfoOther: [], // 1.2新加节点基本信息
+      nodeInfoBase: [], // 节点信息
       nodeInfoIdentify: [], // 实名信息
       nodeInfoVote: [], // 投票信息
       nodeInfoRule: [], // 权限信息
+      nodeInfoAddress: [], // 收货地址信息
       pollName: '投票记录',
       dialogEdit: false,
       uploadLogo: '', // 上传图片后返回的地址
@@ -514,12 +562,15 @@ export default {
       jump: false, // 是否跳过实名认证
       addNodeData: {
         mobile: '',
-        code: '',
+        weixin: '',
         type_id: '',
         is_tenure: 0,
         grt: '',
         tt: '',
         bpt: '',
+        grt_address: '',
+        bpt_address: '',
+        tt_address: '',
         gdtReward: '',
         realname: '',
         identify: '',
@@ -542,16 +593,13 @@ export default {
           { required: true, message: '请选择节点身份', trigger: 'change' }
         ],
         grt: [
-          // { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
           { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
         ],
         tt: [
-          // { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
-          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, message: '请输入正确的数字', trigger: 'blur' }
         ],
         bpt: [
-          // { type: 'number', required: true, message: '请输入正确的数字', trigger: 'blur' }
-          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, message: '请输入正确的数字', trigger: 'blur' }
         ],
         gdtReward: [
           { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
@@ -619,6 +667,10 @@ export default {
         if (this.dialogSetType === item.name) tem = item.id
       })
       return tem
+    },
+    rowInfo() {
+      if (this.rowIndex === '') return []
+      else return this.tableData[this.rowIndex]
     }
   },
   created() {
@@ -664,9 +716,13 @@ export default {
       else if (val.prop === 'createTime' && val.order === 'descending') this.order = 2
       this.init()
     },
+    tableRowClassName({ row, rowIndex }) {
+      row.index = rowIndex
+    },
     // 点击表格行
     clickRow(row) {
-      this.rowInfo = row
+      // this.rowInfo = row
+      this.rowIndex = row.index
       this.showNodeInfo = true
       this.cardData[0].value = row.order
       this.cardData[1].value = row.mobile
@@ -679,9 +735,14 @@ export default {
     },
     // 选项卡切换
     changeTabs(val) {
-      if (val.name === '0') {
+      if (val.name === '-1') {
         getNodeBase(this.rowInfo.id).then(res => {
+          this.nodeInfoOther = res.content
+        })
+      } else if (val.name === '0') {
+        getNodeInfo(this.rowInfo.id).then(res => {
           this.nodeInfoBase = res.content
+          this.nodeInfoBase.scheme2 = res.content.scheme.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
         })
       } else if (val.name === '1') {
         getNodeIdentify(this.rowInfo.id).then(res => {
@@ -694,6 +755,10 @@ export default {
       } else if (val.name === '3') {
         getNodeRule(this.rowInfo.id).then(res => {
           this.nodeInfoRule = res.content
+        })
+      } else if (val.name === '4') {
+        getNodeAddress(this.rowInfo.id).then(res => {
+          this.nodeInfoAddress = res.content
         })
       }
     },
@@ -795,6 +860,7 @@ export default {
       updataBase(this.rowInfo.id, this.nodeInfoBase.logo, this.nodeInfoBase.name,
         this.nodeInfoBase.desc, this.nodeInfoBase.scheme).then(res => {
         Message({ message: res.msg, type: 'success' })
+        this.init()
       })
     },
     // 打开节点设置
@@ -1078,6 +1144,20 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
+.tabs {
+  .row {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    span {
+      display: inline-block;
+      width: 220px;
+      color: #888;
+      padding-right: 120px;
+    }
+  }
+}
+
 .node-edit {
   .item {
     margin-bottom: 20px;

@@ -36,7 +36,7 @@
             </div>
             <div class="form-item-content">
               <div class="ipt-box number-box">
-                <input type="text" v-model="number" placeholder="请输入投票数量" onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)" onblur="this.v()">
+                <input type="text" v-model="number" placeholder="请输入投票数量" onkeyup="(this.v=()=>{this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)" onblur="this.v()">
                 <span class="all" @click="number=typeInfo.number">最大</span>
               </div>
             </div>

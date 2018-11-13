@@ -46,7 +46,7 @@
           </div>
         </div>
         <div class="btn-box">
-          <router-link tag="button" to='/personal/node/index/invite'>拉票
+          <router-link v-if="myNodeInfo.typeId===1||myNodeInfo.typeId===2" tag="button" to='/personal/node/index/invite'>拉票
           </router-link>
         </div>
       </div>

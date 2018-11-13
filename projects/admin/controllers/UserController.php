@@ -7,12 +7,14 @@ use common\services\RechargeService;
 use common\services\UserService;
 use common\services\VoteService;
 use yii\helpers\ArrayHelper;
+use common\models\business\BArea;
 use common\models\business\BUser;
 use common\models\business\BNode;
 use common\models\business\BVote;
 use common\models\business\BNotice;
 use common\models\business\BUserIdentify;
 use common\models\business\BUserWallet;
+use common\models\business\BUserOther;
 use common\models\business\BUserVoucher;
 use common\models\business\BUserCurrency;
 use common\models\business\BVoucher;
@@ -607,6 +609,27 @@ class UserController extends BaseController
         return $this->respondJson(0, '注册成功');
     }
 
+    public function actionGetRecommendList()
+    {
+        $user_id = $this->pInt('userId');
+        if (!$user_id) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        $list = BUserRecommend::find()
+        ->from(BUserRecommend::tableName()." A")
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->select(['B.mobile','B.id'])->where(['parent_id' => $user_id])->asArray()->all();
+        foreach ($list as &$v) {
+            $old_data = BVoucher::find()->where(['user_id' => $user_id, 'give_user_id' => $v['id']])->one();
+            if ($old_data) {
+                $v['is_give'] = 1;
+            } else {
+                $v['is_give'] = 0;
+            }
+        }
+        return $this->respondJson(0, '获取成功', $list);
+    }
+
     public function actionGetGiveInfo()
     {
         $type = $this->pInt('type');
@@ -640,7 +663,8 @@ class UserController extends BaseController
             } else {
                 $voucher_num = 20000;
             }
-            $gdt = $node->grt * 0.1;
+            //$gdt = $node->grt * 0.1;
+            $gdt = $voucher_num * 0.01;
             $old_data = BVoucher::find()->where(['user_id' => $user_id, 'give_user_id' => $user->id])->one();
             if ($old_data) {
                 $is_give = 1;
@@ -718,5 +742,32 @@ class UserController extends BaseController
 
             return $this->respondJson(0, '派发成功');
         }
+    }
+
+    public function actionGetAddress()
+    {
+        $userId = $this->pInt('userId');
+        if (empty($userId)) {
+            return $this->respondJson(1, '用户ID不能为空');
+        }
+        $other = BUserOther::find()->where(['user_id' => $userId])->one();
+        if (empty($other)) {
+            $return = [];
+            $return['area_province_id'] =
+            $return['area_city_id'] =
+            $return['address'] =
+            $return['zip_code'] =
+            $return['consignee'] =
+            $return['consignee_mobile'] = '';
+            return $this->respondJson(0, '获取成功', $return);
+        }
+        $return = [];
+        $return['area_province_id'] = BArea::getAreaOneName($other->area_province_id);
+        $return['area_city_id'] = BArea::getAreaOneName($other->area_city_id);
+        $return['address'] = $other->address;
+        $return['zip_code'] = $other->zip_code;
+        $return['consignee'] = $other->consignee;
+        $return['consignee_mobile'] = $other->consignee_mobile;
+        return $this->respondJson(0, '获取成功', $return);
     }
 }

@@ -117,4 +117,17 @@ class BNode extends \common\models\Node
 
         ]);
     }
+    /**
+     * 设置验证场景
+     *
+     * @return void
+     */
+    public function scenarios()
+    {
+        // 验证节点申请
+        $scenarios['edit'] = ['name', 'desc', 'scheme'];
+        return array_merge(parent::scenarios(), [
+            'edit' => ['name', 'desc', 'scheme'],
+        ]);
+    }
 }

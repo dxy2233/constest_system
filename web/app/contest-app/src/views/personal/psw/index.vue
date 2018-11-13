@@ -98,7 +98,7 @@
             this.$vux.toast.show(res.msg)
             return
           }
-          sessionStorage.setItem("resetVcode", this.vcode);
+          localStorage.setItem("resetVcode", this.vcode);
           this.show = false
           this.$router.push({
             path: '/personal/psw/index/reset'

@@ -12,7 +12,7 @@ service.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencod
 // request interceptor
 service.interceptors.request.use(
   config => {
-    let loginMsg = JSON.parse(sessionStorage.getItem('loginMsg'))
+    let loginMsg = JSON.parse(localStorage.getItem('loginMsg'))
     // 判断是否login，
     if (loginMsg) {
       config.headers.Authorization = `Bearer ${loginMsg.accessToken}`

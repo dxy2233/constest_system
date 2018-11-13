@@ -72,7 +72,7 @@
             name: '支付投票榜'
           },
         ],
-        currentContributeType: sessionStorage.getItem('currentContributeType') || 'all',
+        currentContributeType: localStorage.getItem('currentContributeType') || 'all',
         counttime: "",
       }
     },
@@ -80,7 +80,7 @@
       selectTab(type) {
         if (type === this.currentContributeType) return
         this.currentContributeType = type
-        sessionStorage.setItem("currentContributeType", type);
+        localStorage.setItem("currentContributeType", type);
         this.page = 1
         this.dataList = []
         this.total = ''

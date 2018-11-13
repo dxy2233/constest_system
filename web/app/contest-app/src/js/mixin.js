@@ -2,7 +2,7 @@ import router from '@/router'
 import store from '@/store/index'
 
 export let cancelLogin = () => {
-  sessionStorage.clear()
+  localStorage.clear()
   store.commit('LOGIN_MSG', null)
   store.commit('IDENTIFY_MSG', null)
 }

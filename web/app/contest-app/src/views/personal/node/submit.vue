@@ -24,9 +24,9 @@
                 您的微信
                 <span class="must">*</span>
               </div>
-              <input type="text" v-model="form.weixing" placeholder="输入您的微信">
+              <input type="text" v-model="form.weixin" placeholder="输入您的微信">
             </div>
-            <div class="form-item">
+            <!--<div class="form-item">
               <div class="label">
                 推荐人姓名
               </div>
@@ -41,7 +41,7 @@
               <input onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)"
                      onblur="this.v()" maxlength="11"
                      type="text" v-model="form.recommend_mobile" placeholder="输入推荐人手机号">
-            </div>
+            </div>-->
             <div class="form-item">
               <div class="label">
                 节点类型
@@ -122,9 +122,9 @@
         ],
         form: {
           type_id: '',
-          weixing: '',
-          recommend_name: '',
-          recommend_mobile: '',
+          weixin: '',
+          /*recommend_name: '',
+          recommend_mobile: '',*/
           grt_address: '',
           grt_num: '',
           tt_address: '',
@@ -158,7 +158,7 @@
         this.form.bpt_num = item.bpt
       },
       submitFrom() {
-        if (!this.form.weixing) {
+        if (!this.form.weixin) {
           this.$vux.toast.show('微信号必填')
           return
         }

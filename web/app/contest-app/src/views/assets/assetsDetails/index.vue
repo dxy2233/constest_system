@@ -91,7 +91,7 @@
             name: '支出记录'
           }
         ],
-        currentType: sessionStorage.getItem("currencyDetailType") || '1',
+        currentType: localStorage.getItem("currencyDetailType") || '1',
         dataList: [],
         page: 1,
         loadShow: true,
@@ -131,7 +131,7 @@
       selectedTab(item) {
         if (item.type === this.currentType) return
         this.currentType = item.type
-        sessionStorage.setItem("currencyDetailType", item.type);
+        localStorage.setItem("currencyDetailType", item.type);
         this.page = 1
         this.dataList = []
         this.total = ''
@@ -193,12 +193,12 @@
       }
     },
     created() {
-      // this.currentType = sessionStorage.getItem("currencyDetailType") || '1'
+      // this.currentType = localStorage.getItem("currencyDetailType") || '1'
       this.getCurrencyInfo()
       // this.getList()
     },
     destroyed() {
-      sessionStorage.removeItem('currentType')
+      localStorage.removeItem('currentType')
     }
   }
 </script>

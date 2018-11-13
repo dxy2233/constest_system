@@ -180,10 +180,8 @@
             this.$vux.toast.show(res.msg)
             return
           }
-          // res.content.desc.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
-          // res.content.scheme.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
           this.nodeInfo = res.content
-          sessionStorage.setItem("myNodeInfo", JSON.stringify(res.content));
+          localStorage.setItem("myNodeInfo", JSON.stringify(res.content));
           this.setMyNodeInfo(res.content)
         })
       },
@@ -202,7 +200,7 @@
             identify.isIdentify = true
           }
           this.identifyMsg = identify
-          sessionStorage.setItem("identifyMsg", JSON.stringify(identify));
+          localStorage.setItem("identifyMsg", JSON.stringify(identify));
           this.setIdentifyMsg(identify)
         })
       },

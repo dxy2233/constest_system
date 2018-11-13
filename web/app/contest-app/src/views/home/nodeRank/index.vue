@@ -62,7 +62,7 @@
       selectTab(item) {
         if (item.id === this.currentNodeId) return
         this.currentNodeId = item.id
-        sessionStorage.setItem("nodeRankType", item.id);
+        localStorage.setItem("nodeRankType", item.id);
         this.page = 1
         this.nodeList = []
         /*this.loadShow = true
@@ -110,7 +110,7 @@
             return
           }
           this.nodeTab = res.content
-          this.currentNodeId = sessionStorage.getItem('nodeRankType') || res.content[0].id
+          this.currentNodeId = localStorage.getItem('nodeRankType') || res.content[0].id
           cb()
         })
       },

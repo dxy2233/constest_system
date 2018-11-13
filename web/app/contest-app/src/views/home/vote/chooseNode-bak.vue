@@ -79,7 +79,7 @@
         if (item.id === this.currentNodeId) return
         this.currentNodeId = item.id
         this.currentNodeId = item.id
-        sessionStorage.setItem("chooseNodeId", item.id);
+        localStorage.setItem("chooseNodeId", item.id);
         this.page = 1
         this.nodeList = []
         this.total = ''
@@ -132,7 +132,7 @@
             return
           }
           this.nodeTab = res.content
-          this.currentNodeId = sessionStorage.getItem('chooseNodeId') || res.content[0].id
+          this.currentNodeId = localStorage.getItem('chooseNodeId') || res.content[0].id
           cb()
         })
       },

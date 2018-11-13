@@ -66,7 +66,7 @@
             name: '使用记录'
           }
         ],
-        currentType: sessionStorage.getItem("voteVoucherType") || '1',
+        currentType: localStorage.getItem("voteVoucherType") || '1',
         dataList: [],
         page: 1,
         loadShow: true,
@@ -79,7 +79,7 @@
       selectedTab(item) {
         if (item.type === this.currentType) return
         this.currentType = item.type
-        sessionStorage.setItem("voteVoucherType", item.type);
+        localStorage.setItem("voteVoucherType", item.type);
         this.page = 1
         this.dataList = []
         this.total = ''
@@ -140,7 +140,7 @@
       },
     },
     created() {
-      // this.currentType = sessionStorage.getItem("voteVoucherType") || '1'
+      // this.currentType = localStorage.getItem("voteVoucherType") || '1'
       this.getVoucherInfo()
     },
   }

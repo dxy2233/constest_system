@@ -37,15 +37,11 @@
             </div>
             <dl>
               <dt>简介</dt>
-              <dd>
-                {{myNodeInfo.desc}}
-              </dd>
+              <dd v-html="replaceStr(myNodeInfo.desc)"></dd>
             </dl>
             <dl>
               <dt>建设方案</dt>
-              <dd>
-                {{myNodeInfo.scheme}}
-              </dd>
+              <dd v-html="replaceStr(myNodeInfo.scheme)"></dd>
             </dl>
           </div>
         </div>
@@ -71,6 +67,9 @@
     },
     data() {
       return {
+        replaceStr:function (str) {
+          return str.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
+        }
       }
     },
     computed: {

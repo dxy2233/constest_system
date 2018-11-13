@@ -6,10 +6,10 @@ const state={
     type:'text',
     width:"7.6em"
   },
-  loginMsg:JSON.parse(sessionStorage.getItem('loginMsg')) || null,
-  identifyMsg:JSON.parse(sessionStorage.getItem("identifyMsg")) || null,
-  payPsw:sessionStorage.getItem('payPsw')||'0',
-  myNodeInfo:JSON.parse(sessionStorage.getItem('myNodeInfo')) || null,
+  loginMsg:JSON.parse(localStorage.getItem('loginMsg')) || null,
+  identifyMsg:JSON.parse(localStorage.getItem("identifyMsg")) || null,
+  payPsw:localStorage.getItem('payPsw')||'0',
+  myNodeInfo:JSON.parse(localStorage.getItem('myNodeInfo')) || null,
 }
 
 export default state

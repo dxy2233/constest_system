@@ -5,7 +5,7 @@
       <div v-if="!loading">
         <div v-if="addressList.length" class="edit">
           <app-header>
-            收获地址
+            收货地址
             <router-link tag="span" slot="right" to="/personal/address/edit1">编辑</router-link>
           </app-header>
           <div class="h-main">
@@ -22,13 +22,13 @@
         </div>
         <div v-else class="add">
           <app-header>
-            收获地址
+            收货地址
           </app-header>
           <div class="h-main">
             <div class="add-content">
               <img src="/static/images/add-address.png" alt="">
-              <!--<button class="base-btn">添加收获地址</button>-->
-              <router-link tag="button" class="base-btn" to="/personal/address/edit0">添加收获地址</router-link>
+              <!--<button class="base-btn">添加收货地址</button>-->
+              <router-link tag="button" class="base-btn" to="/personal/address/edit0">添加收货地址</router-link>
             </div>
           </div>
         </div>

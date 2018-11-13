@@ -365,21 +365,22 @@ class NodeService extends ServiceBase
             $currency_id[$v['code']] = $v['id'];
         }
         $user = BNode::find()->where(['id' => $node->user_id])->one();
+
         //GRT
         if ($node->grt != 0) {
-            $grt_return = self::addCurrencyLogs($user, $currency_id['grt'], $node->grt, $node->id);
+            $grt_return = self::addCurrencyLogs($node->user_id, $currency_id['grt'], $node->grt, $node->id);
             if ($grt_return->code != 0) {
                 return new FuncResult(1, '模拟失败', $grt_return->content);
             }
         }
         if ($node->tt != 0) {
-            $tt_return = self::addCurrencyLogs($user, $currency_id['tt'], $node->tt, $node->id);
+            $tt_return = self::addCurrencyLogs($node->user_id, $currency_id['tt'], $node->tt, $node->id);
             if ($grt_return->code != 0) {
                 return new FuncResult(1, '模拟失败', $tt_return->content);
             }
         }
         if ($node->bpt != 0) {
-            $bpt_return = self::addCurrencyLogs($user, $currency_id['bpt'], $node->bpt, $node->id);
+            $bpt_return = self::addCurrencyLogs($node->user_id, $currency_id['bpt'], $node->bpt, $node->id);
             if ($grt_return->code != 0) {
                 return new FuncResult(1, '模拟失败', $bpt_return->content);
             }
@@ -387,11 +388,11 @@ class NodeService extends ServiceBase
         return new FuncResult(0, '模拟完成');
     }
     // 模拟数据
-    public static function addCurrencyLogs($user, $currency_id, $amount, $transaction_id)
+    public static function addCurrencyLogs($user_id, $currency_id, $amount, $transaction_id)
     {
         $withdraw = new BUserRechargeWithdraw();
         $withdraw ->currency_id = $currency_id;
-        $withdraw ->user_id = $user->id;
+        $withdraw ->user_id = $user_id;
         $withdraw ->type = BUserRechargeWithdraw::$TYPE_RECHARGE;
         $withdraw ->amount = $amount;
         $withdraw ->transaction_id = (string)$transaction_id;
@@ -405,7 +406,7 @@ class NodeService extends ServiceBase
         $userRechargeWithdrawId = $withdraw->id;
 
         $user_c_detail = new BUserCurrencyDetail();
-        $user_c_detail->user_id = $user->id;
+        $user_c_detail->user_id = $user_id;
         $user_c_detail->currency_id = $currency_id;
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $amount;
@@ -419,7 +420,7 @@ class NodeService extends ServiceBase
         }
 
         $frozen = new BUserCurrencyFrozen();
-        $frozen->user_id = $user->id;
+        $frozen->user_id = $user_id;
         $frozen->currency_id = $currency_id;
         $frozen->amount = $amount;
         $frozen->remark = '节点竞选';
@@ -431,7 +432,7 @@ class NodeService extends ServiceBase
             return new FuncResult(1, '模拟失败', $frozen->getFirstErrorText());
         }
 
-        UserService::resetCurrency($user->id, $currency_id);
+        UserService::resetCurrency($user_id, $currency_id);
         return new FuncResult(0, '模拟完成');
     }
 }

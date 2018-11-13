@@ -142,7 +142,7 @@
           this.$vux.toast.show(res.msg)
           this.btnLoading = false
           if (res.code === 0) {
-            sessionStorage.setItem("loginMsg", JSON.stringify(res.content));
+            localStorage.setItem("loginMsg", JSON.stringify(res.content));
             this.setLoginMsg(res.content)
             for (let item in this.loginForm) {
               this.loginForm[item] = ''
@@ -159,7 +159,7 @@
           }
           let n = res.content ? '1' : '0'
           this.setPayPsw(n)
-          sessionStorage.setItem('payPsw', n)
+          localStorage.setItem('payPsw', n)
           if (res.content) {//已有支付密码
             setTimeout(() => {
               this.$router.back()

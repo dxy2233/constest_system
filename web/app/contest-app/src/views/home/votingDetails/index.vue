@@ -104,7 +104,7 @@
             name: '支持用户'
           }
         ],
-        currentVotingType: sessionStorage.getItem("votingType") || 'log',
+        currentVotingType: localStorage.getItem("votingType") || 'log',
         listData: [],
         page: 1,
         loadShow: true,
@@ -115,7 +115,7 @@
       selectedTab(item) {
         if (item.type === this.currentVotingType) return
         this.currentVotingType = item.type
-        sessionStorage.setItem("votingType", item.type);
+        localStorage.setItem("votingType", item.type);
         this.page = 1
         this.listData = []
        /* this.loadShow = true
@@ -177,11 +177,11 @@
 
     },
     created() {
-     /* this.currentVotingType = sessionStorage.getItem("votingType") || 'log'
+     /* this.currentVotingType = localStorage.getItem("votingType") || 'log'
       this.getData()*/
     },
     destroyed() {
-      sessionStorage.removeItem('votingType')
+      localStorage.removeItem('votingType')
     }
   }
 </script>

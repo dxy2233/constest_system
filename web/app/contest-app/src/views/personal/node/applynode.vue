@@ -52,10 +52,16 @@
       </div>
       <router-view></router-view>
       <div v-transfer-dom>
-        <confirm v-model="show"
+        <confirm v-model="idfConfirmShow"
                  title="您还没有完成实名认证"
-                 @on-confirm="onConfirm">
+                 @on-confirm="onIdfConfirm">
           <p style="text-align:center;">申请节点必须实名认证</p>
+        </confirm>
+        <confirm v-model="nodeConfirmShow"
+                 title="您已拥有节点"
+                 confirm-text="查看节点"
+                 @on-confirm="onNodeConfirm">
+          <p style="text-align:center;">暂时无法申请</p>
         </confirm>
       </div>
     </div>
@@ -82,7 +88,8 @@
       return {
         applyUrl: 'http://uaq5pzd9vm1kxhdk.mikecrm.com/6aNQyf2',
         agree: false,
-        show: false
+        idfConfirmShow: false,
+        nodeConfirmShow:false
       }
     },
     methods: {
@@ -91,17 +98,28 @@
           this.$vux.toast.show('请先阅读并同意节点申请协议')
           return
         }
-        if (this.identifyMsg.status !== 1) {
-          this.show = true
+        if (this.identifyMsg.status !== -1) {
+          this.nodeConfirmShow = true
           return
         }
+
+        if (this.identifyMsg.status !== 1) {
+          this.idfConfirmShow = true
+          return
+        }
+
         this.$router.push({
           path: '/personal/applynode/submit'
         })
       },
-      onConfirm() {
+      onIdfConfirm() {
         this.$router.push({
           path: '/personal/identify/' + this.identifyPath
+        })
+      },
+      onNodeConfirm() {
+        this.$router.push({
+          path: '/personal/node/' + this.nodePath
         })
       }
     },
@@ -118,8 +136,21 @@
             return 'fail'
         }
       },
+      nodePath(){
+        //0 停用 1 已生效 2 审核中 3 撤销 4 审核未通过 5 删除'
+        if (!this.myNodeInfo) return ''
+        switch (this.myNodeInfo.status) {
+          case 1:
+            return 'index'
+          case 2:
+            return 'wait'
+          case 4:
+            return 'fail'
+        }
+      },
       ...mapGetters([
         "identifyMsg",
+        "myNodeInfo"
       ]),
     },
 

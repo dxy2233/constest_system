@@ -97,7 +97,7 @@
             identify = res.content
             identify.isIdentify = true
           }
-          sessionStorage.setItem("identifyMsg", JSON.stringify(identify));
+          localStorage.setItem("identifyMsg", JSON.stringify(identify));
           this.setIdentifyMsg(identify)
           let identifyPath = this.switchPath(identify)
           this.$router.replace({

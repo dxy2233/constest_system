@@ -60,7 +60,7 @@
           }
           let n = '1'
           this.setPayPsw(n)
-          sessionStorage.setItem('payPsw', n)
+          localStorage.setItem('payPsw', n)
           setTimeout(() => {
             this.$router.back()
             /*this.$router.replace({

@@ -184,7 +184,7 @@
       }
     },
     created() {
-      let list = JSON.parse(sessionStorage.getItem('currencyList'))
+      let list = JSON.parse(localStorage.getItem('currencyList'))
       for (let item of  list){
         if (parseInt(item.withdrawStatus)){
           this.currencyList.push(item)

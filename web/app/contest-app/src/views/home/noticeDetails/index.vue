@@ -51,7 +51,7 @@
     },
     created(){
       // this.getData()
-      this.noticeInfo = JSON.parse(sessionStorage.getItem('noticeInfo'))
+      this.noticeInfo = JSON.parse(localStorage.getItem('noticeInfo'))
     }
   }
 </script>

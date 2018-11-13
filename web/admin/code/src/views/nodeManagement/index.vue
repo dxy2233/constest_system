@@ -107,7 +107,7 @@
             <p style="color:#888;margin-top:50px;">节点名称</p>
             <p>{{ nodeInfoBase.name }}</p>
             <p style="color:#888;margin-top:50px;">节点简介</p>
-            <p>{{ nodeInfoBase.desc }}</p>
+            <p v-html="nodeInfoBase.desc2"/>
             <p style="color:#888;margin-top:50px;">社区建设方案</p>
             <p v-html="nodeInfoBase.scheme2"/>
           </el-tab-pane>
@@ -158,8 +158,8 @@
     </transition>
 
     <el-dialog :visible.sync="dialogEdit" title="节点编辑" class="node-edit">
+      <h4>基本信息</h4>
       <div class="item">
-        <div class="title">基本信息</div>
         <img :src="nodeInfoBase.logo" alt="">
         <el-upload
           :show-file-list="false"
@@ -177,11 +177,19 @@
       </div>
       <div class="item">
         <div class="title">节点简介</div>
-        <el-input v-model="nodeInfoBase.desc" :rows="2"/>
+        <el-input v-model="nodeInfoBase.desc" :rows="2" type="textarea"/>
       </div>
       <div class="item">
         <div class="title">社区建设方案</div>
         <el-input v-model="nodeInfoBase.scheme" :rows="2" type="textarea"/>
+      </div>
+      <hr>
+      <h4>权益信息</h4>
+      <div class="item">
+        <div class="title">销售配额</div>
+        <el-input v-model="nodeInfoBase.quota">
+          <template slot="append">￥</template>
+        </el-input>
       </div>
       <span slot="footer">
         <el-button type="primary" @click="editNodeBase">确 定</el-button>
@@ -228,6 +236,10 @@
         <div>
           <p>赠送GDT</p>
           <el-input v-model="dialogSetData.gdtReward" placeholder="请输入内容" style="width:80%;"/> GDT
+        </div>
+        <div>
+          <p>销售配额</p>
+          <el-input v-model="dialogSetData.quota" placeholder="请输入内容" style="width:80%;"/> ￥
         </div>
       </div>
       <h3 style="padding:20px 0 0;">享有权益</h3>
@@ -471,10 +483,10 @@
             <el-input v-model="addNodeData.name"/>
           </el-form-item>
           <el-form-item prop="desc" label="机构/个人简介">
-            <el-input v-model="addNodeData.desc"/>
+            <el-input v-model="addNodeData.desc" :rows="2" type="textarea"/>
           </el-form-item>
           <el-form-item prop="scheme" label="社区建设方案">
-            <el-input v-model="addNodeData.scheme" type="textarea" wrap="hard"/>
+            <el-input v-model="addNodeData.scheme" :rows="2" type="textarea"/>
           </el-form-item>
         </el-form>
       </div>
@@ -626,7 +638,7 @@ export default {
         ],
         desc: [
           { required: true, message: '必填', trigger: 'blur' },
-          { max: 300, message: '最多300个字', trigger: 'blur' }
+          { max: 1000, message: '最多1000个字', trigger: 'blur' }
         ],
         scheme: [
           { required: true, message: '必填', trigger: 'blur' },
@@ -743,6 +755,7 @@ export default {
         getNodeInfo(this.rowInfo.id).then(res => {
           this.nodeInfoBase = res.content
           this.nodeInfoBase.scheme2 = res.content.scheme.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
+          this.nodeInfoBase.desc2 = res.content.desc.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
         })
       } else if (val.name === '1') {
         getNodeIdentify(this.rowInfo.id).then(res => {
@@ -840,12 +853,12 @@ export default {
     // 上传图片的限制
     beforeAvatarUpload(file) {
       const isImage = file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/gif'
-      const isLt2M = file.size / 1024 / 1024 < 200
+      const isLt2M = file.size / 1024 / 1024 < 20
       if (!isImage) {
         this.$message.error('上传头像图片只能是jpeg/jpg/png/gif格式!')
       }
       if (!isLt2M) {
-        this.$message.error('上传头像图片大小不能超过 200MB!')
+        this.$message.error('上传头像图片大小不能超过 20MB!')
       }
       return isImage && isLt2M
     },
@@ -858,7 +871,7 @@ export default {
     editNodeBase() {
       this.dialogEdit = false
       updataBase(this.rowInfo.id, this.nodeInfoBase.logo, this.nodeInfoBase.name,
-        this.nodeInfoBase.desc, this.nodeInfoBase.scheme).then(res => {
+        this.nodeInfoBase.desc, this.nodeInfoBase.scheme, this.nodeInfoBase.quota).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.init()
       })

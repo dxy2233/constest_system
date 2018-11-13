@@ -98,7 +98,7 @@
           this.$vux.toast.show('请先阅读并同意节点申请协议')
           return
         }
-        if (this.identifyMsg.status !== -1) {
+        if (this.myNodeInfo.status !== -1) {
           this.nodeConfirmShow = true
           return
         }

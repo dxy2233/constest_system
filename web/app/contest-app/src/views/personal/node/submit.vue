@@ -22,14 +22,15 @@
             <div class="form-item">
               <div class="label">
                 您的微信
+                <span class="must">*</span>
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入您的微信">
+              <input type="text" v-model="form.weixing" placeholder="输入您的微信">
             </div>
             <div class="form-item">
               <div class="label">
                 推荐人姓名
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入推荐人姓名">
+              <input type="text" v-model="form.recommend_name" placeholder="输入推荐人姓名">
             </div>
             <div class="form-item">
               <div class="label">
@@ -37,61 +38,61 @@
                 <br>
                 <span>推荐人将获得投票券</span>
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入推荐人手机号">
+              <input onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)"
+                     onblur="this.v()" maxlength="11"
+                     type="text" v-model="form.recommend_mobile" placeholder="输入推荐人手机号">
             </div>
             <div class="form-item">
               <div class="label">
                 节点类型
                 <span class="must">*</span>
               </div>
-              <sel placeholder="请选择节点类型"></sel>
+              <sel :dataList="nodeSelData" placeholder="请选择节点类型" :select="form.type_id"
+                   value="id" label="name" @changeSel="changeNode"></sel>
             </div>
             <div class="form-item">
               <div class="label">
                 确认已转入贵人通数量
-                <span class="must">*</span>
+                <!--<span class="must">*</span>-->
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入数量">
+              <input type="text" v-model="form.grt_num" placeholder="输入数量">
             </div>
 
             <div class="form-item">
               <div class="label">
                 申请贵人通钱包地址
-                <span class="must">*</span>
+                <!--<span class="must">*</span>-->
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入或粘贴钱包地址">
+              <input type="text" v-model="form.grt_address" placeholder="输入或粘贴钱包地址">
             </div>
             <div class="form-item">
               <div class="label">
                 确认已转入茶通数量
-                <span class="must">*</span>
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入数量">
+              <input type="text" v-model="form.tt_num" placeholder="输入数量">
             </div>
             <div class="form-item">
               <div class="label">
                 申请茶通钱包地址
-                <span class="must">*</span>
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入或粘贴钱包地址">
+              <input type="text" v-model="form.tt_address" placeholder="输入或粘贴钱包地址">
             </div>
             <div class="form-item">
               <div class="label">
                 确认已转入美食通数量
-                <span class="must">*</span>
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入数量">
+              <input type="text" v-model="form.bpt_num" placeholder="输入数量">
             </div>
             <div class="form-item">
               <div class="label">
                 申请美食通钱包地址
-                <span class="must">*</span>
               </div>
-              <input type="text" v-model="form.wx" placeholder="输入或粘贴钱包地址">
+              <input type="text" v-model="form.bpt_address" placeholder="输入或粘贴钱包地址">
             </div>
           </div>
           <div class="sbm-btn-box">
-            <button class="base-btn">下一步</button>
+            <x-button type="warn" class="base-btn" @click.native="submitFrom" :show-loading="btnLoading">下一步
+            </x-button>
           </div>
         </div>
       </div>
@@ -103,6 +104,7 @@
   import slide from 'components/slide/index'
   import http from 'js/http'
   import sel from 'components/sel/index'
+  import {limitFloating} from 'js/mixin'
 
   export default {
     name: "index",
@@ -110,18 +112,110 @@
       slide,
       sel
     },
-    data(){
-      return{
-        conditionDts:[
+    data() {
+      return {
+        conditionDts: [
           '超级节点：45000GRT+8750TT+6500BPT',
           '高级节点：18000GRT+3500TT+2600BPT',
           '中级节点：7200GRT+1400TT+1040BPT',
           '动力节点：1800GRT+350TT+260BPT'
         ],
-        form:{
-          wx:''
-        }
+        form: {
+          type_id: '',
+          weixing: '',
+          recommend_name: '',
+          recommend_mobile: '',
+          grt_address: '',
+          grt_num: '',
+          tt_address: '',
+          tt_num: '',
+          bpt_address: '',
+          bpt_num: ''
+        },
+        nodeSelData: [],
+        btnLoading: false
       }
+    },
+    methods: {
+      getNodeSel() {
+        http.post('/node', {}, (res) => {
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.nodeSelData = res.content
+          let nodeInfo = this.nodeSelData[0]
+          this.form.type_id = nodeInfo.id
+          this.form.grt_num = nodeInfo.grt
+          this.form.tt_num = nodeInfo.tt
+          this.form.bpt_num = nodeInfo.bpt
+        })
+      },
+      changeNode(item) {
+        this.form.type_id = item.id
+        this.form.grt_num = item.grt
+        this.form.tt_num = item.tt
+        this.form.bpt_num = item.bpt
+      },
+      submitFrom() {
+        if (!this.form.weixing) {
+          this.$vux.toast.show('微信号必填')
+          return
+        }
+        if (this.form.grt_num + this.form.tt_num + this.form.bpt_num<=0) {
+          this.$vux.toast.show('请输入数量')
+          return
+        }
+        if (this.form.grt_num &&!this.form.grt_address){
+          this.$vux.toast.show('请输入贵人通钱包地址')
+          return
+        }
+        if (this.form.tt_num &&!this.form.tt_address){
+          this.$vux.toast.show('请输入茶通钱包地址')
+          return
+        }
+        if (this.form.bpt_num &&!this.form.bpt_address){
+          this.$vux.toast.show('请输入美食通钱包地址')
+          return
+        }
+        this.applyNode()
+      },
+      applyNode() {
+        this.btnLoading = true
+        http.post('/node/apply', this.form, (res) => {
+          this.btnLoading = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.$vux.toast.show({
+            text: res.msg,
+            type: 'success'
+          })
+          setTimeout(() => {
+            this.$router.push({
+              path: '/personal'
+            })
+          }, 1500)
+        })
+      },
+    },
+    created() {
+      this.getNodeSel()
+    },
+    watch: {
+      'form.grt_num'(v) {
+        let n = limitFloating(v)
+        this.form.grt_num = n
+      },
+      'form.tt_num'(v) {
+        let n = limitFloating(v)
+        this.form.tt_num = n
+      },
+      'form.bpt_num'(v) {
+        let n = limitFloating(v)
+        this.form.bpt_num = n
+      },
     }
   }
 </script>

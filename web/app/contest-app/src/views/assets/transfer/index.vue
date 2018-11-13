@@ -217,6 +217,8 @@
       font-size 28px
       padding 35px 0
     .transfer-form
+      .vux-x-icon
+        display none
       .form-item
         margin-bottom 30px
       .ipt-box

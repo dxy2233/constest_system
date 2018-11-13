@@ -117,9 +117,28 @@ export let mainRouter = [
     children: [
       {
         path: 'node',
-        component: () => import('views/personal/node/index'),
+        // component: () => import('views/personal/node/index'),
+        component: () => import('components/emptyRouter/index'),
         hidden: true,
         children: [
+          {
+            path: 'index',
+            component: () => import('views/personal/node/index'),
+            children:[
+              {
+                path: 'interests',
+                component: () => import('views/personal/node/interests'),
+              },
+              {
+                path: 'invite',
+                component: () => import('views/personal/node/invite'),
+              },
+              {
+                path: 'edit',
+                component: () => import('views/personal/node/edit'),
+              },
+            ]
+          },
           {
             path: 'fail',
             component: () => import('views/personal/node/fail'),
@@ -127,14 +146,6 @@ export let mainRouter = [
           {
             path: 'wait',
             component: () => import('views/personal/node/wait'),
-          },
-          {
-            path: 'interests',
-            component: () => import('views/personal/node/interests'),
-          },
-          {
-            path: 'invite',
-            component: () => import('views/personal/node/invite'),
           },
         ]
       },
@@ -145,6 +156,10 @@ export let mainRouter = [
           {
             path: 'rules',
             component: () => import('views/personal/node/rules'),
+          },
+          {
+            path: 'agreement',
+            component: () => import('views/personal/node/agreement'),
           },
           {
             path: 'submit',
@@ -239,8 +254,8 @@ export let mainRouter = [
         component: () => import('views/personal/address/index'),
         children:[
           {
-            path:'about',
-            component: () => import('views/personal/set/about'),
+            path:'edit:type',
+            component: () => import('views/personal/address/submit'),
           }
         ]
       }

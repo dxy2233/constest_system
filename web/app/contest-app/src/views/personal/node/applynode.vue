@@ -23,30 +23,41 @@
             <div class="tel">
               <img src="/static/images/apply/left.png" alt="" class="left-img">
               <div class="text">
-                <p>财富热线</p>
-                <h4>18586823227</h4>
+                即刻报名，独享专属权益
               </div>
               <img src="/static/images/apply/right.png" alt="" class="right-img">
             </div>
             <div class="contact">
-              <a :href="applyUrl">
-                <div class="button">
-                  <h5>立即申请</h5>
-                  <p>即刻报名，独享专属权益</p>
-                </div>
-              </a>
-            </div>
-            <div class="qr-code">
-              <qrcode :value="applyUrl" type="img" :size="110"></qrcode>
-              <p>扫码填写申请表</p>
+              <p>财富热线</p>
+              <h4>18586823227</h4>
             </div>
           </div>
         </div>
         <div class="bottom">
           <img src="/static/images/apply/bottom.png" alt="">
+          <!--<div class="apply-btn">
+            <input type="checkbox" v-model="agree">
+            <p>勾选表示已同意《节点申请协议》</p>
+          </div>-->
+        </div>
+        <div class="apply-btn">
+          <div class="check-box">
+            <input type="checkbox" v-model="agree">
+            <p>勾选表示已同意
+              <router-link tag="span" to="/personal/applynode/agreement">《节点申请协议》</router-link>
+            </p>
+          </div>
+          <button @click="goSubmit" class="base-btn">立即申请</button>
         </div>
       </div>
       <router-view></router-view>
+      <div v-transfer-dom>
+        <confirm v-model="show"
+                 title="您还没有完成实名认证"
+                 @on-confirm="onConfirm">
+          <p style="text-align:center;">申请节点必须实名认证</p>
+        </confirm>
+      </div>
     </div>
   </slide>
 </template>
@@ -54,19 +65,64 @@
 <script>
   import slide from 'components/slide/index'
   import http from 'js/http'
-  import { Qrcode } from 'vux'
+  import {Qrcode, Confirm, TransferDomDirective as TransferDom} from 'vux'
+  import {mapState, mapMutations, mapGetters} from 'vuex'
 
   export default {
     name: "index",
+    directives: {
+      TransferDom
+    },
     components: {
       slide,
-      Qrcode
+      Qrcode,
+      Confirm
     },
-    data(){
-      return{
-        applyUrl:'http://uaq5pzd9vm1kxhdk.mikecrm.com/6aNQyf2'
+    data() {
+      return {
+        applyUrl: 'http://uaq5pzd9vm1kxhdk.mikecrm.com/6aNQyf2',
+        agree: false,
+        show: false
       }
-    }
+    },
+    methods: {
+      goSubmit() {
+        if (!this.agree) {
+          this.$vux.toast.show('请先阅读并同意节点申请协议')
+          return
+        }
+        if (this.identifyMsg.status !== 1) {
+          this.show = true
+          return
+        }
+        this.$router.push({
+          path: '/personal/applynode/submit'
+        })
+      },
+      onConfirm() {
+        this.$router.push({
+          path: '/personal/identify/' + this.identifyPath
+        })
+      }
+    },
+    computed: {
+      identifyPath() {
+        if (!this.identifyMsg) return ''
+        if (!this.identifyMsg.isIdentify) return 'submit'
+        switch (this.identifyMsg.status) {
+          case 0:
+            return 'wait'
+          case 1:
+            return 'success'
+          case 2:
+            return 'fail'
+        }
+      },
+      ...mapGetters([
+        "identifyMsg",
+      ]),
+    },
+
   }
 </script>
 
@@ -81,7 +137,7 @@
       overflow auto
       .top
         background #ffca12
-        padding-bottom 40px
+        padding-bottom 25px
         img
           width 100%
       .center
@@ -97,7 +153,7 @@
           z-index 2
         .center-box
           position relative
-          bottom -15px
+          bottom -25px
           margin-left 12%
           margin-right 12%
           background white
@@ -113,43 +169,53 @@
             position relative
             img
               position absolute
-              top 15px
-              width 35px
+              top 10px
+              width 30px
             .left-img
-              left -35px
+              left -30px
             .right-img
-              right -35px
+              right -30px
             h4
               font-size $font-size-large
             .text
-              padding 4px
               text-align center
               color white
               font-weight bold
+              font-size $font-size-medium-x
+              line-height 40px
           .contact
-            padding 20px 0
-            .button
-              background url("/static/images/apply/button.png")
-              background-size 100% 100%
-              color white
-              text-align center
-              width 190px
-              margin 0 auto
-              padding 5px 0
-              h5
-                font-size $font-size-medium
-                font-weight bold
-              p
-                font-size $font-size-small-s
-          .qr-code
+            padding 30px 0
+            color #ff3ba1
             text-align center
-            padding-bottom 20px
+            p
+              font-size $font-size-medium-x
+            h4
+              font-weight bold
+              font-size 26px
+              margin-top 10px
       .bottom
         background #421e88
-        padding 50px 0
+        padding-top 50px
+        padding-bottom 20px
         img
           display block
           margin 0 auto
           width 80%
+      .apply-btn
+        padding-bottom 50px
+        padding-left 5%
+        padding-right 5%
+        background $color-background-sub
+        .check-box
+          display flex
+          align-items center
+          p
+            color $color-text-minor
+            padding 18px 5px
+          span
+            color $color-theme
+        button
+          margin-bottom 20px
+
 
 </style>

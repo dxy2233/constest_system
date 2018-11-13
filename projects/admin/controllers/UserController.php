@@ -56,16 +56,18 @@ class UserController extends BaseController
     {
         $find = BUser::find()
         ->from(BUser::tableName()." A")
+
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
         ->groupBy(['A.id'])
-        ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
+        ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE)
+        ->join('left join', BNode::tableName().' C', 'C.user_id = A.id && C.status = '.BNotice::STATUS_ACTIVE);
         $pageSize = $this->pInt('pageSize');
         $page = $this->pInt('page', 1);
         
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
-            $find->andWhere(['like','A.username',$searchName]);
+            $find->andWhere(['or',['like','A.username',$searchName],['like','C.name', $searchName]]);
         }
         $str_time = $this->pString('str_time');
         if ($str_time != '') {

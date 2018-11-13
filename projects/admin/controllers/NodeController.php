@@ -256,6 +256,12 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['status_remark'] = $data->status_remark;
+        
+        if ($data->quota === null) {
+            $return['quota'] = '';
+        } else {
+            $return['quota'] = $data->quota;
+        }
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
@@ -270,7 +276,7 @@ class NodeController extends BaseController
         }
         $node_type = BNodeType::find()->where(['id' => $data['type_id']])->one();
         $user = BUser::find()->where(['id' => $data->user_id])->one();
-        $identify = BUserIdentify::find()->where(['user_id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
         $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
         $return = [];
         if ($other) {
@@ -286,7 +292,7 @@ class NodeController extends BaseController
         
         if ($identify) {
             $return['username'] = $identify->realname;
-        }else{
+        } else {
             $return['username'] = '';
         }
         $return['mobile'] = $user->mobile;
@@ -545,6 +551,7 @@ class NodeController extends BaseController
         if (empty($bpt)) {
             return $this->respondJson(1, '质押bpt必须大于0');
         }
+        $quota = $this->pInt('quota', 0);
         $gdt_reward = $this->pInt('gdtReward', 0);
         $node->is_examine = $is_examine;
         $node->gdt_reward = $gdt_reward;
@@ -554,6 +561,7 @@ class NodeController extends BaseController
         $node->tenure_num = $tenure_num;
         $node->max_candidate = $max_candidate;
         $node->grt = $grt;
+        $node->quota = $quota;
         $node->tt = $tt;
         $node->bpt = $bpt;
         $transaction = \Yii::$app->db->beginTransaction();
@@ -747,9 +755,11 @@ class NodeController extends BaseController
         if (empty($scheme)) {
             return $this->respondJson(1, '建设方案不能为空');
         }
-        $is_tenure = $this->pInt('is_tenure', '');
+        $is_tenure = $this->pInt('is_tenure', 0);
+        $quota = $this->pInt('quota', 0);
         $data->logo = $logo;
         $data->name = $name;
+        $data->quota = $quota;
         $data->desc = $desc;
         $data->scheme = $scheme;
         $data->is_tenure = $is_tenure;
@@ -834,16 +844,12 @@ class NodeController extends BaseController
         }
         $grt = $this->pInt('grt');
         if (empty($grt)) {
-            return $this->respondJson(1, '质压GRT数量不能为空');
+            return $this->respondJson(1, '质押GRT数量不能为空');
         }
-        $tt = $this->pInt('tt');
-        if (empty($tt)) {
-            return $this->respondJson(1, '质压TT数量不能为空');
-        }
-        $bpt = $this->pInt('bpt');
-        if (empty($bpt)) {
-            return $this->respondJson(1, '质压BPT数量不能为空');
-        }
+        $tt = $this->pInt('tt',0);
+
+        $bpt = $this->pInt('bpt',0);
+
         $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();
         //实名认证信息
@@ -903,7 +909,7 @@ class NodeController extends BaseController
         $grt_address = $this->pString('grt_address', '');
         $tt_address = $this->pString('tt_address', '');
         $bpt_address = $this->pString('bpt_address', '');
-        if ($bpt_address || $weixin || $recommend_mobile || $recommend_name || $grt_address || $tt_address) {
+        if ($bpt_address || $weixin || $grt_address || $tt_address) {
             // 添加个人其它信息
             $other = BUserOther::find()->where(['user_id' => $user->id])->one();
             if (empty($other)) {
@@ -911,8 +917,8 @@ class NodeController extends BaseController
                 $other->user_id = $user->id;
             }
             $other->weixin = $weixin;
-            $other->recommend_mobile = $recommend_mobile;
-            $other->recommend_name = $recommend_name;
+            // $other->recommend_mobile = $recommend_mobile;
+            // $other->recommend_name = $recommend_name;
             $other->grt_address = $grt_address;
             $other->tt_address = $tt_address;
             $other->bpt_address = $bpt_address;

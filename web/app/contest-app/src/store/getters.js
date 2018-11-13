@@ -3,3 +3,4 @@ export const toastObj = state => state.toastObj
 export const loginMsg = state => state.loginMsg
 export const identifyMsg = state => state.identifyMsg
 export const payPsw = state => state.payPsw
+export const myNodeInfo = state => state.myNodeInfo

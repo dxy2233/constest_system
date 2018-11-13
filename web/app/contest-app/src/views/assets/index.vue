@@ -68,10 +68,10 @@
       }
     },
     created() {
-      // this.pageInt()
+      this.pageInt()
     },
     activated() {
-      this.pageInt()
+      // this.pageInt()
     },
     computed: {
       ...mapGetters([

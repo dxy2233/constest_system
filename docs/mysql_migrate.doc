@@ -161,3 +161,9 @@ CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '创建�
 
 ALTER TABLE `gr_node_type`
 ADD `quota` decimal(12,2) NOT NULL DEFAULT '0' COMMENT '销售配额' AFTER `gdt_reward`;
+
+ALTER TABLE `gr_node`
+ADD `quota` decimal(12,2) NULL COMMENT '配额' AFTER `scheme`;
+
+ALTER TABLE `gr_user_other`
+CHANGE `weixing` `weixin` varchar(128) COLLATE 'utf8mb4_general_ci' NOT NULL DEFAULT '' COMMENT '微信号' AFTER `zip_code`;

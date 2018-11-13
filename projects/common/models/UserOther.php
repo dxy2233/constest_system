@@ -43,7 +43,7 @@ class UserOther extends \common\dzbase\DzModel
             [['user_id', 'area_province_id', 'area_city_id', 'zip_code', 'create_time', 'update_time'], 'integer'],
             [['consignee'], 'string', 'max' => 64],
             [['consignee_mobile', 'recommend_mobile', 'recommend_name'], 'string', 'max' => 32],
-            [['address', 'weixing'], 'string', 'max' => 128],
+            [['address', 'weixin'], 'string', 'max' => 128],
             [['grt_address', 'tt_address', 'bpt_address'], 'string', 'max' => 256],
         ];
     }
@@ -62,7 +62,7 @@ class UserOther extends \common\dzbase\DzModel
             'area_city_id' => '市级ID',
             'address' => '详细地址',
             'zip_code' => '邮编',
-            'weixing' => '微信号',
+            'weixin' => '微信号',
             'recommend_mobile' => '推荐人手机号',
             'recommend_name' => '推荐人姓名',
             'grt_address' => '贵人通地址',

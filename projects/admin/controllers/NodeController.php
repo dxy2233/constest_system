@@ -256,6 +256,7 @@ class NodeController extends BaseController
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['status_remark'] = $data->status_remark;
+        $return['quota'] = $data->quota;
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
@@ -749,9 +750,11 @@ class NodeController extends BaseController
         if (empty($scheme)) {
             return $this->respondJson(1, '建设方案不能为空');
         }
-        $is_tenure = $this->pInt('is_tenure', '');
+        $is_tenure = $this->pInt('is_tenure', 0);
+        $quota = $this->pInt('quota', 0);
         $data->logo = $logo;
         $data->name = $name;
+        $data->quota = $quota;
         $data->desc = $desc;
         $data->scheme = $scheme;
         $data->is_tenure = $is_tenure;
@@ -905,7 +908,7 @@ class NodeController extends BaseController
         $grt_address = $this->pString('grt_address', '');
         $tt_address = $this->pString('tt_address', '');
         $bpt_address = $this->pString('bpt_address', '');
-        if ($bpt_address || $weixin || $grt_address || $tt_address) {
+        if ($bpt_address || $weixin  || $recommend_name || $grt_address || $tt_address) {
             // 添加个人其它信息
             $other = BUserOther::find()->where(['user_id' => $user->id])->one();
             if (empty($other)) {

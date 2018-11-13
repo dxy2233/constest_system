@@ -276,7 +276,7 @@ class NodeController extends BaseController
         }
         $node_type = BNodeType::find()->where(['id' => $data['type_id']])->one();
         $user = BUser::find()->where(['id' => $data->user_id])->one();
-        $identify = BUserIdentify::find()->where(['user_id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
         $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
         $return = [];
         if ($other) {

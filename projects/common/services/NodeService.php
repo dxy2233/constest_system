@@ -12,6 +12,7 @@ use common\components\FuncResult;
 use common\models\business\BNode;
 use common\models\business\BVote;
 use common\models\business\BNotice;
+use common\models\business\BCurrency;
 use common\models\business\BNodeRule;
 use common\models\business\BNodeType;
 use common\models\business\BUserWallet;

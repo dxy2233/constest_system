@@ -909,7 +909,7 @@ class NodeController extends BaseController
         $grt_address = $this->pString('grt_address', '');
         $tt_address = $this->pString('tt_address', '');
         $bpt_address = $this->pString('bpt_address', '');
-        if ($bpt_address || $weixin  || $recommend_name || $grt_address || $tt_address) {
+        if ($bpt_address || $weixin || $grt_address || $tt_address) {
             // 添加个人其它信息
             $other = BUserOther::find()->where(['user_id' => $user->id])->one();
             if (empty($other)) {

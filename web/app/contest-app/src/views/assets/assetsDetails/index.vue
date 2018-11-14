@@ -53,12 +53,12 @@
             <router-link tag="li" :to="{path:'/assets/dts'+dtsId+'/collect',query:{name:currencyInfo.name}}"
                          v-if="parseInt(currencyInfo.rechargeStatus)">
               <img src="/static/images/collect.png" alt="">
-              <span>收款</span>
+              <span>转入</span>
             </router-link>
             <router-link v-if="parseInt(currencyInfo.withdrawStatus)"
               tag="li" :to="'/assets/dts'+dtsId+'/transfer'">
               <img src="/static/images/transfer.png" alt="">
-              <span>转账</span>
+              <span>转出</span>
             </router-link>
           </ul>
         </div>
@@ -91,7 +91,7 @@
             name: '支出记录'
           }
         ],
-        currentType: sessionStorage.getItem("currencyDetailType") || '1',
+        currentType: localStorage.getItem("currencyDetailType") || '1',
         dataList: [],
         page: 1,
         loadShow: true,
@@ -131,7 +131,7 @@
       selectedTab(item) {
         if (item.type === this.currentType) return
         this.currentType = item.type
-        sessionStorage.setItem("currencyDetailType", item.type);
+        localStorage.setItem("currencyDetailType", item.type);
         this.page = 1
         this.dataList = []
         this.total = ''
@@ -193,12 +193,12 @@
       }
     },
     created() {
-      // this.currentType = sessionStorage.getItem("currencyDetailType") || '1'
+      // this.currentType = localStorage.getItem("currencyDetailType") || '1'
       this.getCurrencyInfo()
       // this.getList()
     },
     destroyed() {
-      sessionStorage.removeItem('currentType')
+      localStorage.removeItem('currentType')
     }
   }
 </script>

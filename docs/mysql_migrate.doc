@@ -158,3 +158,38 @@ CHANGE `create_time` `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '创建�
 
 以上sql 2018-11-07 20:00已同步线上
 =============================================================
+
+ALTER TABLE `gr_node_type`
+ADD `quota` decimal(12,2) NOT NULL DEFAULT '0' COMMENT '销售配额' AFTER `gdt_reward`;
+
+ALTER TABLE `gr_node`
+ADD `quota` decimal(12,2) NULL COMMENT '配额' AFTER `scheme`;
+
+CREATE TABLE `gr_user_other` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `consignee` varchar(64) NOT NULL DEFAULT '' COMMENT '收货人姓名',
+  `consignee_mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '收货人电话',
+  `area_province_id` int(11) NOT NULL DEFAULT '0' COMMENT '省级ID',
+  `area_city_id` int(11) NOT NULL DEFAULT '0' COMMENT '市级ID',
+  `address` varchar(128) NOT NULL DEFAULT '' COMMENT '详细地址',
+  `zip_code` int(11) NOT NULL DEFAULT '0' COMMENT '邮编',
+  `weixin` varchar(128) NOT NULL DEFAULT '' COMMENT '微信号',
+  `recommend_mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '推荐人手机号',
+  `recommend_name` varchar(32) NOT NULL DEFAULT '' COMMENT '推荐人姓名',
+  `grt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '贵人通地址',
+  `tt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '茶通地址',
+  `bpt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '美食通地址',
+  `create_time` int(11) NOT NULL DEFAULT '0',
+  `update_time` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='用户其它信息表';
+
+INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
+VALUES ('节点通过-通知', '5', '尊敬的用户，您申请的${name}节点已通过审核，请前往个人中心编辑您的节点和添加收货地址，感谢您的支持。', 'zh-CN', '1', NULL, '0');
+
+ALTER TABLE `gr_user_other`
+CHANGE `zip_code` `zip_code` varchar(10) NOT NULL DEFAULT '' COMMENT '邮编' AFTER `address`;
+
+以上sql 2018-11-14 12:00已同步线上
+=============================================================

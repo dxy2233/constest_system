@@ -2,7 +2,7 @@ import router from '@/router'
 import store from '@/store/index'
 
 export let cancelLogin = () => {
-  sessionStorage.clear()
+  localStorage.clear()
   store.commit('LOGIN_MSG', null)
   store.commit('IDENTIFY_MSG', null)
 }
@@ -34,4 +34,33 @@ export let GetUrlParam = (paraName) => {
   else {
     return "";
   }
+}
+
+export let limitFloating = (string)=>{
+  string = string.replace(/[^\d\.]/g,'');
+//必须保证第一个为数字而不是.
+  string = string.replace(/^\./g,'');
+//保证只有出现一个.而没有多个.
+  string = string.replace(/\.{2,}/g,'.');
+//保证.只出现一次，而不能出现两次以上
+  string = string.replace('.','$#$').replace(/\./g,'').replace('$#$','.');
+  return string
+/*  let findex = string.indexOf('.')
+  if (findex >= 0) {
+    let prefix = string.substring(0, findex);
+    let suffix = string.substring(findex, string.length);
+    prefix = prefix.replace(/[^\d]/g, '')
+    suffix = suffix.replace(/[^\d]/g, '')
+    string = prefix + '.' + suffix;
+  } else {
+    string = string.replace(/[^\d]/g, '')
+  }
+  if (string.substring(0, 1) === '0') {
+    if (string.substring(1, 2) !== '.') {
+      string = '0'
+    }
+  }
+  // console.log(string,num)
+  return string*/
+
 }

@@ -91,11 +91,11 @@
             <span>{{ item.cycleEndTime }}</span>
           </div>
           <div>
-            <span>任职时间</span>
+            <span>任职开始时间</span>
             <span>{{ item.tenureStartTime }}</span>
           </div>
           <div>
-            <span>到期时间</span>
+            <span>任职到期时间</span>
             <span>{{ item.tenureEndTime }}</span>
           </div>
         </div>

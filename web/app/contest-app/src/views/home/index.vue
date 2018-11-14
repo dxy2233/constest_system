@@ -84,7 +84,7 @@
           if (res.content.type == 0) {
             window.location.href = res.content.url
           } else {
-            sessionStorage.setItem("noticeInfo", JSON.stringify(res.content));
+            localStorage.setItem("noticeInfo", JSON.stringify(res.content));
             this.$router.push({
               path: `/home/notice/dts${item.id}`
             })
@@ -132,8 +132,6 @@
             return
           }
           this.nodeList = res.content
-          // console.log(this.nodeList)
-          // this.currentNodeId = res.content[0].id
         })
       },
       pageInt() {
@@ -152,7 +150,6 @@
             return
           }
           this.downTime = res.content.downTime
-          // this.downTime = 5
           this.countDownIsOpen = res.content.countDownIsOpen
           if (this.timeInterval) clearInterval(this.timeInterval)
           this.timeInterval = setInterval(() => {
@@ -201,7 +198,9 @@
     watch: {
       '$route': function (t, f) {
         if (t.path === '/home') {
-          this.pageInt()
+          // this.pageInt()
+          this.getNoticeList()
+          this.getNodeList()
         }
       }
     }

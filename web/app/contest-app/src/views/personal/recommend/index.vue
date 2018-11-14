@@ -29,7 +29,7 @@
             <!--{{qrcodeData}}-->
             <qrcode :value="qrcodeData" type="img" :size="125"></qrcode>
             <p>
-              长按识别或扫描二维码
+              邀请二维码
               <br>
               加入节点享受节点权益
             </p>

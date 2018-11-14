@@ -49,14 +49,25 @@
           <el-button v-show="noticeChecktoNum==4" type="danger" plain class="btn" @click="delteFailNote">删除记录</el-button>
         </div>
         <p v-show="noticeChecktoNum==4">未通过原因：{{ rowDetail.statusRemark }}</p>
-        <p style="color:#888;">logo</p>
+        <!-- <p style="color:#888;">logo</p>
         <img :src="rowDetail.logo" alt="" style="display:block;width:100px;height:100px;border:1px solid #ddd;">
         <p style="color:#888;margin-top:50px;">机构/个人名称</p>
         <p>{{ rowDetail.name }}</p>
         <p style="color:#888;margin-top:50px;">机构/个人简介</p>
         <p>{{ rowDetail.desc }}</p>
         <p style="color:#888;margin-top:50px;">社区建设方案</p>
-        <p>{{ rowDetail.scheme }}</p>
+        <p>{{ rowDetail.scheme }}</p> -->
+        <p>基本信息</p>
+        <div class="row"> <span>姓名</span> {{ rowDetail.username | noContent }} </div>
+        <div class="row"> <span>手机号</span> {{ rowDetail.mobile | noContent }} </div>
+        <div class="row"> <span>微信号</span> {{ rowDetail.weixin | noContent }} </div>
+        <div class="row"> <span>节点类型</span> {{ rowDetail.typeName | noContent }} </div>
+        <div class="row"> <span>质押GRT数量</span> {{ rowDetail.grt | noContent }} </div>
+        <div class="row"> <span>GRT钱包地址</span> {{ rowDetail.grtAddress | noContent }} </div>
+        <div class="row"> <span>质押BPT数量</span> {{ rowDetail.bpt | noContent }} </div>
+        <div class="row"> <span>BPT钱包地址</span> {{ rowDetail.bptAddress | noContent }} </div>
+        <div class="row"> <span>质押TT数量</span> {{ rowDetail.tt | noContent }} </div>
+        <div class="row"> <span>TT钱包地址</span> {{ rowDetail.ttAddress | noContent }} </div>
       </div>
     </transition>
   </div>
@@ -69,6 +80,12 @@ import { Message } from 'element-ui'
 
 export default {
   name: 'NodeCheck',
+  filters: {
+    noContent(value) {
+      if (value === '' || !value) return '—'
+      else return value
+    }
+  },
   data() {
     return {
       checkType: '待审核',
@@ -211,5 +228,17 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scoped>
 .btn-right {
   margin-top: -39px;
+}
+
+.row {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  span {
+    display: inline-block;
+    width: 220px;
+    color: #888;
+    padding-right: 120px;
+  }
 }
 </style>

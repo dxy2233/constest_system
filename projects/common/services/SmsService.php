@@ -50,10 +50,10 @@ class SmsService extends ServiceBase
         }
 
         //实际发送
-        if(isset(\Yii::$app->params['smsType']) && \Yii::$app->params['smsType'] === "aliyun") {
+        if (isset(\Yii::$app->params['smsType']) && \Yii::$app->params['smsType'] === "aliyun") {
             $sendResult = self::realSend($mobile, $params, $templateType);
             $sms->ret_code = $sendResult->msg;
-        } else if(isset(\Yii::$app->params['smsType']) && \Yii::$app->params['smsType'] === "cl") {
+        } elseif (isset(\Yii::$app->params['smsType']) && \Yii::$app->params['smsType'] === "cl") {
             $sendResult = self::clSend($mobile, $content);
             $sms->ret_code = $sendResult->msg ? $sendResult->msg : $sendResult->content;
         } else {
@@ -77,7 +77,7 @@ class SmsService extends ServiceBase
     {
         $count = preg_match('/^1\d{10}$/', $mobile);
         //国内电话自动加86
-        if($count == 1) {
+        if ($count == 1) {
             $mobile = '86'.$mobile;
         }
 

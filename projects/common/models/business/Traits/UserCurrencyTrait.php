@@ -25,7 +25,7 @@ trait UserCurrencyTrait
     public static function getType(int $key = null)
     {
         $arr = [
-            static::$TYPE_RECHARGE => \Yii::t('app', '收款'),
+            static::$TYPE_RECHARGE => \Yii::t('app', '转入'),
             static::$TYPE_WITHDRAW => \Yii::t('app', '提现'),
             static::$TYPE_ELECTION => \Yii::t('app', '选举'),
             static::$TYPE_VOTE => \Yii::t('app', '投票'),

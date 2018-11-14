@@ -8,7 +8,7 @@
         <div class="node-wait-content">
           <img src="/static/images/state-wait.png" alt="" class="icon">
           <span>您的节点信息已提交，等待审核中... ...</span>
-          <x-button type="warn" class="revoke-btn">撤回申请</x-button>
+          <!--<x-button type="warn" class="revoke-btn">撤回申请</x-button>-->
         </div>
       </div>
     </div>

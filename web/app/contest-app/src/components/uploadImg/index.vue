@@ -1,7 +1,7 @@
 <template>
   <div class="upload-img">
     <loading :show="show"></loading>
-    <input class="file-ipt" type="file" @change='add_img'>
+    <input class="file-ipt" type="file" @change='add_img'accept="image/*" capture="camera">
   </div>
 </template>
 
@@ -9,7 +9,6 @@
   import axios from 'axios'
   import { Loading } from 'vux'
   import {base} from 'js/constant'
-
   export default {
     name: "index",
     components: {
@@ -43,8 +42,8 @@
           this.$vux.toast.show('请选择我们支持的图片格式')
           return
         }
-        if(file.size>3145728){
-          this.$vux.toast.show('请选择3M以内的图片')
+        if(file.size>20*1024*1024){
+          this.$vux.toast.show('请选择10M以内的图片')
           return
         }
         this.show = true

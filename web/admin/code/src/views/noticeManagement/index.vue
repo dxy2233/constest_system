@@ -362,18 +362,18 @@ export default {
     // 上传图片的限制
     beforeAvatarUpload(file) {
       const isImage = file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/gif'
-      const isLt2M = file.size / 1024 / 1024 < 200
+      const isLt2M = file.size / 1024 / 1024 < 20
       if (!isImage) {
         this.$message.error('上传头像图片只能是jpeg/jpg/png/gif格式!')
       }
       if (!isLt2M) {
-        this.$message.error('上传头像图片大小不能超过 200MB!')
+        this.$message.error('上传头像图片大小不能超过 20MB!')
       }
       return isImage && isLt2M
     },
     // 上传图片
     uploadSuccess(res, file) {
-      // this.releaseData.image = URL.createObjectURL(file.raw)
+      if (res.code !== 0) return
       this.releaseData.image = res.content
     },
     // 打开公告发布

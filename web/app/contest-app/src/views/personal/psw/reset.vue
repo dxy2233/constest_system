@@ -44,7 +44,7 @@
           return
         }
         this.loadingShow = true
-        let vcode = sessionStorage.getItem("resetVcode")
+        let vcode = localStorage.getItem("resetVcode")
         http.post('/pay/reset-pass', {
           pass: this.newPsw,
           repass: repass,
@@ -65,7 +65,7 @@
       }
     },
     created(){
-      let code = sessionStorage.getItem("resetVcode")
+      let code = localStorage.getItem("resetVcode")
       if (!code){
         this.$router.back()
         return
@@ -73,7 +73,7 @@
       this.vcode = code
     },
     destroyed(){
-      sessionStorage.removeItem('resetVcode')
+      localStorage.removeItem('resetVcode')
     }
 
   }

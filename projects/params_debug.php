@@ -46,7 +46,7 @@ return [
             'address' => 'jPjnUjv7ARzTukcr2h2vYuGZmgPnj6EvYz', //公钥
             'key' => 'snXfp7p6nHHZ7LXKEHXsgpdxsHyPK', //私钥
         ],
-        //收款账户
+        //转入账户
         'receipt' => [
             'address' => 'jpFWhXZCEcifZQftfWBPyQmmxTnucRvTbB', //公钥
             'key' => '', //私钥

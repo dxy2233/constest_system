@@ -8,11 +8,13 @@ use common\services\NodeService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\components\FuncHelper;
+use common\models\business\BArea;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\services\SettingService;
 use common\models\business\BVoucher;
 use common\models\business\BUserRecommend;
+use common\models\business\BUserOther;
 
 class UserController extends BaseController
 {
@@ -209,5 +211,83 @@ class UserController extends BaseController
         }
 
         return $this->respondJson(1, 'reset currency fail.');
+    }
+
+    /**
+     * 收货地址
+     *
+     * @return void
+     */
+    public function actionAddressList()
+    {
+        $data = [];
+        $userModel = $this->user;
+        $otherModel = $userModel->userOther;
+        if ($otherModel) {
+            $address = '';
+            $areaname = BArea::find()
+            ->select(['areaname'])
+            ->where(['id' => [$otherModel->area_province_id, $otherModel->area_city_id]])
+            ->orderBy(['id' => SORT_ASC])
+            ->asArray()
+            ->all();
+            foreach ($areaname as $val) {
+                $address .= $val['areaname'].' ';
+            }
+            $address .= $otherModel->address;
+            $otherModel->address = $address;
+            $list = [FuncHelper::arrayOnly($otherModel->toArray(), ['consignee', 'consignee_mobile', 'address'])];
+            if (!$otherModel->consignee_mobile || !$otherModel->consignee) {
+                $list = [];
+            }
+            $data['list'] = $list;
+        } else {
+            $data['list'] = [];
+        }
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    /**
+     * 收货地址详情
+     *
+     * @return void
+     */
+    public function actionAddressInfo()
+    {
+        $data = [];
+        $userModel = $this->user;
+        if ($otherModel = $userModel->userOther) {
+            $data = FuncHelper::arrayOnly($otherModel->toArray(), ['consignee', 'consignee_mobile', 'area_province_id', 'area_city_id', 'address', 'zip_code']);
+        }
+        return $this->respondJson(0, '获取成功', $data);
+    }
+    /**
+     * 收货地址详情
+     *
+     * @return void
+     */
+    public function actionAddressSave()
+    {
+        // $consignee = $this->pString('consignee');
+        // $consigneeMobile = $this->pString('consignee_mobile');
+        // $areaProvinceId = $this->pString('area_province_id');
+        // $areaCityId = $this->pString('area_city_id');
+        // $address = $this->pString('address');
+        // $zipCode = $this->pString('zip_code');
+        // if (!$consignee) {
+        //     return $this->respondJson(1, '收货人不能为空');
+        // }
+        $userModel = $this->user;
+        if (!$otherModel = $userModel->userOther) {
+            $otherModel = new BUserOther();
+            $otherModel->user_id = $userModel->id;
+        }
+        // 表单场景使用
+        $otherModel->attributes = \Yii::$app->request->post();
+        $otherModel->scenario = 'address';
+        if ($otherModel->validate() && $otherModel->save()) {
+            return $this->respondJson(0, '保存成功');
+        }
+        return $this->respondJson(1, $otherModel->getFirstErrorText());
     }
 }

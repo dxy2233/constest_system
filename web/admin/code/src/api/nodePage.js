@@ -27,6 +27,16 @@ export function getNodeType() {
 // 获取节点基本信息
 export function getNodeBase(nodeId) {
   return request({
+    url: '/node/get-node-user-data',
+    method: 'post',
+    data: {
+      nodeId
+    }
+  })
+}
+// 获取节点信息
+export function getNodeInfo(nodeId) {
+  return request({
     url: '/node/get-node-data',
     method: 'post',
     data: {
@@ -54,10 +64,20 @@ export function getNodeVote(nodeId) {
     }
   })
 }
-// 获取节点权限信息
+// 获取节点权益信息
 export function getNodeRule(nodeId) {
   return request({
     url: '/node/get-rule',
+    method: 'post',
+    data: {
+      nodeId
+    }
+  })
+}
+// 获取节点收获地址信息
+export function getNodeAddress(nodeId) {
+  return request({
+    url: '/node/get-address',
     method: 'post',
     data: {
       nodeId
@@ -108,7 +128,7 @@ export function offTenure(nodeId) {
 }
 
 // 编辑节点基本信息
-export function updataBase(nodeId, logo, name, desc, scheme) {
+export function updataBase(nodeId, logo, name, desc, scheme, quota) {
   return request({
     url: '/node/update-node',
     method: 'post',
@@ -117,7 +137,8 @@ export function updataBase(nodeId, logo, name, desc, scheme) {
       logo,
       name,
       desc,
-      scheme
+      scheme,
+      quota
     }
   })
 }
@@ -154,7 +175,7 @@ export function pushRuleList(data) {
 
 // 修改节点总设置
 export function pushNodeSet({ id, name, isExamine, isCandidate, isVote, isOrder,
-  tenureNum, maxCandidate, grt, tt, bpt, gdtReward, ruleList }) {
+  tenureNum, maxCandidate, grt, tt, bpt, gdtReward, quota, ruleList }) {
   return request({
     url: '/node/update',
     method: 'post',
@@ -171,6 +192,7 @@ export function pushNodeSet({ id, name, isExamine, isCandidate, isVote, isOrder,
       tt,
       bpt,
       gdtReward,
+      quota,
       rule: JSON.stringify(ruleList)
     }
   })

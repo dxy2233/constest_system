@@ -48,7 +48,7 @@
           }
           this.currencyList = res.content
           // console.log(this.currencyList)
-          sessionStorage.setItem("currencyList", JSON.stringify(this.currencyList));
+          localStorage.setItem("currencyList", JSON.stringify(this.currencyList));
         })
       },
       pageInt() {
@@ -68,10 +68,10 @@
       }
     },
     created() {
-      // this.pageInt()
+      this.pageInt()
     },
     activated() {
-      this.pageInt()
+      // this.pageInt()
     },
     computed: {
       ...mapGetters([

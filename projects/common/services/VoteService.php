@@ -93,7 +93,7 @@ class VoteService extends ServiceBase
             $voteModel->create_time = NOW_TIME;
             $voteModel->user_id = $userModel->id;
             if (!$voteModel->save()) {
-                throw new ErrorException('投票失败', $voteModel->getFirstError());
+                throw new ErrorException('投票失败' . $voteModel->getFirstError());
             }
             $poundage = (int) SettingService::get('vote', 'vote_poundage')->value;
             

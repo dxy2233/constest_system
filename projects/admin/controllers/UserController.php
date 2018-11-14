@@ -255,7 +255,7 @@ class UserController extends BaseController
     }
 
 
-    // 获取用户实名信息
+    // 获取用户实名信息 只获取已通过的
     public function actionGetUserIdentify()
     {
         $userId = $this->pInt('userId');

@@ -257,6 +257,7 @@ class NodeController extends BaseController
                 $nodeModel->desc = '该节点很懒什么都没有写';
                 $nodeModel->scheme = '该节点很懒什么都没有写';
             }
+            $nodeModel->type_id = $typeId;
             $nodeModel->status = $nodeModel::STATUS_WAIT;
             $nodeModel->grt = $grtNum;
             $nodeModel->tt = $ttNum;

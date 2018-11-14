@@ -8,7 +8,7 @@
       </app-header>
       <div class="h-main wrapper">
         <div class="title">
-          <h3>收款地址</h3>
+          <h3>转入地址</h3>
           <h5>{{$route.query.name}}</h5>
         </div>
         <div class="qrcode-box">

@@ -68,6 +68,7 @@
     data() {
       return {
         replaceStr:function (str) {
+          if (!str) return ''
           return str.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
         }
       }

@@ -7,7 +7,7 @@
       <app-header>
       </app-header>
       <div class="h-main wrapper">
-        <div class="title">转账</div>
+        <div class="title">转出</div>
         <div class="transfer-form">
           <div class="form-item">
             <label for="">币种</label>

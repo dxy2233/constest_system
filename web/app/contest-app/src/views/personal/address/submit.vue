@@ -35,7 +35,7 @@
                  value="id" label="areaname" @changeSel="changeProvince" :select="this.form.area_province_id"></sel>
           </div>
           <div class="form-item">
-            <sel :dataList="cityList" placeholder="请选择"
+            <sel :dataList="cityList" placeholder="请选择" @changeSel="changeCity"
                  value="id" label="areaname" :select="this.form.area_city_id"></sel>
           </div>
           <div class="form-item">
@@ -91,6 +91,9 @@
     methods: {
       changeProvince(item) {
         this.form.area_province_id = item.id
+      },
+      changeCity(item){
+        this.form.area_city_id = item.id
       },
       backPage() {
         this.$emit('close', true)

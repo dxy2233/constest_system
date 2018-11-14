@@ -187,3 +187,9 @@ CREATE TABLE `gr_user_other` (
 
 INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
 VALUES ('节点通过-通知', '5', '尊敬的用户，您申请的${name}节点已通过审核，请前往个人中心编辑您的节点和添加收货地址，感谢您的支持。', 'zh-CN', '1', NULL, '0');
+
+ALTER TABLE `gr_user_other`
+CHANGE `zip_code` `zip_code` varchar(10) NOT NULL DEFAULT '' COMMENT '邮编' AFTER `address`;
+
+以上sql 2018-11-14 12:00已同步线上
+=============================================================

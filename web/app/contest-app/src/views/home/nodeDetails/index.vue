@@ -56,14 +56,12 @@
           </div>
           <dl>
             <dt>简介</dt>
-            <dd>
-              {{nodeInfo.desc}}
+            <dd v-html="replaceStr(nodeInfo.desc)">
             </dd>
           </dl>
           <dl>
             <dt>建设方案</dt>
-            <dd>
-              {{nodeInfo.scheme}}
+            <dd v-html="replaceStr(nodeInfo.scheme)">
             </dd>
           </dl>
         </div>
@@ -88,7 +86,11 @@
     },
     data() {
       return {
-        nodeInfo: {}
+        nodeInfo: {},
+        replaceStr:function (str) {
+          if (!str) return ''
+          return str.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
+        }
       }
     },
     computed: {

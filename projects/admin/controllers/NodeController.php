@@ -198,6 +198,7 @@ class NodeController extends BaseController
         $currencyDetail->remark = '申请节点奖励';
         $currencyDetail->user_id = $data->user_id;
         $currencyDetail->relate_table = 'node';
+        $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
         $currencyDetail->relate_id = $data->id;
         $currencyDetail->amount = $node_type->gdt_reward;
         if (!$currencyDetail->save()) {

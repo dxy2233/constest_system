@@ -87,17 +87,14 @@
         provinceList: [],
         cityList: [],
         btnLoading: false,
-        show: true
-
+        show: true,
+        lock:false
       }
     },
     methods: {
       changeProvince(item) {
+        this.lock = false
         this.form.area_province_id = item.id
-        this.getCityList((content)=>{
-          this.cityList = content
-          this.form.area_city_id = this.cityList[0].id
-        })
       },
       changeCity(item){
         this.form.area_city_id = item.id
@@ -111,15 +108,13 @@
             this.$vux.toast.show(res.msg)
             return
           }
+          this.lock = true
           this.form.consignee = res.content.consignee
           this.form.consignee_mobile = res.content.consigneeMobile
           this.form.area_province_id = res.content.areaProvinceId
           this.form.area_city_id = res.content.areaCityId
           this.form.address = res.content.address
           this.form.zip_code = res.content.zipCode
-          this.getCityList((content)=>{
-            this.cityList = content
-          })
         })
       },
       getProvinceList() {
@@ -136,7 +131,7 @@
           }
         })
       },
-      getCityList(cd) {
+      getCityList() {
         http.post('/area/area/get-city-list', {
           id: this.form.area_province_id
         }, (res) => {
@@ -144,9 +139,17 @@
             this.$vux.toast.show(res.msg)
             return
           }
-          // this.cityList = res.content
-          // this.form.area_city_id = this.cityList[0].id
-          cd(res.content)
+          this.cityList = res.content
+          /*if (this.form.area_city_id){
+            let idx = this.cityList.findIndex((item)=>{
+              return this.area_city_id===item[this.id]
+            })
+            if (idx!==-1){
+              return
+            }
+          }*/
+          if (this.lock) return
+          this.form.area_city_id = this.cityList[0].id
         })
       },
       submitAddressFrom() {
@@ -187,9 +190,9 @@
       this.getProvinceList()
     },
     watch: {
-      /*'form.area_province_id'(v) {
-        // this.getCityList()
-      },*/
+      'form.area_province_id'(v) {
+        this.getCityList()
+      },
       'form.area_city_id'(c, o) {
         if (c&&!o){
           this.show = false

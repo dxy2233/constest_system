@@ -13,7 +13,7 @@
         </div>
         <div class="bottom">
           <p>节点申请失败原因：</p>
-          <p>{{myNodeInfo.remark}}</p>
+          <p>{{myNodeInfo.statusRemark}}</p>
           <div class="again">
             <router-link to="/personal/applynode/submit">
               <x-button type="warn" class="again-btn">重新申请</x-button>

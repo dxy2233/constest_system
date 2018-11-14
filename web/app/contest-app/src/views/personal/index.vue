@@ -233,7 +233,9 @@
       return {
         hidMobile: hidMobile,
         personalRouter: mainRouter[2],
-        nodeInfo: {},
+        nodeInfo: {
+          typeId:''
+        },
         identifyMsg: {}
       }
     },

@@ -53,12 +53,12 @@
             <router-link tag="li" :to="{path:'/assets/dts'+dtsId+'/collect',query:{name:currencyInfo.name}}"
                          v-if="parseInt(currencyInfo.rechargeStatus)">
               <img src="/static/images/collect.png" alt="">
-              <span>收款</span>
+              <span>转入</span>
             </router-link>
             <router-link v-if="parseInt(currencyInfo.withdrawStatus)"
               tag="li" :to="'/assets/dts'+dtsId+'/transfer'">
               <img src="/static/images/transfer.png" alt="">
-              <span>转账</span>
+              <span>转出</span>
             </router-link>
           </ul>
         </div>

@@ -138,7 +138,7 @@
     },
     methods: {
       getNodeSel() {
-        http.post('/node', {}, (res) => {
+        http.post('/node/type-list', {}, (res) => {
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
             return

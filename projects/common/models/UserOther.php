@@ -45,6 +45,7 @@ class UserOther extends \common\dzbase\DzModel
             [['consignee_mobile', 'recommend_mobile', 'recommend_name'], 'string', 'max' => 32],
             [['address', 'weixin'], 'string', 'max' => 128],
             [['grt_address', 'tt_address', 'bpt_address'], 'string', 'max' => 256],
+            [['zip_code'], 'string', 'max' => 10],
         ];
     }
 

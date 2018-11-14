@@ -215,6 +215,7 @@ class NodeController extends BaseController
         }
 
         $data->status = BNode::STATUS_ON;
+        $data->examine_time = NOW_TIME;
         $data->status_remark = '已开启';
         if (!$data->save()) {
             $transaction->rollBack();

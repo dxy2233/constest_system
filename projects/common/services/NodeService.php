@@ -114,6 +114,8 @@ class NodeService extends ServiceBase
 
         if ($status != '') {
             $find->andWhere(['A.status' => $status]);
+        } else {
+            $find->andWhere(['or', ['A.status' => BNode::STATUS_ON], ['A.status' => BNode::STATUS_OFF]]);
         }
         $count = $find->count();
         

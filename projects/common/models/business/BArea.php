@@ -42,6 +42,9 @@ class BArea extends \common\models\Area
 
     public static function getAreaOneName($id, $type = 0)
     {
+        if ($id == 0) {
+            return '';
+        }
         $data = self::find()->where(['id' => $id])->one();
         if ($type == 0) {
             return $data->areaname;

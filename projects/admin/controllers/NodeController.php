@@ -5,6 +5,7 @@ use common\services\AclService;
 use common\services\UserService;
 use common\services\VoteService;
 use common\services\NodeService;
+use common\services\SmsService;
 use common\services\RechargeService;
 use common\services\VoucherService;
 use yii\helpers\ArrayHelper;
@@ -23,6 +24,7 @@ use common\models\business\BUserCurrency;
 use common\models\business\BVoucher;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BVoucherDetail;
+use common\models\business\BSmsTemplate;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserRecommend;
 use common\models\business\BSetting;
@@ -204,7 +206,7 @@ class NodeController extends BaseController
         }
 
         //重算gdt
-        UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+        UserService::resetCurrency($data->user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
         // 补全充值冻结信息
         $log = NodeService::addNodeMakeLogs($data);
         if ($log->code != 0) {
@@ -217,6 +219,14 @@ class NodeController extends BaseController
         if (!$data->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        // 发送短信通知用户
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
+        $typeName = str_replace('节点', '', $node_type->name);
+        $returnInfo = SmsService::send($user->mobile, ['name' => $typeName], BSmsTemplate::$TYPE_NODE_EXAMINE);
+        if ($returnInfo->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson($returnInfo->code, $returnInfo->msg);
         }
         $transaction->commit();
         return $this->respondJson(0, '审核成功');
@@ -846,9 +856,9 @@ class NodeController extends BaseController
         if (empty($grt)) {
             return $this->respondJson(1, '质押GRT数量不能为空');
         }
-        $tt = $this->pInt('tt',0);
+        $tt = $this->pInt('tt', 0);
 
-        $bpt = $this->pInt('bpt',0);
+        $bpt = $this->pInt('bpt', 0);
 
         $transaction = \Yii::$app->db->beginTransaction();
         $user = BUser::find()->where(['mobile' => $mobile])->one();

@@ -23,6 +23,7 @@ class NodeController extends BaseController
         $authActions = [
             'apply',
             'edit',
+            'type-list',
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -111,7 +112,7 @@ class NodeController extends BaseController
                 return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
             } else {
                 if ($nodeModel->status !== $nodeModel::STATUS_ON) {
-                    $nodeInfo = FuncHelper::arrayOnly($nodeModel->toArray(), ['status', 'statusRemark', 'name']);
+                    $nodeInfo = FuncHelper::arrayOnly($nodeModel->toArray(), ['status', 'status_remark', 'name']);
                     $nodeInfo['status_str'] = $nodeModel::getStatus($nodeInfo['status']);
                     $nodeInfo['type_id'] = $nodeModel->nodeType->id;
                     $nodeInfo['type_name'] = $nodeModel->nodeType->name;
@@ -198,6 +199,20 @@ class NodeController extends BaseController
         return $this->respondJson(0, '获取成功', $data);
     }
 
+    /** 无需登录
+     * 节点类型列表
+     *
+     * @return void
+     */
+    public function actionTypeList()
+    {
+        $nodeTypeQuery = BNodeType::find()
+        ->select(['id', 'name', 'grt', 'tt', 'bpt'])
+        ->active();
+        $nodeType = $nodeTypeQuery->orderBy(['sort' => SORT_ASC])->asArray()->all();
+        return $this->respondJson(0, '获取成功', $nodeType);
+    }
+
     /**
      * 节点申请
      *
@@ -210,9 +225,6 @@ class NodeController extends BaseController
         $nodeModel = $userModel->node;
         if (!$userModel->is_identified) {
             return $this->respondJson(1, '未实名认证');
-        }
-        if ($nodeModel) {
-            return $this->respondJson(1, '节点已存在', $nodeModel->toArray());
         }
         $grtNum = $this->pFloat('grt_num', 0);
         $grtAddress = $this->pString('grt_address');
@@ -234,14 +246,18 @@ class NodeController extends BaseController
         }
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            $maxId = BNode::find()->max('id') + 1;
-            $nodeModel = new BNode();
+            if ($nodeModel && in_array($nodeModel->status, [$nodeModel::STATUS_ON, $nodeModel::STATUS_WAIT, $nodeModel::STATUS_OFF])) {
+                throw new ErrorException('节点已存在');
+            } elseif(!$nodeModel || $nodeModel->status == $nodeModel::STATUS_DEL) {
+                $maxId = BNode::find()->max('id') + 1;
+                $nodeModel = new BNode();
+                $nodeModel->type_id = $typeId;
+                $nodeModel->user_id = $userModel->id;
+                $nodeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
+                $nodeModel->desc = '该节点很懒什么都没有写';
+                $nodeModel->scheme = '该节点很懒什么都没有写';
+            }
             $nodeModel->status = $nodeModel::STATUS_WAIT;
-            $nodeModel->type_id = $typeId;
-            $nodeModel->user_id = $userModel->id;
-            $nodeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
-            $nodeModel->desc = '该节点很懒什么都没有写';
-            $nodeModel->scheme = '该节点很懒什么都没有写';
             $nodeModel->grt = $grtNum;
             $nodeModel->tt = $ttNum;
             $nodeModel->bpt = $bptNum;

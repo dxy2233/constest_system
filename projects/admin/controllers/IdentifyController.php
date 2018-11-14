@@ -69,14 +69,14 @@ class IdentifyController extends BaseController
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
     }
-
+    // 获取用户实名认证信息，包含未通过及未审核
     public function actionDetail()
     {
         $user_id = $this->pInt('user_id');
         if (empty($user_id)) {
             return $this->respondJson(1, '用户ID不能为空');
         }
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->andWhere(['status' => 0])->asArray()->one();
+        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id desc')->asArray()->one();
         if (empty($data)) {
             return $this->respondJson(1, '此用户没有实名信息');
         }

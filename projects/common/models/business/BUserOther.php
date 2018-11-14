@@ -13,7 +13,7 @@ class BUserOther extends \common\models\UserOther
     {
         $scenarios = parent::scenarios();
         // 验证节点申请
-        $scenarios[self::SCENARIO_APPLY] = ['grt_address', 'tt_address', 'bpt_address', 'weixing', 'recommend_mobile', 'recommend_name'];
+        $scenarios[self::SCENARIO_APPLY] = ['grt_address', 'tt_address', 'bpt_address', 'weixin', 'recommend_mobile', 'recommend_name'];
         // 验证地址添加
         $scenarios[self::SCENARIO_ADDRESS] = ['consignee', 'consignee_mobile', 'area_province_id', 'area_city_id', 'address', 'zip_code'];
         return $scenarios;
@@ -26,8 +26,9 @@ class BUserOther extends \common\models\UserOther
     public function rules()
     {
         return array_merge(parent::rules(), [
+            [['zip_code'], 'match', 'pattern' => '/^[0-9]{6}$/'],
             [['consignee_mobile', 'recommend_mobile'], 'match', 'pattern' => '/^1\d{10}$/'],
-            [['user_id', 'weixing', 'area_province_id', 'area_city_id', 'address', 'consignee_mobile', 'consignee'], 'required']
+            [['user_id', 'weixin', 'area_province_id', 'area_city_id', 'address', 'consignee_mobile', 'consignee'], 'required']
         ]);
     }
 

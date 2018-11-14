@@ -236,7 +236,11 @@ class UserController extends BaseController
             }
             $address .= $otherModel->address;
             $otherModel->address = $address;
-            $data['list'] = [FuncHelper::arrayOnly($otherModel->toArray(), ['consignee', 'consignee_mobile', 'address'])];
+            $list = [FuncHelper::arrayOnly($otherModel->toArray(), ['consignee', 'consignee_mobile', 'address'])];
+            if (!$otherModel->consignee_mobile || !$otherModel->consignee) {
+                $list = [];
+            }
+            $data['list'] = $list;
         } else {
             $data['list'] = [];
         }

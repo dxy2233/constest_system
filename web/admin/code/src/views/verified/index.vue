@@ -171,8 +171,9 @@ export default {
     },
     // 放大图片
     showLargeImg(src) {
-      this.largeImg = src
-      this.dialogLargeImg = true
+      // this.largeImg = src.substring(0, src.indexOf('!'))
+      window.open(src.substring(0, src.indexOf('!')))
+      // this.dialogLargeImg = true
     }
   }
 }

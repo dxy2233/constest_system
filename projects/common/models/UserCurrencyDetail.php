@@ -52,7 +52,7 @@ class UserCurrencyDetail extends \common\dzbase\DzModel
             'id' => '货币明细ID',
             'user_id' => '用户ID',
             'currency_id' => '货币',
-            'type' => '类型，1 收款 2 提现 4 投票 5 手续费',
+            'type' => '类型，1 转入 2 提现 4 投票 5 手续费',
             'relate_table' => '类型关联表',
             'relate_id' => '类型关联表数据ID',
             'amount' => '增减数量',

@@ -40,11 +40,12 @@ class UserOther extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'area_province_id', 'area_city_id', 'zip_code', 'create_time', 'update_time'], 'integer'],
+            [['user_id', 'area_province_id', 'area_city_id', 'create_time', 'update_time'], 'integer'],
             [['consignee'], 'string', 'max' => 64],
             [['consignee_mobile', 'recommend_mobile', 'recommend_name'], 'string', 'max' => 32],
             [['address', 'weixin'], 'string', 'max' => 128],
             [['grt_address', 'tt_address', 'bpt_address'], 'string', 'max' => 256],
+            [['zip_code'], 'string', 'max' => 10],
         ];
     }
 

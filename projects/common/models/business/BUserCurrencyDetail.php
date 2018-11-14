@@ -37,7 +37,7 @@ class BUserCurrencyDetail extends \common\models\UserCurrencyDetail
     // public static function getType(int $key = null)
     // {
     //     $arr = [
-    //         static::$TYPE_INCOME => \Yii::t('app', '收款'),
+    //         static::$TYPE_INCOME => \Yii::t('app', '转入'),
     //         static::$TYPE_WITHDRAW => \Yii::t('app', '提现'),
     //         static::$TYPE_VOTE => \Yii::t('app', '投票'),
     //         static::$TYPE_POUNDAGE => \Yii::t('app', '手续费'),

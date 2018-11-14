@@ -99,7 +99,7 @@ class UserController extends BaseController
             $node = BNode::find()
             ->from(BNode::tableName()." A")
             ->join('inner join', 'gr_node_type B', 'A.type_id = B.id')
-            ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $v['id']])->asArray()->one();
+            ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $v['id'], 'A.status' => BNotice::STATUS_ACTIVE])->asArray()->one();
             if ($node) {
                 $v['userType'] = $node['name'];
                 $v['nodeName'] = $node['nodeName'];
@@ -255,7 +255,7 @@ class UserController extends BaseController
     }
 
 
-    // 获取用户实名信息
+    // 获取用户实名信息 只获取已通过的
     public function actionGetUserIdentify()
     {
         $userId = $this->pInt('userId');

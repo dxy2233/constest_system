@@ -183,7 +183,7 @@ CREATE TABLE `gr_user_other` (
   `create_time` int(11) NOT NULL DEFAULT '0',
   `update_time` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='用户其它信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户其它信息表';
 
 INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
 VALUES ('节点通过-通知', '5', '尊敬的用户，您申请的${name}节点已通过审核，请前往个人中心编辑您的节点和添加收货地址，感谢您的支持。', 'zh-CN', '1', NULL, '0');

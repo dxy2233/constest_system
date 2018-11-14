@@ -905,6 +905,29 @@ class NodeController extends BaseController
         $node->grt = $grt;
         $node->tt = $tt;
         $node->bpt = $bpt;
+        $logo = $this->pImage('logo', '');
+        if (empty($logo)) {
+            return $this->respondJson(1, 'logo不能为空');
+        }
+        $name = $this->pString('name', '');
+        if (empty($name)) {
+            return $this->respondJson(1, '名称不能为空');
+        }
+        $desc = $this->pString('desc', '');
+        if (empty($desc)) {
+            return $this->respondJson(1, '简介不能为空');
+        }
+
+        $scheme = $this->pString('scheme', '');
+        if (empty($scheme)) {
+            return $this->respondJson(1, '建设方案不能为空');
+        }
+        $node->logo = $logo;
+        $node->name = $name;
+        $node->desc = $desc;
+        $node->scheme = $scheme;
+
+
         $node->status = BNode::STATUS_ON;
         $node->examine_time = time();
 
@@ -1084,39 +1107,10 @@ class NodeController extends BaseController
         // if (empty($user_id)) {
         //     return $this->respondJson(1, '用户ID不能为空');
         // }
-        $logo = $this->pImage('logo', '');
-        if (empty($logo)) {
-            return $this->respondJson(1, 'logo不能为空');
-        }
-        $name = $this->pString('name', '');
-        if (empty($name)) {
-            return $this->respondJson(1, '名称不能为空');
-        }
-        $desc = $this->pString('desc', '');
-        if (empty($desc)) {
-            return $this->respondJson(1, '简介不能为空');
-        }
 
-        $scheme = $this->pString('scheme', '');
-        if (empty($scheme)) {
-            return $this->respondJson(1, '建设方案不能为空');
-        }
-        $data = BNode::find()->where(['user_id' => $user_id])->one();
-        if (empty($data)) {
-            return $this->respondJson(1, '此用户还没有节点');
-        }
-        $data->logo = $logo;
-        $data->name = $name;
-        $data->desc = $desc;
-        $data->scheme = $scheme;
-        $str = '添加';
-        if (!$data->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '提交失败', $data->getFirstErrorText());
-        }
 
         $transaction->commit();
-        return $this->respondJson(0, $str.'成功');
+        return $this->respondJson(0, '添加成功');
     }
 
 

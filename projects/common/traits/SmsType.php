@@ -21,4 +21,7 @@ trait SmsType
 
     //用户转账短信验证码获取
     public static $TYPE_TRANSFER_GET = 4;
+
+    //节点审核通过时通知用户
+    public static $TYPE_NODE_EXAMINE = 5;
 }

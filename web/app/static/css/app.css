@@ -6115,7 +6115,7 @@ html .weui-toast_text .weui-toast__content {
 }
 .pay-tool-keyboard ul li {
   width: 33.3333%;
-  line-height: 50px;
+  line-height: 45px;
   text-align: center;
   border-right: 1px solid #aeaeae;
   border-bottom: 1px solid #aeaeae;
@@ -6195,4 +6195,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=ec50f2fe81538243d4615b7b211d5f45*/
+/*# sourceMappingURL=app.css.map?v=cfec336e9545721b9b1fa72008e9c5b9*/

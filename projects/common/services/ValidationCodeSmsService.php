@@ -116,4 +116,56 @@ class ValidationCodeSmsService extends ServiceBase
 
         return new FuncResult(0, $vcode);
     }
+
+
+    public static function sendValidationName(
+        $mobile,
+        $type,
+        $userId = 0,
+        $frequencyMinutes = 1,
+        $frequencyDay = 20
+    ) {
+        assert($mobile != null);
+
+        //1分钟频率限制
+        $countMinute = BSmsAuth::find()
+            ->where(['mobile' => $mobile, 'type' => $type])
+            ->andWhere(['>=', 'create_time', time() - 60])
+            ->count();
+        if ($countMinute >= $frequencyMinutes) {
+            return new FuncResult(1, '超过短信发送频率,请稍后再试');
+        }
+
+        //1天频率限制
+        $countToday = BSmsAuth::find()
+            ->where(['mobile' => $mobile, 'type' => $type])
+            ->andWhere(['>=', 'create_time', strtotime(date('Y-m-d', time()))])
+            ->count();
+
+        if ($countToday >= $frequencyDay) {
+            return new ReturnInfo(1, '超过短信发送频率,请稍后再试');
+        }
+        //开关控制，特殊环境可不实际发送
+        if (!isset(\Yii::$app->params['sendSms']) || \Yii::$app->params['sendSms'] === false) {
+            $vcode = 111111;
+        } else {
+            $vcode = rand(100000, 999999);
+        }
+
+
+        //发送短信
+        SmsService::send($mobile, ['vcode' => $vcode], $type, $userId);
+
+        //记录验证码
+        $smsAuth = new BSmsAuth();
+        $smsAuth->mobile = $mobile;
+        $smsAuth->content = (string)$vcode;
+        $smsAuth->type = $type;
+        $smsAuth->status = BSmsAuth::$STATUS_UNUSED;
+        $smsAuth->create_time = time();
+        $smsAuth->user_id = $userId;
+        $smsAuth->insert();
+
+        return new FuncResult(0, $vcode);
+    }
 }

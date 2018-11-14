@@ -203,6 +203,7 @@ class NodeController extends BaseController
 
 
         $data->status = BNode::STATUS_ON;
+        $data->examine_time = NOW_TIME;
         $data->status_remark = '已开启';
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());

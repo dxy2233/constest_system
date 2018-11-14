@@ -186,4 +186,4 @@ CREATE TABLE `gr_user_other` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='用户其它信息表';
 
 INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
-VALUES ('节点通过通知', '5', '【共生态】尊敬的用户，您申请的${code}节点已通过审核，前往个人中心编辑您的节点和添加收货地址吧，感谢您对共生态的支持。', 'zh-CN', '1', NULL, '0');
+VALUES ('节点通过-通知', '5', '尊敬的用户，您申请的${name}节点已通过审核，请前往个人中心编辑您的节点和添加收货地址，感谢您的支持。', 'zh-CN', '1', NULL, '0');

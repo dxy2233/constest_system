@@ -738,10 +738,10 @@ class UserController extends BaseController
                     $transaction->rollBack();
                     return $this->respondJson(1, '派发失败', $json->msg);
                 }
-                $transaction->commit();
+                
                 $sign = UserService::resetCurrency($user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
             }
-
+            $transaction->commit();
             return $this->respondJson(0, '派发成功');
         }
     }

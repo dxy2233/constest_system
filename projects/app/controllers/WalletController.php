@@ -299,7 +299,7 @@ class WalletController extends BaseController
         }
         $address = $this->pString('address');
         if (!$address) {
-            return $this->respondJson(1, '转账地址不能为空');
+            return $this->respondJson(1, '转出地址不能为空');
         }
         $remark = $this->pString('remark', '');
 
@@ -326,12 +326,12 @@ class WalletController extends BaseController
         // 单笔最小数量
         $minAmount = $currency->withdraw_min_amount;
         if ($amount < $minAmount) {
-            return $this->respondJson(1, '单笔最小转账数量 '.floatval($minAmount));
+            return $this->respondJson(1, '单笔最小转出数量 '.floatval($minAmount));
         }
         // 单笔最大数量
         $maxAmount = $currency->withdraw_max_amount;
         if ($amount > $maxAmount) {
-            return $this->respondJson(1, '单笔最大转账数量 '.floatval($maxAmount));
+            return $this->respondJson(1, '单笔最大转出数量 '.floatval($maxAmount));
         }
 
         // 重算用户持仓
@@ -345,7 +345,7 @@ class WalletController extends BaseController
         if ($amount > $use_amount) {
             return $this->respondJson(1, '转出数量不能大于可用数量'.floatval($use_amount));
         }
-        // 每日累计转账数量
+        // 每日累计转出数量
         $beginToday = strtotime(date("Y-m-d"));
         $endToday = $beginToday + 86399;
         $withdrawDay = BUserRechargeWithdraw::find()
@@ -358,21 +358,21 @@ class WalletController extends BaseController
         $dayMax = $currency->withdraw_day_amount;
         if ($dayMax > 0) {
             if (round($withdrawDay+$amount,8) > $dayMax) {
-                return $this->respondJson(1, '今日已转账'.floatval($withdrawDay).'，每日累计转账限制数量为'.floatval($dayMax));
+                return $this->respondJson(1, '今日已转出'.floatval($withdrawDay).'，每日累计转出限制数量为'.floatval($dayMax));
             }
         }
 
         // 验证地址
         $addressCheck = WithdrawService::withdrawAddressCheck($address, $currencyId);
         if ($addressCheck === false) {
-            return $this->respondJson(1, "转账地址不正确");
+            return $this->respondJson(1, "转出地址不正确");
         }
         $rechargeAddress = BUserRechargeAddress::find()
             ->where(['user_id' => $userModel->id, 'currency_id' => $currencyId])
             ->limit(1)
             ->one();
         if(!empty($rechargeAddress) && $rechargeAddress->address == $address) {
-            return $this->respondJson(1, '转账地址不能为自己钱包地址');
+            return $this->respondJson(1, '转出地址不能为自己钱包地址');
         }
 
         // 短信验证码
@@ -403,7 +403,7 @@ class WalletController extends BaseController
             return $this->respondJson(1, "支付密码不正确");
         }
 
-        //转账操作
+        //转出操作
         $time = time();
         $poundage = 0;
         $data = [
@@ -444,13 +444,13 @@ class WalletController extends BaseController
         }
         $address = $this->pString('address');
         if (!$address) {
-            return $this->respondJson(1, '转账地址不能为空');
+            return $this->respondJson(1, '转出地址不能为空');
         }
         // 验证地址
         $addressCheck = WithdrawService::withdrawAddressCheck($address, $currencyId);
         if ($addressCheck === false) {
-            return $this->respondJson(1, "转账地址不正确");
+            return $this->respondJson(1, "转出地址不正确");
         }
-        return $this->respondJson(0, '转账地址正确');
+        return $this->respondJson(0, '转出地址正确');
     }
 }

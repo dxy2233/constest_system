@@ -112,7 +112,7 @@ class NodeController extends BaseController
                 return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
             } else {
                 if ($nodeModel->status !== $nodeModel::STATUS_ON) {
-                    $nodeInfo = FuncHelper::arrayOnly($nodeModel->toArray(), ['status', 'statusRemark', 'name']);
+                    $nodeInfo = FuncHelper::arrayOnly($nodeModel->toArray(), ['status', 'status_remark', 'name']);
                     $nodeInfo['status_str'] = $nodeModel::getStatus($nodeInfo['status']);
                     $nodeInfo['type_id'] = $nodeModel->nodeType->id;
                     $nodeInfo['type_name'] = $nodeModel->nodeType->name;

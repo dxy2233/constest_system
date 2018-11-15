@@ -551,18 +551,12 @@ class NodeController extends BaseController
         if ($max_candidate < $tenure['allCount']) {
             return $this->respondJson(1, '候选数量必须大于当前候选数量');
         }
-        $grt = $this->pInt('grt');
-        if (empty($grt)) {
-            return $this->respondJson(1, '质押grt必须大于0');
-        }
-        $tt = $this->pInt('tt');
-        if (empty($tt)) {
-            return $this->respondJson(1, '质押tt必须大于0');
-        }
-        $bpt = $this->pInt('bpt');
-        if (empty($bpt)) {
-            return $this->respondJson(1, '质押bpt必须大于0');
-        }
+        $grt = $this->pInt('grt',0);
+
+        $tt = $this->pInt('tt',0);
+
+        $bpt = $this->pInt('bpt',0);
+
         $quota = $this->pInt('quota', 0);
         $gdt_reward = $this->pInt('gdtReward', 0);
         $node->is_examine = $is_examine;
@@ -854,10 +848,8 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '任职数量已达上限');
             }
         }
-        $grt = $this->pInt('grt');
-        if (empty($grt)) {
-            return $this->respondJson(1, '质押GRT数量不能为空');
-        }
+        $grt = $this->pInt('grt',0);
+
         $tt = $this->pInt('tt', 0);
 
         $bpt = $this->pInt('bpt', 0);

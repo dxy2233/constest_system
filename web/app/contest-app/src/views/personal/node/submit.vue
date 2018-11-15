@@ -178,19 +178,22 @@
           this.$vux.toast.show('微信号必填')
           return
         }
-        if (this.form.grt_num + this.form.tt_num + this.form.bpt_num<=0) {
+        let grt = Number(this.form.grt_num)
+        let tt = Number(this.form.tt_num)
+        let bpt = Number(this.form.bpt_num)
+        if (grt + tt + bpt <= 0) {
           this.$vux.toast.show('请输入数量')
           return
         }
-        if (this.form.grt_num &&!this.form.grt_address){
+        if (grt && !this.form.grt_address) {
           this.$vux.toast.show('请输入贵人通钱包地址')
           return
         }
-        if (this.form.tt_num &&!this.form.tt_address){
+        if (tt && !this.form.tt_address) {
           this.$vux.toast.show('请输入茶通钱包地址')
           return
         }
-        if (this.form.bpt_num &&!this.form.bpt_address){
+        if (bpt && !this.form.bpt_address) {
           this.$vux.toast.show('请输入美食通钱包地址')
           return
         }
@@ -264,7 +267,7 @@
           text-align center
           color white
           line-height 1.25rem
-          box-shadow 0px 2px 6px 0px rgba(255,181,67,.5)
+          box-shadow 0px 2px 6px 0px rgba(255, 181, 67, .5)
         .grt
           background #ff4800
         .tt

@@ -24,4 +24,7 @@ trait SmsType
 
     //节点审核通过时通知用户
     public static $TYPE_NODE_EXAMINE = 5;
+
+    // 用户实名认证通知管理员
+    public static $TYPE_IDENTIFY_APPLY = 6;
 }

@@ -23,7 +23,7 @@ return [
     ],
 
     //短信通道
-    'sendSms'   => true,
+    'sendSms'   => false,
     'smsType' => 'cl', //短信平台类型：cl(253短信平台，默认值),aliyun
     'smsKey' => 'CI4037761',
     'smsSecret' => '2NIUGshyBv96b6',

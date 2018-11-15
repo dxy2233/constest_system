@@ -605,16 +605,16 @@ export default {
           { required: true, message: '请选择节点身份', trigger: 'change' }
         ],
         grt: [
-          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(\d|[1-9]\d+)(\.\d+)?$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
         ],
         tt: [
-          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(\d|[1-9]\d+)(\.\d+)?$/, message: '请输入正确的数字', trigger: 'blur' }
         ],
         bpt: [
-          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(\d|[1-9]\d+)(\.\d+)?$/, message: '请输入正确的数字', trigger: 'blur' }
         ],
         gdtReward: [
-          { pattern: /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
+          { pattern: /^(\d|[1-9]\d+)(\.\d+)?$/, required: true, message: '请输入正确的数字', trigger: 'blur' }
         ],
         realname: [
           { pattern: /^[\u4e00-\u9fa5]+$/, required: true, message: '请输入中文姓名', trigger: 'blur' }

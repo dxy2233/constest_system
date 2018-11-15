@@ -3,8 +3,10 @@
 namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
+use common\services\SmsService;
 use common\components\FuncHelper;
 use common\services\SettingService;
+use common\models\business\BSmsTemplate;
 use common\models\business\BUserIdentify;
 
 class IdentifyController extends BaseController
@@ -99,6 +101,12 @@ class IdentifyController extends BaseController
         $identify = $identify->toArray();
         // 不能回传的数据排除
         FuncHelper::arrayForget($identify, ['update_time', 'create_time', 'audit_time', 'audit_admin_id', 'status_remark', 'id', 'status']);
+        // 通知管理员进行审核
+        $adminString = (string) SettingService::get('sms', 'sms_admin')->value;
+        $adminList = explode(',', $adminString);
+        foreach ($adminList as $key => $mobile) {
+            SmsService::send($mobile, [], BSmsTemplate::$TYPE_IDENTIFY_APPLY);
+        }
         return $this->respondJson(0, '提交成功', $identify);
     }
 }

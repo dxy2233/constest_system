@@ -8,8 +8,8 @@
       </app-header>
       <div class="h-main wrapper">
         <div class="title">
-          <h3>转入地址</h3>
-          <h5>{{$route.query.name}}</h5>
+          <h3>{{title}}</h3>
+          <h5>{{littleTitle}}</h5>
         </div>
         <div class="qrcode-box">
           <qrcode :value="address" type="img" :size="230"></qrcode>
@@ -35,12 +35,32 @@
     },
     data() {
       return {
-        address: ''
+        address: '',
+        title:'',
+        littleTitle:''
       }
     },
     created() {
       // this.address = this.$route.query.address
-      this.getCollectAddress()
+      // this.getCollectAddress()
+      console.log(this.$route.path)
+      let path = this.$route.path
+      if (path.includes('collect')){//资产转入
+        this.getCollectAddress()
+        this.title = '转入地址'
+        this.littleTitle = this.$route.query.name
+      }else {//申请节点地址
+        if (this.$route.query.name==='GRT'){//grt
+          this.title = '官方GRT收款地址'
+          this.littleTitle = '适用于GRT/BPT'
+          this.address = 'jKmCLKm3Qw21WGZoBjxShiB5wRjSrVKT4m'
+        }else {//tt
+          this.title = '官方TT收款地址'
+          this.littleTitle = '适用于TT'
+          this.address = '0xd42622bDCe756B3FEe61a4fDC2adE7ada8A1FD62'
+        }
+
+      }
     },
     mounted(){
       const clipboard = new Clipboard('#copy');

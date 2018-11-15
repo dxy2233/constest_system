@@ -26,7 +26,7 @@
             <dt>
               报名节点条件：
               <br>
-              节点竞选以“贵人通+茶通+美食通”即“三通”总个数为准，成为各节点条件分别为：
+              节点竞选以“贵人通+茶通”总个数为准，成为各节点条件分别为：
             </dt>
             <dd class="normal" v-for="item in conditionDts">{{item}}</dd>
             <dd class="added">

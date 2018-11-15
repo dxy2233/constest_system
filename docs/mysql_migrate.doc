@@ -183,7 +183,7 @@ CREATE TABLE `gr_user_other` (
   `create_time` int(11) NOT NULL DEFAULT '0',
   `update_time` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='用户其它信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户其它信息表';
 
 INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
 VALUES ('节点通过-通知', '5', '尊敬的用户，您申请的${name}节点已通过审核，请前往个人中心编辑您的节点和添加收货地址，感谢您的支持。', 'zh-CN', '1', NULL, '0');
@@ -192,4 +192,12 @@ ALTER TABLE `gr_user_other`
 CHANGE `zip_code` `zip_code` varchar(10) NOT NULL DEFAULT '' COMMENT '邮编' AFTER `address`;
 
 以上sql 2018-11-14 12:00已同步线上
+=============================================================
+
+# 新增管理员电话号码
+INSERT INTO `gr_setting`(`group`, `name`, `key`, `value`, `default`, `type`, `initialize`, `remark`, `status`, `sort`, `create_time`, `update_time`) VALUES ('sms', '实名认证发送管理员', 'sms_admin', '18083609005,15285147616,15985124797', '0', 'input', '', '前端实名认证后发送短信通知管理员', 0, 0, 0, 0);
+# 新增短信模板
+INSERT INTO `gr_sms_template`(`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`) VALUES ('实名认证审核', 6, '亲爱的管理员，已有用户提交了实名认证，请尽快审核', 'zh-CN', 1, '', 0);
+
+以上sql 2018-11-15 14:30已同步线上
 =============================================================

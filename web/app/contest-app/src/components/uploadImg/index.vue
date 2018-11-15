@@ -1,7 +1,8 @@
 <template>
   <div class="upload-img">
     <loading :show="show"></loading>
-    <input class="file-ipt" type="file" @change='add_img'accept="image/*" capture="camera">
+    <!--<input class="file-ipt" type="file" @change='add_img'accept="image/*" capture="camera">-->
+    <input class="file-ipt" type="file" @change='add_img'multiple>
   </div>
 </template>
 

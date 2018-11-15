@@ -198,6 +198,7 @@ class NodeController extends BaseController
         $currencyDetail->remark = '申请节点奖励';
         $currencyDetail->user_id = $data->user_id;
         $currencyDetail->relate_table = 'node';
+        $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
         $currencyDetail->relate_id = $data->id;
         $currencyDetail->amount = $node_type->gdt_reward;
         if (!$currencyDetail->save()) {
@@ -215,6 +216,7 @@ class NodeController extends BaseController
         }
 
         $data->status = BNode::STATUS_ON;
+        $data->examine_time = NOW_TIME;
         $data->status_remark = '已开启';
         if (!$data->save()) {
             $transaction->rollBack();
@@ -1050,6 +1052,7 @@ class NodeController extends BaseController
         $currencyDetail->remark = '申请节点奖励';
         $currencyDetail->user_id = $user->id;
         $currencyDetail->relate_table = 'node';
+        $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
         $currencyDetail->relate_id = $node->id;
         $currencyDetail->amount = $node_type->gdt_reward;
 

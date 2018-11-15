@@ -10,13 +10,28 @@
           <div class="tip">
             提示：尊敬的客户您好！转积分时请认准公司公众号中唯一指定的钱包地址，并且请您在转积分的时候确认扫描二维码出来的钱包地址是否与我们标注的钱包地址一致。
           </div>
+          <ul class="address-btn">
+            <router-link tag="li" :to="{path:'/personal/applynode/address',query:{name:'GRT'}}" class="grt">
+              官方GRT钱包
+              <br>
+              收款地址
+            </router-link>
+            <router-link tag="li" :to="{path:'/personal/applynode/address',query:{name:'TT'}}" class="tt">
+              官方TT钱包
+              <br>
+              收款地址
+            </router-link>
+          </ul>
           <dl class="condition">
             <dt>
               报名节点条件：
               <br>
-              节点竞选以“贵人通+茶通+美食通”即“三通”总个数为准，成为各节点条件分别为：
+              节点竞选以“贵人通+茶通”总个数为准，成为各节点条件分别为：
             </dt>
-            <dd v-for="item in conditionDts">{{item}}</dd>
+            <dd class="normal" v-for="item in conditionDts">{{item}}</dd>
+            <dd class="added">
+              （如您现在有美食通可按照原条件要求的三通数量转入）
+            </dd>
           </dl>
           <div class="form">
             <div class="form-item">
@@ -96,6 +111,7 @@
           </div>
         </div>
       </div>
+      <router-view></router-view>
     </div>
   </slide>
 </template>
@@ -115,10 +131,10 @@
     data() {
       return {
         conditionDts: [
-          '超级节点：45000GRT+8750TT+6500BPT',
-          '高级节点：18000GRT+3500TT+2600BPT',
-          '中级节点：7200GRT+1400TT+1040BPT',
-          '动力节点：1800GRT+350TT+260BPT'
+          '超级节点：48250GRT+8750TT',
+          '高级节点：19300GRT+3500TT',
+          '中级节点：7720GRT+1400TT',
+          '动力节点：1930GRT+350TT'
         ],
         form: {
           type_id: '',
@@ -235,10 +251,28 @@
         padding 10px 0
         color $color-theme
         font-size $font-size-small-s
+      .address-btn
+        display flex
+        justify-content space-between
+        margin-top 5px
+        margin-bottom 15px
+        li
+          width 48%
+          padding 10px 0
+          border-radius 10px
+          font-size $font-size-medium
+          text-align center
+          color white
+          line-height 1.25rem
+          box-shadow 0px 2px 6px 0px rgba(255,181,67,.5)
+        .grt
+          background #ff4800
+        .tt
+          background #ffb543
       .condition
         font-size $font-size-small-s
         margin-bottom 20px
-        dd
+        .normal
           &:before
             content ''
             margin-right 5px
@@ -246,6 +280,8 @@
             width 8px
             height 8px
             background $color-text-minor
+        .added
+          color $color-theme
       .form-item
         margin-bottom 15px
         ipt-pr(#959da6)

@@ -165,6 +165,10 @@ export let mainRouter = [
             path: 'submit',
             component: () => import('views/personal/node/submit'),
           },
+          {
+            path: 'address',
+            component: () => import('views/assets/collect/index'),
+          },
         ]
       },
       {

@@ -229,3 +229,6 @@ CREATE TABLE `gr_update_data` (
 
 ALTER TABLE `gr_node`
 ADD `update_time` int(11) unsigned NOT NULL DEFAULT '0';
+
+以上sql 2018-11-16 17:15已同步线上
+=============================================================

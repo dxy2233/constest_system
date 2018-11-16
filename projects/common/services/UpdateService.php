@@ -229,7 +229,7 @@ class UpdateService extends ServiceBase
             Yii::error(json_encode($msg), 'update');
             return false;
         } else {
-            echo '执行完成';
+            echo '执行完成'.PHP_EOL;
             Yii::info('执行成功', 'update');
             return true;
         }

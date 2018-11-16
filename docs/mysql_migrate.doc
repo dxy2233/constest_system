@@ -201,3 +201,28 @@ INSERT INTO `gr_sms_template`(`name`, `type`, `content`, `language`, `status`, `
 
 以上sql 2018-11-15 14:30已同步线上
 =============================================================
+
+
+CREATE TABLE `gr_update_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `table_name` varchar(64) NOT NULL COMMENT '表名',
+  `field_name` varchar(64) NOT NULL COMMENT '字段名',
+  `new_data` text NOT NULL COMMENT '新数据',
+  `old_data` text NOT NULL COMMENT '旧数据',
+  `data_id` int(11) NOT NULL COMMENT '数据ID',
+  `create_time` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='数据修改记录';
+
+
+CREATE TABLE `gr_update_data` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mobile` varchar(32) NOT NULL COMMENT '手机',
+  `grt` decimal(18,8) NOT NULL COMMENT '贵人通',
+  `tt` decimal(18,8) NOT NULL COMMENT '茶通',
+  `bpt` decimal(18,8) NOT NULL COMMENT '美食通',
+  `status` tinyint(4) NOT NULL COMMENT '执行状态',
+  `create_time` int(11) NOT NULL,
+  `update_time` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='节点质押数量修改原始数据';

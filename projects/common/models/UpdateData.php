@@ -32,7 +32,6 @@ class UpdateData extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['mobile', 'grt', 'tt', 'bpt', 'status', 'create_time', 'update_time'], 'required'],
             [['grt', 'tt', 'bpt'], 'number'],
             [['status', 'create_time', 'update_time'], 'integer'],
             [['mobile'], 'string', 'max' => 32],

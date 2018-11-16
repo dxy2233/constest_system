@@ -216,6 +216,9 @@ class UpdateService extends ServiceBase
                     $transaction->rollBack();
                     $msg[$user->id] = $v->getFirstErrorText();
                 }
+                UserService::resetCurrency($user->id, $currency_arr['grt']);
+                UserService::resetCurrency($user->id, $currency_arr['bpt']);
+                UserService::resetCurrency($user->id, $currency_arr['tt']);
                 $transaction->commit();
             }
         }

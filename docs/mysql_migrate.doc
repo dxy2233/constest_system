@@ -226,3 +226,6 @@ CREATE TABLE `gr_update_data` (
   `update_time` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='节点质押数量修改原始数据';
+
+ALTER TABLE `gr_node`
+ADD `update_time` int(11) unsigned NOT NULL DEFAULT '0';

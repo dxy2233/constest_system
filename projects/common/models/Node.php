@@ -68,6 +68,7 @@ class Node extends \common\dzbase\DzModel
             'status_remark' => Yii::t('app', '状态备注'),
             'logo' => Yii::t('app', 'LOGO'),
             'create_time' => Yii::t('app', '创建时间'),
+            'update_time' => Yii::t('app', '修改时间'),
         ];
     }
 }

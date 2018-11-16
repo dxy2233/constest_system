@@ -221,6 +221,10 @@ class NodeController extends BaseController
     public function actionApply()
     {
         $typeId = $this->pInt('type_id', 1);
+        $weixin = $this->pString('weixin');
+        if (!$weixin) {
+            return $this->respondJson(1, '微信号不能为空');
+        }
         $userModel = $this->user;
         $nodeModel = $userModel->node;
         if (!$userModel->is_identified) {

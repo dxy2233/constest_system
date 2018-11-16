@@ -30,7 +30,6 @@ class UpdateLog extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['table_name', 'field_name', 'new_data', 'old_data', 'create_time'], 'required'],
             [['new_data', 'old_data'], 'string'],
             [['create_time'], 'integer'],
             [['table_name', 'field_name'], 'string', 'max' => 64],
@@ -46,6 +45,7 @@ class UpdateLog extends \common\dzbase\DzModel
             'id' => 'ID',
             'table_name' => '表名',
             'field_name' => '字段名',
+            'data_id' => '数据ID',
             'new_data' => '新数据',
             'old_data' => '旧数据',
             'create_time' => 'Create Time',

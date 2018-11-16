@@ -86,7 +86,8 @@ class UpdateService extends ServiceBase
                         $msg[$user->id] = $val->getFirstErrorText();
                         break;
                     }
-                    if (!self::addUpdateLogs('user_recharge_withdraw', 'amount', (string)$old_data, (string)$val->amount, $val->id)) {
+                    $sql = '';
+                    if (!self::addUpdateLogs('user_recharge_withdraw', 'amount', (string)$old_data, (string)$val->amount, $val->id, $sql)) {
                         $transaction->rollBack();
                         $msg[$user->id] = '日志写入失败';
                         break;
@@ -96,7 +97,7 @@ class UpdateService extends ServiceBase
                         $msg[$user->id] = $detail->getFirstErrorText();
                         break;
                     }
-                    if (!self::addUpdateLogs('user_currency_detail', 'amount', (string)$old_data, (string)$val->amount, $detail->id)) {
+                    if (!self::addUpdateLogs('user_currency_detail', 'amount', (string)$old_data, (string)$val->amount, $detail->id, $sql)) {
                         $transaction->rollBack();
                         $msg[$user->id] = '日志写入失败';
                         break;
@@ -106,7 +107,7 @@ class UpdateService extends ServiceBase
                         $msg[$user->id] = $frozen->getFirstErrorText();
                         break;
                     }
-                    if (!self::addUpdateLogs('user_currency_frozen', 'amount', (string)$old_data, (string)$val->amount, $frozen->id)) {
+                    if (!self::addUpdateLogs('user_currency_frozen', 'amount', (string)$old_data, (string)$val->amount, $frozen->id, $sql)) {
                         $transaction->rollBack();
                         $msg[$user->id] = '日志写入失败';
                         break;
@@ -117,7 +118,7 @@ class UpdateService extends ServiceBase
                         $msg[$user->id] = $val->getFirstErrorText();
                         break;
                     }
-                    if (!self::addUpdateLogs('user_recharge_withdraw', 'all_data', (string)$old_data, 'delete', $val->id)) {
+                    if (!self::addUpdateLogs('user_recharge_withdraw', 'all_data', (string)json_encode($val->toArray()), 'delete', $val->id)) {
                         $transaction->rollBack();
                         $msg[$user->id] = '日志写入失败';
                         break;
@@ -127,7 +128,7 @@ class UpdateService extends ServiceBase
                         $msg[$user->id] = $detail->getFirstErrorText();
                         break;
                     }
-                    if (!self::addUpdateLogs('user_currency_detail', 'all_data', (string)$old_data, 'delete', $detail->id)) {
+                    if (!self::addUpdateLogs('user_currency_detail', 'all_data', (string)json_encode($detail->toArray()), 'delete', $detail->id)) {
                         $transaction->rollBack();
                         $msg[$user->id] = '日志写入失败';
                         break;
@@ -137,7 +138,7 @@ class UpdateService extends ServiceBase
                         $msg[$user->id] = $frozen->getFirstErrorText();
                         break;
                     }
-                    if (!self::addUpdateLogs('user_currency_frozen', 'all_data', (string)$old_data, 'delete', $frozen->id)) {
+                    if (!self::addUpdateLogs('user_currency_frozen', 'all_data', (string)json_encode($frozen->toArray()), 'delete', $frozen->id)) {
                         $transaction->rollBack();
                         $msg[$user->id] = '日志写入失败';
                         break;
@@ -159,20 +160,20 @@ class UpdateService extends ServiceBase
                     if ($v->$name != 0) {
                         $res = NodeService::addCurrencyLogs($user->id, $val, $v->$name, $node->id);
                         $w = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点充币', 'currency_id' => $val])->one();
-                        if (!self::addUpdateLogs('user_recharge_withdraw', 'all_data', (string)$old_data, 'add', $w->id)) {
+                        if (!self::addUpdateLogs('user_recharge_withdraw', 'all_data', (string)json_encode($w->toArray()), 'add', $w->id)) {
                             $transaction->rollBack();
                             $msg[$user->id] = '日志写入失败';
                             break;
                         }
                         $d = BUserCurrencyDetail::find()->where(['relate_table' => 'user_recharge_withdraw', 'currency_id' => $val, 'relate_id' => $w->id])->one();
 
-                        if (!self::addUpdateLogs('user_currency_detail', 'all_data', (string)$old_data, 'add', $d->id)) {
+                        if (!self::addUpdateLogs('user_currency_detail', 'all_data', (string)json_encode($d->toArray()), 'add', $d->id)) {
                             $transaction->rollBack();
                             $msg[$user->id] = '日志写入失败';
                             break;
                         }
                         $f = BUserCurrencyFrozen::find()->where(['type' => BUserCurrencyFrozen::$TYPE_ELECTION, 'currency_id' => $val, 'relate_id' => $node->id])->one();
-                        if (!self::addUpdateLogs('user_currency_frozen', 'all_data', (string)$old_data, 'add', $f->id)) {
+                        if (!self::addUpdateLogs('user_currency_frozen', 'all_data', (string)json_encode($f->toArray()), 'add', $f->id)) {
                             $transaction->rollBack();
                             $msg[$user->id] = '日志写入失败';
                             break;
@@ -230,7 +231,7 @@ class UpdateService extends ServiceBase
         }
     }
 
-    public static function addUpdateLogs($table_name, $field_name, $old_data, $new_data, $data_id)
+    public static function addUpdateLogs($table_name, $field_name, $old_data, $new_data, $data_id, $sql = '')
     {
         $log = new BUpdateLog();
         $log->table_name = $table_name;
@@ -238,6 +239,7 @@ class UpdateService extends ServiceBase
         $log->old_data = $old_data;
         $log->new_data = $new_data;
         $log->data_id = $data_id;
+        // $log->sql = $sql;
         $log->create_time = time();
         $return =  $log->save();
         if (!$return) {

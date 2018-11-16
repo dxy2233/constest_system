@@ -523,20 +523,23 @@ class UserController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
         }
-        $code = $this->pString('code');
+        $code = $this->pString('code', '');
         $user->username = $name;
         $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
         if (empty($recommend)) {
-            $id = UserService::validateRemmendCode($code);
-            if ($id === $userId) {
-                return $this->respondJson(1, '推荐人不能是自己');
+            if($code != ''){
+                $id = UserService::validateRemmendCode($code);
+                if ($id === $userId) {
+                    return $this->respondJson(1, '推荐人不能是自己');
+                }
+                $user_recommend = new BUserRecommend();
+                $user_recommend->user_id = $user->id;
+                $user_recommend->parent_id = $id;
+                if (!$user_recommend->save()) {
+                    return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+                }
             }
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
-                return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
-            }
+            
         } else {
             return $this->respondJson(1, '用户已有推荐人');
         }

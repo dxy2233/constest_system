@@ -10,6 +10,7 @@ import {Icon, XHeader, XButton, LoadMore} from 'vux'
 // import VueQuickLoadmore from 'vue-quick-loadmore';
 import appHeader from 'components/appHeader/index'
 import loadMore from 'components/loadmore/index'
+import {cancelLogin} from 'js/mixin'
 
 import VueScroller from 'vue-scroller'
 Vue.use(VueScroller)
@@ -27,6 +28,20 @@ Vue.use(ToastPlugin, {time: 1500, type: 'text', width: '12em'})
 FastClick.attach(document.body)
 
 Vue.config.productionTip = false
+
+router.beforeEach((to, from, next) => {
+  console.log(store.state.payPsw)
+  if (store.state.loginMsg) {
+    if (to.path === '/login'){
+      cancelLogin()
+    }
+  }
+  if (!store.state.loginMsg && (to.path.includes('assets')||to.path.includes('personal'))) {
+    next({ path: '/login' })
+  } else {
+    next()
+  }
+});
 
 /* eslint-disable no-new */
 new Vue({

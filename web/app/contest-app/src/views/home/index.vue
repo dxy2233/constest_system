@@ -6,7 +6,7 @@
         <p>
           <router-link to="/home/vote" tag="span">
             <img src="/static/images/vote.png" alt="" class="vote-img">
-            投票
+            我要投票
           </router-link>
           <router-link to="/home/contribute" tag="span">贡献榜</router-link>
         </p>
@@ -271,9 +271,13 @@
       padding 15px 0
       overflow visible
     .notice-swiper-box
+      position relative
       padding-bottom 15px
+      margin-bottom 10px
       .and-more
-        float right
+        position absolute
+        right 0
+        bottom 3px
         color $color-text-sub
         font-size $font-size-small-s
       .img-box

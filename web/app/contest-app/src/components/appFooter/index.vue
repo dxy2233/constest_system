@@ -68,8 +68,6 @@
       align-items center
       .icon
         font-size 22px
-      p
-        margin-top 5px
     .act
       color $color-theme
 </style>

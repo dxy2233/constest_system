@@ -12,6 +12,7 @@ use common\models\business\BCurrency;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserCurrencyDetail;
+use Yii;
 
 class UpdateService extends ServiceBase
 {

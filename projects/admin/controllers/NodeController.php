@@ -948,6 +948,7 @@ class NodeController extends BaseController
             // $other->recommend_name = $recommend_name;
             $other->grt_address = $grt_address;
             $other->tt_address = $tt_address;
+            $other->scenarios = BUserOther::SCENARIO_ADDRESS;
             $other->bpt_address = $bpt_address;
             if (!$other->save()) {
                 $transaction->rollBack();

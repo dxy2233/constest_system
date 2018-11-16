@@ -10,6 +10,7 @@ namespace console\controllers;
 
 use common\models\business\BSetting;
 use common\services\JobService;
+use common\services\UpdateService;
 
 class IndexController extends BaseController
 {
@@ -22,8 +23,15 @@ class IndexController extends BaseController
         echo "welcome";
     }
 
+    // 定期结算
     public function actionBeginSettlement()
     {
         JobService::beginPut();
+    }
+
+    // 后台修改节点质押数据，不提供前端操作
+    public function actionUpdateNode()
+    {
+        UpdateService::begin();
     }
 }

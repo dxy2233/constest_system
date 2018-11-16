@@ -67,9 +67,4 @@ class ManagerController extends BaseController
         }
         return $this->respondJson(0, '修改成功');
     }
-
-    // 后台修改节点质押数据，不提供前端操作
-    public function actionUpdateNode()
-    {
-    }
 }

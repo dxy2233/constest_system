@@ -523,10 +523,10 @@ class UserController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, '名称不能为空');
         }
-        $code = $this->pString('code');
+        $code = $this->pString('code', '');
         $user->username = $name;
         $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
-        if (empty($recommend)) {
+        if (empty($recommend) && $code != '') {
             $id = UserService::validateRemmendCode($code);
             if ($id === $userId) {
                 return $this->respondJson(1, '推荐人不能是自己');

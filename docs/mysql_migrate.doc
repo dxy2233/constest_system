@@ -222,7 +222,7 @@ CREATE TABLE `gr_update_data` (
   `tt` decimal(18,8) NOT NULL COMMENT '茶通',
   `bpt` decimal(18,8) NOT NULL COMMENT '美食通',
   `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '执行状态',
-  `create_time` int(11),
-  `update_time` int(11),
+  `create_time` int(11) NOT NULL DEFAULT 0,
+  `update_time` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='节点质押数量修改原始数据';

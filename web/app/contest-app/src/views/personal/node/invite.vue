@@ -4,7 +4,7 @@
       <app-header></app-header>
       <div class="invite-content">
         <div class="avatar">
-          <img :src="nodeInfo.logo" alt="" class="">
+          <img :src="nodeInfo.logo||'/static/images/node-avatar-default.jpg'" alt="" class="">
         </div>
         <h6>{{nodeInfo.name}}</h6>
         <h1>邀请您来为我投票</h1>
@@ -85,6 +85,7 @@
       border-radius 50%
       margin-top -45px
       overflow hidden
+      background white
       img
         width 100%
         height 100%

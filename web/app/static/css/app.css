@@ -3722,9 +3722,6 @@ input.weui-btn_plain-default {
 .app-footer .footer-item .icon {
   font-size: 22px;
 }
-.app-footer .footer-item p {
-  margin-top: 5px;
-}
 .app-footer .act {
   color: #ff4800;
 }/**
@@ -6195,4 +6192,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=cfec336e9545721b9b1fa72008e9c5b9*/
+/*# sourceMappingURL=app.css.map?v=942f7f6a1aa79d185216004f9025db39*/

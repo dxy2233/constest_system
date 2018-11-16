@@ -88,6 +88,8 @@
           <span class="text">收货地址</span>
           <x-icon type="ios-arrow-right"></x-icon>
         </router-link>
+      </ul>
+      <ul class="link-list">
         <router-link tag="li" to="/personal/service">
           <span class="text">在线客服</span>
           <x-icon type="ios-arrow-right"></x-icon>

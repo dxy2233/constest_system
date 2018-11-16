@@ -765,6 +765,8 @@ class NodeController extends BaseController
         $quota = \Yii::$app->request->post('quota', null);
         if ($quota !== '' && $quota !== null) {
             $data->quota = round(floatval($quota), 2);
+        } else {
+            $data->quota = null;
         }
         $data->logo = $logo;
         $data->name = $name;

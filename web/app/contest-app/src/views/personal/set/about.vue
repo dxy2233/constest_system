@@ -11,7 +11,7 @@
         <div class="about-content">
           <img src="/static/images/gst-logo.png" alt="">
           <p class="gray">v1.0.0.0</p>
-          <ul class="contact">
+          <!--<ul class="contact">
             <li>
               <div class="">联系邮箱</div>
               <div class="gray">jdjxkf@163.com</div>
@@ -24,7 +24,7 @@
               <div class="">客服电话2</div>
               <div class="gray">139 8436 3689</div>
             </li>
-          </ul>
+          </ul>-->
         </div>
 
       </div>

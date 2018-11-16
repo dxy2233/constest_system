@@ -88,6 +88,10 @@
           <span class="text">收货地址</span>
           <x-icon type="ios-arrow-right"></x-icon>
         </router-link>
+        <router-link tag="li" to="/personal/service">
+          <span class="text">在线客服</span>
+          <x-icon type="ios-arrow-right"></x-icon>
+        </router-link>
         <router-link tag="li" to="/personal/set">
           <span class="text">设置</span>
           <x-icon type="ios-arrow-right"></x-icon>

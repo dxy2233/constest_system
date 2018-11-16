@@ -254,6 +254,10 @@ export let mainRouter = [
         ]
       },
       {
+        path:'service',
+        component: () => import('views/personal/service/index'),
+      },
+      {
         path:'address',
         component: () => import('views/personal/address/index'),
         children:[

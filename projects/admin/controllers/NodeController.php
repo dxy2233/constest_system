@@ -212,7 +212,7 @@ class NodeController extends BaseController
         $log = NodeService::addNodeMakeLogs($data);
         if ($log->code != 0) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $log->content);
+            return $this->respondJson(1, '注册失败'.$log->content);
         }
 
         $data->status = BNode::STATUS_ON;
@@ -875,7 +875,7 @@ class NodeController extends BaseController
             $user->recommend_code = $recommend_code;
             if (!$user->save()) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
+                return $this->respondJson(1, '注册失败'.$user->getFirstErrorText());
             }
             $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON, 'recharge_status' => BCurrency::$RECHARGE_STATUS_ON])->all();
             foreach ($currency as $v) {
@@ -927,7 +927,7 @@ class NodeController extends BaseController
 
         if (!$node->save()) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $node->getFirstErrorText());
+            return $this->respondJson(1, '注册失败'.$node->getFirstErrorText());
         }
 
         $weixin = $this->pString('weixin', '');
@@ -948,10 +948,11 @@ class NodeController extends BaseController
             // $other->recommend_name = $recommend_name;
             $other->grt_address = $grt_address;
             $other->tt_address = $tt_address;
+            $other->scenario = BUserOther::SCENARIO_APPLY;
             $other->bpt_address = $bpt_address;
             if (!$other->save()) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $other->getFirstErrorText());
+                return $this->respondJson(1, '注册失败'.$other->getFirstErrorText());
             }
         }
         $code = $this->pString('code');
@@ -975,12 +976,12 @@ class NodeController extends BaseController
                         $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
                         if ($res->code != 0) {
                             $transaction->rollBack();
-                            return $this->respondJson(1, '注册失败', $res->msg());
+                            return $this->respondJson(1, '注册失败'.$res->msg());
                         }
                     }
                     if (!$user_recommend->save()) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                        return $this->respondJson(1, '注册失败'.$user_recommend->getFirstErrorText());
                     }
                 } elseif ($old_recommend->parent_id != $id) {
                     $transaction->rollBack();
@@ -990,19 +991,19 @@ class NodeController extends BaseController
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
                     }
 
                     $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
                     if ($res->code != 0) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $res->msg());
+                        return $this->respondJson(1, '注册失败'.$res->msg());
                     }
                 } else {// 有推荐关系且推荐人不是节点只修改对应node关系
                     $old_recommend->node_id = $node->id;
                     if (!$old_recommend->save()) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
                     }
                 }
             } else { // code为空时必定有推荐关系
@@ -1014,18 +1015,18 @@ class NodeController extends BaseController
                     $old_recommend->amount = $grt * $setting->value;
                     if (!$old_recommend->save()) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
                     }
 
                     $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
                     if ($res->code != 0) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $res->msg());
+                        return $this->respondJson(1, '注册失败'.$res->msg());
                     }
                 } else { // 其它情况只修改node 对应关系
                     if (!$old_recommend->save()) {
                         $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败', $old_recommend->getFirstErrorText());
+                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
                     }
                 }
             }
@@ -1034,7 +1035,7 @@ class NodeController extends BaseController
         $log = NodeService::addNodeMakeLogs($node);
         if ($log->code != 0) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $log->content);
+            return $this->respondJson(1, '注册失败'.$log->content);
         }
         // 赠送gdt
         $currencyDetail = new BUserCurrencyDetail();
@@ -1050,7 +1051,7 @@ class NodeController extends BaseController
 
         if (!$currencyDetail->save()) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $currencyDetail->getFirstErrorText());
+            return $this->respondJson(1, '注册失败'.$currencyDetail->getFirstErrorText());
         }
         //重算gdt
         UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));

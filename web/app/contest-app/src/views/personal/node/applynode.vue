@@ -28,8 +28,11 @@
               <img src="/static/images/apply/right.png" alt="" class="right-img">
             </div>
             <div class="contact">
-              <p>财富热线</p>
-              <h4>18586823227</h4>
+              <!--<p>财富热线</p>
+              <h4>18586823227</h4>-->
+              <router-link tag="div" class="button" to="/personal/service">
+                在线客服
+              </router-link>
             </div>
           </div>
         </div>
@@ -218,6 +221,15 @@
             padding 30px 0
             color #ff3ba1
             text-align center
+            .button
+              background url("/static/images/apply/button.png")
+              background-size 100% 100%
+              color white
+              text-align center
+              width 150px
+              margin 0 auto
+              line-height 45px
+              font-size $font-size-medium-x
             p
               font-size $font-size-medium-x
             h4

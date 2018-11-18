@@ -51,7 +51,8 @@ class SiteController extends BaseController
         ->select(['n.name', 'u.mobile', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota'])
         ->alias('u')
         ->joinWith(['node n' => function ($query) {
-            $query->where(['<>', 'n.status', BNode::STATUS_DEL]);
+            // $query->where(['<>', 'n.status', BNode::STATUS_DEL, BNode::STATUS_OFF]);
+            $query->where(['n.status' => BNode::STATUS_ON]);
             $query->joinWith(['nodeType nt'], false);
         }], false)
         ->where(['u.mobile' => $mobile])
@@ -91,7 +92,8 @@ class SiteController extends BaseController
             ->select(['n.name', 'u.mobile', 'nt.name type_name'])
             ->alias('u')
             ->joinWith(['node n' => function ($query) {
-                $query->where(['<>', 'n.status', BNode::STATUS_DEL]);
+                // $query->where(['<>', 'n.status', BNode::STATUS_DEL, BNode::STATUS_OFF]);
+                $query->where(['n.status' => BNode::STATUS_ON]);
                 $query->joinWith(['nodeType nt'], false);
             }], false)
             ->where(['u.mobile' => $mobileList])

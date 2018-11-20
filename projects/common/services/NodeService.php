@@ -440,7 +440,7 @@ class NodeService extends ServiceBase
 
     public static function getNodeQuota($mobile)
     {
-        $url = \Yii::$app->params['quotaAddress'];
+        $url = \Yii::$app->params['quotaAddress'].'/site/site/node-mobile';
         $token = \Yii::$app->params['quotaToken'];
         $request = FuncHelper::request($url, '', 'token='.$token.'&mobile[]='.$mobile);
         $return = json_decode($request, true);

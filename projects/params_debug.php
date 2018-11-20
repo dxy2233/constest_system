@@ -13,8 +13,8 @@ return [
 
 
     'imgAddress' => 'http://static.vguiren.com',
-    //获取用户已销售额度地址
-    'quotaAddress' => 'http://wx.dev.atshuyi.com/site/site/node-mobile',
+    //获取用户已销售额度域名
+    'quotaAddress' => 'http://wx.dev.atshuyi.com',
     //获取用户已销售额度token
     'quotaToken' => '2QST9d46soiQpf2Hug8i',
 

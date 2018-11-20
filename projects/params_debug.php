@@ -11,7 +11,12 @@ return [
     // 密码加密/解密串
     'authCodeKey' => '2QST9d46soiQpf2Hug8igL0ja0RdOYTk',
 
+
     'imgAddress' => 'http://static.vguiren.com',
+    //获取用户已销售额度域名
+    'quotaAddress' => 'http://wx.dev.atshuyi.com',
+    //获取用户已销售额度token
+    'quotaToken' => '2QST9d46soiQpf2Hug8i',
 
     'oss'=> [
         'ossServer' => 'http://oss-cn-hangzhou.aliyuncs.com', //服务器外网地址，深圳为 http://oss-cn-shenzhen.aliyuncs.com

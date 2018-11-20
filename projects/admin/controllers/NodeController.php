@@ -310,11 +310,25 @@ class NodeController extends BaseController
         $return['mobile'] = $user->mobile;
         $return['type_name'] = $node_type->name;
         $return['status_remark'] = $data->status_remark;
-
+        if ($data->quota === null) {
+            $return['quota'] = $node_type->quota;
+        } else {
+            $return['quota'] = $data->quota;
+        }
+        $res = NodeService::getNodeQuota($user->mobile);
+        $msg = '获取成功';
+        if ($res  && $res->code == 0) {
+            $return['use_quota'] = $return['quota'] - (float)$res->content;
+        } elseif ($res) {
+            $return['use_quota'] = $return['quota'];
+            $msg = $res->msg;
+        } else {
+            $return['use_quota'] = $return['quota'];
+        }
         $return['grt'] = $data->grt;
         $return['tt'] = $data->tt;
         $return['bpt'] = $data->bpt;
-        return $this->respondJson(0, '获取成功', $return);
+        return $this->respondJson(0, $msg, $return);
     }
 
     public function actionGetAddress()
@@ -367,6 +381,7 @@ class NodeController extends BaseController
         }
         return $this->respondJson(0, '获取成功', $identify);
     }
+
 
     // 获取投票明细
     public function actionGetVoteList()
@@ -551,11 +566,11 @@ class NodeController extends BaseController
         if ($max_candidate < $tenure['allCount']) {
             return $this->respondJson(1, '候选数量必须大于当前候选数量');
         }
-        $grt = $this->pInt('grt',0);
+        $grt = $this->pInt('grt', 0);
 
-        $tt = $this->pInt('tt',0);
+        $tt = $this->pInt('tt', 0);
 
-        $bpt = $this->pInt('bpt',0);
+        $bpt = $this->pInt('bpt', 0);
 
         $quota = $this->pInt('quota', 0);
         $gdt_reward = $this->pInt('gdtReward', 0);
@@ -852,7 +867,7 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '任职数量已达上限');
             }
         }
-        $grt = $this->pInt('grt',0);
+        $grt = $this->pInt('grt', 0);
 
         $tt = $this->pInt('tt', 0);
 

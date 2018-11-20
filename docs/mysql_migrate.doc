@@ -232,3 +232,6 @@ ADD `update_time` int(11) unsigned NOT NULL DEFAULT '0';
 
 以上sql 2018-11-16 17:15已同步线上
 =============================================================
+
+ALTER TABLE `gr_admin_user`
+ADD `role_id` int NOT NULL COMMENT '角色ID' AFTER `department`;

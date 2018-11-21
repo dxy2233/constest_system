@@ -9,8 +9,9 @@ use common\models\business\BNode;
 use common\models\business\BUser;
 use common\services\UploadService;
 use yii\filters\auth\HttpBearerAuth;
+use common\models\business\BNodeType;
 
-class SiteController extends BaseController
+class NodeController extends BaseController
 {
     public function behaviors()
     {
@@ -29,17 +30,97 @@ class SiteController extends BaseController
         return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
 
+    public function __construct($id, $module, $config = [])
+    {
+        parent::__construct($id, $module, $config);
+        if (!$this->validateToken()) {
+            die($this->respondJson(1, '接口错误'));
+        }
+    }
+
+    public function validateToken()
+    {
+        $token = \Yii::$app->request->post('token');
+        if ($token == \Yii::$app->params['quotaToken']) {
+            return true;
+        }
+        return false;
+    }
+
+    public function actionTypeList()
+    {
+        $typeDate = BNodeType::find()
+        ->select(['id', 'name'])
+        ->active()
+        ->asArray()
+        ->all();
+        
+        return $this->respondJson(0, '获取成功', ['list' => $typeDate]);
+    }
+
+    /**
+     * 所有节点列表
+     *
+     * @return void
+     */
+    public function actionList()
+    {
+        $search = $this->pArray('search');
+        $page = $this->pInt('page', 1);
+        $page_size = $this->pInt('page_size', 15);
+        
+        $typeId = $this->pInt('typeId', 0);
+        $nodeModel = BNode::find()
+        ->alias('n')
+        ->select(['n.id', 'n.name', 'u.mobile', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota', 'n.create_time'])
+        ->joinWith(['nodeType nt', 'user u'], false)
+        ->active(BNode::STATUS_ON, 'n.');
+        if ($typeId) {
+            $nodeModel->where(['n.type_id' => $typeId]);
+        }
+        // 执行搜索条件查询以及排序
+        foreach ($search as $key => $val) {
+            if (in_array($key, ['page', 'page_size'])) {
+                ${$key} = $val;
+                continue;
+            }
+            if (in_array($key, ['mobile'])) {
+                $key = 'u.'.$key; // 指定字段查询 用户字段
+                $nodeModel->andFilterWhere(['like', $key, $val]);
+            } elseif ($key != 'sort') {
+                $key = 'n.'.$key; // 默认查询节点字段
+                $nodeModel->andFilterWhere([$key => $val]);
+            }
+            if ($key == 'sort') {
+                $sort = SORT_DESC;
+                if (substr($val, 0, 1) == '-') {
+                    $val = substr($val, 1);
+                    $sort = SORT_ASC;
+                }
+                $nodeModel->orderBy([$val => $sort]);
+                continue;
+            }
+        }
+        $count = $nodeModel->count();
+        $nodeData = $nodeModel->page($page, $page_size)
+        ->asArray()
+        ->all();
+        $data = [
+            'page' => $page,
+            'page_size' => $page_size,
+            'count' => $count,
+            'list' => $nodeData
+        ];
+        return $this->respondJson(0, '获取成功', $data, false);
+    }
+
     /**
      * Undocumented function
      *
      * @return void
      */
-    public function actionNode()
+    public function actionIndex()
     {
-        $token = $this->pString('token');
-        if ($token !== '2QST9d46soiQpf2Hug8i') {
-            return $this->respondJson(1, '接口错误');
-        }
         $mobile = $this->pString('mobile');
         if (!$mobile) {
             return $this->respondJson(1, '手机号不能为空');
@@ -69,12 +150,8 @@ class SiteController extends BaseController
      *
      * @return void
      */
-    public function actionBatchNode()
+    public function actionBatch()
     {
-        $token = $this->pString('token');
-        if ($token !== '2QST9d46soiQpf2Hug8i') {
-            return $this->respondJson(1, '接口错误');
-        }
         $mobileList = \Yii::$app->request->post('mobile');
         if (empty($mobileList)) {
             return $this->respondJson(1, '手机号不能为空');

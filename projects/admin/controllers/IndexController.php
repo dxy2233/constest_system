@@ -105,6 +105,7 @@ class IndexController extends \common\dzbase\DzController
         }
         return $str;
     }
+    
     /**
      * 错误返回
      *

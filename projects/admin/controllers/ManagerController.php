@@ -205,6 +205,42 @@ class ManagerController extends BaseController
         return  $this->respondJson(0, '获取成功', $data);
     }
 
+    // 停用管理员
+    public function actionAdminOff()
+    {
+        $id = $this->pInt('id');
+        if (empty($id)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $admin_user = BAdminUser::find()->where(['id' => $id])->one();
+        if (empty($admin_user)) {
+            return $this->respondJson(1, '管理员不存在');
+        }
+        $admin_user->status = BAdminUser::STATUS_OFF;
+        if (!$admin_user->save()) {
+            return $this->respondJson(1, '修改失败', $admin_user->getFirstErrorText());
+        }
+        return $this->respondJson(0, '修改成功');
+    }
+
+    // 启用管理员
+    public function actionAdminOn()
+    {
+        $id = $this->pInt('id');
+        if (empty($id)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $admin_user = BAdminUser::find()->where(['id' => $id])->one();
+        if (empty($admin_user)) {
+            return $this->respondJson(1, '管理员不存在');
+        }
+        $admin_user->status = BAdminUser::STATUS_ON;
+        if (!$admin_user->save()) {
+            return $this->respondJson(1, '修改失败', $admin_user->getFirstErrorText());
+        }
+        return $this->respondJson(0, '修改成功');
+    }
+
     // 获取单个角色的权限
     public function actionGetRoleRuleList()
     {

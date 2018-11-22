@@ -42,7 +42,7 @@ export default {
 
     },
     search() {
-      console.log(this.searchData);
+      // console.log(this.searchData);
     },
     sortChange() {
 

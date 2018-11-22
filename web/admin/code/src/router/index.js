@@ -156,6 +156,45 @@ export const constantRouterMap = [
     ]
   },
 
+  {
+    path: '/member',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'Member',
+        component: () => import('@/views/member/index'),
+        meta: { title: '成员列表', icon: '单笔转账' }
+      }
+    ]
+  },
+
+  {
+    path: '/purview',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'Purview',
+        component: () => import('@/views/purview/index'),
+        meta: { title: '权限管理', icon: '单笔转账' }
+      }
+    ]
+  },
+
+  {
+    path: '/log',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'Log',
+        component: () => import('@/views/log/index'),
+        meta: { title: '操作日志', icon: '单笔转账' }
+      }
+    ]
+  },
+
   { path: '*', redirect: '/404', hidden: true }
 ]
 

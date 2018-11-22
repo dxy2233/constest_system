@@ -212,7 +212,7 @@ class NodeController extends BaseController
         $log = NodeService::addNodeMakeLogs($data);
         if ($log->code != 0) {
             $transaction->rollBack();
-            return $this->respondJson(1, '注册失败'.$log->content);
+            return $this->respondJson(1, '审核失败'.$log->content);
         }
 
         $data->status = BNode::STATUS_ON;
@@ -221,6 +221,14 @@ class NodeController extends BaseController
         if (!$data->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        $recommend = BUserRecommend::find()->where(['user_id' => $data->user_id])->one();
+        if($recommend){
+            $recommend->node_id = $data->id;
+            if (!$recommend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
+            }
         }
         // 发送短信通知用户
         $user = BUser::find()->where(['id' => $data->user_id])->one();

@@ -148,6 +148,7 @@ class UserController extends BaseController
         }, 'user u'], false);
         $data['count'] = $recommendModel->count();
         $data['list'] = $recommendModel
+        ->orderBy(['r.create_time' => SORT_DESC])
         ->page($page, $pageSize)
         ->asArray()->all();
         foreach ($data['list'] as &$recommend) {

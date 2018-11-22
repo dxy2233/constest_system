@@ -66,10 +66,10 @@ class NodeController extends BaseController
     public function actionList()
     {
         $search = $this->pArray('search');
-        $page = $this->pInt('page', 1);
+        $page = $this->pInt('page', 0);
         $page_size = $this->pInt('page_size', 15);
         
-        $typeId = $this->pInt('typeId', 0);
+        $typeId = $this->pInt('type_id', 0);
         $nodeModel = BNode::find()
         ->alias('n')
         ->select(['n.id', 'n.name', 'u.mobile', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota', 'n.create_time'])
@@ -102,8 +102,10 @@ class NodeController extends BaseController
             }
         }
         $count = $nodeModel->count();
-        $nodeData = $nodeModel->page($page, $page_size)
-        ->asArray()
+        if ($page) {
+            $nodeModel->page($page, $page_size);
+        }
+        $nodeData = $nodeModel->asArray()
         ->all();
         $data = [
             'page' => $page,

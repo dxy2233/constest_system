@@ -66,7 +66,7 @@ class NodeController extends BaseController
     public function actionList()
     {
         $search = $this->pArray('search');
-        $page = $this->pInt('page', 0);
+        $page = $this->pInt('page', 1);
         $page_size = $this->pInt('page_size', 15);
         
         $typeId = $this->pInt('type_id', 0);

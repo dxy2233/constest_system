@@ -34,10 +34,10 @@
           <x-button type="warn">支持TA</x-button>
         </div>
       </div>-->
-      <div class="node-details-content">
+      <div class="node-details-content" v-if="nodeInfo">
         <div class="top" :style="bgStyle">
           <div class="img">
-            <img v-if="nodeInfo.logo" :src="nodeInfo.logo" alt="" class="">
+            <img :src="nodeInfo.logo||'/static/images/node-avatar-default.jpg'" alt="" class="">
           </div>
           <p class="name">{{nodeInfo.name}}</p>
           <span class="sign right-sign" v-if="nodeInfo.isTenure">任职</span>

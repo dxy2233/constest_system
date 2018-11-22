@@ -8,8 +8,9 @@
         </app-header>
         <div class="node-details-content">
           <div class="top" :style="bgStyle">
-            <img :src="myNodeInfo.logo||'/static/images/node-avatar-default.jpg'" alt="" class="avatar-icon img">
-            <!--<img src="/static/images/node-avatar-default.jpg" alt="">-->
+            <div class="img">
+              <img :src="myNodeInfo.logo||'/static/images/node-avatar-default.jpg'" alt="" class="">
+            </div>
             <p class="name">{{myNodeInfo.name}}</p>
             <span class="sign right-sign" v-if="myNodeInfo.isTenure">任职</span>
             <span class="sign left-sign" v-if="myNodeInfo.typeName">{{myNodeInfo.typeName}}</span>
@@ -133,6 +134,10 @@
           width 85px
           height 85px
           border-radius 50%
+          overflow hidden
+          img
+            width 100%
+            height 100%
         .sign
           position absolute
           top 20px

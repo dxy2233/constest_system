@@ -1,7 +1,7 @@
 <template>
   <div class="sel">
     <div class="sel-box" @click="showPop=true">
-      <input type="text" :value="selectedLabel" :placeholder="placeholder">
+      <input type="text" :value="selectedLabel" :placeholder="placeholder" readonly>
       <x-icon type="ios-arrow-down"></x-icon>
     </div>
     <div class="popup">
@@ -93,6 +93,7 @@
         this.selected = this.select
         this.selectedLabel = this.dataList[idx][this.label]
       }*/
+      this.setDefault()
     },
     watch:{
       select(v){

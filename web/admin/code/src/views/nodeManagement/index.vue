@@ -100,6 +100,8 @@
             <div class="row"> <span>BPT钱包地址</span> {{ nodeInfoOther.bptAddress | noContent }} </div>
             <div class="row"> <span>质押TT数量</span> {{ nodeInfoOther.tt | noContent }} </div>
             <div class="row"> <span>TT钱包地址</span> {{ nodeInfoOther.ttAddress | noContent }} </div>
+            <div class="row"> <span>销售配额</span> {{ nodeInfoOther.quota | noContent }} </div>
+            <div class="row"> <span>剩余销售配额</span> {{ nodeInfoOther.useQuota | noContent }} </div>
           </el-tab-pane>
           <el-tab-pane label="节点信息" name="0">
             <p style="color:#888;">logo</p>
@@ -380,12 +382,6 @@
           <el-form-item label="微信">
             <el-input v-model="addNodeData.weixin"/>
           </el-form-item>
-          <!-- <el-form-item prop="recommend_name" label="推荐人姓名">
-            <el-input v-model="addNodeData.recommend_name"/>
-          </el-form-item>
-          <el-form-item prop="recommend_mobile" label="推荐人手机号">
-            <el-input v-model="addNodeData.recommend_mobile"/>
-          </el-form-item> -->
           <el-form-item prop="type_id" label="节点类型">
             <el-select v-model="addNodeData.type_id" placeholder="请选择" @change="recommendSelect">
               <el-option
@@ -875,6 +871,7 @@ export default {
         this.nodeInfoBase.desc, this.nodeInfoBase.scheme, this.nodeInfoBase.quota).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.init()
+        this.changeTabs({ name: this.activeName })
       })
     },
     // 打开节点设置

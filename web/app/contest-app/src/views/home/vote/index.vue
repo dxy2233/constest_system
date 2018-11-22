@@ -168,13 +168,6 @@
         })
       },
       pageInt() {
-        if (!this.loginMsg) {
-          this.$router.push({
-            path: `/login`
-          })
-          return
-        }
-
         if (!this.typeList.length) {
           this.getTypeList()
         }

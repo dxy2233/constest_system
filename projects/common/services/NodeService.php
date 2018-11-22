@@ -437,4 +437,55 @@ class NodeService extends ServiceBase
         UserService::resetCurrency($user_id, $currency_id);
         return new FuncResult(0, '模拟完成');
     }
+
+    public static function getNodeQuota($mobile)
+    {
+        $url = \Yii::$app->params['quotaAddress'].'/site/site/node-mobile';
+        $token = \Yii::$app->params['quotaToken'];
+        $request = FuncHelper::request($url, '', 'token='.$token.'&mobile[]='.$mobile);
+        $return = json_decode($request, true);
+        if ($return['code'] != 0) {
+            return $return;
+        }
+        if (!is_array($mobile)) {
+            foreach ($return['content'] as $k => $v) {
+                if ($k == $mobile) {
+                    return new FuncResult(0, '获取成功', $v);
+                }
+            }
+        } else {
+            return $return;
+        }
+    }
+
+    public static function putNodeData($mobile)
+    {
+        $user = BUser::find()->where(['mobile' => $mobile])->one();
+        if (!$user) {
+            return new FuncResult(1, '用户不存在');
+        }
+        $node = BNode::find()->where(['user_id' => $user->id])->one();
+        if (!$node) {
+            return new FuncResult(1, '节点不存在');
+        }
+        $node_type = BNodeType::find()->where(['id' => $node->type_id])->one();
+        $recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
+        $identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
+        $return = [];
+        $return['mobile'] = $mobile;
+        $return['node_type'] = $node_type->name;
+        if ($recommend) {
+            $recommend_user = BUser::find()->BUser::find()->where(['id' => $recommend->parent_id])->one();
+            $return['recommend_mobile'] = $recommend_user->mobile;
+        } else {
+            $return['recommend_mobile'] = '无';
+        }
+        if ($identify) {
+            $return['real_name'] = $identify->realname;
+            $return['number'] = $identify->number;
+        } else {
+            $return['real_name'] = '';
+            $return['number'] = '未填写';
+        }
+    }
 }

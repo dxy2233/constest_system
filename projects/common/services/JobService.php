@@ -35,6 +35,7 @@ class JobService extends ServiceBase
                 $put = true;
             }
         }
+        Yii::info('已执行', 'history');
     }
 
     // 生成快照

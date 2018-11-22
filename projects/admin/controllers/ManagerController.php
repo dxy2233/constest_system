@@ -81,6 +81,9 @@ class ManagerController extends BaseController
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');
         $role_id = $this->pInt('roleId', 0);
+        if (empty($role_id)) {
+            return $this->respondJson(1, 'role_id不能为空');
+        }
         $status = $this->pInt('status', 1);
         $admin_user = new BAdminUser();
         $admin_user->name = $name;
@@ -112,6 +115,9 @@ class ManagerController extends BaseController
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');
         $role_id = $this->pInt('roleId', 0);
+        if (empty($role_id)) {
+            return $this->respondJson(1, 'role_id不能为空');
+        }
         $status = $this->pInt('status', 1);
         $admin_user = BAdminUser::find()->where(['id' => $id])->one();
         if (empty($admin_user)) {
@@ -176,6 +182,8 @@ class ManagerController extends BaseController
         if ($search_name != '') {
             $find->andWhere(['or',['likg', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
         }
+        $page = $this->pInt('page', 1);
+        $find->page($page);
         $role = BAdminRole::find()->where(['status' => BAdminRole::STATUS_ON])->asArray()->all();
         $role_id = [];
         foreach ($role as $v) {
@@ -186,6 +194,7 @@ class ManagerController extends BaseController
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
             $v['role_name'] = $role_id[$v['role_id']];
+            $v['status'] = BAdminUser::getStatus($v['status']);
         }
         return  $this->respondJson(0, '获取成功', $data);
     }

@@ -14,21 +14,6 @@ export function getUserList(searchName, str_time, end_time, page, order) {
     }
   })
 }
-// export function getUserListExcel(download_code, url) {
-//   return request({
-//     // url: '/user/download',
-//     url: url,
-//     // url: 'http://localhost:3000/index',
-//     // url: 'http://admin.contest_system.local/index/test',
-//     // url: 'http://admin.contest_system.local/index/index',
-//     method: 'get',
-//     responseType: 'blob',
-//     // responseType: 'arraybuffer',
-//     data: {
-//       download_code
-//     }
-//   })
-// }
 
 // tabs基础信息
 export function getUserBase(userId) {

@@ -28,15 +28,28 @@ export const constantRouterMap = [
   {
     path: '/',
     component: Layout,
-    redirect: '/user',
-    name: '用户管理',
+    redirect: '/admin',
+    name: '统计报表',
     // hidden: true,
     children: [{
-      path: 'user',
-      name: 'UserManagement',
-      component: () => import('@/views/userManagement/index'),
-      meta: { title: '用户管理', icon: '用户管理' }
+      path: 'admin',
+      name: 'Admin',
+      component: () => import('@/views/admin/index'),
+      meta: { title: '统计报表', icon: '用户管理' }
     }]
+  },
+
+  {
+    path: '/user',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'UserManagement',
+        component: () => import('@/views/userManagement/index'),
+        meta: { title: '用户管理', icon: '用户管理' }
+      }
+    ]
   },
 
   {

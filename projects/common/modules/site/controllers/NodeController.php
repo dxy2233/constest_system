@@ -109,7 +109,7 @@ class NodeController extends BaseController
         ->all();
         $data = [
             'page' => $page,
-            'page_size' => $page_size,
+            'page_size' => $page ? $page_size : count($nodeData),
             'count' => $count,
             'list' => $nodeData
         ];

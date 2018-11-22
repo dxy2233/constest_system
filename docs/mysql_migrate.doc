@@ -232,3 +232,31 @@ ADD `update_time` int(11) unsigned NOT NULL DEFAULT '0';
 
 以上sql 2018-11-16 17:15已同步线上
 =============================================================
+
+ALTER TABLE `gr_admin_user`
+ADD `role_id` int NOT NULL COMMENT '角色ID' AFTER `department`;
+
+CREATE TABLE `gr_admin_rule` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `url` text COMMENT '路由地址',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '权限名称',
+  `parent_id` int(11) NOT NULL DEFAULT '0' COMMENT '上级权限ID',
+  `create_time` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='管理员权限表';
+
+
+CREATE TABLE `gr_admin_role` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '角色名',
+  `rule_list` text COMMENT '权限列表',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 0：禁用 1：启用',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='角色表';
+
+
+ALTER TABLE `gr_admin_user`
+CHANGE `real_name` `real_name` varchar(45) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '姓名' AFTER `password`,
+CHANGE `email` `email` varchar(45) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '邮箱' AFTER `real_name`,
+CHANGE `department` `department` varchar(45) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '部门' AFTER `email`,
+CHANGE `role_id` `role_id` int(11) NOT NULL DEFAULT '0' COMMENT '角色ID' AFTER `department`;

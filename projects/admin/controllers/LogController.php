@@ -35,7 +35,6 @@ class LogController extends BaseController
 
         return ArrayHelper::merge($parentBehaviors, $behaviors);
     }
-    // 数据统计
     public function actionIndex()
     {
         $username = $this->pString('username');

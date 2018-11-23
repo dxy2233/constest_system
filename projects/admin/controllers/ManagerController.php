@@ -198,7 +198,7 @@ class ManagerController extends BaseController
     public function actionGetAdminList()
     {
         $search_name = $this->pString('searchName');
-        $find = BAdminUser::find()->where(['status' => BAdminUser::STATUS_ON]);
+        $find = BAdminUser::find();
         if ($search_name != '') {
             $find->andWhere(['or',['likg', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
         }

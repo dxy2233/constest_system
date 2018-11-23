@@ -77,25 +77,28 @@ class BaseController extends DzController
         if (\Yii::$app->user->id) {
             $this->user = \Yii::$app->user->identity;
             $this->user_id = \Yii::$app->user->id;
-
-            // 权限判断
-            $this_rule_str = \Yii::$app->request->getPathInfo();
             $my_rule = BAdminRole::find()->where(['id' => $this->user->role_id])->one();
-            $my_rule_list = json_decode($my_rule->rule_list, true);
-            $this_rule = BAdminRule::find()->where(['like', 'url', $this_rule_str])->one();
-            if ($this_rule && !in_array($this_rule->id, $my_rule_list)) {
-                if (YII_DEBUG) {
-                    header('Access-Control-Allow-Origin:*');
-                }
-                echo $this->respondJson(2, '您的权限不足');
-                exit();
-            } elseif ($this_rule) {
-                if ($this_rule->parent_id && !in_array($this_rule->parent_id, $my_rule_list)) {
+            if ($my_rule->id != 1) {
+                // 权限判断
+                $this_rule_str = \Yii::$app->request->getPathInfo();
+                
+            
+                $my_rule_list = json_decode($my_rule->rule_list, true);
+                $this_rule = BAdminRule::find()->where(['like', 'url', $this_rule_str])->one();
+                if ($this_rule && !in_array($this_rule->id, $my_rule_list)) {
                     if (YII_DEBUG) {
                         header('Access-Control-Allow-Origin:*');
                     }
                     echo $this->respondJson(2, '您的权限不足');
                     exit();
+                } elseif ($this_rule) {
+                    if ($this_rule->parent_id && !in_array($this_rule->parent_id, $my_rule_list)) {
+                        if (YII_DEBUG) {
+                            header('Access-Control-Allow-Origin:*');
+                        }
+                        echo $this->respondJson(2, '您的权限不足');
+                        exit();
+                    }
                 }
             }
         }

@@ -39,7 +39,7 @@ class StatisticsController extends BaseController
     {
         $user_login_num = BUser::find()->where(['>=', 'last_login_time',strtotime(date('Y-m-d'))])->count();
         $user_all_num = BUser::find()->where(['status' => BUser::$STATUS_ON])->count();
-        $repeat_login_num = BUserLog::find()->where(['type' => BUserLog::$TYPE_LOGIN])->andWhere(['>=', 'create_time',strtotime(date('Y-m-d'))])->groupBy(['user_id'])->having(['>', 'count(id)', 1])->count();
+        $repeat_login_num = BUserLog::find()->where(['type' => BUserLog::$TYPE_LOGIN])->andWhere(['>=', 'create_time',time()-3600*24*7])->groupBy(['user_id'])->having(['>', 'count(id)', 1])->count();
         $user_create_num = BUser::find()->where(['>=', 'create_time',strtotime(date('Y-m-d'))])->count();
         $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['status' => BVote::STATUS_ACTIVE])->andWhere(['>=', 'create_time',strtotime(date('Y-m-d'))])->asArray()->one();
         $vote_num = $vote['num'] ? $vote['num'] : "0";

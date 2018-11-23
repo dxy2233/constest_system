@@ -72,7 +72,7 @@ class NodeController extends BaseController
         $typeId = $this->pInt('type_id', 0);
         $nodeModel = BNode::find()
         ->alias('n')
-        ->select(['n.id', 'n.name', 'u.mobile', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota', 'n.create_time'])
+        ->select(['n.id', 'n.name', 'u.mobile', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota', 'n.status', 'n.create_time'])
         ->joinWith(['nodeType nt', 'user u'], false)
         ->active(BNode::STATUS_ON, 'n.');
         if ($typeId) {
@@ -84,10 +84,12 @@ class NodeController extends BaseController
                 ${$key} = $val;
                 continue;
             }
+            // 需要模糊查询的字段
             if (in_array($key, ['mobile'])) {
                 $key = 'u.'.$key; // 指定字段查询 用户字段
                 $nodeModel->andFilterWhere(['like', $key, $val]);
             } elseif ($key != 'sort') {
+                // 精准查询字段
                 $key = 'n.'.$key; // 默认查询节点字段
                 $nodeModel->andFilterWhere([$key => $val]);
             }
@@ -107,6 +109,10 @@ class NodeController extends BaseController
         }
         $nodeData = $nodeModel->asArray()
         ->all();
+        $nodeData = array_map(function ($item) {
+            $item['status_str'] = BNode::getStatus($item['status']);
+            return $item;
+        }, $nodeData);
         $data = [
             'page' => $page,
             'page_size' => $page ? $page_size : count($nodeData),

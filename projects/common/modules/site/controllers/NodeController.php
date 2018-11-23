@@ -74,7 +74,7 @@ class NodeController extends BaseController
         ->alias('n')
         ->select(['n.id', 'n.name', 'u.mobile', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota', 'n.status', 'n.create_time'])
         ->joinWith(['nodeType nt', 'user u'], false)
-        ->active(BNode::STATUS_ON, 'n.');
+        ->active([BNode::STATUS_ON, BNode::STATUS_OFF], 'n.');
         if ($typeId) {
             $nodeModel->where(['n.type_id' => $typeId]);
         }

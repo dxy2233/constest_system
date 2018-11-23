@@ -185,10 +185,10 @@
     },
     created() {
       let list = JSON.parse(localStorage.getItem('currencyList'))
+      let nL = []
       for (let item of  list){
         if (parseInt(item.withdrawStatus)){
-          this.currencyList.push(item)
-          // console.log(item.id ,this.$route.params.id,item.id === this.$route.params.id)
+          nL.push(item)
           if (item.id === this.$route.params.id){
             // console.log(item)
             this.form.id = item.id
@@ -197,7 +197,7 @@
           }
         }
       }
-      // this.currencyList = list
+      this.currencyList = nL
       // this.form.id='1'
     },
 

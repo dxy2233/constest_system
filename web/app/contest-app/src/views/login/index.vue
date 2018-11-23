@@ -79,8 +79,8 @@
     },
     methods: {
       backPath() {
-        this.$router.go(-2)
-        // this.$router.back()
+        // this.$router.go(-2)
+        this.$router.back()
         /*console.log(window.history.length)
         if (window.history.length <= 1) {
           this.$router.replace({path:'/'})

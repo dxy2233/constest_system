@@ -30,13 +30,12 @@ FastClick.attach(document.body)
 Vue.config.productionTip = false
 
 router.beforeEach((to, from, next) => {
-  console.log(store.state.payPsw)
   if (store.state.loginMsg) {
     if (to.path === '/login'){
       cancelLogin()
     }
   }
-  if (!store.state.loginMsg && (to.path.includes('assets')||to.path.includes('personal'))) {
+  if (!store.state.loginMsg && (to.path.includes('assets')||to.path.includes('personal')||to.path.includes('home/vote'))) {
     next({ path: '/login' })
   } else {
     next()

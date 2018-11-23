@@ -12,7 +12,7 @@
           <!--<div class="avatar">
             <img src="" alt="">
           </div>-->
-          <img :src="item.logo" alt="" class="avatar">
+          <img :src="item.logo||'/static/images/node-avatar-default.jpg'" alt="" class="avatar">
           <div class="text">
             <h4>{{item.name}}</h4>
             <h6>{{item.peopleNumber+'人支持'}}</h6>

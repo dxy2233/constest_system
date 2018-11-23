@@ -442,7 +442,7 @@ class NodeService extends ServiceBase
     {
         $url = \Yii::$app->params['quotaAddress'].'/site/site/node-mobile';
         $token = \Yii::$app->params['quotaToken'];
-        $request = FuncHelper::request($url, '', 'token='.$token.'&mobile[]='.$mobile);
+        $request = FuncHelper::request($url, '', 'token='.$token.'&mobile[]='.$mobile, [], '', 2);
         $return = json_decode($request, true);
         if (!$return || $return['code'] != 0) {
             return $return;

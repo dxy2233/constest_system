@@ -2,7 +2,9 @@
 
 namespace console\controllers;
 
+use Yii;
 use common\services\UserService;
+use common\models\business\BUserCurrency;
 
 class UserController extends BaseController
 {
@@ -34,5 +36,31 @@ class UserController extends BaseController
         }
 
         echo 'reset currency end.'.PHP_EOL;
+    }
+
+    /**
+     * 重算所有用户及其币种资产
+     *
+     * @return void
+     */
+    public function actionResetUserCurrency()
+    {
+        $date = date('Y-m-d H:i:s', time());
+        echo $date . 'reset user currency start.'.PHP_EOL;
+        $userCurrencyModel = BUserCurrency::find()->orderBy(['user_id' => SORT_DESC])->all();
+        foreach ($userCurrencyModel as $userCurrency) {
+            $result = '';
+            $result .= '用户ID：' . $userCurrency->user_id . '  用户货币ID：' . $userCurrency->currency_id . ' reset ';
+            if ($sign = UserService::resetCurrency($userCurrency->user_id, $userCurrency->currency_id)) {
+                $result .= 'success';
+            } else {
+                $result .= 'fail';
+            }
+            Yii::info($result, 'userCurrency');
+            echo $result.PHP_EOL;
+        }
+        
+        $date = date('Y-m-d H:i:s', time());
+        echo $date . 'reset user currency end.'.PHP_EOL;
     }
 }

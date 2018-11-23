@@ -1,5 +1,5 @@
 <?php
-namespace common\modules\sms\controllers;
+namespace common\modules\area\controllers;
 
 use yii\helpers\ArrayHelper;
 use yii\filters\Cors;

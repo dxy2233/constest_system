@@ -488,4 +488,25 @@ class NodeService extends ServiceBase
             $return['number'] = '未填写';
         }
     }
+
+    // 轮询判断是否需要送投票券给当前用户
+    public static function checkVoucher($user_id)
+    {
+        $data = BUserRecommend::find()->where(['parent_id' => $user_id])->all();
+        foreach ($data as $v) {
+            $node = BNode::find()->where(['user_id' => $v->user_id])->one();
+            $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
+            $num = $tpq_num_arr[$node->type_id];
+            $res = VoucherService::createNewVoucher($user_id, $node->id, $tpq_num_arr[$node->type_id]);
+            if ($res->code != 0) {
+                return new FuncResult(1, '补充失败');
+            }
+            $v->node_id = $node->id;
+            $v->amount = $tpq_num_arr[$node->type_id];
+            if (!$v->save()) {
+                return new FuncResult(1, '补充失败');
+            }
+        }
+        return new FuncResult(0, '补充成功');
+    }
 }

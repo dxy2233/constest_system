@@ -174,6 +174,26 @@ class ManagerController extends BaseController
         }
         return $this->respondJson(0, '修改成功');
     }
+
+    // 删除角色
+    public function actionDelRole()
+    {
+        $id = $this->pInt('id');
+        if (empty($id)) {
+            return $this->respondJson(1, 'id不能为空');
+        }
+        if ($id < 3) {
+            return $this->respondJson(1, '不能删除的角色');
+        }
+        $data = BAdminRole::find()->where(['id' => $id])->one();
+        if (!$data) {
+            return $this->respondJson(1, '角色不存在');
+        }
+        if (!$data->delete()) {
+            return $this->respondJson(1, '删除失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '删除成功');
+    }
     //管理员列表
     public function actionGetAdminList()
     {

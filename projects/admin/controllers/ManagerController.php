@@ -81,6 +81,9 @@ class ManagerController extends BaseController
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');
         $role_id = $this->pInt('roleId', 0);
+        if (empty($role_id)) {
+            return $this->respondJson(1, 'role_id不能为空');
+        }
         $status = $this->pInt('status', 1);
         $admin_user = new BAdminUser();
         $admin_user->name = $name;
@@ -112,6 +115,9 @@ class ManagerController extends BaseController
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');
         $role_id = $this->pInt('roleId', 0);
+        if (empty($role_id)) {
+            return $this->respondJson(1, 'role_id不能为空');
+        }
         $status = $this->pInt('status', 1);
         $admin_user = BAdminUser::find()->where(['id' => $id])->one();
         if (empty($admin_user)) {
@@ -168,32 +174,93 @@ class ManagerController extends BaseController
         }
         return $this->respondJson(0, '修改成功');
     }
+
+    // 删除角色
+    public function actionDelRole()
+    {
+        $id = $this->pInt('id');
+        if (empty($id)) {
+            return $this->respondJson(1, 'id不能为空');
+        }
+        if ($id < 3) {
+            return $this->respondJson(1, '不能删除的角色');
+        }
+        $data = BAdminRole::find()->where(['id' => $id])->one();
+        if (!$data) {
+            return $this->respondJson(1, '角色不存在');
+        }
+        if (!$data->delete()) {
+            return $this->respondJson(1, '删除失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '删除成功');
+    }
     //管理员列表
     public function actionGetAdminList()
     {
         $search_name = $this->pString('searchName');
-        $find = BAdminUser::find()->where(['status' => BAdminUser::STATUS_ON]);
+        $find = BAdminUser::find();
         if ($search_name != '') {
             $find->andWhere(['or',['likg', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
         }
+        $page = $this->pInt('page', 1);
+        $find->page($page);
         $role = BAdminRole::find()->where(['status' => BAdminRole::STATUS_ON])->asArray()->all();
         $role_id = [];
         foreach ($role as $v) {
             $role_id[$v['id']] = $v['name'];
         }
+        $count = $find->count();
         $data = $find->orderBy('role_id')->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['last_login_time'] = date('Y-m-d H:i:s', $v['last_login_time']);
             $v['role_name'] = $role_id[$v['role_id']];
+            $v['status'] = BAdminUser::getStatus($v['status']);
         }
-        return  $this->respondJson(0, '获取成功', $data);
+        $return = [ 'count' => $count, 'data' => $data];
+        return  $this->respondJson(0, '获取成功', $return);
     }
     // 获取角色列表
     public function actionGetRoleList()
     {
         $data = BAdminRole::find()->where(['status' => BAdminRole::STATUS_ON])->asArray()->all();
         return  $this->respondJson(0, '获取成功', $data);
+    }
+
+    // 停用管理员
+    public function actionAdminOff()
+    {
+        $id = $this->pInt('id');
+        if (empty($id)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $admin_user = BAdminUser::find()->where(['id' => $id])->one();
+        if (empty($admin_user)) {
+            return $this->respondJson(1, '管理员不存在');
+        }
+        $admin_user->status = BAdminUser::STATUS_OFF;
+        if (!$admin_user->save()) {
+            return $this->respondJson(1, '修改失败', $admin_user->getFirstErrorText());
+        }
+        return $this->respondJson(0, '修改成功');
+    }
+
+    // 启用管理员
+    public function actionAdminOn()
+    {
+        $id = $this->pInt('id');
+        if (empty($id)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $admin_user = BAdminUser::find()->where(['id' => $id])->one();
+        if (empty($admin_user)) {
+            return $this->respondJson(1, '管理员不存在');
+        }
+        $admin_user->status = BAdminUser::STATUS_ON;
+        if (!$admin_user->save()) {
+            return $this->respondJson(1, '修改失败', $admin_user->getFirstErrorText());
+        }
+        return $this->respondJson(0, '修改成功');
     }
 
     // 获取单个角色的权限

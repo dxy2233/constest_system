@@ -109,6 +109,7 @@ class IdentifyController extends BaseController
         }
         return $this->respondJson(0, '审核成功');
     }
+    
     // 审核通过
     public function actionExamineOn()
     {

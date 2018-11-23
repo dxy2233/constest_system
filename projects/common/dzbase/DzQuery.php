@@ -16,11 +16,21 @@ class DzQuery extends ActiveQuery
      * @param integer $status 自定义状态
      * @return void
      */
-    public function active($status = 1, string $prefix = null)
+    public function active(int $status = 1, string $prefix = null)
     {
         return $this->andOnCondition([$prefix.'status' => $status]);
     }
 
+    /**
+     * 公共查询状态 in (1, 2)
+     *
+     * @param array $status 自定义状态
+     * @return void
+     */
+    public function inActive(array $status = [], string $prefix = null)
+    {
+        return $this->andOnCondition([$prefix.'status' => $status]);
+    }
     /**
      * 公共查询，判断当前时间是否在时间段内
      *

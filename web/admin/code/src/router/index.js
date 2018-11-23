@@ -35,7 +35,7 @@ export const constantRouterMap = [
       path: 'admin',
       name: 'Admin',
       component: () => import('@/views/admin/index'),
-      meta: { title: '统计报表', icon: '用户管理' }
+      meta: { title: '统计报表', icon: '数据' }
     }]
   },
 
@@ -164,24 +164,24 @@ export const constantRouterMap = [
         path: '',
         name: 'Member',
         component: () => import('@/views/member/index'),
-        meta: { title: '成员列表', icon: '单笔转账' }
+        meta: { title: '成员列表', icon: '群组' }
       }
     ]
   },
 
-  {
-    path: '/purview',
-    component: Layout,
-    children: [
-      {
-        path: '',
-        name: 'Purview',
-        component: () => import('@/views/purview/index'),
-        meta: { title: '权限管理', icon: '单笔转账' }
-      }
-    ]
-  },
-
+  // {
+  //   path: '/purview',
+  //   component: Layout,
+  //   children: [
+  //     {
+  //       path: '',
+  //       name: 'Purview',
+  //       component: () => import('@/views/purview/index'),
+  //       meta: { title: '权限管理', icon: '权限管理' }
+  //     }
+  //   ]
+  // },
+  //
   {
     path: '/log',
     component: Layout,
@@ -190,7 +190,7 @@ export const constantRouterMap = [
         path: '',
         name: 'Log',
         component: () => import('@/views/log/index'),
-        meta: { title: '操作日志', icon: '单笔转账' }
+        meta: { title: '操作日志', icon: '用户日志' }
       }
     ]
   },

@@ -1120,6 +1120,10 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '实名信息添加失败', $identify->getFirstErrorText());
             }
+            $user->is_identified = BNotice::STATUS_ACTIVE;
+            if (!$user->save()) {
+                return $this->respondJson(1, '实名信息添加失败', $user->getFirstErrorText());
+            }
         }
         //     return $this->respondJson(0, '提交成功', ['user_id' => $user_id]);
         // }

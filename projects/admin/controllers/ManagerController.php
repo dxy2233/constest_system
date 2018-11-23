@@ -174,11 +174,31 @@ class ManagerController extends BaseController
         }
         return $this->respondJson(0, '修改成功');
     }
+
+    // 删除角色
+    public function actionDelRole()
+    {
+        $id = $this->pInt('id');
+        if (empty($id)) {
+            return $this->respondJson(1, 'id不能为空');
+        }
+        if ($id < 3) {
+            return $this->respondJson(1, '不能删除的角色');
+        }
+        $data = BAdminRole::find()->where(['id' => $id])->one();
+        if (!$data) {
+            return $this->respondJson(1, '角色不存在');
+        }
+        if (!$data->delete()) {
+            return $this->respondJson(1, '删除失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '删除成功');
+    }
     //管理员列表
     public function actionGetAdminList()
     {
         $search_name = $this->pString('searchName');
-        $find = BAdminUser::find()->where(['status' => BAdminUser::STATUS_ON]);
+        $find = BAdminUser::find();
         if ($search_name != '') {
             $find->andWhere(['or',['likg', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
         }
@@ -189,6 +209,7 @@ class ManagerController extends BaseController
         foreach ($role as $v) {
             $role_id[$v['id']] = $v['name'];
         }
+        $count = $find->count();
         $data = $find->orderBy('role_id')->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
@@ -196,7 +217,8 @@ class ManagerController extends BaseController
             $v['role_name'] = $role_id[$v['role_id']];
             $v['status'] = BAdminUser::getStatus($v['status']);
         }
-        return  $this->respondJson(0, '获取成功', $data);
+        $return = [ 'count' => $count, 'data' => $data];
+        return  $this->respondJson(0, '获取成功', $return);
     }
     // 获取角色列表
     public function actionGetRoleList()

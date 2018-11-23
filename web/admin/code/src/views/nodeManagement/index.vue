@@ -131,6 +131,7 @@
             <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.voteList">
               <el-table-column prop="mobile" label="手机号"/>
               <el-table-column prop="voteNumber" label="票数"/>
+              <el-table-column prop="type" label="投票方式"/>
               <el-table-column prop="createTime" label="投票时间"/>
             </el-table>
             <el-table v-show="pollName=='支持用户'" :data="nodeInfoVote.orderList">

@@ -54,6 +54,7 @@ class LogController extends BaseController
             $find->endTime($end_time);
         }
         $find->page($page);
+        $count = $find->count();
         $data = $find->select(['A.create_time', 'B.department', 'A.route', 'A.ip', 'B.real_name'])->orderBy('A.create_time desc')->asArray()->all();
         $rule = [];
         foreach ($data as &$v) {
@@ -72,7 +73,8 @@ class LogController extends BaseController
             $v['controller'] = $rule[$v['route']]['controller'];
             $v['action'] = $rule[$v['route']]['action'];
         }
-        return $this->respondJson(0, "获取成功", $data);
+        $return = ['count' => $count, 'data' => $data];
+        return $this->respondJson(0, "获取成功", $return);
     }
 
     public function actionDownload()

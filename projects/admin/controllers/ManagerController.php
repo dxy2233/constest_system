@@ -209,6 +209,7 @@ class ManagerController extends BaseController
         foreach ($role as $v) {
             $role_id[$v['id']] = $v['name'];
         }
+        $count = $find->count();
         $data = $find->orderBy('role_id')->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
@@ -216,7 +217,8 @@ class ManagerController extends BaseController
             $v['role_name'] = $role_id[$v['role_id']];
             $v['status'] = BAdminUser::getStatus($v['status']);
         }
-        return  $this->respondJson(0, '获取成功', $data);
+        $return = [ 'count' => $count, 'data' => $data];
+        return  $this->respondJson(0, '获取成功', $return);
     }
     // 获取角色列表
     public function actionGetRoleList()

@@ -80,7 +80,7 @@ axios.interceptors.response.use(function (res) {
         break
 
       case 505:
-        err.err = 'HTTP版本不受支持'
+        err.msg = 'HTTP版本不受支持'
         break
 
       default:

@@ -126,7 +126,7 @@ class FuncHelper
      * @param int $precision
      * @param bool $flag
      * @return string
-     * info: 格式化货币小数，将amount格式化为amount.000....（舍去小数位数后）
+     * info: 格式化积分小数，将amount格式化为amount.000....（舍去小数位数后）
      */
     public static function formatAmount($amount = '', int $precision = 0, $flag = false)
     {

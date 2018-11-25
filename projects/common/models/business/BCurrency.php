@@ -63,7 +63,7 @@ class BCurrency extends \common\models\Currency
     /**
      * @param $currencyId
      * @return null|static
-     * info : 根据id获取货币信息
+     * info : 根据id获取积分信息
      */
     public static function getCurrencyInfoById($currencyId)
     {
@@ -78,7 +78,7 @@ class BCurrency extends \common\models\Currency
     /**
      * @param $currencyCode
      * @return null|static
-     * info : 根据code获取货币id
+     * info : 根据code获取积分id
      */
     public static function getCurrencyIdByCode($currencyCode)
     {
@@ -92,7 +92,7 @@ class BCurrency extends \common\models\Currency
 
     /**
      * @return null|static[]
-     * info : 获取所有货币信息
+     * info : 获取所有积分信息
      */
     public static function getAllCurrency()
     {
@@ -107,7 +107,7 @@ class BCurrency extends \common\models\Currency
     /**
      * @param $currency   object
      * @return array
-     * Interface Info : 格式化货币的id和name
+     * Interface Info : 格式化积分的id和name
      */
     public static function formatCurrencyObject($currency)
     {
@@ -167,11 +167,11 @@ class BCurrency extends \common\models\Currency
     public function attributeLabels()
     {
         return [
-            'id' => '货币ID',
+            'id' => '积分ID',
             'code' => '编码',
             'name' => '标题',
             'summary' => '摘要',
-            'status' => '货币状态',
+            'status' => '积分状态',
             'sort' => '排序号',
             'recharge_status' => '充值状态',
             'recharge_min_amount' => '充值最小数量',

@@ -9,7 +9,7 @@ class BUserCurrency extends \common\models\UserCurrency
     
 
     /**
-     * 用户货币 ->货币详情
+     * 用户积分 ->积分详情
      *  一对一
      * @return void
      */
@@ -19,7 +19,7 @@ class BUserCurrency extends \common\models\UserCurrency
     }
 
     /**
-    * 用户货币 -> 钱包
+    * 用户积分 -> 钱包
     *  一对一
     * @return void
     */

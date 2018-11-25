@@ -128,7 +128,7 @@ class WalletController extends BaseController
             ->limit(1)
             ->one();
 
-        if(!$userCurrency) {
+        if (!$userCurrency) {
             return $this->respondJson(1, '积分不存在');
         }
 
@@ -171,6 +171,11 @@ class WalletController extends BaseController
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
+            if ($val['remark'] == '充币') {
+                $val['remark'] = '转入积分';
+            } elseif ($val['remark'] == '提币') {
+                $val['remark'] = '转出积分';
+            }
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
             $val['status_str'] = BUserCurrencyDetail::getStatus($val['status']);
             $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
@@ -263,7 +268,7 @@ class WalletController extends BaseController
             ->where(['user_id' => $userId, 'currency_id' => $currencyId])
             ->limit(1)
             ->one();
-        if(!$rechargeAddress) {
+        if (!$rechargeAddress) {
             return $this->respondJson(1, '钱包地址不存在');
         }
         $address = $rechargeAddress->address;
@@ -272,12 +277,12 @@ class WalletController extends BaseController
         //井通下的积分
         $currencyJingtum = BCurrency::getJingtumCurrency();
         //井通下的积分充值刷新
-        if(in_array($currencyId, $currencyJingtum)) {
+        if (in_array($currencyId, $currencyJingtum)) {
             $page = 1;
             $pageSize = 10;
             $isUpdate = true; // 拉取交易记录自动更新交易数据
             $record = JingTumService::getInstance()->pullTransRecord($address, $page, $pageSize, $isUpdate);
-            if($record['new_record']) {
+            if ($record['new_record']) {
                 $isRefresh = true;
             }
         }
@@ -357,7 +362,7 @@ class WalletController extends BaseController
 
         $dayMax = $currency->withdraw_day_amount;
         if ($dayMax > 0) {
-            if (round($withdrawDay+$amount,8) > $dayMax) {
+            if (round($withdrawDay+$amount, 8) > $dayMax) {
                 return $this->respondJson(1, '今日已转出'.floatval($withdrawDay).'，每日累计转出限制数量为'.floatval($dayMax));
             }
         }
@@ -371,7 +376,7 @@ class WalletController extends BaseController
             ->where(['user_id' => $userModel->id, 'currency_id' => $currencyId])
             ->limit(1)
             ->one();
-        if(!empty($rechargeAddress) && $rechargeAddress->address == $address) {
+        if (!empty($rechargeAddress) && $rechargeAddress->address == $address) {
             return $this->respondJson(1, '转出地址不能为自己钱包地址');
         }
 
@@ -427,9 +432,9 @@ class WalletController extends BaseController
 
         //日累计金额小于限制金额自动审核
         $auditMax = $currency->withdraw_audit_amount;
-        if (round($withdrawDay+$amount,8) <= $auditMax) {
+        if (round($withdrawDay+$amount, 8) <= $auditMax) {
             //审核
-            WithdrawService::withdrawCurrencyAudit($withdrawId, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS,'', 0);
+            WithdrawService::withdrawCurrencyAudit($withdrawId, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS, '', 0);
         }
 
 

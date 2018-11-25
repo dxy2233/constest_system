@@ -428,7 +428,7 @@ class VoteController extends BaseController
         if ($number <= 0) {
             return $this->respondJson(1, '投票数量不能为小于等于0');
         }
-        $payPass = $this->pInt('pass', false);
+        $payPass = $this->pString('pass');
         if (!$payPass) {
             return $this->respondJson(1, '支付密码不能为空');
         }

@@ -27,7 +27,7 @@ class BUserWallet extends \common\models\UserWallet
     }
 
     /**
-     * 用户钱包->货币
+     * 用户钱包->积分
      *  一对多
      * @return void
      */
@@ -37,7 +37,7 @@ class BUserWallet extends \common\models\UserWallet
     }
 
     /**
-     * 用户钱包->用户货币 和上面不一样
+     * 用户钱包->用户积分 和上面不一样
      *  一对多
      * @return void
      */

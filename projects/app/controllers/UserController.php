@@ -96,7 +96,7 @@ class UserController extends BaseController
             $recommendModel->parent_id = (int) $parentId;
             if (!is_null($nodeModel) && $nodeModel->status == BNode::STATUS_ON) {
                 $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
-                // 指定货币类型的 * 设置倍数
+                // 指定积分类型的 * 设置倍数
                 $voucherCount = $nodeModel->grt * $multiple;
                 $recommendVoucher = (bool) SettingService::get('recommend', 'recommend_voucher')->value;
                 if (BNode::find()->where(['user_id' => $parentId])->exists() && $recommendVoucher) {

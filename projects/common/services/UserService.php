@@ -378,7 +378,7 @@ class UserService extends ServiceBase
         return \Yii::$app->user->logout();
     }
 
-
+    // 验证推荐人是否可以使用
     public static function checkUserRecommend($user_id, $code)
     {
         $recommend = BUserRecommend::find()->where(['user_id' => $user_id])->one();

@@ -525,23 +525,10 @@ class UserController extends BaseController
         $user->username = $name;
         $transaction = \Yii::$app->db->beginTransaction();
         if ($code != '') {
-            $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
-            $id = UserService::validateRemmendCode($code);
-            if (!empty($recommend) && $recommend->parent_id != $id) {
-                return $this->respondJson(1, '用户已有推荐人');
-            }
-            
-            if ($id === $userId) {
-                return $this->respondJson(1, '推荐人不能是自己');
-            }
-            if (empty($recommend)) {
-                $user_recommend = new BUserRecommend();
-                $user_recommend->user_id = $user->id;
-                $user_recommend->parent_id = $id;
-                if (!$user_recommend->save()) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
-                }
+            $res = UserService::checkUserRecommend($userId, $code);
+            if ($res->code != 0) {
+                $transaction->rollBack();
+                return $this->respondJson(1, $str.'失败', $res->msg);
             }
         }
 

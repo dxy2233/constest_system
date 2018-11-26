@@ -127,7 +127,7 @@ class StatisticsController extends BaseController
         $return = [];
 
         $date_arr = [];
-        for ($i = $str_time; $i<$end_time; $i += 3600*24) {
+        for ($i = $str_time; $i<=$end_time; $i += 3600*24) {
             if ($group == 1) {
                 $m = date('Y-m-d', $i);
                 if (empty($date_arr[$m])) {

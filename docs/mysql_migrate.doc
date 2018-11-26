@@ -269,3 +269,7 @@ INSERT INTO `gr_admin_role` (`id`, `name`, `rule_list`, `status`, `create_time`)
 # 替换 gr_user_currency_detail 中 "充币/提币" 字样 更改为 "转入积分/转出积分"
 UPDATE `gr_contest`.`gr_user_currency_detail` SET `remark` = REPLACE(`remark`, '充币','转入积分');
 UPDATE `gr_contest`.`gr_user_currency_detail` SET `remark` = REPLACE(`remark`, '提币','转出积分');
+
+#添加用户上级字段
+ALTER TABLE `gr_user`
+ADD `parent_list` text NULL COMMENT '上级列表' AFTER `status`;

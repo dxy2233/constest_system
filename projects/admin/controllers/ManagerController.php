@@ -327,7 +327,8 @@ class ManagerController extends BaseController
             return $this->respondJson(1, '角色不存在');
         }
         $rule_list = $this->pString('ruleList');
-        $data->rule_list = $rule_list;
+        $rule_arr = json_decode($rule_list, true);
+        $data->rule_list = json_encode($rule_arr);
         if (!$data->save()) {
             return $this->respondJson(1, '修改失败', $data->getFirstErrorText());
         }

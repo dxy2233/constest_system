@@ -50,7 +50,7 @@ class UserController extends BaseController
         $userCurrencyModel = BUserCurrency::find()->orderBy(['user_id' => SORT_DESC])->all();
         foreach ($userCurrencyModel as $userCurrency) {
             $result = '';
-            $result .= '用户ID：' . $userCurrency->user_id . '  用户货币ID：' . $userCurrency->currency_id . ' reset ';
+            $result .= '用户ID：' . $userCurrency->user_id . '  用户积分ID：' . $userCurrency->currency_id . ' reset ';
             if ($sign = UserService::resetCurrency($userCurrency->user_id, $userCurrency->currency_id)) {
                 $result .= 'success';
             } else {

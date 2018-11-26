@@ -341,7 +341,7 @@ class VoteController extends BaseController
             // 支付投票
             $scaling = (float) SettingService::get('vote', 'payment_price')->value;
             $singleMax = (float) SettingService::get('vote', 'single_pay_total')->value;
-            // 货币单位
+            // 积分单位
             $data['unit_code'] = strtoupper($voteCurrencyCode);
         } else {
             $this->actionVoucherInfo();
@@ -428,7 +428,7 @@ class VoteController extends BaseController
         if ($number <= 0) {
             return $this->respondJson(1, '投票数量不能为小于等于0');
         }
-        $payPass = $this->pInt('pass', false);
+        $payPass = $this->pString('pass');
         if (!$payPass) {
             return $this->respondJson(1, '支付密码不能为空');
         }
@@ -441,16 +441,16 @@ class VoteController extends BaseController
         if (in_array($type, [BVote::TYPE_ORDINARY, BVote::TYPE_PAY])) {
             // 当前节点最后生成快照的时间
             //$historyLastTime = BHistory::find()->where(['node_id' => $nodeId])->max('create_time');
-            // 参与投票的货币
+            // 参与投票的积分
             $voteCurrencyCode = SettingService::get('vote', 'vote_currency')->value ?? 'grt';
             $currencyId = (int) BCurrency::find()->select(['id'])->where(['code' => $voteCurrencyCode])->scalar();
-            // 消费货币是先进行资金重算
+            // 消费积分是先进行资金重算
             UserService::resetCurrency($userModel->id, $currencyId);
             $userCurrencyModel = $userModel->getUserCurrency()
             ->where(['currency_id' => $currencyId]);
             $userCurrencyInfo = $userCurrencyModel->one();
             if (is_null($userCurrencyInfo)) {
-                return $this->respondJson(1, '没有可用的货币');
+                return $this->respondJson(1, '没有可用的积分');
             }
             if ($type === BVote::TYPE_ORDINARY) {
                 // 持有投票
@@ -462,9 +462,9 @@ class VoteController extends BaseController
                 $singleMax = (float) SettingService::get('vote', 'single_pay_total')->value;
             }
 
-            // 票数转换成 货币数量
+            // 票数转换成 积分数量
             $currencyAmount = round($number * $scaling, 8);
-            // 本次竞选剩余可支付货币数量
+            // 本次竞选剩余可支付积分数量
             
             $data = BCycle::find()->where(['>', 'tenure_end_time', time()])->orderBy('id asc')->all();
             $bool = false;
@@ -488,7 +488,7 @@ class VoteController extends BaseController
             // 获取总票数
             $useAmount = round($userCurrencyInfo->use_amount / $scaling, 8);
             if ($useAmount < $number) {
-                return $this->respondJson(1, '货币量不足');
+                return $this->respondJson(1, '积分量不足');
             }
             $voteRes = [
                 'vote_number' => $number,

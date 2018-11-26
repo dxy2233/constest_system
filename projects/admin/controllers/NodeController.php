@@ -223,12 +223,6 @@ class NodeController extends BaseController
         //     }
         // }
 
-        //推荐赠送
-        $res = NodeService::checkVoucher($data->user_id);
-        if ($res->code != 0) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', $res->msg);
-        }
         
         // 成为节点赠送gdt
         $currencyDetail = new BUserCurrencyDetail();
@@ -262,6 +256,12 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
+                //推荐赠送
+                $res = NodeService::checkVoucher($data->user_id);
+                if ($res->code != 0) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '审核失败', $res->msg);
+                }
         $recommend = BUserRecommend::find()->where(['user_id' => $data->user_id])->one();
         if ($recommend) {
             $recommend->node_id = $data->id;

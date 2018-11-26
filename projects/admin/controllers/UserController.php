@@ -6,6 +6,7 @@ use common\services\TicketService;
 use common\services\RechargeService;
 use common\services\UserService;
 use common\services\VoteService;
+use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BArea;
 use common\models\business\BUser;
@@ -525,27 +526,25 @@ class UserController extends BaseController
         $transaction = \Yii::$app->db->beginTransaction();
         if ($code != '') {
             $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
-            if (!empty($recommend)) {
+            $id = UserService::validateRemmendCode($code);
+            if (!empty($recommend) && $recommend->parent_id != $id) {
                 return $this->respondJson(1, '用户已有推荐人');
             }
-            $id = UserService::validateRemmendCode($code);
+            
             if ($id === $userId) {
                 return $this->respondJson(1, '推荐人不能是自己');
             }
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+            if (empty($recommend)) {
+                $user_recommend = new BUserRecommend();
+                $user_recommend->user_id = $user->id;
+                $user_recommend->parent_id = $id;
+                if (!$user_recommend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+                }
             }
         }
 
-        if (empty($recommend)) {
-            $info['referee'] = '-';
-        } else {
-            $info['referee'] = $recommend['mobile'];
-        }
         if ($user->save()) {
             if ($code != '') {
                 $res = NodeService::checkVoucher($user->id);

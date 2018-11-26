@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BNotice;
 use common\models\business\BUserOther;
@@ -332,12 +333,9 @@ class StatisticsController extends BaseController
 
     public function actionTest()
     {
-        $location = IpUtil::find('183.67.60.171');
-
-        if (is_array($location) && count($location) == 4) {
-            var_dump($location);
+        $data = BUser::find()->all();
+        foreach ($data as $v) {
+            NodeService::checkVoucher($v->id);
         }
-
-        return '';
     }
 }

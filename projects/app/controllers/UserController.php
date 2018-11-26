@@ -95,18 +95,12 @@ class UserController extends BaseController
             $recommendModel = new BUserRecommend();
             $recommendModel->parent_id = (int) $parentId;
             if (!is_null($nodeModel) && $nodeModel->status == BNode::STATUS_ON) {
-<<<<<<< HEAD
                 // $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
                 // 指定货币类型的 * 设置倍数
                 // $voucherCount = $nodeModel->grt * $multiple;
                 // 更改规则 键值为 node_type id 值为 赠送数量
                 $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
                 $voucherCount = $tpq_num_arr[$nodeModel->type_id];
-=======
-                $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
-                // 指定积分类型的 * 设置倍数
-                $voucherCount = $nodeModel->grt * $multiple;
->>>>>>> dev
                 $recommendVoucher = (bool) SettingService::get('recommend', 'recommend_voucher')->value;
                 if (BNode::find()->where(['user_id' => $parentId])->exists() && $recommendVoucher) {
                     $voucherModel = new BVoucher();

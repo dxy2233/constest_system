@@ -66,7 +66,7 @@ class VoteController extends BaseController
 
     public function options($actionID)
     {
-        return ['start', 'end'];
+        return ['start', 'end', 'table'];
     }
     /**
      * 重算投票赠送GDT
@@ -98,6 +98,7 @@ class VoteController extends BaseController
                 ->active()
                 ->where([
                     'user_id' => $model->user_id,
+                    'relate_table' => $relate_table,
                     'relate_id' => $model->id,
                     'type' => BUserCurrencyDetail::$TYPE_REWARD,
                 ])->exists();
@@ -127,6 +128,9 @@ class VoteController extends BaseController
                     'type' => BUserCurrencyDetail::$TYPE_REWARD,
                     'amount' => $giveAmount,
                     'remark' => $remark . '- GDT赠送',
+                    'effect_time' => $model->create_time,
+                    'create_time' => $model->create_time,
+                    'update_time' => $model->create_time,
                 ];
                 $give = VoteService::giveCurrency($giveDate);
                 if ($give->code) {

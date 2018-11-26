@@ -400,7 +400,7 @@ class VoteService extends ServiceBase
             $currencyDetail->setAttributes($res);
             $currencyDetail->currency_id = $currencyId;
             $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-            $currencyDetail->effect_time = NOW_TIME;
+            $currencyDetail->effect_time = $currencyDetail->effect_time ?? NOW_TIME;
             if (!$currencyDetail->save()) {
                 throw new ErrorException('user-currency-detail table data create is fail');
             }

@@ -90,11 +90,11 @@ class StatisticsController extends BaseController
             return $this->respondJson(1, '结束时间不能大于当前时间');
         }
         $end_time += (24*3600-1);
-        $group_arr = [1 => 'floor(create_time/(24*3600))', 2 => 'floor((create_time+3*3600*24)/(24*3600*7))', 3 => "FROM_UNIXTIME(create_time,'%Y-%m')"];
+        $group_arr = [1 => 'floor(create_time/(24*3600))', 2 => 'floor((create_time+4*3600*24)/(24*3600*7))', 3 => "FROM_UNIXTIME(create_time,'%Y-%m')"];
         if ($group == 1) {
             $select_field = 'floor(create_time/(24*3600))*24*3600 as date';
         } elseif ($group == 2) {
-            $select_field = 'floor((create_time+3*3600*24)/(24*3600*7))*24*3600*7-3*3600*24 as date';
+            $select_field = 'floor((create_time+4*3600*24)/(24*3600*7))*24*3600*7-3*3600*24 as date';
         } else {
             $select_field = $group_arr[$group].' as date';
         }
@@ -145,7 +145,7 @@ class StatisticsController extends BaseController
                     }
                 }
             } elseif ($group == 2) {
-                $m = date('Y-m-d', floor(($i+3*3600*24)/(24*3600*7))*24*3600*7-3*3600*24);
+                $m = date('Y-m-d', floor(($i+4*3600*24)/(24*3600*7))*24*3600*7-3*3600*24);
                 if (empty($date_arr[$m])) {
                     $date_arr[$m] = 1;
                     $return['date'][] = $m;

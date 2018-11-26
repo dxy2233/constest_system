@@ -12,6 +12,7 @@ use common\models\business\BUserIdentify;
 use common\models\business\BNode;
 use common\models\business\BUserLog;
 use common\models\business\BVote;
+use common\components\IpUtil;
 
 /**
  * Site controller
@@ -327,5 +328,16 @@ class StatisticsController extends BaseController
         $return['all_people'] = $all_people;
         $return['data'] = $r;
         return  $this->respondJson(0, '获取成功', $return);
+    }
+
+    public function actionTest()
+    {
+        $location = IpUtil::find('183.67.60.171');
+
+        if (is_array($location) && count($location) == 4) {
+            var_dump($location);
+        }
+
+        return '';
     }
 }

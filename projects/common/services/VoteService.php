@@ -248,7 +248,7 @@ class VoteService extends ServiceBase
                 $userFrozen->setAttributes($currencyData);
                 $userFrozen->type = $type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
                 $userFrozen->amount = round($res['amount'], 8); // 总数量
-                $userFrozen->remark = $remark = BUserCurrencyFrozen::getType(BUserCurrencyFrozen::$TYPE_VOTE) ?? '投票';
+                $userFrozen->remark = $remark = BUserCurrencyFrozen::getType(BUserCurrencyFrozen::$TYPE_VOTE) ?? '持有投票';
                 $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
                 $sign = $userFrozen->save();
                 if (!$sign) {
@@ -263,7 +263,7 @@ class VoteService extends ServiceBase
                 $currencyDetail->type = $type = BUserCurrencyDetail::$TYPE_VOTE; // 投票消费
                 $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
                 $currencyDetail->effect_time = $time;
-                $currencyDetail->remark = $remark = BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE) ?? '投票';
+                $currencyDetail->remark = $remark = BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE) ?? '支付投票';
                 $currencyDetail->amount = -$res['amount'];
                 $sign = $currencyDetail->save();
                 if (!$sign) {
@@ -288,7 +288,7 @@ class VoteService extends ServiceBase
                 'relate_id' => $res['id'],
                 'type' => BUserCurrencyDetail::$TYPE_REWARD,
                 'amount' => $giveAmount,
-                'remark' => $remark,
+                'remark' => $remark . '- GDT赠送',
                 ];
                 $give = self::giveCurrency($giveDate);
                 if ($give->code) {

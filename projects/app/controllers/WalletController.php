@@ -101,7 +101,7 @@ class WalletController extends BaseController
     {
         $currencyId = $this->pInt('id', false);
         if (!$currencyId) {
-            return $this->respondJson(1, '货币不能为空');
+            return $this->respondJson(1, '积分不能为空');
         }
         $userId = $this->user->id;
 
@@ -128,8 +128,8 @@ class WalletController extends BaseController
             ->limit(1)
             ->one();
 
-        if(!$userCurrency) {
-            return $this->respondJson(1, '货币不存在');
+        if (!$userCurrency) {
+            return $this->respondJson(1, '积分不存在');
         }
 
         $userCurrency['position_amount'] = FuncHelper::formatAmount($userCurrency['position_amount']);
@@ -142,7 +142,7 @@ class WalletController extends BaseController
     // public function actionCurrency
 
     /**
-     * 货币收入明细
+     * 积分收入明细
      *
      * @return void
      */
@@ -157,7 +157,7 @@ class WalletController extends BaseController
             'page_size' => $pageSize
         ];
         if (!$currencyId) {
-            return $this->respondJson(1, '货币不能为空');
+            return $this->respondJson(1, '积分不能为空');
         }
         $userId = $this->user->id;
         // 获取收入 类型ID // 获取是否或者支出的 id 集
@@ -171,6 +171,11 @@ class WalletController extends BaseController
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
+            if ($val['remark'] == '充币') {
+                $val['remark'] = '转入积分';
+            } elseif ($val['remark'] == '提币') {
+                $val['remark'] = '转出积分';
+            }
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
             $val['status_str'] = BUserCurrencyDetail::getStatus($val['status']);
             $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
@@ -178,7 +183,7 @@ class WalletController extends BaseController
         return $this->respondJson(0, '获取成功', $data);
     }
     /**
-     * 货币锁仓明细
+     * 积分锁仓明细
      *
      * @return void
      */
@@ -193,7 +198,7 @@ class WalletController extends BaseController
             'page_size' => $pageSize
         ];
         if (!$currencyId) {
-            return $this->respondJson(1, '货币不能为空');
+            return $this->respondJson(1, '积分不能为空');
         }
         $userId = $this->user->id;
         // 获取收入 类型ID
@@ -228,12 +233,12 @@ class WalletController extends BaseController
     {
         $currencyId = $this->pInt('id', 0);
         if (!$currencyId) {
-            return $this->respondJson(1, '货币不能为空');
+            return $this->respondJson(1, '积分不能为空');
         }
 
         $currency = BCurrency::find()->where(['id' => $currencyId])->one();
         if (empty($currency) || $currency->recharge_status == BCurrency::$RECHARGE_STATUS_OFF) {
-            return $this->respondJson(1, "此货币不可充币");
+            return $this->respondJson(1, "此积分不可充币");
         }
 
         $userId = $this->user->id;
@@ -255,7 +260,7 @@ class WalletController extends BaseController
     {
         $currencyId = $this->pInt('id', 0);
         if (!$currencyId) {
-            return $this->respondJson(1, '货币不能为空');
+            return $this->respondJson(1, '积分不能为空');
         }
 
         $userId = $this->user->id;
@@ -263,21 +268,21 @@ class WalletController extends BaseController
             ->where(['user_id' => $userId, 'currency_id' => $currencyId])
             ->limit(1)
             ->one();
-        if(!$rechargeAddress) {
+        if (!$rechargeAddress) {
             return $this->respondJson(1, '钱包地址不存在');
         }
         $address = $rechargeAddress->address;
         $isRefresh = false;
 
-        //井通下的货币
+        //井通下的积分
         $currencyJingtum = BCurrency::getJingtumCurrency();
-        //井通下的货币充值刷新
-        if(in_array($currencyId, $currencyJingtum)) {
+        //井通下的积分充值刷新
+        if (in_array($currencyId, $currencyJingtum)) {
             $page = 1;
             $pageSize = 10;
             $isUpdate = true; // 拉取交易记录自动更新交易数据
             $record = JingTumService::getInstance()->pullTransRecord($address, $page, $pageSize, $isUpdate);
-            if($record['new_record']) {
+            if ($record['new_record']) {
                 $isRefresh = true;
             }
         }
@@ -291,7 +296,7 @@ class WalletController extends BaseController
         $currencyId = $this->pInt('id');
         $userModel = $this->user;
         if (!$currencyId) {
-            return $this->respondJson(1, '转出货币不能为空');
+            return $this->respondJson(1, '转出积分不能为空');
         }
         $amount = $this->pFloat('amount', 0);
         if ($amount <= 0) {
@@ -312,16 +317,16 @@ class WalletController extends BaseController
 
         $currency = BCurrency::find()->where(['id' => $currencyId])->one();
         if (!$currency) {
-            return $this->respondJson(1, '转出货币不存在');
+            return $this->respondJson(1, '转出积分不存在');
         }
 
-        //货币状态
+        //积分状态
         if ($currency->status != BCurrency::$CURRENCY_STATUS_ON) {
-            return $this->respondJson(1, '该货币已下架');
+            return $this->respondJson(1, '该积分已下架');
         }
-        //货币提现状态
+        //积分提现状态
         if ($currency->withdraw_status == BCurrency::$RECHARGE_STATUS_OFF) {
-            return $this->respondJson(1, '该货币暂不支持提币');
+            return $this->respondJson(1, '该积分暂不支持提币');
         }
         // 单笔最小数量
         $minAmount = $currency->withdraw_min_amount;
@@ -357,7 +362,7 @@ class WalletController extends BaseController
 
         $dayMax = $currency->withdraw_day_amount;
         if ($dayMax > 0) {
-            if (round($withdrawDay+$amount,8) > $dayMax) {
+            if (round($withdrawDay+$amount, 8) > $dayMax) {
                 return $this->respondJson(1, '今日已转出'.floatval($withdrawDay).'，每日累计转出限制数量为'.floatval($dayMax));
             }
         }
@@ -371,7 +376,7 @@ class WalletController extends BaseController
             ->where(['user_id' => $userModel->id, 'currency_id' => $currencyId])
             ->limit(1)
             ->one();
-        if(!empty($rechargeAddress) && $rechargeAddress->address == $address) {
+        if (!empty($rechargeAddress) && $rechargeAddress->address == $address) {
             return $this->respondJson(1, '转出地址不能为自己钱包地址');
         }
 
@@ -427,9 +432,9 @@ class WalletController extends BaseController
 
         //日累计金额小于限制金额自动审核
         $auditMax = $currency->withdraw_audit_amount;
-        if (round($withdrawDay+$amount,8) <= $auditMax) {
+        if (round($withdrawDay+$amount, 8) <= $auditMax) {
             //审核
-            WithdrawService::withdrawCurrencyAudit($withdrawId, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS,'', 0);
+            WithdrawService::withdrawCurrencyAudit($withdrawId, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS, '', 0);
         }
 
 
@@ -440,7 +445,7 @@ class WalletController extends BaseController
     {
         $currencyId = $this->pInt('id');
         if (!$currencyId) {
-            return $this->respondJson(1, '转出货币不能为空');
+            return $this->respondJson(1, '转出积分不能为空');
         }
         $address = $this->pString('address');
         if (!$address) {

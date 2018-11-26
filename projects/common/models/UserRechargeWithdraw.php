@@ -57,9 +57,9 @@ class UserRechargeWithdraw extends \common\dzbase\DzModel
     public function attributeLabels()
     {
         return [
-            'id' => '货币记录ID',
+            'id' => '积分记录ID',
             'order_number' => '订单号',
-            'currency_id' => '货币',
+            'currency_id' => '积分',
             'user_id' => '用户ID',
             'mobile' => '手机号码',
             'type' => '类型，1 充值，2 提现',

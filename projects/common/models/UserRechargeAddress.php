@@ -35,7 +35,7 @@ class UserRechargeAddress extends \common\dzbase\DzModel
             [['user_id', 'currency_id', 'create_time', 'update_time'], 'integer'],
             [['address', 'tag'], 'string', 'max' => 200],
             [['remark'], 'string', 'max' => 50],
-            [['currency_id', 'address'], 'unique', 'targetAttribute' => ['currency_id', 'address'], 'message' => 'The combination of 货币 and 地址 has already been taken.'],
+            [['currency_id', 'address'], 'unique', 'targetAttribute' => ['currency_id', 'address'], 'message' => 'The combination of 积分 and 地址 has already been taken.'],
         ];
     }
 
@@ -47,7 +47,7 @@ class UserRechargeAddress extends \common\dzbase\DzModel
         return [
             'id' => '记录ID',
             'user_id' => '用户ID',
-            'currency_id' => '货币',
+            'currency_id' => '积分',
             'address' => '地址',
             'tag' => '地址标签',
             'remark' => '备注',

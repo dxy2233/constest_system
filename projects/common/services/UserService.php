@@ -225,7 +225,7 @@ class UserService extends ServiceBase
      * @param $currencyId
      * @return bool
      * @throws \Exception
-     * 重置用户货币持仓
+     * 重置用户积分持仓
      */
     public static function resetCurrency($userId, $currencyId)
     {

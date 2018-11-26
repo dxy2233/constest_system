@@ -102,10 +102,11 @@ class VoteController extends BaseController
                     'type' => BUserCurrencyDetail::$TYPE_REWARD,
                 ])->exists();
                 if ($hasGive) {
+                    continue;
+                    // 不提示
                     $msg = $voteInfo.' 已赠送GDT';
                     Yii::info($msg, 'vote');
                     echo $msg . PHP_EOL;
-                    continue;
                 }
                 if ($model->type == $model::TYPE_ORDINARY) {
                     $giveAmount = round($model->consume * $ordinaryGdt, 8);

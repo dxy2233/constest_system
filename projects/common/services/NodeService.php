@@ -489,22 +489,77 @@ class NodeService extends ServiceBase
         }
     }
 
-    // 轮询判断是否需要送投票券给当前用户
+    // 轮询判断是否需要送投票券及gdt给当前用户
     public static function checkVoucher($user_id)
     {
-        $data = BUserRecommend::find()->where(['parent_id' => $user_id])->all();
+        // 判断此用户是否节点
+        $node_parent = BNode::find()->where(['user_id' => $user_id])->active()->one();
+        if (!$node_parent) {
+            return new FuncResult(0, '非节点不送奖励');
+        }
+        // 轮询此用户推荐的用户
+        $data = BUserRecommend::find()->where(['parent_id' => $user_id])->active()->all();
         foreach ($data as $v) {
+            // 判断被推荐人是否节点
             $node = BNode::find()->where(['user_id' => $v->user_id])->one();
-            $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
-            $num = $tpq_num_arr[$node->type_id];
+            if (!$node) {
+                continue;
+            }
+            $res = self::checkVoucherDo($v, $user_id, $node);
+            if ($res->code != 0) {
+                return new FuncResult(1, '补充失败', $res->msg);
+            }
+        }
+        //判断用户是否有推荐人
+        $parent = BUserRecommend::find()->where(['user_id' => $user_id])->active()->one();
+        if ($parent) {
+            // 判断推荐人是否是节点
+            $node = BNode::find()->where(['user_id' => $parent->parent_id])->one();
+            if ($node) {
+                $res = self::checkVoucherDo($parent, $parent->parent_id, $node_parent);
+                if ($res->code != 0) {
+                    return new FuncResult(1, '补充失败', $res->msg);
+                }
+                $sign = UserService::resetCurrency($parent->parent_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+            }
+        }
+        $sign = UserService::resetCurrency($user_id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+        return new FuncResult(0, '补充成功');
+    }
+    // 具体赠送
+    public static function checkVoucherDo($recommend, $user_id, $node)
+    {
+        $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
+        $gdt_num_arr = [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];
+        // 判断是否有投票券赠送记录
+        $voucher = BVoucher::find()->where(['give_user_id' => $recommend->user_id, 'user_id' => $user_id, 'node_id' => $node->id, 'voucher_num' => $tpq_num_arr[$node->type_id]])->one();
+        if (!$voucher) {
             $res = VoucherService::createNewVoucher($user_id, $node->id, $tpq_num_arr[$node->type_id]);
             if ($res->code != 0) {
                 return new FuncResult(1, '补充失败');
+            } else {
+                $voucher = $res->content;
             }
-            $v->node_id = $node->id;
-            $v->amount = $tpq_num_arr[$node->type_id];
-            if (!$v->save()) {
-                return new FuncResult(1, '补充失败');
+            $recommend->node_id = $node->id;
+            $recommend->amount = $tpq_num_arr[$node->type_id];
+            if (!$recommend->save()) {
+                return new FuncResult(1, '补充失败', $recommend->getFirstErrorText());
+            }
+        }
+        // 判断是否有gdt赠送记录
+        $old_gdt = BUserCurrencyDetail::find()->where(['type' => BUserCurrencyDetail::$TYPE_REWARD, 'amount' => $gdt_num_arr[$node->type_id], 'relate_table' => 'voucher', 'relate_id' => $voucher->id, 'currency_id' => BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT)])->one();
+        if (!$old_gdt) {
+            $res = [
+                    'user_id' => $user_id,
+                    'type' => BUserCurrencyDetail::$TYPE_REWARD,
+                    'relate_table' => 'voucher',
+                    'relate_id' => $voucher->id,
+                    'amount' => $gdt_num_arr[$node->type_id],
+                    'remark' => '推荐送GDT',
+                ];
+            $json = VoteService::giveCurrency($res);
+            if ($json->code) {
+                return new FuncResult(1, '补充失败', $json->msg);
             }
         }
         return new FuncResult(0, '补充成功');

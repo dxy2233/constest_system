@@ -8,7 +8,6 @@ use common\models\business\BNotice;
 use common\models\business\BUserOther;
 use common\models\business\BArea;
 use common\models\business\BUser;
-use common\models\business\BUserIdentify;
 use common\models\business\BAdminRule;
 use common\models\business\BAdminLog;
 use common\models\business\BAdminUser;

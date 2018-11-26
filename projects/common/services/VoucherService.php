@@ -22,6 +22,6 @@ class VoucherService extends ServiceBase
             return new FuncResult(1, $voucher->getFirstErrorText());
         }
         UserService::resetVoucher($user_id);
-        return new FuncResult(0, '成功');
+        return new FuncResult(0, '成功', $voucher);
     }
 }

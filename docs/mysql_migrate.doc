@@ -232,3 +232,7 @@ ADD `update_time` int(11) unsigned NOT NULL DEFAULT '0';
 
 以上sql 2018-11-16 17:15已同步线上
 =============================================================
+
+# 替换 gr_user_currency_detail 中 "充币/提币" 字样 更改为 "转入积分/转出积分"
+UPDATE `gr_contest`.`gr_user_currency_detail` SET `remark` = REPLACE(`remark`, '充币','转入积分');
+UPDATE `gr_contest`.`gr_user_currency_detail` SET `remark` = REPLACE(`remark`, '提币','转出积分');

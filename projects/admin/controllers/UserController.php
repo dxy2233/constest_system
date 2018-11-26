@@ -136,11 +136,10 @@ class UserController extends BaseController
 
     public function actionDownload()
     {
-        //header('Access-Control-Allow-Origin:*');
-        // $file = './a';
-        // $data = file_get_contents($file);
-        // return $data;
-        // exit;
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
@@ -207,10 +206,8 @@ class UserController extends BaseController
         
         $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
 
-        $down = $this->download($list, $headers, '用户列表'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($list, $headers, '用户列表'.date('YmdHis'));
+
         return;
     }
 

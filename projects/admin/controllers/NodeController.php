@@ -95,6 +95,10 @@ class NodeController extends BaseController
     }
     public function actionDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         // 节点类型
         $type = $this->gInt('type');
         $searchName = $this->gString('searchName', '');
@@ -127,10 +131,8 @@ class NodeController extends BaseController
         }
 
         $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态'];
-        $down = $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
+
         return;
     }
     // 审核列表
@@ -525,6 +527,10 @@ class NodeController extends BaseController
     // 历史排名下载
     public function actionHistoryDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $type = $this->gInt('type');
         if (empty($type)) {
             return $this->respondJson(1, '节点类型不能为空');
@@ -547,10 +553,8 @@ class NodeController extends BaseController
         }
         $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 
-        $down = $this->download($data, $headers, '历史排名'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($data, $headers, '历史排名'.date('YmdHis'));
+
         return;
     }
     // 获取节点设置

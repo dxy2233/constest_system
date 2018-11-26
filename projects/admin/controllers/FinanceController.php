@@ -93,6 +93,10 @@ class FinanceController extends BaseController
     //资产管理
     public function actionDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $find = BUserCurrency::find()
         ->from(BUserCurrency::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
@@ -137,9 +141,7 @@ class FinanceController extends BaseController
 
         $headers = ['mobile'=> '用户', 'name' => '币种', 'position_amount' => '总额',  'use_amount' => '可用', 'frozen_amount' => '锁仓'];
         $down = $this->download($data, $headers, '资产管理'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+
         return;
     }
     
@@ -203,6 +205,10 @@ class FinanceController extends BaseController
     // 锁仓记录下载
     public function actionFrozenDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $find = BUserCurrencyFrozen::find()
        ->from(BUserCurrencyFrozen::tableName()." A")
        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
@@ -237,10 +243,8 @@ class FinanceController extends BaseController
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $headers = ['mobile'=> '用户', 'name' => '币种', 'amount' => '数量', 'remark' => '描述', 'create_time' => '时间'];
-        $down = $this->download($data, $headers, '锁仓记录'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($data, $headers, '锁仓记录'.date('YmdHis'));
+
         return;
     }
 
@@ -306,6 +310,10 @@ class FinanceController extends BaseController
     // 财务流水
     public function actionFinanceDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $in_arr = BUserCurrencyDetail::getTypeRevenue();
         $out_arr = BUserCurrencyDetail::getTypePay();
         $find = BUserCurrencyDetail::find()
@@ -350,10 +358,8 @@ class FinanceController extends BaseController
             $v['status'] = BUserCurrencyDetail::getStatus($v['status']);
         }
         $headers = ['id'=> '流水号', 'mobile' => '用户', 'name' => '币种', 'type2' => '收支', 'type' => '类型', 'amount' => '数量', 'status' => '状态', 'create_time' => '时间'];
-        $down = $this->download($data, $headers, '财务流水'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($data, $headers, '财务流水'.date('YmdHis'));
+
         return;
     }
 }

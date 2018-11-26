@@ -16,8 +16,8 @@ use Yii;
 trait DzControllerTrait
 {
     protected $respondData;
-   
-    final protected function download($list, $headers, $fileName = '')
+ 
+    final protected function checkDownloadCode()
     {
         $return = Yii::$app->request->get('download_code');
         if (empty($return)) {
@@ -25,14 +25,15 @@ trait DzControllerTrait
         }
         $code = FuncHelper::authCode($return);
         if ($code == '') {
-            // var_dump($code);
             return false;
         }
         $user_id = AdminUser::findIdentityByAccessToken($code);
         if (!$user_id) {
-            // var_dump($code);
             return false;
         }
+    }
+    final protected function download($list, $headers, $fileName = '')
+    {
         if ($fileName == '') {
             $fileName = time();
         }

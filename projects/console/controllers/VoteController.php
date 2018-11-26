@@ -87,7 +87,7 @@ class VoteController extends BaseController
         Yii::info($timeSlot, 'vote');
         echo $begin .PHP_EOL;
         echo $timeSlot.PHP_EOL;
-        $voteDate = $voteModel->select(['*'])->all();
+        $voteDate = $voteModel->select(['*'])->where(['>=', 'create_time', $this->start])->andWhere(['<=', 'create_time', $this->end])->all();
         $ordinaryGdt = (float) SettingService::get('vote', 'ordinary_gdt')->value;
         $payGdt = (float) SettingService::get('vote', 'pay_gdt')->value;
         $relate_table = 'vote';

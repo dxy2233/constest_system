@@ -34,4 +34,9 @@ class IndexController extends BaseController
     {
         UpdateService::begin();
     }
+    //
+    public function actionUpdateRecommend()
+    {
+        UpdateService::update_recommend_begin();
+    }
 }

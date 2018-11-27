@@ -39,6 +39,7 @@ class ManagerController extends BaseController
         $user = $this->user;
         $return['id'] = $user->id;
         $return['name'] = $user->name;
+        $return['role_id'] = $user->role_id;
         return $this->respondJson(0, '获取成功', $return);
     }
 
@@ -286,7 +287,7 @@ class ManagerController extends BaseController
         if (!$data) {
             return $this->respondJson(1, '角色不存在');
         }
-        if ($data->rule_list === null) {
+        if ($data->rule_list == null) {
             $this_rule = [];
         } else {
             $this_rule = json_decode($data->rule_list, true);

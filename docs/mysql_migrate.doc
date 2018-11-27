@@ -273,3 +273,6 @@ UPDATE `gr_contest`.`gr_user_currency_detail` SET `remark` = REPLACE(`remark`, '
 #添加用户上级字段
 ALTER TABLE `gr_user`
 ADD `parent_list` text NULL COMMENT '上级列表' AFTER `status`;
+#上级字段类型修改
+ALTER TABLE `gr_user`
+CHANGE `parent_list` `parent_list` varchar(1000) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '上级ID列表' AFTER `status`;

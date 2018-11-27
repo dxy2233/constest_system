@@ -517,7 +517,7 @@ class NodeService extends ServiceBase
         $parent = BUserRecommend::find()->where(['user_id' => $user_id])->one();
         if ($parent) {
             // 判断推荐人是否是节点
-            $node = BNode::find()->where(['user_id' => $parent->parent_id])->one();
+            $node = BNode::find()->where(['user_id' => $parent->parent_id])->active()->one();
             if ($node) {
                 $res = self::checkVoucherDo($parent, $node_parent);
                 if ($res->code != 0) {

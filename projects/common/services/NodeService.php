@@ -530,7 +530,7 @@ class NodeService extends ServiceBase
         return new FuncResult(0, '补充成功');
     }
     // 具体赠送
-    public static function checkVoucherDo($recommend, $node)
+    public static function checkVoucherDo(BUserRecommend $recommend, BNode $node)
     {
         $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
         $gdt_num_arr = [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];

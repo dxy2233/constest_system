@@ -223,7 +223,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
         $recommend = BUserRecommend::find()->where(['user_id' => $data->user_id])->one();
-        if($recommend){
+        if ($recommend) {
             $recommend->node_id = $data->id;
             if (!$recommend->save()) {
                 $transaction->rollBack();

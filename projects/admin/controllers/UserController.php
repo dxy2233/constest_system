@@ -581,13 +581,10 @@ class UserController extends BaseController
             return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
         }
         if ($code != '') {
-            $id = UserService::validateRemmendCode($code);
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
+            $res = UserService::checkUserRecommend($user->id, $code);
+            if ($res->code != 0) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                return $this->respondJson(1, $str.'失败', $res->msg);
             }
         }
         $user_voucher = new BUserVoucher();

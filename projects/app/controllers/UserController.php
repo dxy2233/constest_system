@@ -79,16 +79,23 @@ class UserController extends BaseController
             return $this->respondJson(1, '推荐码格式错误');
         }
         $reCode = strtoupper($reCode);
-        $parentId = UserService::validateRemmendCode($reCode);
-        if (!$parentId) {
-            return $this->respondJson(1, '推荐人不存在');
+        $checkRecomment = UserService::checkUserRecommend($userModel->id, $reCode);
+        if ($checkRecomment->code) {
+            return $this->respondJson($checkRecomment->code, $checkRecomment->msg);
         }
-        if ($parentId === $userModel->id) {
-            return $this->respondJson(1, '推荐人不能是自己');
+
+
+        $checkVoucher = NodeService::checkVoucher($userModel->id);
+
+        if ($checkVoucher->code) {
+            return $this->respondJson($checkVoucher->code, $checkVoucher->msg);
         }
-        if (BUserRecommend::find()->where(['user_id' => $userModel->id])->exists()) {
-            return $this->respondJson(1, '已添加推荐人');
-        }
+        
+        return $this->respondJson(0, '设置成功');
+
+        /**
+         * 以下是单独赠送投票劵逻辑，暂保留一段时间，运行测试完成之后再进行剔除
+         */
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             $nodeModel = $userModel->node;
@@ -96,7 +103,7 @@ class UserController extends BaseController
             $recommendModel->parent_id = (int) $parentId;
             if (!is_null($nodeModel) && $nodeModel->status == BNode::STATUS_ON) {
                 $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
-                // 指定货币类型的 * 设置倍数
+                // 指定积分类型的 * 设置倍数
                 $voucherCount = $nodeModel->grt * $multiple;
                 $recommendVoucher = (bool) SettingService::get('recommend', 'recommend_voucher')->value;
                 if (BNode::find()->where(['user_id' => $parentId])->exists() && $recommendVoucher) {
@@ -142,22 +149,30 @@ class UserController extends BaseController
         $userModel = $this->user;
         $recommendModel = $userModel->getUserRecommend()
         ->alias('r')
-        ->select(['r.create_time', 'nt.name as type_name', 'r.node_id', 'u.mobile', 'r.parent_id'])
+        ->select(['r.id', 'r.create_time', 'nt.name as type_name', 'r.node_id', 'u.mobile', 'r.parent_id', 'r.user_id'])
         ->joinWith(['node n' => function ($query) {
             $query->joinWith('nodeType nt', false);
         }, 'user u'], false);
         $data['count'] = $recommendModel->count();
         $data['list'] = $recommendModel
+        ->orderBy(['r.create_time' => SORT_DESC])
         ->page($page, $pageSize)
         ->asArray()->all();
         foreach ($data['list'] as &$recommend) {
+            // 判断推荐人的节点数据是否存在，如果存在但是未添加node_id 就直接添加关系
+            if ($recommend['parent_id'] && !$recommend['node_id']) {
+                $parentNodeModel = BUser::findOne($recommend['user_id'])->node;
+                if (is_object($parentNodeModel) && $parentNodeModel->status == BNode::STATUS_ON) {
+                    $model = BUserRecommend::findOne($recommend['id']);
+                    $model->node_id = $parentNodeModel->id;
+                    $model->save(false);
+                    $recommend['type_name'] = $parentNodeModel->nodeType->name;
+                }
+            }
             $recommend['create_time'] = FuncHelper::formateDate($recommend['create_time']);
             $recommend['mobile'] = substr_replace($recommend['mobile'], '****', 3, 4);
             $recommend['type_name'] = $recommend['type_name'] ?? '普通用户';
-            unset($recommend['node']);
-            unset($recommend['parent']);
-            unset($recommend['node_id']);
-            unset($recommend['parent_id']);
+            unset($recommend['parent_id'], $recommend['user_id']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

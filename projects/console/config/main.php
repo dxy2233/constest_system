@@ -50,6 +50,13 @@ return [
                     'logVars' => [],
                     'logFile' => '@console/runtime/logs/history.log'
                 ],
+                [
+                    'class'  => 'yii\log\FileTarget',
+                    'levels' => ['error', 'warning', 'info'],
+                    'categories'=> ['userCurrency'],
+                    'logVars' => [],
+                    'logFile' => '@console/runtime/logs/userCurrency.log'
+                ],
             ],
         ],
     ],

@@ -11,6 +11,7 @@ use common\models\business\BUser;
 use common\models\business\BCurrency;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
+use common\models\business\BUserRecommend;
 use common\models\business\BUserCurrencyDetail;
 use Yii;
 
@@ -250,5 +251,74 @@ class UpdateService extends ServiceBase
             echo $log->getFirstErrorText();
         }
         return $return;
+    }
+
+    // 更改所有用户上级列表
+    public static function update_recommend_begin()
+    {
+        echo '开始'.PHP_EOL;
+        $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = ''";
+        $connection=\Yii::$app->db;
+        $command=$connection->createCommand($sql);
+        $rowCount=$command->execute();
+        $all_data = BUserRecommend::find()->all();
+        $transaction = \Yii::$app->db->beginTransaction();
+        $msg = [];
+        foreach ($all_data as $v) {
+            $parent = BUser::find()->where(['id' => $v->parent_id])->one();
+            if ($parent->parent_list != '') {
+                $str = $parent->parent_list . ',' . $v->parent_id;
+            } else {
+                $str = $v->parent_id;
+            }
+            $user = BUser::find()->where(['id' => $v->user_id])->one();
+            $user->parent_list = $str;
+            if (!$user->save()) {
+                $msg[] = $user->getFirstErrorText();
+                break;
+            }
+            $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+        }
+        if (count($msg) > 0) {
+            $transaction->rollBack();
+            var_dump($msg);
+            Yii::error(json_encode($msg), 'update_recommend');
+            return false;
+        } else {
+            $transaction->commit();
+            echo '执行完成'.PHP_EOL;
+            Yii::info('执行成功', 'update_recommend');
+            return true;
+        }
+    }
+    // 检查用户推荐关系是否循环
+    public static function checkRecommend()
+    {
+        $all_data = BUserRecommend::find()->all();
+        $arr = [];
+        foreach ($all_data as $v) {
+            $parent = BUser::find()->where(['id' => $v->parent_id])->one();
+
+            if (!empty($arr[$v->parent_id])) {
+                $str = $arr[$v->parent_id] . ',' . $v->parent_id;
+            } else {
+                $str = $v->parent_id;
+            }
+            $arr[$v->user_id] = $str;
+            foreach ($arr as $key => $val) {
+                if ($val == $v->user_id || substr($val, 0, strlen($v->user_id)+1) == $v->user_id.',') {
+                    $arr[$key] = $str. ',' . $val;
+                }
+            }
+        }
+        foreach ($arr as $k => $v) {
+            $this_arr = explode(',', $v);
+            if (in_array($k, $this_arr)) {
+                echo $k.',';
+            }
+        }
     }
 }

@@ -11,17 +11,18 @@ use common\models\business\BVoucher;
 
 class VoucherService extends ServiceBase
 {
-    public static function createNewVoucher($user_id, $node_id, $voucher_num)
+    public static function createNewVoucher($user_id, $node_id, $voucher_num, $give_user_id)
     {
         $voucher = new BVoucher();
         $voucher->user_id = $user_id;
         $voucher->node_id = $node_id;
+        $voucher->give_user_id = $give_user_id;
         $voucher->voucher_num = $voucher_num;
         if (!$voucher->save()) {
             $transaction->rollBack();
             return new FuncResult(1, $voucher->getFirstErrorText());
         }
         UserService::resetVoucher($user_id);
-        return new FuncResult(0, '成功');
+        return new FuncResult(0, '成功', $voucher);
     }
 }

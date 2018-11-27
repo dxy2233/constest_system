@@ -68,7 +68,7 @@ class VoteService extends ServiceBase
     }
 
     /**
-     * 货币投票
+     * 积分投票
      *
      * @param BUser $userModel
      * @param array $data
@@ -111,7 +111,7 @@ class VoteService extends ServiceBase
                 'update_time' => NOW_TIME,
                 'user_recharge' => $isFrozen ? 'voto_frozen' : 'voto_trans',
             ];
-            // 货币投票
+            // 积分投票
             $currencyTrans = self::bankrollVotes($res, $isFrozen);
             if ($currencyTrans->code) {
                 throw new ErrorException('划账失败 '.$currencyTrans->msg);
@@ -222,7 +222,7 @@ class VoteService extends ServiceBase
      * @param $hasFrozen
      * @return array
      * @throws \yii\db\Exception
-     * info : 前台货币消费（投票）/ 两种类型
+     * info : 前台积分消费（投票）/ 两种类型
      */
     public static function bankrollVotes(array $res, bool $isFrozen = true)
     {
@@ -248,7 +248,7 @@ class VoteService extends ServiceBase
                 $userFrozen->setAttributes($currencyData);
                 $userFrozen->type = $type = BUserCurrencyFrozen::$TYPE_VOTE; // 投票
                 $userFrozen->amount = round($res['amount'], 8); // 总数量
-                $userFrozen->remark = $remark = BUserCurrencyFrozen::getType(BUserCurrencyFrozen::$TYPE_VOTE) ?? '投票';
+                $userFrozen->remark = $remark = BUserCurrencyFrozen::getType(BUserCurrencyFrozen::$TYPE_VOTE) ?? '持有投票';
                 $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
                 $sign = $userFrozen->save();
                 if (!$sign) {
@@ -263,7 +263,7 @@ class VoteService extends ServiceBase
                 $currencyDetail->type = $type = BUserCurrencyDetail::$TYPE_VOTE; // 投票消费
                 $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
                 $currencyDetail->effect_time = $time;
-                $currencyDetail->remark = $remark = BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE) ?? '投票';
+                $currencyDetail->remark = $remark = BUserCurrencyDetail::getType(BUserCurrencyDetail::$TYPE_VOTE) ?? '支付投票';
                 $currencyDetail->amount = -$res['amount'];
                 $sign = $currencyDetail->save();
                 if (!$sign) {
@@ -288,7 +288,7 @@ class VoteService extends ServiceBase
                 'relate_id' => $res['id'],
                 'type' => BUserCurrencyDetail::$TYPE_REWARD,
                 'amount' => $giveAmount,
-                'remark' => $remark,
+                'remark' => $remark . '- GDT赠送',
                 ];
                 $give = self::giveCurrency($giveDate);
                 if ($give->code) {
@@ -374,7 +374,7 @@ class VoteService extends ServiceBase
     }
     
     /**
-     * 赠送GDT
+     * 投票赠送GDT
      *
      * @param array $res
      * @return void
@@ -400,7 +400,16 @@ class VoteService extends ServiceBase
             $currencyDetail->setAttributes($res);
             $currencyDetail->currency_id = $currencyId;
             $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-            $currencyDetail->effect_time = NOW_TIME;
+            // 可以手动指定生效时间以及创建更新时间
+            $currencyDetail->effect_time = $currencyDetail->effect_time ?? NOW_TIME;
+            $currencyDetail->create_time = $currencyDetail->create_time ?? NOW_TIME;
+            $currencyDetail->update_time = $currencyDetail->update_time ?? NOW_TIME;
+            // 如果手动指定时间后会剔除自动添加时间的行为
+            $timeBehavior = 0;
+            if ($currencyDetail->getBehavior($timeBehavior) instanceof \yii\behaviors\TimestampBehavior) {
+                // 删除指定  behavior 行为
+                $currencyDetail->detachBehavior($timeBehavior);
+            }
             if (!$currencyDetail->save()) {
                 throw new ErrorException('user-currency-detail table data create is fail');
             }

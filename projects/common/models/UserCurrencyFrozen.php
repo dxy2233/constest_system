@@ -7,9 +7,9 @@ use Yii;
 /**
  * This is the model class for table "{{%user_currency_frozen}}".
  *
- * @property string $id 冻结货币明细ID
+ * @property string $id 冻结积分明细ID
  * @property int $user_id 用户ID
- * @property int $currency_id 货币
+ * @property int $currency_id 积分
  * @property int $type 类型，1 选举 2 投票
  * @property string $relate_table
  * @property integer $relate_id
@@ -49,9 +49,9 @@ class UserCurrencyFrozen extends \common\dzbase\DzModel
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', '冻结货币明细ID'),
+            'id' => Yii::t('app', '冻结积分明细ID'),
             'user_id' => Yii::t('app', '用户ID'),
-            'currency_id' => Yii::t('app', '货币'),
+            'currency_id' => Yii::t('app', '积分'),
             'type' => Yii::t('app', '类型，1 选举 2 投票'),
             'relate_table' => '类型关联表',
             'relate_id' => '类型关联表数据ID',

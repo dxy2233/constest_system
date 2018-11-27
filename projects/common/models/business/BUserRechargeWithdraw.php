@@ -49,9 +49,9 @@ class BUserRechargeWithdraw extends \common\models\UserRechargeWithdraw
     public function attributeLabels()
     {
         return [
-            'id' => '货币记录ID',
+            'id' => '积分记录ID',
             'order_number' => '订单号',
-            'currency_id' => '货币',
+            'currency_id' => '积分',
             'user_id' => '用户名',
             'mobile' => '手机号码',
             'type' => '类型',

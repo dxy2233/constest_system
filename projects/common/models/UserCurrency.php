@@ -9,7 +9,7 @@ use Yii;
  *
  * @property int $id 记录ID
  * @property int $user_id 用户ID
- * @property int $currency_id 货币
+ * @property int $currency_id 积分
  * @property string $position_amount 持仓数量
  * @property string $frozen_amount 冻结数量
  * @property string $use_amount 可用数量
@@ -45,7 +45,7 @@ class UserCurrency extends \common\dzbase\DzModel
         return [
             'id' => Yii::t('app', '记录ID'),
             'user_id' => Yii::t('app', '用户ID'),
-            'currency_id' => Yii::t('app', '货币'),
+            'currency_id' => Yii::t('app', '积分'),
             'position_amount' => Yii::t('app', '持仓数量'),
             'frozen_amount' => Yii::t('app', '冻结数量'),
             'use_amount' => Yii::t('app', '可用数量'),

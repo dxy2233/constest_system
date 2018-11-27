@@ -55,7 +55,7 @@ class WalletSent extends \common\dzbase\DzModel
     {
         return [
             'id' => '支付请求记录ID',
-            'currency_id' => '货币',
+            'currency_id' => '积分',
             'transaction_number' => '交易单号',
             'transaction_id' => '交易ID',
             'type' => '类型，1 用户提现，2 充值用户激活，3 用户转入主钱包',

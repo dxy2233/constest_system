@@ -412,7 +412,7 @@ class UserService extends ServiceBase
         // 添加推荐关系
         if (empty($recommend)) {
             $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
+            $user_recommend->user_id = $user_id;
             $user_recommend->parent_id = $id;
             if (!$user_recommend->save()) {
                 return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());

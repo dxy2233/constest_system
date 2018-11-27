@@ -244,3 +244,7 @@ ADD `parent_list` text NULL COMMENT '上级列表' AFTER `status`;
 #上级字段类型修改
 ALTER TABLE `gr_user`
 CHANGE `parent_list` `parent_list` varchar(1000) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '上级ID列表' AFTER `status`;
+
+
+以上sql 2018-11-27 17:10已同步线上
+=============================================================

@@ -10,9 +10,9 @@
         <div class="title">转出</div>
         <div class="transfer-form">
           <div class="form-item">
-            <label for="">币种</label>
+            <label for="">积分</label>
             <div class="ipt-box">
-              <sel :dataList="currencyList" placeholder="请选择币种"
+              <sel :dataList="currencyList" placeholder="请选择积分"
                    value="id" label="name" @changeSel="changeCurrent" :select="this.form.id"></sel>
             </div>
           </div>
@@ -136,7 +136,7 @@
       },
       submitTransfer() {
         if (!this.form.id) {
-          this.$vux.toast.show('请选择币种')
+          this.$vux.toast.show('请选择积分')
           return
         }
         let vaild = this.clickAmount(this.form.amount)
@@ -185,10 +185,10 @@
     },
     created() {
       let list = JSON.parse(localStorage.getItem('currencyList'))
+      let nL = []
       for (let item of  list){
         if (parseInt(item.withdrawStatus)){
-          this.currencyList.push(item)
-          // console.log(item.id ,this.$route.params.id,item.id === this.$route.params.id)
+          nL.push(item)
           if (item.id === this.$route.params.id){
             // console.log(item)
             this.form.id = item.id
@@ -197,7 +197,7 @@
           }
         }
       }
-      // this.currencyList = list
+      this.currencyList = nL
       // this.form.id='1'
     },
 

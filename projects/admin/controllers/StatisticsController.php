@@ -3,6 +3,7 @@ namespace admin\controllers;
 
 use common\services\AclService;
 use common\services\TicketService;
+use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BNotice;
 use common\models\business\BUserOther;
@@ -12,6 +13,7 @@ use common\models\business\BUserIdentify;
 use common\models\business\BNode;
 use common\models\business\BUserLog;
 use common\models\business\BVote;
+use common\components\IpUtil;
 
 /**
  * Site controller
@@ -39,7 +41,7 @@ class StatisticsController extends BaseController
     {
         $user_login_num = BUser::find()->where(['>=', 'last_login_time',strtotime(date('Y-m-d'))])->count();
         $user_all_num = BUser::find()->where(['status' => BUser::$STATUS_ON])->count();
-        $repeat_login_num = BUserLog::find()->where(['type' => BUserLog::$TYPE_LOGIN])->andWhere(['>=', 'create_time',strtotime(date('Y-m-d'))])->groupBy(['user_id'])->having(['>', 'count(id)', 1])->count();
+        $repeat_login_num = BUserLog::find()->where(['type' => BUserLog::$TYPE_LOGIN])->andWhere(['>=', 'create_time',time()-3600*24*7])->groupBy(['user_id'])->having(['>', 'count(id)', 1])->count();
         $user_create_num = BUser::find()->where(['>=', 'create_time',strtotime(date('Y-m-d'))])->count();
         $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['status' => BVote::STATUS_ACTIVE])->andWhere(['>=', 'create_time',strtotime(date('Y-m-d'))])->asArray()->one();
         $vote_num = $vote['num'] ? $vote['num'] : "0";
@@ -88,11 +90,11 @@ class StatisticsController extends BaseController
             return $this->respondJson(1, '结束时间不能大于当前时间');
         }
         $end_time += (24*3600-1);
-        $group_arr = [1 => 'floor(create_time/(24*3600))', 2 => 'floor((create_time+3*3600*24)/(24*3600*7))', 3 => "FROM_UNIXTIME(create_time,'%Y-%m')"];
+        $group_arr = [1 => 'floor(create_time/(24*3600))', 2 => 'floor((create_time+4*3600*24)/(24*3600*7))', 3 => "FROM_UNIXTIME(create_time,'%Y-%m')"];
         if ($group == 1) {
             $select_field = 'floor(create_time/(24*3600))*24*3600 as date';
         } elseif ($group == 2) {
-            $select_field = 'floor((create_time+3*3600*24)/(24*3600*7))*24*3600*7-3*3600*24 as date';
+            $select_field = 'floor((create_time+4*3600*24)/(24*3600*7))*24*3600*7-3*3600*24 as date';
         } else {
             $select_field = $group_arr[$group].' as date';
         }
@@ -125,7 +127,7 @@ class StatisticsController extends BaseController
         $return = [];
 
         $date_arr = [];
-        for ($i = $str_time; $i<$end_time; $i += 3600*24) {
+        for ($i = $str_time; $i<=$end_time; $i += 3600*24) {
             if ($group == 1) {
                 $m = date('Y-m-d', $i);
                 if (empty($date_arr[$m])) {
@@ -143,7 +145,7 @@ class StatisticsController extends BaseController
                     }
                 }
             } elseif ($group == 2) {
-                $m = date('Y-m-d', floor(($i+3*3600*24)/(24*3600*7))*24*3600*7-3*3600*24);
+                $m = date('Y-m-d', floor(($i+4*3600*24)/(24*3600*7))*24*3600*7-3*3600*24);
                 if (empty($date_arr[$m])) {
                     $date_arr[$m] = 1;
                     $return['date'][] = $m;
@@ -327,5 +329,13 @@ class StatisticsController extends BaseController
         $return['all_people'] = $all_people;
         $return['data'] = $r;
         return  $this->respondJson(0, '获取成功', $return);
+    }
+
+    public function actionTest()
+    {
+        $data = BUser::find()->all();
+        foreach ($data as $v) {
+            NodeService::checkVoucher($v->id);
+        }
     }
 }

@@ -31,7 +31,7 @@ class ReportJingtumController extends BaseController
     public function actionGetTrans()
     {
         echo "start".PHP_EOL;
-        //井通下的货币
+        //井通下的积分
         $currencyJingtum = BCurrency::getJingtumCurrency();
 
         $jingtumAddressList = BUserRechargeAddress::find()
@@ -92,7 +92,7 @@ class ReportJingtumController extends BaseController
     {
         echo "start".PHP_EOL;
 
-        //井通下的货币
+        //井通下的积分
         $currencyJingtum = BCurrency::getJingtumCurrency();
 
         $jingtumAddressList = BUserRechargeAddress::find()

@@ -95,7 +95,7 @@
           return
         }
         if (value - this.typeInfo.number > 0) {
-          cb('可用不足')
+          cb('超出最大可投票数')
           return
         }
         // if (value - this.typeInfo.surplusNumber > 0) {
@@ -168,13 +168,6 @@
         })
       },
       pageInt() {
-        if (!this.loginMsg) {
-          this.$router.push({
-            path: `/login`
-          })
-          return
-        }
-
         if (!this.typeList.length) {
           this.getTypeList()
         }

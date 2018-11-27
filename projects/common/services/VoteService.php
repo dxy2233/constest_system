@@ -68,7 +68,7 @@ class VoteService extends ServiceBase
     }
 
     /**
-     * 货币投票
+     * 积分投票
      *
      * @param BUser $userModel
      * @param array $data
@@ -111,7 +111,7 @@ class VoteService extends ServiceBase
                 'update_time' => NOW_TIME,
                 'user_recharge' => $isFrozen ? 'voto_frozen' : 'voto_trans',
             ];
-            // 货币投票
+            // 积分投票
             $currencyTrans = self::bankrollVotes($res, $isFrozen);
             if ($currencyTrans->code) {
                 throw new ErrorException('划账失败 '.$currencyTrans->msg);
@@ -222,7 +222,7 @@ class VoteService extends ServiceBase
      * @param $hasFrozen
      * @return array
      * @throws \yii\db\Exception
-     * info : 前台货币消费（投票）/ 两种类型
+     * info : 前台积分消费（投票）/ 两种类型
      */
     public static function bankrollVotes(array $res, bool $isFrozen = true)
     {

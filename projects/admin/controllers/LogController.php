@@ -8,7 +8,6 @@ use common\models\business\BNotice;
 use common\models\business\BUserOther;
 use common\models\business\BArea;
 use common\models\business\BUser;
-use common\models\business\BUserIdentify;
 use common\models\business\BAdminRule;
 use common\models\business\BAdminLog;
 use common\models\business\BAdminUser;
@@ -79,6 +78,10 @@ class LogController extends BaseController
 
     public function actionDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $username = $this->pString('username');
         $str_time = $this->pString('strTime');
         $end_time = $this->pString('endTime');
@@ -114,10 +117,8 @@ class LogController extends BaseController
         }
         $headers = ['create_time'=> '操作时间','real_name' => '操作人', 'department' => '部门', 'controller' => '操作模块', 'action' => '操作内容', 'ip' => '操作设备IP'];
 
-        $down = $this->download($data, $headers, '日志列表'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($data, $headers, '日志列表'.date('YmdHis'));
+
         return;
     }
 }

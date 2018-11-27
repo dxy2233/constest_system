@@ -6,6 +6,7 @@ use common\services\TicketService;
 use common\services\RechargeService;
 use common\services\UserService;
 use common\services\VoteService;
+use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BArea;
 use common\models\business\BUser;
@@ -136,11 +137,10 @@ class UserController extends BaseController
 
     public function actionDownload()
     {
-        //header('Access-Control-Allow-Origin:*');
-        // $file = './a';
-        // $data = file_get_contents($file);
-        // return $data;
-        // exit;
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
@@ -207,10 +207,8 @@ class UserController extends BaseController
         
         $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
 
-        $down = $this->download($list, $headers, '用户列表'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($list, $headers, '用户列表'.date('YmdHis'));
+
         return;
     }
 
@@ -525,32 +523,27 @@ class UserController extends BaseController
         }
         $code = $this->pString('code', '');
         $user->username = $name;
-        $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
-        if (empty($recommend)) {
-            if($code != ''){
-                $id = UserService::validateRemmendCode($code);
-                if ($id === $userId) {
-                    return $this->respondJson(1, '推荐人不能是自己');
-                }
-                $user_recommend = new BUserRecommend();
-                $user_recommend->user_id = $user->id;
-                $user_recommend->parent_id = $id;
-                if (!$user_recommend->save()) {
-                    return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+        $transaction = \Yii::$app->db->beginTransaction();
+        if ($code != '') {
+            $res = UserService::checkUserRecommend($userId, $code);
+            if ($res->code != 0) {
+                $transaction->rollBack();
+                return $this->respondJson(1, $str.'失败', $res->msg);
+            }
+        }
+
+        if ($user->save()) {
+            if ($code != '') {
+                $res = NodeService::checkVoucher($user->id);
+                if ($res->code != 0) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, $str.'失败', $res->msg);
                 }
             }
-            
-        } else {
-            return $this->respondJson(1, '用户已有推荐人');
-        }
-        if (empty($recommend)) {
-            $info['referee'] = '-';
-        } else {
-            $info['referee'] = $recommend['mobile'];
-        }
-        if ($user->save()) {
+            $transaction->commit();
             return $this->respondJson(0, $str.'成功');
         } else {
+            $transaction->rollBack();
             return $this->respondJson(1, $str.'失败', $user->getFirstErrorText());
         }
     }

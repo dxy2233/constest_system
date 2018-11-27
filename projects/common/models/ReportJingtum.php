@@ -55,7 +55,7 @@ class ReportJingtum extends \common\dzbase\DzModel
     {
         return [
             'id' => '交易订单ID',
-            'currency' => '货币',
+            'currency' => '积分',
             'source_address' => '发送方地址',
             'destination_address' => '接收方地址',
             'type' => '分类',

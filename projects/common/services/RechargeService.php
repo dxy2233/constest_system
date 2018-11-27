@@ -29,9 +29,9 @@ class RechargeService extends ServiceBase {
         if($rechargeAddress) {
             $address = $rechargeAddress->address;
         } else {
-            //井通下的货币
+            //井通下的积分
             $currencyJingtum = BCurrency::getJingtumCurrency();
-            //井通下的货币共用一个钱包
+            //井通下的积分共用一个钱包
             if(in_array($currencyId, $currencyJingtum)) {
                 $jingtumAddress = BUserRechargeAddress::find()
                     ->where(['user_id' => $userId])
@@ -64,7 +64,7 @@ class RechargeService extends ServiceBase {
                     return new ReturnInfo(1, "获取失败");
                 }
 
-                //井通下的货币共用一个钱包，添加相应货币地址
+                //井通下的积分共用一个钱包，添加相应积分地址
                 if(in_array($currencyId, $currencyJingtum)) {
                     foreach($currencyJingtum AS $val) {
                         $rechargeAddressJingtum = BUserRechargeAddress::find()
@@ -90,7 +90,7 @@ class RechargeService extends ServiceBase {
     }
 
     /**
-     * 生成货币地址
+     * 生成积分地址
      * @param $currencyId
      * @return string
      */
@@ -223,7 +223,7 @@ class RechargeService extends ServiceBase {
                 }
                 $userRechargeWithdrawId = $newUserRechargeWithdraw->id;
 
-                //添加货币资金明细
+                //添加积分资金明细
                 $newUserCurrencyDetail = new BUserCurrencyDetail();
                 $newUserCurrencyDetail->currency_id = $currencyId;
                 $newUserCurrencyDetail->user_id = $userRechargeAddress->user_id;
@@ -241,7 +241,7 @@ class RechargeService extends ServiceBase {
                     throw new \Exception('insert user currency detail fail');
                 }
 
-                //添加货币手续费资金明细
+                //添加积分手续费资金明细
                 if($rechargePoundage > 0) {
                     $newUserCurrencyDetail = new BUserCurrencyDetail();
                     $newUserCurrencyDetail->currency_id = $currencyId;
@@ -261,7 +261,7 @@ class RechargeService extends ServiceBase {
                     }
                 }
 
-                //重置用户货币持仓
+                //重置用户积分持仓
                 $res = UserService::resetCurrency($userRechargeAddress->user_id, $currencyId);
                 if(!$res) {
                     throw new \Exception('reset currency fail');

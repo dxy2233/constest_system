@@ -84,6 +84,10 @@ class VoteController extends BaseController
     }
     public function actionDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $find = BVote::find()
         ->from(BVote::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
@@ -117,10 +121,8 @@ class VoteController extends BaseController
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $headers = ['mobile'=> '投票用户', 'name' => '投票节点名称', 'vote_number' => '投出票数', 'type' => '投票方式', 'create_time' => '投票时间'];
-        $down = $this->download($data, $headers, '投票列表'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($data, $headers, '投票列表'.date('YmdHis'));
+
         return;
     }
     /**
@@ -213,6 +215,10 @@ class VoteController extends BaseController
     //投票排名下载
     public function actionVoteOrderDownload()
     {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $type = $this->gInt('type', 0);
         $find = BVote::find()
         ->from(BVote::tableName()." A")
@@ -236,10 +242,8 @@ class VoteController extends BaseController
         }
         $headers = ['order'=> '排名', 'mobile' => '账号', 'num' => '票数', 'type' => '方式'];
 
-        $down = $this->download($data, $headers, '投票排名'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($data, $headers, '投票排名'.date('YmdHis'));
+
         return;
     }
 }

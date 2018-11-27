@@ -95,9 +95,12 @@ class UserController extends BaseController
             $recommendModel = new BUserRecommend();
             $recommendModel->parent_id = (int) $parentId;
             if (!is_null($nodeModel) && $nodeModel->status == BNode::STATUS_ON) {
-                $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
+                // $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
                 // 指定货币类型的 * 设置倍数
-                $voucherCount = $nodeModel->grt * $multiple;
+                // $voucherCount = $nodeModel->grt * $multiple;
+                // 更改规则 键值为 node_type id 值为 赠送数量
+                $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
+                $voucherCount = $tpq_num_arr[$nodeModel->type_id];
                 $recommendVoucher = (bool) SettingService::get('recommend', 'recommend_voucher')->value;
                 if (BNode::find()->where(['user_id' => $parentId])->exists() && $recommendVoucher) {
                     $voucherModel = new BVoucher();
@@ -142,7 +145,7 @@ class UserController extends BaseController
         $userModel = $this->user;
         $recommendModel = $userModel->getUserRecommend()
         ->alias('r')
-        ->select(['r.create_time', 'nt.name as type_name', 'r.node_id', 'u.mobile', 'r.parent_id'])
+        ->select(['r.id', 'r.create_time', 'nt.name as type_name', 'r.node_id', 'u.mobile', 'r.parent_id', 'r.user_id'])
         ->joinWith(['node n' => function ($query) {
             $query->joinWith('nodeType nt', false);
         }, 'user u'], false);
@@ -152,13 +155,20 @@ class UserController extends BaseController
         ->page($page, $pageSize)
         ->asArray()->all();
         foreach ($data['list'] as &$recommend) {
+            // 判断推荐人的节点数据是否存在，如果存在但是未添加node_id 就直接添加关系
+            if ($recommend['parent_id'] && !$recommend['node_id']) {
+                $parentNodeModel = BUser::findOne($recommend['user_id'])->node;
+                if (is_object($parentNodeModel) && $parentNodeModel->status == BNode::STATUS_ON) {
+                    $model = BUserRecommend::findOne($recommend['id']);
+                    $model->node_id = $parentNodeModel->id;
+                    $model->save(false);
+                    $recommend['type_name'] = $parentNodeModel->nodeType->name;
+                }
+            }
             $recommend['create_time'] = FuncHelper::formateDate($recommend['create_time']);
             $recommend['mobile'] = substr_replace($recommend['mobile'], '****', 3, 4);
             $recommend['type_name'] = $recommend['type_name'] ?? '普通用户';
-            unset($recommend['node']);
-            unset($recommend['parent']);
-            unset($recommend['node_id']);
-            unset($recommend['parent_id']);
+            unset($recommend['parent_id'], $recommend['user_id']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

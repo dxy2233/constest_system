@@ -32,7 +32,7 @@
           <i class="el-icon-close btn" @click="showInfo=false"/>
           <el-button v-show="rowInfo.status=='正常'" type="danger" plain class="btn" style="margin:0 10px;" @click="changeStatus(0)">停用</el-button>
           <el-button v-show="rowInfo.status=='停用'" type="primary" plain class="btn" style="margin:0 10px;" @click="changeStatus(1)">启用</el-button>
-          <el-button type="primary" class="btn" @click="openDialog('edit')">编辑</el-button>
+          <el-button v-if="buttons[11].child[0].isHave==1" type="primary" class="btn" @click="openDialog('edit')">编辑</el-button>
         </div>
         <br>
         <div class="row">
@@ -112,6 +112,7 @@
 <script>
 import { getMemList, addMen, editMen, getRoleList, onMen, offMen } from '@/api/system'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Member',
@@ -153,6 +154,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      'buttons'
+    ]),
     rowInfo() {
       if (this.rowIndex === '') return []
       else return this.tableData[this.rowIndex]

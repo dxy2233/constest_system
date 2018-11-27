@@ -5,8 +5,8 @@
       <el-radio-button label="下架中"/>
       <el-radio-button label="全部"/>
     </el-radio-group>
-    <el-button class="btn-right" @click="openAddNotice">公告发布</el-button>
-    <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openSet">公告设置</el-button>
+    <el-button v-if="buttons[7].child[0].isHave==1" class="btn-right" @click="openAddNotice">公告发布</el-button>
+    <el-button v-if="buttons[7].child[2].isHave==1" class="btn-right" type="primary" style="margin-right:10px;" @click="openSet">公告设置</el-button>
     已选择<span style="color:#3e84e9;">{{ tableDataSelection.length }}</span>项
     <el-button :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain style="margin-top:20px;" @click="allDelete">删除</el-button>
 
@@ -54,7 +54,7 @@
           <el-button type="danger" plain class="btn" style="margin:0 10px;" @click="noticeDelete">删除</el-button>
           <el-button v-show="rowInfo.status==1" type="primary" class="btn" @click="ifShelf(false)">下架</el-button>
           <el-button v-show="rowInfo.status==0" type="primary" class="btn" @click="ifShelf(true)">上架</el-button>
-          <el-button class="btn" @click="noticeEdit">编辑</el-button>
+          <el-button v-if="buttons[7].child[1].isHave==1" class="btn" @click="noticeEdit">编辑</el-button>
         </div>
         <p style="margin-top:40px;">展示图</p>
         <img :src="rowInfo.image" alt="" style="display:block;height:200px;border:1px solid #ddd;">
@@ -197,6 +197,7 @@ import { getNoticeList, deleteNotice, toTop, unTop, getNoticeSetList, pushNotice
   onShelf, offShelf, addNotice, editNotice } from '@/api/notice'
 import { Message } from 'element-ui'
 import Tinymce from '@/components/Tinymce'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'NoticeManagement',
@@ -247,6 +248,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      'buttons'
+    ]),
     noticeTypetoNum() {
       if (this.noticeType === '已上架') {
         return 1

@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">投票管理</h4>
-    <el-button class="btn-right" @click="initRank();dialogRank=true">投票排名</el-button>
-    <el-button class="btn-right" type="primary" style="margin-right:10px;" @click="openVoteSet">投票设置</el-button>
-    <el-button class="btn-right" @click="openCamp">竞选设置</el-button>
-    <el-button class="btn-right" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[4].child[0].isHave==1" class="btn-right" @click="initRank();dialogRank=true">投票排名</el-button>
+    <el-button v-if="buttons[4].child[2].isHave==1" class="btn-right" type="primary" style="margin-right:10px;" @click="openVoteSet">投票设置</el-button>
+    <el-button v-if="buttons[4].child[1].isHave==1" class="btn-right" @click="openCamp">竞选设置</el-button>
+    <el-button v-if="buttons[4].child[3].isHave==1" class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @change="searchTableData">
@@ -226,6 +226,7 @@ import { getVoteList, getVoteSet, pushVoteSet, getVoteRank, getCampHistory, getC
   addCamp, deleteCamp, editCamp, editCountDown, getCountDown } from '@/api/poll'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'PollManagement',
@@ -303,7 +304,7 @@ export default {
       dialogRank: false,
       dialogRankAllType: [
         { value: 0, label: '全部' },
-        { value: 1, label: '普通投票' },
+        { value: 1, label: '持有投票' },
         { value: 2, label: '支付投票' },
         { value: 3, label: '投票券' }
       ],
@@ -348,6 +349,11 @@ export default {
       campTotal: 1,
       campCurrentPage: 1
     }
+  },
+  computed: {
+    ...mapGetters([
+      'buttons'
+    ])
   },
   created() {
     this.init()

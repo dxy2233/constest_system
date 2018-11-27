@@ -1,8 +1,8 @@
 <template>
   <div class="app-container" @click.self="showUserInfo=false">
     <h4 style="display:inline-block;">用户管理</h4>
-    <el-button class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[2].child[0].isHave==1" class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
+    <el-button v-if="buttons[2].child[3].isHave==1" class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @change="searchRun">
@@ -55,10 +55,10 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ userInfoBase.mobile }}<br><span>用户</span></span>
           <i class="el-icon-close btn" @click="showUserInfo=false"/>
-          <el-button type="primary" class="btn" style="margin: 0 10px;" @click="rowEdit">编辑</el-button>
+          <el-button v-if="buttons[2].child[1].isHave==1" type="primary" class="btn" style="margin: 0 10px;" @click="rowEdit">编辑</el-button>
           <el-button v-show="rowInfo.status=='正常'" type="danger" plain class="btn" @click="free">停用</el-button>
           <el-button v-show="rowInfo.status=='冻结'" type="primary" plain class="btn" @click="thaw">启用</el-button>
-          <el-button v-show="rowInfo.nodeName!='——'" type="primary" plain class="btn" @click="opendReward">派发奖励</el-button>
+          <el-button v-if="buttons[2].child[2].isHave==1" v-show="rowInfo.nodeName!='——'" type="primary" plain class="btn" @click="opendReward">派发奖励</el-button>
         </div>
         <div class="info">
           <el-row :gutter="5" class="info-row">
@@ -297,6 +297,7 @@ import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
   addUser, giveInfo, saveGive, getRecommendList } from '@/api/admin'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'UserManagement',
@@ -378,31 +379,15 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters([
+      'buttons'
+    ])
+  },
   created() {
     this.init()
   },
   methods: {
-    // cc() {
-    //   getUserListExcel().then(res => {
-    //     console.log(res);
-    //     // var blob = new Blob([res], { type: 'application/vnd.ms-excel' })
-    //     // var blob = res
-    //     //
-    //     // var fileName = '测试表格123.xlsx'
-    //     // if ('download' in document.createElement('a')) { // 非IE下载
-    //     //   const elink = document.createElement('a')
-    //     //   elink.download = fileName
-    //     //   elink.style.display = 'none'
-    //     //   elink.href = URL.createObjectURL(blob)
-    //     //   document.body.appendChild(elink)
-    //     //   elink.click()
-    //     //   URL.revokeObjectURL(elink.href) // 释放URL 对象
-    //     //   document.body.removeChild(elink)
-    //     // } else { // IE10+下载
-    //     //   navigator.msSaveBlob(blob, fileName)
-    //     // }
-    //   })
-    // },
     init() {
       getUserList(this.search, this.searchDate[0], this.searchDate[1], this.currentPage, this.order).then(res => {
         this.tableData = res.content.list

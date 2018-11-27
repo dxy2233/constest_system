@@ -73,3 +73,56 @@ export function getLogList(page, userName, strTime, endTime) {
     }
   })
 }
+
+// 获取权限列表
+export function getRolePurview(roleId) {
+  return request({
+    url: '/manager/get-role-rule-list',
+    method: 'post',
+    data: {
+      roleId
+    }
+  })
+}
+// 保存角色权限
+export function postRolePurview(roleId, ruleList) {
+  return request({
+    url: '/manager/set-role-rule',
+    method: 'post',
+    data: {
+      roleId,
+      ruleList: JSON.stringify(ruleList)
+    }
+  })
+}
+// 新建角色
+export function postRole(name) {
+  return request({
+    url: '/manager/create-role',
+    method: 'post',
+    data: {
+      name
+    }
+  })
+}
+// 修改角色名
+export function putRoleName(id, name) {
+  return request({
+    url: '/manager/edit-role',
+    method: 'post',
+    data: {
+      id,
+      name
+    }
+  })
+}
+// 删除角色
+export function deleteRolePurview(id) {
+  return request({
+    url: '/manager/del-role',
+    method: 'post',
+    data: {
+      id
+    }
+  })
+}

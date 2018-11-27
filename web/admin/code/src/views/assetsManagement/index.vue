@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">资产管理</h4>
-    <el-button class="btn-right" type="primary" @click="dialogLock=true;initLock()">锁仓记录</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[5].child[0].isHave==1" class="btn-right" type="primary" @click="dialogLock=true;initLock()">锁仓记录</el-button>
+    <el-button v-if="buttons[5].child[1].isHave==1" class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchTableData">
@@ -89,6 +89,7 @@
 <script>
 import { getFinanceList, getMoneyType, getLockList } from '@/api/assets'
 import { getVerifiCode } from '@/api/public'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'AssetsManagement',
@@ -116,6 +117,11 @@ export default {
       lockTotal: 1,
       lockCurrentPage: 1
     }
+  },
+  computed: {
+    ...mapGetters([
+      'buttons'
+    ])
   },
   created() {
     getMoneyType().then(res => {

@@ -190,7 +190,15 @@ class NodeController extends BaseController
             return $this->respondJson(1, '候选数量已达上限');
         }
         $transaction = \Yii::$app->db->beginTransaction();
-        // 赠送gdt
+    
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
+        
+        // 成为节点赠送gdt
         $currencyDetail = new BUserCurrencyDetail();
         $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
         $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;

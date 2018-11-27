@@ -454,7 +454,7 @@ class UserController extends BaseController
         $recommend_data = BUserRecommend::find()
         ->from(BUserRecommend::tableName()." A")
         ->join('left join', 'gr_user D', 'A.user_id = D.id')
-        ->join('left join', 'gr_node B', 'B.user_id = D.id')
+        ->join('left join', 'gr_node B', 'B.user_id = D.id && B.status = '.BNode::STATUS_ON)
         ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
         
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])

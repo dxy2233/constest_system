@@ -819,7 +819,7 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $user = BUser::find()->where(['mobile' => $mobile])->one();
@@ -869,7 +869,7 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $type_id = $this->pInt('type_id');

@@ -301,8 +301,9 @@ class UpdateService extends ServiceBase
         $arr = [];
         foreach ($all_data as $v) {
             $parent = BUser::find()->where(['id' => $v->parent_id])->one();
-            if ($parent->parent_list != '') {
-                $str = $parent->parent_list . ',' . $v->parent_id;
+
+            if (!empty($arr[$v->parent_id])) {
+                $str = $arr[$v->parent_id] . ',' . $v->parent_id;
             } else {
                 $str = $v->parent_id;
             }

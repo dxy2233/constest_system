@@ -525,32 +525,27 @@ class UserController extends BaseController
         }
         $code = $this->pString('code', '');
         $user->username = $name;
-        $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
-        if (empty($recommend)) {
-            if($code != ''){
-                $id = UserService::validateRemmendCode($code);
-                if ($id === $userId) {
-                    return $this->respondJson(1, '推荐人不能是自己');
-                }
-                $user_recommend = new BUserRecommend();
-                $user_recommend->user_id = $user->id;
-                $user_recommend->parent_id = $id;
-                if (!$user_recommend->save()) {
-                    return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+        $transaction = \Yii::$app->db->beginTransaction();
+        if ($code != '') {
+            $res = UserService::checkUserRecommend($userId, $code);
+            if ($res->code != 0) {
+                $transaction->rollBack();
+                return $this->respondJson(1, $str.'失败', $res->msg);
+            }
+        }
+
+        if ($user->save()) {
+            if ($code != '') {
+                $res = NodeService::checkVoucher($user->id);
+                if ($res->code != 0) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, $str.'失败', $res->msg);
                 }
             }
-            
-        } else {
-            return $this->respondJson(1, '用户已有推荐人');
-        }
-        if (empty($recommend)) {
-            $info['referee'] = '-';
-        } else {
-            $info['referee'] = $recommend['mobile'];
-        }
-        if ($user->save()) {
+            $transaction->commit();
             return $this->respondJson(0, $str.'成功');
         } else {
+            $transaction->rollBack();
             return $this->respondJson(1, $str.'失败', $user->getFirstErrorText());
         }
     }

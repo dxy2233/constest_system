@@ -277,7 +277,7 @@ class UpdateService extends ServiceBase
                 $msg[] = $user->getFirstErrorText();
                 break;
             }
-            $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$parent->parent_list."',',','".$v->parent_id."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
+            $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
@@ -292,6 +292,32 @@ class UpdateService extends ServiceBase
             echo '执行完成'.PHP_EOL;
             Yii::info('执行成功', 'update_recommend');
             return true;
+        }
+    }
+    // 检查用户推荐关系是否循环
+    public static function checkRecommend()
+    {
+        $all_data = BUserRecommend::find()->all();
+        $arr = [];
+        foreach ($all_data as $v) {
+            $parent = BUser::find()->where(['id' => $v->parent_id])->one();
+            if ($parent->parent_list != '') {
+                $str = $parent->parent_list . ',' . $v->parent_id;
+            } else {
+                $str = $v->parent_id;
+            }
+            $arr[$v->user_id] = $str;
+            foreach ($arr as $key => $val) {
+                if ($val == $v->user_id || substr($val, 0, strlen($v->user_id)+1) == $v->user_id.',') {
+                    $arr[$key] = $str. ',' . $val;
+                }
+            }
+        }
+        foreach ($arr as $k => $v) {
+            $this_arr = explode(',', $v);
+            if (in_array($k, $this_arr)) {
+                echo $k.',';
+            }
         }
     }
 }

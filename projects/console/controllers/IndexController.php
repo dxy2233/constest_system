@@ -34,9 +34,16 @@ class IndexController extends BaseController
     {
         UpdateService::begin();
     }
-    //
+
+    // 重置所有用户上级列表字段
     public function actionUpdateRecommend()
     {
         UpdateService::update_recommend_begin();
+    }
+
+    // 检查用户推荐关系是否循环
+    public function actionCheckRecommend()
+    {
+        UpdateService::checkRecommend();
     }
 }

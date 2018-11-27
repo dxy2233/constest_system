@@ -236,3 +236,11 @@ ADD `update_time` int(11) unsigned NOT NULL DEFAULT '0';
 # 替换 gr_user_currency_detail 中 "充币/提币" 字样 更改为 "转入积分/转出积分"
 UPDATE `gr_contest`.`gr_user_currency_detail` SET `remark` = REPLACE(`remark`, '充币','转入积分');
 UPDATE `gr_contest`.`gr_user_currency_detail` SET `remark` = REPLACE(`remark`, '提币','转出积分');
+
+#添加用户上级字段
+ALTER TABLE `gr_user`
+ADD `parent_list` text NULL COMMENT '上级列表' AFTER `status`;
+
+#上级字段类型修改
+ALTER TABLE `gr_user`
+CHANGE `parent_list` `parent_list` varchar(1000) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '上级ID列表' AFTER `status`;

@@ -63,10 +63,11 @@ class VoteController extends BaseController
 
     public $start;
     public $end;
+    public $table;
 
     public function options($actionID)
     {
-        return ['start', 'end'];
+        return ['start', 'end', 'table'];
     }
     /**
      * 重算投票赠送GDT
@@ -87,10 +88,20 @@ class VoteController extends BaseController
         Yii::info($timeSlot, 'vote');
         echo $begin .PHP_EOL;
         echo $timeSlot.PHP_EOL;
-        $voteDate = $voteModel->select(['*'])->where(['>=', 'create_time', $this->start])->andWhere(['<=', 'create_time', $this->end])->all();
+        $voteDate = $voteModel
+        ->select(['*'])
+        ->where(['>=', 'create_time', $this->start])
+        ->andWhere(['<=', 'create_time', $this->end])
+        ->andWhere(['<=', 'consume', 0])
+        ->all();
         $ordinaryGdt = (float) SettingService::get('vote', 'ordinary_gdt')->value;
         $payGdt = (float) SettingService::get('vote', 'pay_gdt')->value;
-        $relate_table = 'vote';
+        $relate_table = $this->table ?? 'vote';
+        if (empty($voteDate)) {
+            $msg = '未查询到需补送记录!';
+            Yii::info($msg, 'vote');
+            echo $msg . PHP_EOL;
+        }
         foreach ($voteDate as $key => $model) {
             $voteInfo = '该投票记录ID： '.$model->id.' 用户ID：'.$model->user_id;
             if (in_array($model->type, [$model::TYPE_ORDINARY, $model::TYPE_PAY])) {
@@ -98,6 +109,7 @@ class VoteController extends BaseController
                 ->active()
                 ->where([
                     'user_id' => $model->user_id,
+                    'relate_table' => $relate_table,
                     'relate_id' => $model->id,
                     'type' => BUserCurrencyDetail::$TYPE_REWARD,
                 ])->exists();
@@ -127,6 +139,9 @@ class VoteController extends BaseController
                     'type' => BUserCurrencyDetail::$TYPE_REWARD,
                     'amount' => $giveAmount,
                     'remark' => $remark . '- GDT赠送',
+                    'effect_time' => $model->create_time,
+                    'create_time' => $model->create_time,
+                    'update_time' => $model->create_time,
                 ];
                 $give = VoteService::giveCurrency($giveDate);
                 if ($give->code) {

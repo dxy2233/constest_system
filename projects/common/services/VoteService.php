@@ -374,7 +374,7 @@ class VoteService extends ServiceBase
     }
     
     /**
-     * 赠送GDT
+     * 投票赠送GDT
      *
      * @param array $res
      * @return void
@@ -400,7 +400,16 @@ class VoteService extends ServiceBase
             $currencyDetail->setAttributes($res);
             $currencyDetail->currency_id = $currencyId;
             $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-            $currencyDetail->effect_time = NOW_TIME;
+            // 可以手动指定生效时间以及创建更新时间
+            $currencyDetail->effect_time = $currencyDetail->effect_time ?? NOW_TIME;
+            $currencyDetail->create_time = $currencyDetail->create_time ?? NOW_TIME;
+            $currencyDetail->update_time = $currencyDetail->update_time ?? NOW_TIME;
+            // 如果手动指定时间后会剔除自动添加时间的行为
+            $timeBehavior = 0;
+            if ($currencyDetail->getBehavior($timeBehavior) instanceof \yii\behaviors\TimestampBehavior) {
+                // 删除指定  behavior 行为
+                $currencyDetail->detachBehavior($timeBehavior);
+            }
             if (!$currencyDetail->save()) {
                 throw new ErrorException('user-currency-detail table data create is fail');
             }

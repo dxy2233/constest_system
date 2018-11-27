@@ -190,7 +190,10 @@ class NodeController extends BaseController
             return $this->respondJson(1, '候选数量已达上限');
         }
         $transaction = \Yii::$app->db->beginTransaction();
-        // 赠送gdt
+    
+
+        
+        // 成为节点赠送gdt
         $currencyDetail = new BUserCurrencyDetail();
         $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
         $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
@@ -222,8 +225,14 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
         $recommend = BUserRecommend::find()->where(['user_id' => $data->user_id])->one();
-        if($recommend){
+        if ($recommend) {
             $recommend->node_id = $data->id;
             if (!$recommend->save()) {
                 $transaction->rollBack();
@@ -810,7 +819,7 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $user = BUser::find()->where(['mobile' => $mobile])->one();
@@ -860,7 +869,7 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $type_id = $this->pInt('type_id');
@@ -957,6 +966,8 @@ class NodeController extends BaseController
             return $this->respondJson(1, '注册失败'.$node->getFirstErrorText());
         }
 
+
+
         $weixin = $this->pString('weixin', '');
         // $recommend_mobile = $this->pString('recommend_mobile', '');
         // $recommend_name = $this->pString('recommend_name', '');
@@ -983,81 +994,89 @@ class NodeController extends BaseController
             }
         }
         $code = $this->pString('code');
-        // 取出比例
-        $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
-        //判断是否已有推荐人
-        $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
-        if ($code != '' || $old_recommend != '') {
-            $setting_recommend_voucher = BSetting::find()->where(['key' => 'recommend_voucher'])->one();
-            if ($code != '') {
-                $id = UserService::validateRemmendCode($code);
-                $parent_node = BNode::find()->active()->where(['user_id' => $id])->one();
-                if (empty($old_recommend)) {// 推荐关系为空时具有推荐码添加新推荐数据
-                    $user_recommend = new BUserRecommend();
-                    $user_recommend->user_id = $user->id;
-                    $user_recommend->parent_id = $id;
-                    $user_recommend->node_id = $node->id;
-                    if (!empty($parent_node) && $setting_recommend_voucher->value == 1) { // 推荐人是节点送券
-                        $user_recommend->amount = $grt * $setting->value;
-                        UserService::resetVoucher($id);
-                        $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
-                        if ($res->code != 0) {
-                            $transaction->rollBack();
-                            return $this->respondJson(1, '注册失败'.$res->msg());
-                        }
-                    }
-                    if (!$user_recommend->save()) {
-                        $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败'.$user_recommend->getFirstErrorText());
-                    }
-                } elseif ($old_recommend->parent_id != $id) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致');
-                } elseif (!empty($parent_node) && $setting_recommend_voucher->value == 1) { // 有推荐关系且推荐人是节点直接送券
-                    $old_recommend->node_id = $node->id;
-                    $old_recommend->amount = $grt * $setting->value;
-                    if (!$old_recommend->save()) {
-                        $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
-                    }
+        // // 取出比例
+        // $setting = BSetting::find()->where(['key' => 'voucher_number'])->one();
+        // //判断是否已有推荐人
+        // $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
+        // if ($code != '' || $old_recommend != '') {
+        //     $setting_recommend_voucher = BSetting::find()->where(['key' => 'recommend_voucher'])->one();
+        //     if ($code != '') {
+        //         $id = UserService::validateRemmendCode($code);
+        //         $parent_node = BNode::find()->active()->where(['user_id' => $id])->one();
+        //         if (empty($old_recommend)) {// 推荐关系为空时具有推荐码添加新推荐数据
+        //             $user_recommend = new BUserRecommend();
+        //             $user_recommend->user_id = $user->id;
+        //             $user_recommend->parent_id = $id;
+        //             $user_recommend->node_id = $node->id;
+        //             if (!empty($parent_node) && $setting_recommend_voucher->value == 1) { // 推荐人是节点送券
+        //                 $user_recommend->amount = $grt * $setting->value;
+        //                 UserService::resetVoucher($id);
+        //                 $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
+        //                 if ($res->code != 0) {
+        //                     $transaction->rollBack();
+        //                     return $this->respondJson(1, '注册失败'.$res->msg());
+        //                 }
+        //             }
+        //             if (!$user_recommend->save()) {
+        //                 $transaction->rollBack();
+        //                 return $this->respondJson(1, '注册失败'.$user_recommend->getFirstErrorText());
+        //             }
+        //         } elseif ($old_recommend->parent_id != $id) {
+        //             $transaction->rollBack();
+        //             return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致');
+        //         } elseif (!empty($parent_node) && $setting_recommend_voucher->value == 1) { // 有推荐关系且推荐人是节点直接送券
+        //             $old_recommend->node_id = $node->id;
+        //             $old_recommend->amount = $grt * $setting->value;
+        //             if (!$old_recommend->save()) {
+        //                 $transaction->rollBack();
+        //                 return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
+        //             }
 
-                    $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
-                    if ($res->code != 0) {
-                        $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败'.$res->msg());
-                    }
-                } else {// 有推荐关系且推荐人不是节点只修改对应node关系
-                    $old_recommend->node_id = $node->id;
-                    if (!$old_recommend->save()) {
-                        $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
-                    }
-                }
-            } else { // code为空时必定有推荐关系
-                $id = $old_recommend->parent_id;
-                $parent_node = BNode::find()->active()->where(['user_id' => $id])->one();
-                $old_recommend->node_id = $node->id;
-                if (!empty($parent_node) && $setting_recommend_voucher->value == 1) { //推荐人是节点直接送券
+        //             $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
+        //             if ($res->code != 0) {
+        //                 $transaction->rollBack();
+        //                 return $this->respondJson(1, '注册失败'.$res->msg());
+        //             }
+        //         } else {// 有推荐关系且推荐人不是节点只修改对应node关系
+        //             $old_recommend->node_id = $node->id;
+        //             if (!$old_recommend->save()) {
+        //                 $transaction->rollBack();
+        //                 return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
+        //             }
+        //         }
+        //     } else { // code为空时必定有推荐关系
+        //         $id = $old_recommend->parent_id;
+        //         $parent_node = BNode::find()->active()->where(['user_id' => $id])->one();
+        //         $old_recommend->node_id = $node->id;
+        //         if (!empty($parent_node) && $setting_recommend_voucher->value == 1) { //推荐人是节点直接送券
                     
-                    $old_recommend->amount = $grt * $setting->value;
-                    if (!$old_recommend->save()) {
-                        $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
-                    }
+        //             $old_recommend->amount = $grt * $setting->value;
+        //             if (!$old_recommend->save()) {
+        //                 $transaction->rollBack();
+        //                 return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
+        //             }
 
-                    $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
-                    if ($res->code != 0) {
-                        $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败'.$res->msg());
-                    }
-                } else { // 其它情况只修改node 对应关系
-                    if (!$old_recommend->save()) {
-                        $transaction->rollBack();
-                        return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
-                    }
-                }
-            }
+        //             $res = VoucherService::createNewVoucher($id, $node->id, $grt * $setting->value);
+        //             if ($res->code != 0) {
+        //                 $transaction->rollBack();
+        //                 return $this->respondJson(1, '注册失败'.$res->msg());
+        //             }
+        //         } else { // 其它情况只修改node 对应关系
+        //             if (!$old_recommend->save()) {
+        //                 $transaction->rollBack();
+        //                 return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
+        //             }
+        //         }
+        //     }
+        // }
+
+        //推荐赠送
+        $res = NodeService::checkVoucher($user->id);
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $res->msg);
         }
+
         // 补全充值冻结信息
         $log = NodeService::addNodeMakeLogs($node);
         if ($log->code != 0) {

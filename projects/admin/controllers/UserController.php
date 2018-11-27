@@ -6,6 +6,7 @@ use common\services\TicketService;
 use common\services\RechargeService;
 use common\services\UserService;
 use common\services\VoteService;
+use common\services\NodeService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BArea;
 use common\models\business\BUser;
@@ -396,7 +397,8 @@ class UserController extends BaseController
         ->from(BVoucher::tableName()." A")
         ->join('inner join', BNode::tableName().' B', 'A.node_id = B.id')
         ->join('inner join', BNodeType::tableName().' C', 'B.type_id = C.id')
-        ->select(['A.voucher_num', 'A.create_time','B.name as nodeName','C.name as typeName'])
+        ->join('inner join', BUser::tableName().' D', 'B.user_id = D.id')
+        ->select(['A.voucher_num', 'A.create_time','B.name as nodeName','C.name as typeName', 'D.mobile'])
         ->where(['A.user_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();
         $all  = 0;
         foreach ($voucher_data as $v) {
@@ -404,7 +406,7 @@ class UserController extends BaseController
             $voucher_item['nodeName'] = $v['nodeName'];
             $voucher_item['typeName'] = $v['typeName'];
             $voucher_item['voucherNum'] = $v['voucher_num'];
-            $voucher_item['username'] = $user->mobile;
+            $voucher_item['username'] = $v['mobile'];
             $voucher_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voucher[] = $voucher_item;
         }
@@ -452,9 +454,9 @@ class UserController extends BaseController
         $recommend = [];
         $recommend_data = BUserRecommend::find()
         ->from(BUserRecommend::tableName()." A")
-        ->join('inner join', 'gr_user D', 'A.user_id = D.id')
-        ->join('inner join', 'gr_node B', 'B.user_id = D.id')
-        ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
+        ->join('left join', 'gr_user D', 'A.user_id = D.id')
+        ->join('left join', 'gr_node B', 'B.user_id = D.id && B.status = '.BNode::STATUS_ON)
+        ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
         
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
         ->where(['A.parent_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();
@@ -525,32 +527,27 @@ class UserController extends BaseController
         }
         $code = $this->pString('code', '');
         $user->username = $name;
-        $recommend = BUserRecommend::find()->where(['user_id' => $userId])->one();
-        if (empty($recommend)) {
-            if($code != ''){
-                $id = UserService::validateRemmendCode($code);
-                if ($id === $userId) {
-                    return $this->respondJson(1, '推荐人不能是自己');
-                }
-                $user_recommend = new BUserRecommend();
-                $user_recommend->user_id = $user->id;
-                $user_recommend->parent_id = $id;
-                if (!$user_recommend->save()) {
-                    return $this->respondJson(1, '修改失败', $user_recommend->getFirstErrorText());
+        $transaction = \Yii::$app->db->beginTransaction();
+        if ($code != '') {
+            $res = UserService::checkUserRecommend($userId, $code);
+            if ($res->code != 0) {
+                $transaction->rollBack();
+                return $this->respondJson(1, $str.'失败', $res->msg);
+            }
+        }
+
+        if ($user->save()) {
+            if ($code != '') {
+                $res = NodeService::checkVoucher($user->id);
+                if ($res->code != 0) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, $str.'失败', $res->msg);
                 }
             }
-            
-        } else {
-            return $this->respondJson(1, '用户已有推荐人');
-        }
-        if (empty($recommend)) {
-            $info['referee'] = '-';
-        } else {
-            $info['referee'] = $recommend['mobile'];
-        }
-        if ($user->save()) {
+            $transaction->commit();
             return $this->respondJson(0, $str.'成功');
         } else {
+            $transaction->rollBack();
             return $this->respondJson(1, $str.'失败', $user->getFirstErrorText());
         }
     }
@@ -563,7 +560,7 @@ class UserController extends BaseController
             return $this->respondJson(1, '手机不能为空');
         }
         
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $old_data = BUser::find()->where(['mobile' => $mobile])->one();
@@ -584,13 +581,10 @@ class UserController extends BaseController
             return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
         }
         if ($code != '') {
-            $id = UserService::validateRemmendCode($code);
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
+            $res = UserService::checkUserRecommend($user->id, $code);
+            if ($res->code != 0) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                return $this->respondJson(1, $str.'失败', $res->msg);
             }
         }
         $user_voucher = new BUserVoucher();

@@ -71,6 +71,7 @@ class User extends DzModel implements IdentityInterface
             'trans_password' => Yii::t('app', '交易密码'),
             'is_identified' => Yii::t('app', '是否实名认证，0否，1是'),
             'status' => Yii::t('app', '状态，0 冻结，1 正常'),
+            'parent_list' => Yii::t('app', '上级列表'),
             'last_login_ip' => Yii::t('app', '最后登录IP'),
             'last_login_time' => Yii::t('app', '最后登录时间'),
             'recommend_code' => Yii::t('app', '推荐码'),

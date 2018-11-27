@@ -453,9 +453,9 @@ class UserController extends BaseController
         $recommend = [];
         $recommend_data = BUserRecommend::find()
         ->from(BUserRecommend::tableName()." A")
-        ->join('inner join', 'gr_user D', 'A.user_id = D.id')
-        ->join('inner join', 'gr_node B', 'B.user_id = D.id')
-        ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
+        ->join('left join', 'gr_user D', 'A.user_id = D.id')
+        ->join('left join', 'gr_node B', 'B.user_id = D.id')
+        ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
         
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
         ->where(['A.parent_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();

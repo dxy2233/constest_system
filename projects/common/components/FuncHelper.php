@@ -667,7 +667,7 @@ class FuncHelper
      */
     public static function validatMobile($mobile, string $ereg = null)
     {
-        $ereg = $ereg ?? "/^1[345678]\d{9}$/";
+        $ereg = $ereg ?? "/^1\d{10}$/";
         if (preg_match($ereg, $mobile)) {
             return true;
         }

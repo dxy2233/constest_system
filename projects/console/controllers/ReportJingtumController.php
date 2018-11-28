@@ -5,12 +5,14 @@ namespace console\controllers;
 use common\components\FuncHelper;
 use common\models\business\BCurrency;
 use common\models\business\BReportJingtum;
+use common\models\business\BUserAccessToken;
 use common\models\business\BUserRechargeAddress;
 use common\models\business\BWalletJingtum;
 use common\models\business\BWalletSent;
 use common\models\Setting;
 use common\services\JingTumService;
 use common\services\RechargeService;
+use yii\helpers\ArrayHelper;
 
 class ReportJingtumController extends BaseController
 {
@@ -28,17 +30,58 @@ class ReportJingtumController extends BaseController
      *
      * @return void
      */
-    public function actionGetTrans()
+    public function actionGetTrans($type = "all", $num = 1, $no = 0)
     {
+        if(!in_array($type, ['all', 'login'])) {
+            exit("type value error:all,login".PHP_EOL);
+        }
+        $num = intval($num);
+        if(!$num) {
+            exit("num value error".PHP_EOL);
+        }
+        $no = intval($no);
+        if($num <= $no) {
+            exit("no >= num error".PHP_EOL);
+        }
+
         echo "start".PHP_EOL;
+
+        //登录用户
+        $loginUserIds = [];
+        if($type == "login") {
+            $loginUserList = BUserAccessToken::find()
+                ->select(['user_id'])
+                ->distinct()
+                ->where(['>', 'expire_time', time()])
+                ->asArray()
+//                ->createCommand()->getRawSql();
+                ->all();
+            if($loginUserList) {
+                $loginUserIds = ArrayHelper::getColumn($loginUserList, 'user_id');
+            }
+        }
+
         //井通下的积分
         $currencyJingtum = BCurrency::getJingtumCurrency();
 
-        $jingtumAddressList = BUserRechargeAddress::find()
+        $jingtumAddressListObj = BUserRechargeAddress::find()
             ->select(['address'])
             ->distinct()
-            ->where(['in', 'currency_id', $currencyJingtum])
-            ->asArray()
+            ->where(['in', 'currency_id', $currencyJingtum]);
+        if($loginUserIds) {
+            echo "type:login".PHP_EOL;
+            $jingtumAddressListObj->andWhere(['in', 'user_id', $loginUserIds]);
+        }
+        if($num > 1) {
+            echo "num:".$num." no:".$no.PHP_EOL;
+            $jingtumAddressListObj->andwhere("user_id MOD :num = :no", [
+                ':num' => $num,
+                ':no' => $no
+            ]);
+        }
+
+        $jingtumAddressList =  $jingtumAddressListObj->asArray()
+//            ->createCommand()->getRawSql();
             ->all();
         foreach ($jingtumAddressList as $jingtumAddress) {
             $jingtumAddress = $jingtumAddress['address'];
@@ -88,18 +131,58 @@ class ReportJingtumController extends BaseController
     /**
      * 资产转移到主钱包
      */
-    public function actionToMainTrans()
+    public function actionToMainTrans($type = "all", $num = 1, $no = 0)
     {
+        if(!in_array($type, ['all', 'login'])) {
+            exit("type value error:all,login".PHP_EOL);
+        }
+        $num = intval($num);
+        if(!$num) {
+            exit("num value error".PHP_EOL);
+        }
+        $no = intval($no);
+        if($num <= $no) {
+            exit("no >= num error".PHP_EOL);
+        }
+
         echo "start".PHP_EOL;
+
+        //登录用户
+        $loginUserIds = [];
+        if($type == "login") {
+            $loginUserList = BUserAccessToken::find()
+                ->select(['user_id'])
+                ->distinct()
+                ->where(['>', 'expire_time', time()])
+                ->asArray()
+//                ->createCommand()->getRawSql();
+                ->all();
+            if($loginUserList) {
+                $loginUserIds = ArrayHelper::getColumn($loginUserList, 'user_id');
+            }
+        }
 
         //井通下的积分
         $currencyJingtum = BCurrency::getJingtumCurrency();
 
-        $jingtumAddressList = BUserRechargeAddress::find()
+        $jingtumAddressListObj = BUserRechargeAddress::find()
             ->select(['address'])
             ->distinct()
-            ->where(['in', 'currency_id', $currencyJingtum])
-            ->asArray()
+            ->where(['in', 'currency_id', $currencyJingtum]);
+        if($loginUserIds) {
+            echo "type:login".PHP_EOL;
+            $jingtumAddressListObj->andWhere(['in', 'user_id', $loginUserIds]);
+        }
+        if($num > 1) {
+            echo "num:".$num." no:".$no.PHP_EOL;
+            $jingtumAddressListObj->andwhere("user_id MOD :num = :no", [
+                ':num' => $num,
+                ':no' => $no
+            ]);
+        }
+
+        $jingtumAddressList =  $jingtumAddressListObj->asArray()
+//            ->createCommand()->getRawSql();
             ->all();
 
         foreach ($jingtumAddressList as $jingtumAddress) {

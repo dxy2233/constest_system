@@ -66,7 +66,7 @@ class BUserIdentify extends \common\models\UserIdentify
             [['number'], 'unique', 'filter' => function ($query) {
                 $query->where(['number' => $this->number]);
                 $query->andWhere(['<>', 'status', self::STATUS_FAIL]);
-            }],
+            }, 'message' => '此{attribute}已提交实名认证'],
             [['status'], 'default', 'value' => static::STATUS_INACTIVE + 10],
         ]);
     }

@@ -142,12 +142,14 @@
           this.$vux.toast.show(res.msg)
           this.btnLoading = false
           if (res.code === 0) {
+            // res.content.expireTime = parseInt(Date.parse(new Date()) / 1000) + 1000
             localStorage.setItem("loginMsg", JSON.stringify(res.content));
             this.setLoginMsg(res.content)
             for (let item in this.loginForm) {
               this.loginForm[item] = ''
             }
             this.existPayPsw()
+            // this.$router.back()
           }
         })
       },

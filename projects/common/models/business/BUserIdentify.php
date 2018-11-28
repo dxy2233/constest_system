@@ -62,6 +62,10 @@ class BUserIdentify extends \common\models\UserIdentify
             [['realname', 'number', 'pic_front', 'pic_back'], 'required'],
             // [['number'], 'unique'],
             [['number'], 'match', 'pattern' => '/^(\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$/'],
+            // 身份证排重
+            [['number'], 'unique', 'filter' => function ($query) {
+                $query->where(['number' => $this->number, 'status' => self::STATUS_ACTIVE]);
+            }],
             [['status'], 'default', 'value' => static::STATUS_INACTIVE + 10],
         ]);
     }

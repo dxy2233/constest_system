@@ -256,12 +256,12 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
-                //推荐赠送
-                $res = NodeService::checkVoucher($data->user_id);
-                if ($res->code != 0) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, '审核失败', $res->msg);
-                }
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
         $recommend = BUserRecommend::find()->where(['user_id' => $data->user_id])->one();
         if ($recommend) {
             $recommend->node_id = $data->id;
@@ -556,6 +556,12 @@ class NodeController extends BaseController
         $this->download($data, $headers, '历史排名'.date('YmdHis'));
 
         return;
+    }
+
+    // 历史可选实时排名
+    public function actionGetHistory()
+    {
+        $find = BNode::find();
     }
     // 获取节点设置
     public function actionGetNodeSetting()

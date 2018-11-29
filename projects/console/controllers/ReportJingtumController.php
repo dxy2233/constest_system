@@ -44,7 +44,9 @@ class ReportJingtumController extends BaseController
             exit("no >= num error".PHP_EOL);
         }
 
-        echo "start".PHP_EOL;
+        $totalNumber = 0;
+        $startTime = time();
+        echo "start ".date("Y-m-d H:i:s", $startTime).PHP_EOL;
 
         //登录用户
         $loginUserIds = [];
@@ -89,6 +91,7 @@ class ReportJingtumController extends BaseController
             $pageSize = 10;
             $flag = false; // 这里是执行交易记录拉取不自动更新交易数据
             echo '-----'.$jingtumAddress.'-----';
+            $totalNumber++;
             $record = JingTumService::getInstance()->pullTransRecord($jingtumAddress, $page, $pageSize, $flag);
 //            var_dump($record);
             if ($record['status'] && !empty($record['count'])) {
@@ -102,7 +105,9 @@ class ReportJingtumController extends BaseController
                 echo 'Fail'.PHP_EOL;
             }
         }
-        echo "end".PHP_EOL;
+
+        $endTime = time();
+        echo "end ".date("Y-m-d H:i:s", $endTime)." time:".($endTime - $startTime)."s"." number:".$totalNumber.PHP_EOL;
     }
 
     /**
@@ -112,7 +117,9 @@ class ReportJingtumController extends BaseController
      */
     public function actionUpdateTrans()
     {
-        echo "start".PHP_EOL;
+        $totalNumber = 0;
+        $startTime = time();
+        echo "start ".date("Y-m-d H:i:s", $startTime).PHP_EOL;
         $reportList = BReportJingtum::find()
             ->where(['is_update' => BReportJingtum::$IS_UPDATE_YES])
             ->orderBy('date asc')
@@ -122,10 +129,12 @@ class ReportJingtumController extends BaseController
         }
         foreach ($reportList as $report) {
             echo '-----'.$report['type'].'-'.$report['hash'].'-----';
+            $totalNumber++;
             $reponse = JingTumService::getInstance()->updateTrans($report);
             echo $reponse->msg.PHP_EOL;
         }
-        echo "end".PHP_EOL;
+        $endTime = time();
+        echo "end ".date("Y-m-d H:i:s", $endTime)." time:".($endTime - $startTime)."s"." number:".$totalNumber.PHP_EOL;
     }
 
     /**
@@ -145,7 +154,9 @@ class ReportJingtumController extends BaseController
             exit("no >= num error".PHP_EOL);
         }
 
-        echo "start".PHP_EOL;
+        $totalNumber = 0;
+        $startTime = time();
+        echo "start ".date("Y-m-d H:i:s", $startTime).PHP_EOL;
 
         //登录用户
         $loginUserIds = [];
@@ -188,6 +199,7 @@ class ReportJingtumController extends BaseController
         foreach ($jingtumAddressList as $jingtumAddress) {
             $jingtumAddress = $jingtumAddress['address'];
             echo "report address:" . $jingtumAddress . PHP_EOL;
+            $totalNumber++;
 
             $resJingTum = JingTumService::getInstance()->queryBalance($jingtumAddress);
             // var_dump($resJingTum);continue;
@@ -265,6 +277,7 @@ class ReportJingtumController extends BaseController
             }
         }
 
-        echo "end".PHP_EOL;
+        $endTime = time();
+        echo "end ".date("Y-m-d H:i:s", $endTime)." time:".($endTime - $startTime)."s"." number:".$totalNumber.PHP_EOL;
     }
 }

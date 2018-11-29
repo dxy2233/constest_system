@@ -145,20 +145,21 @@ class NodeService extends ServiceBase
      * @param BUser $user
      * @return void
      */
-    public static function getPeopleNum(array $id_arr = [], string $str_time = '', string $end_time = '')
+    public static function getPeopleNum(array $id_arr = [], $str_time = '', $end_time = '')
     {
         $voteMode = BVote::find()
-        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number'])
-        ->active();
+        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number']);
         if (!empty($id_arr)) {
             $voteMode->where(['node_id' => $id_arr]);
         }
-        
         if ($str_time != '') {
             $voteMode->startTime($str_time, 'create_time');
         }
         if ($end_time != '') {
             $voteMode->endTime($end_time, 'create_time');
+            $voteMode->andWhere(['or', ['>', 'undo_time', strtotime($end_time)], ['undo_time' => 0]]);
+        } else {
+            $voteMode->andWhere(['or', ['>', 'undo_time', time()], ['undo_time' => 0]]);
         }
 
         $res = $voteMode->groupBy(['node_id'])

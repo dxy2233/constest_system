@@ -561,7 +561,17 @@ class NodeController extends BaseController
     // 历史可选实时排名
     public function actionGetHistory()
     {
-        $find = BNode::find();
+        $find = BNode::find()
+        ->from(BNode::tableName()." A")
+        ->join('left join', BVote::tableName().' B', 'B.node_id = A.id')
+        ->join('left join', BUser::tableName().' D', 'A.user_id = D.id')
+        ->select(['sum(B.vote_number) as count','D.mobile, A.name, A.is_tenure']);
+        $endTime = strtotime($this->pString('endTime', ''));
+        if ($endTime == '') {
+            $endTime = time();
+        }
+        $find()->where(['<=', 'B.create_time', $endTime]);
+        $find()->andWhere(['>', 'B.undo_time', $endTime]);
     }
     // 获取节点设置
     public function actionGetNodeSetting()
@@ -859,7 +869,7 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $user = BUser::find()->where(['mobile' => $mobile])->one();
@@ -909,7 +919,7 @@ class NodeController extends BaseController
         if (empty($mobile)) {
             return $this->respondJson(1, '手机不能为空');
         }
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $type_id = $this->pInt('type_id');

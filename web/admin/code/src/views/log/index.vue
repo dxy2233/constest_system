@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">操作日志</h4>
-    <el-button class="btn-right" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[37].child[0].isHave==1" class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="searchName" clearable placeholder="操作人" style="margin-top:20px;width:300px;" @change="search">
@@ -41,6 +41,7 @@
 <script>
 import { getLogList } from '@/api/system'
 import { getVerifiCode } from '@/api/public'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Log',
@@ -53,6 +54,11 @@ export default {
       total: 1,
       currentPage: 1
     }
+  },
+  computed: {
+    ...mapGetters([
+      'buttons'
+    ])
   },
   created() {
     this.init()

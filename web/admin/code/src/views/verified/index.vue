@@ -11,7 +11,7 @@
     <br>
 
     已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
-    <el-button v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
+    <el-button v-if="buttons[9].child[0].isHave==1" v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
 
     <el-table
       :data="tableData"
@@ -39,8 +39,8 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ rowInfo.realname }}<br><span>{{ checkType }}</span></span>
           <i class="el-icon-close btn" @click="showInfo=false"/>
-          <el-button v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
-          <el-button v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
+          <el-button v-if="buttons[9].child[0].isHave==1" v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
+          <el-button v-if="buttons[9].child[0].isHave==1" v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
         </div>
         <p v-show="checkTypetoNum==2">未通过原因：{{ rowDetail.statusRemark }}</p>
         <p style="margin-top:50px;">
@@ -63,6 +63,7 @@
 <script>
 import { getList, getDetail, passVerified, failVerified } from '@/api/verified'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Verified',
@@ -83,6 +84,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      'buttons'
+    ]),
     checkTypetoNum() {
       if (this.checkType === '待审核') {
         return 0

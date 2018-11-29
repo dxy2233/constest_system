@@ -5,7 +5,7 @@
       <el-radio-button label="已通过"/>
       <el-radio-button label="未通过"/>
     </el-radio-group>
-    <el-button class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
+    <el-button v-if="buttons[10].child[1].isHave==1" class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="流水号/手机号" style="width:200px;" @change="searchData">
@@ -32,7 +32,7 @@
     <br>
 
     已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
-    <el-button v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
+    <el-button v-if="buttons[10].child[0].isHave==1" v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
 
     <el-table
       :data="tableData"
@@ -67,8 +67,8 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ rowInfo.mobile }}<br><span>{{ checkType }}</span></span>
           <i class="el-icon-close btn" @click="showInfo=false"/>
-          <el-button v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
-          <el-button v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
+          <el-button v-if="buttons[10].child[0].isHave==1" v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
+          <el-button v-if="buttons[10].child[0].isHave==1" v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
         </div>
         <p v-show="checkTypetoNum==2">未通过原因：{{ rowInfo.statusRemark }}</p>
         <p><span>流水号</span>{{ rowInfo.orderNumber }}</p>
@@ -124,6 +124,7 @@
 import { getList, editSet, passTrial, failTrial, getSetValue, walletInfo } from '@/api/transfer'
 import { getMoneyType } from '@/api/assets'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Transfer',
@@ -170,6 +171,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      'buttons'
+    ]),
     checkTypetoNum() {
       if (this.checkType === '待审核') {
         return 0

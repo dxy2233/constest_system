@@ -1,12 +1,17 @@
 import { login, logout, getInfo } from '@/api/login'
+import { getRolePurview } from '@/api/system'
 import { getToken, setToken, removeToken } from '@/utils/auth'
+import { asyncRouterMap, constantRouterMap } from '@/router/index'
 
 const user = {
   state: {
     token: getToken(),
     name: '',
     avatar: '',
-    roles: []
+    roles: [],
+    routers: constantRouterMap,
+    addRouters: [],
+    buttons: {}
   },
 
   mutations: {
@@ -21,6 +26,13 @@ const user = {
     },
     SET_ROLES: (state, roles) => {
       state.roles = roles
+    },
+    SET_ROUTERS: (state, routers) => {
+      state.addRouters = routers
+      state.routers = constantRouterMap.concat(routers)
+    },
+    SET_BUTTONS: (state, data) => {
+      state.buttons = { ...state.buttons, ...data }
     }
   },
 
@@ -46,7 +58,7 @@ const user = {
         getInfo().then(response => {
           const data = response.content
           if (data.name.length > 0) { // 验证返回的roles是否是一个非空数组
-            commit('SET_ROLES', data.name)
+            commit('SET_ROLES', data.roleId)
           } else {
             reject('getInfo: roles must be a non-null array !')
           }
@@ -79,6 +91,48 @@ const user = {
         commit('SET_TOKEN', '')
         removeToken()
         resolve()
+      })
+    },
+
+    // 动态路由
+    GenerateRoutes({ commit }, data) {
+      return new Promise(resolve => {
+        const { roles } = data
+        const accessedRouters = []
+        // 超管无视权限
+        if (roles === 1) {
+          for (var i = 1; i < 12; i++) {
+            accessedRouters.push(asyncRouterMap[i])
+          }
+          accessedRouters.push(asyncRouterMap[38])
+          accessedRouters.push(asyncRouterMap[37])
+          accessedRouters.push(asyncRouterMap[404])
+          getRolePurview(roles).then(res => {
+            const routersInfo = res.content
+            routersInfo.forEach((item, index, arr) => {
+              item.isHave = 1
+              for (var i = 0; i < item.child.length; i++) {
+                item.child[i].isHave = 1
+              }
+              commit('SET_BUTTONS', { [item.id]: item })
+            })
+            commit('SET_ROUTERS', accessedRouters)
+            resolve()
+          })
+          return
+        }
+        getRolePurview(roles).then(res => {
+          const routersInfo = res.content
+          routersInfo.forEach((item, index, arr) => {
+            if (item.isHave === 1) {
+              accessedRouters.push(asyncRouterMap[item.id])
+              commit('SET_BUTTONS', { [item.id]: item })
+            }
+          })
+          accessedRouters.push(asyncRouterMap[404])
+          commit('SET_ROUTERS', accessedRouters)
+          resolve()
+        })
       })
     }
   }

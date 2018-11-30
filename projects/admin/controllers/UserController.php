@@ -793,7 +793,7 @@ class UserController extends BaseController
             } elseif ($type <= 4) {
                 $find->andWhere(['D.type_id' => $type]);
             } elseif ($type == 6) {
-                $find->andWhere(['is null', 'D.id']);
+                $find->andWhere(['D.id' => null]);
             }
         }
         $strTime = $this->pString('strTime');
@@ -845,7 +845,7 @@ class UserController extends BaseController
             } elseif ($type <= 4) {
                 $find->andWhere(['D.type_id' => $type]);
             } elseif ($type == 6) {
-                $find->andWhere(['is null', 'D.id']);
+                $find->andWhere(['D.id' => null]);
             }
         }
         $strTime = $this->pString('strTime');

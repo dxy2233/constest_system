@@ -316,6 +316,7 @@ class StatisticsController extends BaseController
             }
         }
         $r = [];
+
         foreach ($new_area as $v) {
             if (!empty($v['child'])) {
                 $it = [];
@@ -324,7 +325,6 @@ class StatisticsController extends BaseController
                 }
                 $v['child'] = $it;
             }
-            
             $r[] = $v;
         }
         $return = [];

@@ -139,7 +139,7 @@ class FinanceController extends BaseController
 
         $data = $find->asArray()->all();
 
-        $headers = ['mobile'=> '用户', 'name' => '币种', 'position_amount' => '总额',  'use_amount' => '可用', 'frozen_amount' => '锁仓'];
+        $headers = ['mobile'=> '用户', 'name' => '积分', 'position_amount' => '总额',  'use_amount' => '可用', 'frozen_amount' => '锁仓'];
         $down = $this->download($data, $headers, '资产管理'.date('YmdHis'));
 
         return;
@@ -147,7 +147,7 @@ class FinanceController extends BaseController
     
     
 
-    // 币种列表
+    // 积分列表
 
     public function actionGetCurrencyList()
     {
@@ -242,7 +242,7 @@ class FinanceController extends BaseController
             // }
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
-        $headers = ['mobile'=> '用户', 'name' => '币种', 'amount' => '数量', 'remark' => '描述', 'create_time' => '时间'];
+        $headers = ['mobile'=> '用户', 'name' => '积分', 'amount' => '数量', 'remark' => '描述', 'create_time' => '时间'];
         $this->download($data, $headers, '锁仓记录'.date('YmdHis'));
 
         return;
@@ -357,7 +357,7 @@ class FinanceController extends BaseController
             $v['type'] = BUserCurrencyDetail::getType($v['type']);
             $v['status'] = BUserCurrencyDetail::getStatus($v['status']);
         }
-        $headers = ['id'=> '流水号', 'mobile' => '用户', 'name' => '币种', 'type2' => '收支', 'type' => '类型', 'amount' => '数量', 'status' => '状态', 'create_time' => '时间'];
+        $headers = ['id'=> '流水号', 'mobile' => '用户', 'name' => '积分', 'type2' => '收支', 'type' => '类型', 'amount' => '数量', 'status' => '状态', 'create_time' => '时间'];
         $this->download($data, $headers, '财务流水'.date('YmdHis'));
 
         return;

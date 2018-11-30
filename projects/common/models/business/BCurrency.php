@@ -32,13 +32,13 @@ class BCurrency extends \common\models\Currency
         return $arr;
     }
 
-    public static $RECHARGE_STATUS_OFF = 0; // 不可充币
-    public static $RECHARGE_STATUS_ON = 1; // 可充币
+    public static $RECHARGE_STATUS_OFF = 0; // 不可转入积分
+    public static $RECHARGE_STATUS_ON = 1; // 可转入积分
     public static function getRechargeStatus($key = '')
     {
         $arr = [
-            self::$RECHARGE_STATUS_OFF => \Yii::t('app', '不可充币'),
-            self::$RECHARGE_STATUS_ON => \Yii::t('app', '可充币'),
+            self::$RECHARGE_STATUS_OFF => \Yii::t('app', '不可转入积分'),
+            self::$RECHARGE_STATUS_ON => \Yii::t('app', '可转入积分'),
         ];
         if ($key !== '') {
             return isset($arr[$key]) ? $arr[$key] : '';
@@ -51,8 +51,8 @@ class BCurrency extends \common\models\Currency
     public static function getWithdrawStatus($key = '')
     {
         $arr = [
-            self::$WITHDRAW_STATUS_OFF => \Yii::t('app', '不可提币'),
-            self::$WITHDRAW_STATUS_ON => \Yii::t('app', '可提币'),
+            self::$WITHDRAW_STATUS_OFF => \Yii::t('app', '不可转出'),
+            self::$WITHDRAW_STATUS_ON => \Yii::t('app', '可转出'),
         ];
         if ($key !== '') {
             return isset($arr[$key]) ? $arr[$key] : '';

@@ -51,7 +51,7 @@ class UpdateService extends ServiceBase
                 $msg[] = '节点不存在';
                 continue;
             }
-            $withdraw = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点充币'])->all();
+            $withdraw = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点转入积分'])->all();
             if (!$withdraw) {
                 $msg[] = '流水数据不存在';
                 continue;
@@ -161,7 +161,7 @@ class UpdateService extends ServiceBase
                     $name = $currency_id[$val];
                     if ($v->$name != 0) {
                         $res = NodeService::addCurrencyLogs($user->id, $val, $v->$name, $node->id);
-                        $w = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点充币', 'currency_id' => $val])->one();
+                        $w = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点转入积分', 'currency_id' => $val])->one();
                         if (!self::addUpdateLogs('user_recharge_withdraw', 'all_data', (string)json_encode($w->toArray()), 'add', $w->id)) {
                             $transaction->rollBack();
                             $msg[$user->id] = '日志写入失败';

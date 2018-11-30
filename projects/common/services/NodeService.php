@@ -403,7 +403,7 @@ class NodeService extends ServiceBase
         $withdraw ->transaction_id = (string)$transaction_id;
         $withdraw ->order_number = FuncHelper::generateOrderCode();
         $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        $withdraw ->remark = "添加节点充币";
+        $withdraw ->remark = "添加节点转入积分";
         $withdraw ->audit_time = time();
         if (!$withdraw->save()) {
             return new FuncResult(1, '模拟失败', $withdraw->getFirstErrorText());
@@ -415,7 +415,7 @@ class NodeService extends ServiceBase
         $user_c_detail->currency_id = $currency_id;
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $amount;
-        $user_c_detail->remark = '充币';
+        $user_c_detail->remark = '转入积分';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         $user_c_detail->relate_table = 'user_recharge_withdraw';
         $user_c_detail->relate_id = $userRechargeWithdrawId;

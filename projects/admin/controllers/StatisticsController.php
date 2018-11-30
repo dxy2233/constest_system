@@ -246,6 +246,7 @@ class StatisticsController extends BaseController
             $area_id[] = $v['id'];
         }
         $area = BArea::find()->where(['or', ['in', 'id', $area_id], ['in', 'parentid', $area_id]])->orderBy('level')->all();
+
         $new_area = $region_area = [];
         foreach ($area as $v) {
             //省级
@@ -283,10 +284,12 @@ class StatisticsController extends BaseController
                 $new_area[$v->parentid]['child'][$v->id]['id'] = $v->id;
             } else {
                 //区级
+               
                 if (!empty($city_data[$v->id])) {
                     if (empty($region_area[$v->parentid])) {
                         $region_area[$v->parentid] = [];
                     }
+                    
                     $region_area[$v->parentid][$v->id]['name'] = $v->areaname;
                     $region_area[$v->parentid][$v->id]['id'] = $v->id;
                     if (!empty($city_data[$v->id])) {
@@ -316,8 +319,8 @@ class StatisticsController extends BaseController
         foreach ($new_area as $v) {
             if (!empty($v['child'])) {
                 $it = [];
-                foreach ($v['child'] as $val) {
-                    $it[]=$val;
+                foreach ($v['child'] as $value) {
+                    $it[] = $value;
                 }
                 $v['child'] = $it;
             }

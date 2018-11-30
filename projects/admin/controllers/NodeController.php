@@ -727,8 +727,9 @@ class NodeController extends BaseController
         if ($id) {
             $node = BNodeType::find()->where(['id' => $id])->one();
         } else {
-            $node = new BNodeType();
-            $node->name = $name;
+            return $this->respondJson(1, 'ID不能为空');
+            // $node = new BNodeType();
+            // $node->name = $name;
         }
         if (empty($id) && empty($name)) {
             return $this->respondJson(1, 'ID与名称不能同时为空');

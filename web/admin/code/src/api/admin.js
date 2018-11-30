@@ -169,3 +169,18 @@ export function saveGive({ mobile, type, userId, voucherNum, gdt, remark }) {
     }
   })
 }
+
+// 获取推荐列表
+export function getRecomList(page, searchName, type, strTime, endTime) {
+  return request({
+    url: '/user/recommend-list',
+    method: 'post',
+    data: {
+      page,
+      searchName,
+      type,
+      strTime,
+      endTime
+    }
+  })
+}

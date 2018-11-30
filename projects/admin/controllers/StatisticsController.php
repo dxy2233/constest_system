@@ -203,15 +203,15 @@ class StatisticsController extends BaseController
       ->from(BUserOther::tableName()." A")
       
       ->join('left join', BArea::tableName().' B', 'A.area_province_id = B.id')
-      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id')
-      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id')
+      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
+      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id && D.status = '.BNode::STATUS_ON)
       ->select(['count(A.id) as count','B.id'])
       ->where(['>', 'A.area_province_id', 0]);
         $find_city = BUserOther::find()
       ->from(BUserOther::tableName()." A")
       ->join('left join', BArea::tableName().' B', 'A.area_city_id = B.id')
-      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id')
-      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id')
+      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
+      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id && D.status = '.BNode::STATUS_ON)
       ->select(['count(A.id) as count','B.id'])
       ->where(['>', 'A.area_city_id', 0]);
         $type = $this->pInt('type');
@@ -232,7 +232,6 @@ class StatisticsController extends BaseController
         }
         $data_province = $find_province->groupBy(['A.area_province_id'])
       ->asArray()->all();
-
         $data_city = $find_city->groupBy(['A.area_city_id'])
       ->asArray()->all();
         $province_data = $city_data = $area_id =  [];
@@ -247,6 +246,7 @@ class StatisticsController extends BaseController
             $area_id[] = $v['id'];
         }
         $area = BArea::find()->where(['or', ['in', 'id', $area_id], ['in', 'parentid', $area_id]])->orderBy('level')->all();
+
         $new_area = $region_area = [];
         foreach ($area as $v) {
             //省级
@@ -284,10 +284,12 @@ class StatisticsController extends BaseController
                 $new_area[$v->parentid]['child'][$v->id]['id'] = $v->id;
             } else {
                 //区级
+               
                 if (!empty($city_data[$v->id])) {
                     if (empty($region_area[$v->parentid])) {
                         $region_area[$v->parentid] = [];
                     }
+                    
                     $region_area[$v->parentid][$v->id]['name'] = $v->areaname;
                     $region_area[$v->parentid][$v->id]['id'] = $v->id;
                     if (!empty($city_data[$v->id])) {
@@ -314,15 +316,15 @@ class StatisticsController extends BaseController
             }
         }
         $r = [];
+
         foreach ($new_area as $v) {
             if (!empty($v['child'])) {
                 $it = [];
-                foreach ($v['child'] as $val) {
-                    $it[]=$val;
+                foreach ($v['child'] as $value) {
+                    $it[] = $value;
                 }
                 $v['child'] = $it;
             }
-            
             $r[] = $v;
         }
         $return = [];

@@ -15,6 +15,15 @@ class BNodeType extends \common\models\NodeType
         return $this->hasMany(BNode::className(), ['type_id' => 'id']);
     }
 
+    public static function GetName($id)
+    {
+        $data = self::find()->where(['id' => $id])->one();
+        if ($data) {
+            return $data->name;
+        } else {
+            return '普通用户';
+        }
+    }
     /**
      * 节点类型下权益列表关联
      *  一对多

@@ -63,8 +63,13 @@ class LogController extends BaseController
                 $this_rule = BAdminRule::find()->where(['like', 'url', $v['route']])->one();
                 if ($this_rule) {
                     $p_rule = BAdminRule::find()->where(['id' => $this_rule->parent_id])->one();
-                    $rule[$v['route']]['controller'] = $p_rule->name;
-                    $rule[$v['route']]['action'] = $this_rule->name;
+                    if ($p_rule) {
+                        $rule[$v['route']]['controller'] = $p_rule->name;
+                        $rule[$v['route']]['action'] = $this_rule->name;
+                    } else {
+                        $rule[$v['route']]['controller'] = '-';
+                        $rule[$v['route']]['action'] = '-';
+                    }
                 } else {
                     $rule[$v['route']]['controller'] = $rule[$v['route']]['action'] = '-';
                 }

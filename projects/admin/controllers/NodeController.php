@@ -46,6 +46,7 @@ class NodeController extends BaseController
         $behaviors = [];
         $authActions = [
             'download',
+            'examine-download',
             'history-download'
         ];
 
@@ -61,7 +62,7 @@ class NodeController extends BaseController
     public function actionIndex()
     {
         // 节点类型
-        $type = $this->pInt('type');
+        $type = $this->pInt('type', 0);
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
@@ -100,7 +101,7 @@ class NodeController extends BaseController
             exit('验证失败');
         }
         // 节点类型
-        $type = $this->gInt('type');
+        $type = $this->gInt('type', 0);
         $searchName = $this->gString('searchName', '');
         $str_time = $this->gString('str_time', '');
         $end_time = $this->gString('end_time', '');
@@ -128,9 +129,29 @@ class NodeController extends BaseController
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
             $v['status'] = BNode::getStatus($v['status']);
             $v['is_tenure'] = $v['is_tenure'] == 1 ? '任职' : '候补';
+            $other = BUserOther::find()->where(['user_id' => $v['user_id']])->asArray()->one();
+            if ($other) {
+                $v['weixin'] = $other['weixin'];
+                $v['grt_address'] = $other['grt_address'];
+                $v['tt_address'] = $other['tt_address'];
+                $v['bpt_address'] = $other['bpt_address'];
+                $v['consignee'] = $other['consignee'];
+                $v['consignee_mobile'] = $other['consignee_mobile'];
+                $v['zip_code'] = $other['zip_code'];
+                $v['address'] =  BArea::getAreaOneName($other['area_province_id']). BArea::getAreaOneName($other['area_city_id']). $other['address'];
+            } else {
+                $v['weixin'] = $v['grt_address'] = $v['tt_address'] = $v['bpt_address'] = $v['consignee'] = $v['consignee_mobile'] = $v['zip_code'] = $v['address'] = '';
+            }
+            $identify = BUserIdentify::find()->where(['user_id' => $v['user_id']])->one();
+            if ($identify) {
+                $v['realname'] = $identify->realname;
+                $v['number'] = $identify->number;
+            } else {
+                $v['number'] = $v['realname'] = '';
+            }
         }
 
-        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态'];
+        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态', 'type_name' => '节点类型', 'weixin' => '微信', 'grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'consignee' => '收件人姓名', 'consignee_mobile' => '收件人电话', 'zip_code' => '邮编', 'address' => '收货地址', 'realname' => '姓名', 'number' => '身份证号'];
         $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
 
         return;
@@ -151,7 +172,7 @@ class NodeController extends BaseController
             $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
             $order = $order_arr[$order];
         } else {
-            $order = 'A.create_time';
+            $order = 'A.create_time DESC';
         }
         $data = NodeService::getIndexList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
@@ -174,6 +195,49 @@ class NodeController extends BaseController
         return $this->respondJson(0, '获取成功', $return);
     }
 
+
+    // 审核导出
+    public function actionExamineDownload()
+    {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
+        $status = $this->pInt('status', 2);
+        if (empty($status)) {
+            return $this->respondJson(1, '审核状态不能为空');
+        }
+        $searchName = $this->pString('searchName', '');
+        $str_time = $this->pString('str_time', '');
+        $end_time = $this->pString('end_time', '');
+        $order = $this->pString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time DESC';
+        }
+        $data = NodeService::getIndexList(0, $searchName, $str_time, $end_time, 0, $status, $order);
+        $return = [];
+        foreach ($data['list'] as $v) {
+            $item = [];
+            $item['id'] = $v['id'];
+            $item['mobile'] = $v['mobile'];
+            $item['name'] = $v['name'];
+            $item['bpt'] = $v['bpt'];
+            $item['tt'] = $v['tt'];
+            $item['grt'] = $v['grt'];
+            $item['type_name'] = $v['type_name'];
+            $item['status'] = BNode::getStatus($v['status']);
+            $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
+            $return[] = $item;
+        }
+        $headers = ['name'=> '节点名称', 'type_name' => '节点类型', 'mobile' => '手机号', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
+        $this->download($return, $headers, '节点审核列表'.date('YmdHis'));
+ 
+        return;
+    }
 
     // 审核通过
     public function actionExamineOn()

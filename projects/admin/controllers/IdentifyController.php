@@ -69,6 +69,43 @@ class IdentifyController extends BaseController
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
     }
+
+    // 实名认证导出
+    public function actionDownload()
+    {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
+        $find = BUser::find()
+        ->from(BUser::tableName()." A")
+        ->join('left join', BUserIdentify::tableName().' B', 'B.user_id = A.id');
+        $status = $this->pInt('status', 0);
+        $find->andWhere(['B.status' => $status]);
+        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
+        $searchName = $this->pString('searchName');
+        
+        if ($searchName != '') {
+            $find->andWhere(['or',['like','B.realname',$searchName],['like', 'A.mobile', $searchName],['like', 'B.number', $searchName]]);
+        }
+        $find->orderBy('B.create_time DESC');
+        $list = $find->asArray()->all();
+        foreach ($list as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
+            $v['status'] = BUserIdentify::getStatus($v['status']);
+        }
+
+//        return $this->respondJson(0, '获取成功', $list);
+        
+        $headers = ['mobile'=> '手机号','realname' => '姓名', 'number' => '身份证号', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
+
+        $this->download($list, $headers, '实名认证列表'.date('YmdHis'));
+
+        return;
+    }
+
+
     // 获取用户实名认证信息，包含未通过及未审核
     public function actionDetail()
     {

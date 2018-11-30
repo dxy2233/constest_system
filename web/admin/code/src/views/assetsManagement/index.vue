@@ -9,7 +9,7 @@
       <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
-      <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;" @change="searchTableData">
+      <el-select v-model="moneyType" clearable placeholder="积分" style="width:100px;" @change="searchTableData">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -32,7 +32,7 @@
 
     <el-table :data="tableData" style="margin:10px 0;" @sort-change="sortChange">
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="name" label="币种" sortable="custom"/>
+      <el-table-column prop="name" label="积分" sortable="custom"/>
       <el-table-column prop="positionAmount" label="总额" sortable="custom"/>
       <el-table-column prop="useAmount" label="可用" sortable="custom"/>
       <el-table-column prop="frozenAmount" label="锁仓" sortable="custom"/>
@@ -48,7 +48,7 @@
       <el-input v-model="searchLockData" clearable placeholder="用户" style="width:150px;" @change="searchLock">
         <el-button slot="append" icon="el-icon-search" @click.native="searchLock"/>
       </el-input>
-      <el-select v-model="lockMoneyType" clearable placeholder="币种" style="width:100px;" @change="searchLock">
+      <el-select v-model="lockMoneyType" clearable placeholder="积分" style="width:100px;" @change="searchLock">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -71,7 +71,7 @@
       </div>
       <el-table :data="lockTableData" style="margin:10px 0;">
         <el-table-column prop="mobile" label="用户"/>
-        <el-table-column prop="name" label="币种"/>
+        <el-table-column prop="name" label="积分"/>
         <el-table-column prop="amount" label="数量"/>
         <el-table-column prop="remark" label="描述"/>
         <el-table-column prop="createTime" label="时间"/>

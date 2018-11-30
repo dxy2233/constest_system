@@ -42,10 +42,11 @@ const user = {
       const username = userInfo.username.trim()
       return new Promise((resolve, reject) => {
         login(username, userInfo.password).then(response => {
+          if (response.code !== 0) reject()
           const data = response.content
           setToken(data.accessToken)
           commit('SET_TOKEN', data.accessToken)
-          resolve()
+          resolve(response)
         }).catch(error => {
           reject(error)
         })
@@ -101,7 +102,7 @@ const user = {
         const accessedRouters = []
         // 超管无视权限
         if (roles === 1) {
-          for (var i = 1; i < 12; i++) {
+          for (var i = 0; i < 12; i++) {
             accessedRouters.push(asyncRouterMap[i])
           }
           accessedRouters.push(asyncRouterMap[38])
@@ -129,6 +130,8 @@ const user = {
               commit('SET_BUTTONS', { [item.id]: item })
             }
           })
+          asyncRouterMap[0].redirect = accessedRouters[0].path
+          accessedRouters.push(asyncRouterMap[0])
           accessedRouters.push(asyncRouterMap[404])
           commit('SET_ROUTERS', accessedRouters)
           resolve()

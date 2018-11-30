@@ -77,9 +77,8 @@ class BaseController extends DzController
         if (\Yii::$app->user->id) {
             $this->user = \Yii::$app->user->identity;
             $this->user_id = \Yii::$app->user->id;
-
             $my_rule = BAdminRole::find()->where(['id' => $this->user->role_id])->one();
-            if ($my_rule->id != 1) {
+            if ($my_rule && $my_rule->id != 1) {
                 // 权限判断
                 $this_rule_str = \Yii::$app->request->getPathInfo();
                 $my_rule_list = json_decode($my_rule->rule_list, true);

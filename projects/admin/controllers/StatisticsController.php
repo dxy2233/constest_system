@@ -203,15 +203,15 @@ class StatisticsController extends BaseController
       ->from(BUserOther::tableName()." A")
       
       ->join('left join', BArea::tableName().' B', 'A.area_province_id = B.id')
-      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id')
-      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id')
+      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
+      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id && D.status = '.BNode::STATUS_ON)
       ->select(['count(A.id) as count','B.id'])
       ->where(['>', 'A.area_province_id', 0]);
         $find_city = BUserOther::find()
       ->from(BUserOther::tableName()." A")
       ->join('left join', BArea::tableName().' B', 'A.area_city_id = B.id')
-      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id')
-      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id')
+      ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
+      ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id && D.status = '.BNode::STATUS_ON)
       ->select(['count(A.id) as count','B.id'])
       ->where(['>', 'A.area_city_id', 0]);
         $type = $this->pInt('type');
@@ -232,7 +232,6 @@ class StatisticsController extends BaseController
         }
         $data_province = $find_province->groupBy(['A.area_province_id'])
       ->asArray()->all();
-
         $data_city = $find_city->groupBy(['A.area_city_id'])
       ->asArray()->all();
         $province_data = $city_data = $area_id =  [];

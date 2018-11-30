@@ -531,26 +531,51 @@ class NodeController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $type = $this->gInt('type');
+
+        $type = $this->pInt('type');
         if (empty($type)) {
             return $this->respondJson(1, '节点类型不能为空');
         }
-        $endTime = $this->gString('endTime', '');
+        $endTime = strtotime($this->pString('endTime', ''));
         if ($endTime == '') {
-            $endTime = date('Y-m-d H:i:s');
+            $endTime = time();
         }
-        $history = BHistory::find()->where(['<=', 'create_time', strtotime($endTime)])->orderBy('create_time DESC')->one();
-        if (empty($history)) {
-            return $this->respondJson(0, '获取成功', []);
+        $cache = \Yii::$app->cache;
+        
+        $cache_name = "node/get-history-order/$page/$type/$endTime";
+        
+        if ($cache->exists($cache_name)) {
+            $data = $cache->get($cache_name);
+            $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
+
+            $this->download($data, $headers, '历史排名'.date('YmdHis'));
+    
+            return;
         }
-        $find = BHistory::find()->where(['update_number' => $history->update_number, 'node_type' => $type]);
-        $find->orderBy('vote_number DESC,create_time');
+        $find = BNode::find()
+        ->from(BNode::tableName()." A")
+        ->join('left join', BVote::tableName().' B', 'B.node_id = A.id')
+        ->join('left join', BUser::tableName().' D', 'A.user_id = D.id')
+        ->select(['sum(B.vote_number) as vote_number','D.mobile as username', 'A.name as nodeName', 'A.is_tenure', 'A.id']);
+        $find->where(['<=', 'B.create_time', $endTime]);
+        $find->andWhere(['or',['>', 'B.undo_time', $endTime], ['B.undo_time' => 0]]);
+        $find->andWhere(['A.type_id' => $type]);
+        $find->groupBy(['A.id']);
+        $find->orderBy('sum(B.vote_number) DESC,B.create_time');
         $data = $find->asArray()->all();
+        $arr_id = [];
         foreach ($data as $k => &$v) {
-            $v['order'] = $k +1;
-            $v['count'] = $v['people_number'];
+            $arr_id[] = $v['id'];
+        }
+        $people_data = NodeService::getPeopleNum($arr_id, '', date('Y-m-d H:i:s', $endTime));
+        foreach ($data as $k => &$v) {
+            $v['count'] = $people_data[$v['id']];
+            $v['order'] = ($page-1)*20 + $k +1;
             $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
         }
+
+        $cache->set($cache_name, $return, 3600*24);
+
         $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 
         $this->download($data, $headers, '历史排名'.date('YmdHis'));
@@ -561,7 +586,6 @@ class NodeController extends BaseController
     // 历史排名
     public function actionGetHistoryOrder()
     {
-
         $page = $this->pInt('page', 1);
         $type = $this->pInt('type');
         if (empty($type)) {
@@ -575,7 +599,7 @@ class NodeController extends BaseController
         
         $cache_name = "node/get-history-order/$page/$type/$endTime";
         
-        if($cache->exists($cache_name)){
+        if ($cache->exists($cache_name)) {
             return $this->respondJson(0, "获取成功", $cache->get($cache_name));
         }
         $find = BNode::find()

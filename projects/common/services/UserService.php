@@ -395,19 +395,24 @@ class UserService extends ServiceBase
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
+        if ($user->parent_list != '') {
+            $str = $user->parent_list . ',' . $id;
+        } else {
+            $str = $id;
+        }
         //修改所有下级的上级列表
-        $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$user->parent_list."',',','".$id."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
+        $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
         $connection=\Yii::$app->db;
         $command=$connection->createCommand($sql);
         $rowCount=$command->execute();
         // 修改用户自己的上级列表
         $this_user = BUser::find()->where(['id' => $user_id])->one();
-        $this_user->parent_list = $user->parent_list.",".$id;
+        $this_user->parent_list = $str;
         $this_user->save();
         // 添加推荐关系
         if (empty($recommend)) {
             $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
+            $user_recommend->user_id = $user_id;
             $user_recommend->parent_id = $id;
             if (!$user_recommend->save()) {
                 return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());

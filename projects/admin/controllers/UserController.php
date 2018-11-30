@@ -450,9 +450,9 @@ class UserController extends BaseController
         $recommend = [];
         $recommend_data = BUserRecommend::find()
         ->from(BUserRecommend::tableName()." A")
-        ->join('inner join', 'gr_user D', 'A.user_id = D.id')
-        ->join('inner join', 'gr_node B', 'B.user_id = D.id')
-        ->join('inner join', 'gr_node_type C', 'B.type_id = C.id')
+        ->join('left join', 'gr_user D', 'A.user_id = D.id')
+        ->join('left join', 'gr_node B', 'B.user_id = D.id')
+        ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
         
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
         ->where(['A.parent_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();
@@ -556,7 +556,7 @@ class UserController extends BaseController
             return $this->respondJson(1, '手机不能为空');
         }
         
-        if (!preg_match("/^1[345678]{1}\d{9}$/", $mobile)) {
+        if (!preg_match("/^1\d{10}$/", $mobile)) {
             return $this->respondJson(1, '手机格式不正确');
         }
         $old_data = BUser::find()->where(['mobile' => $mobile])->one();

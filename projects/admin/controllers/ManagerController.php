@@ -190,9 +190,14 @@ class ManagerController extends BaseController
         if (!$data) {
             return $this->respondJson(1, '角色不存在');
         }
-        if (!$data->delete()) {
-            return $this->respondJson(1, '删除失败', $data->getFirstErrorText());
+        $res = BAdminUser::updateAll(['role_id' => 2], ['role_id' => $id]);
+        if ($res) {
+            if (!$data->delete()) {
+                return $this->respondJson(1, '删除失败', $data->getFirstErrorText());
+            }
+            return $this->respondJson(0, '删除成功');
         }
+
         return $this->respondJson(0, '删除成功');
     }
     //管理员列表

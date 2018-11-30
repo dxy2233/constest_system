@@ -8,7 +8,7 @@
       <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
-      <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;" @change="searchTableData">
+      <el-select v-model="moneyType" clearable placeholder="积分" style="width:100px;" @change="searchTableData">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -38,7 +38,7 @@
     <el-table :data="tableData" style="margin:10px 0;">
       <el-table-column prop="id" label="流水号"/>
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="name" label="币种"/>
+      <el-table-column prop="name" label="积分"/>
       <el-table-column prop="type2" label="收支"/>
       <el-table-column prop="type" label="类型"/>
       <el-table-column prop="amount" label="数量"/>

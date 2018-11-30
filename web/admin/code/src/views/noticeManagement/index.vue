@@ -211,7 +211,7 @@ export default {
       currentPage: 1,
       pageSize: 20,
       showNoticeInfo: false,
-      rowInfo: [],
+      rowInfo: {},
       dialogSet: false,
       showCountData: '',
       showCount: '',
@@ -324,7 +324,7 @@ export default {
     },
     // 点击表格行
     clickRow(row) {
-      this.rowInfo = row
+      this.rowInfo = JSON.parse(JSON.stringify(row))
       this.showNoticeInfo = true
     },
     // 上下架
@@ -345,8 +345,10 @@ export default {
     },
     // 编辑
     noticeEdit() {
-      this.dialogEdit = true
+      // 富文本切换2次数据后监听失败，每次点开手动绑定一下
+      if (window.tinymce.activeEditor) window.tinymce.activeEditor.setContent(this.rowInfo.detail)
       Object.assign(this.rowInfo, { date: '' })
+      this.dialogEdit = true
     },
     // 打开公告设置
     openSet() {
@@ -411,6 +413,7 @@ export default {
           editNotice(this.rowInfo).then(res => {
             Message({ message: res.msg, type: 'success' })
             this.dialogEdit = false
+            this.init()
           })
         } else {
           console.log('error submit!!')

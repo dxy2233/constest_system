@@ -204,13 +204,16 @@ export default new Router({
 })
 
 export const asyncRouterMap = {
-  1: {
+  0: {
     path: '/',
+    redirect: '/admin'
+  },
+
+  1: {
+    path: '/admin',
     component: Layout,
-    redirect: '/admin',
-    name: '统计报表',
     children: [{
-      path: 'admin',
+      path: '',
       name: 'Admin',
       component: () => import('@/views/admin/index'),
       meta: { title: '统计报表', icon: '数据' }

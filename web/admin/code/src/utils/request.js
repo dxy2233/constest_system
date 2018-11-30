@@ -36,13 +36,6 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     const res = response.data
-    if (res.code !== 0) {
-      Message({
-        message: res.msg,
-        type: 'error',
-        duration: 5 * 1000
-      })
-    }
     // 0:正常 -1:么有登录 1:有错 2:么有权限
     if (res.code === -1) {
       Message({
@@ -56,6 +49,13 @@ service.interceptors.response.use(
         })
       }, 1000)
       return Promise.reject('error')
+    }
+    if (res.code !== 0 && res.code !== -1) {
+      Message({
+        message: res.msg,
+        type: 'error',
+        duration: 5 * 1000
+      })
     } else {
       return response.data
     }

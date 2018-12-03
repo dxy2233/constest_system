@@ -627,7 +627,7 @@ class NodeController extends BaseController
         }
         $cache = \Yii::$app->cache;
         
-        $cache_name = "node/get-history-order/$page/$type/$endTime";
+        $cache_name = "node/get-history-order/$type/$endTime";
         
         if ($cache->exists($cache_name)) {
             $data = $cache->get($cache_name);
@@ -659,11 +659,10 @@ class NodeController extends BaseController
         $people_data = NodeService::getPeopleNum($arr_id, '', date('Y-m-d H:i:s', $endTime));
         foreach ($data as $k => &$v) {
             $v['count'] = $people_data[$v['id']];
-            $v['order'] = ($page-1)*20 + $k +1;
+            $v['order'] = $k +1;
             $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
         }
 
-        $cache->set($cache_name, $return, 3600*24);
 
         $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 

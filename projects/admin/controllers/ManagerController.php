@@ -206,7 +206,7 @@ class ManagerController extends BaseController
         $search_name = $this->pString('searchName');
         $find = BAdminUser::find();
         if ($search_name != '') {
-            $find->andWhere(['or',['likg', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
+            $find->andWhere(['or',['like', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
         }
         $page = $this->pInt('page', 1);
         $find->page($page);

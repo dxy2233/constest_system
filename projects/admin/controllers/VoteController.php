@@ -93,7 +93,7 @@ class VoteController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BNode::tableName().' C', 'A.node_id = C.id')
         ->select(['A.*','B.mobile','C.name']);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }
@@ -231,7 +231,7 @@ class VoteController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->groupBy(['A.user_id'])
         ->orderBy('sum(A.vote_number) desc');
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }

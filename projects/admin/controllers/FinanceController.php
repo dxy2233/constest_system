@@ -102,7 +102,7 @@ class FinanceController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
         ->select(['A.*','B.mobile','D.name']);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }
@@ -219,7 +219,7 @@ class FinanceController extends BaseController
        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
        ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
        ->select(['A.amount', 'A.remark', 'A.create_time', 'A.status','B.mobile','D.name']);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }
@@ -330,7 +330,7 @@ class FinanceController extends BaseController
         ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
         ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
         ->select(['A.*','B.mobile','D.name']);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }

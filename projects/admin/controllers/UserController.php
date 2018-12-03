@@ -147,9 +147,9 @@ class UserController extends BaseController
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
-            $find->andWhere(['A.id' => explode(',', $id)]);
+            $find->andWhere(['in', 'A.id', explode(',', $id)]);
         }
         $searchName = $this->gString('searchName');
         
@@ -837,15 +837,15 @@ class UserController extends BaseController
         ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id')
         ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id')
         ->join('left join', BNode::tableName(). ' E', 'A.user_id = E.user_id');
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }
-        $searchName = $this->pString('searchName');
+        $searchName = $this->gString('searchName');
         if ($searchName != '') {
             $find->andWhere(['like', 'B.mobile', $searchName]);
         }
-        $type = $this->pInt('type');
+        $type = $this->gInt('type');
         if ($type != 0) {
             if ($type == 5) {
                 $find->andWhere(['>', 'D.id', 0]);
@@ -855,11 +855,11 @@ class UserController extends BaseController
                 $find->andWhere(['D.id' => null]);
             }
         }
-        $strTime = $this->pString('strTime');
+        $strTime = $this->gString('strTime');
         if ($strTime != '') {
             $find->startTime($strTime, 'A.create_time');
         }
-        $endTime = $this->pString('endTime');
+        $endTime = $this->gString('endTime');
         if ($endTime != '') {
             $find->endTime($endTime, 'A.create_time');
         }

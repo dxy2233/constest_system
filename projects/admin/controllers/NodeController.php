@@ -119,7 +119,7 @@ class NodeController extends BaseController
             $id_arr[] = $v['id'];
         }
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $id_new_arr = explode(',' $id);
         }
@@ -211,14 +211,14 @@ class NodeController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $status = $this->pInt('status', 2);
+        $status = $this->gInt('status', 2);
         if (empty($status)) {
             return $this->respondJson(1, '审核状态不能为空');
         }
-        $searchName = $this->pString('searchName', '');
-        $str_time = $this->pString('str_time', '');
-        $end_time = $this->pString('end_time', '');
-        $order = $this->pString('order');
+        $searchName = $this->gString('searchName', '');
+        $str_time = $this->gString('str_time', '');
+        $end_time = $this->gString('end_time', '');
+        $order = $this->gString('order');
         if ($order != '') {
             $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
             $order = $order_arr[$order];
@@ -226,7 +226,7 @@ class NodeController extends BaseController
             $order = 'A.create_time DESC';
         }
         $data = NodeService::getIndexList(0, $searchName, $str_time, $end_time, 0, $status, $order);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $id_arr = explode(',' $id);
         }
@@ -611,11 +611,11 @@ class NodeController extends BaseController
             exit('验证失败');
         }
 
-        $type = $this->pInt('type');
+        $type = $this->gInt('type');
         if (empty($type)) {
             return $this->respondJson(1, '节点类型不能为空');
         }
-        $endTime = strtotime($this->pString('endTime', ''));
+        $endTime = strtotime($this->gString('endTime', ''));
         if ($endTime == '') {
             $endTime = time();
         }
@@ -636,7 +636,7 @@ class NodeController extends BaseController
         ->join('left join', BVote::tableName().' B', 'B.node_id = A.id')
         ->join('left join', BUser::tableName().' D', 'A.user_id = D.id')
         ->select(['sum(B.vote_number) as vote_number','D.mobile as username', 'A.name as nodeName', 'A.is_tenure', 'A.id']);
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }

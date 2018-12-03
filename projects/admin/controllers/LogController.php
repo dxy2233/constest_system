@@ -87,13 +87,13 @@ class LogController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $username = $this->pString('username');
-        $str_time = $this->pString('strTime');
-        $end_time = $this->pString('endTime');
+        $username = $this->gString('username');
+        $str_time = $this->gString('strTime');
+        $end_time = $this->gString('endTime');
         $find = BAdminLog::find()
         ->from(BAdminLog::tableName()." A")
         ->join('left join', BAdminUser::tableName().' B', 'A.user_id = B.id');
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }

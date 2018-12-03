@@ -662,7 +662,7 @@ export default {
         })
         // console.log(id.substr(0, id.length - 1));
         getVerifiCode().then(res => {
-          var url = `/user/recommend-download?download_code=${res.content}&id=${id}`
+          var url = `/user/download?download_code=${res.content}&id=${id}`
           const elink = document.createElement('a')
           elink.style.display = 'none'
           elink.target = '_blank'

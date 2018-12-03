@@ -36,7 +36,7 @@ class LogController extends BaseController
     }
     public function actionIndex()
     {
-        $username = $this->pString('username');
+        $username = $this->pString('userName');
         $str_time = $this->pString('strTime');
         $end_time = $this->pString('endTime');
         $page = $this->pInt('page', 1);
@@ -47,10 +47,10 @@ class LogController extends BaseController
             $find->andWhere(['or', ['like', 'B.real_name', $username], ['like', 'B.name', $username]]);
         }
         if ($str_time != '') {
-            $find->startTime($str_time);
+            $find->startTime($str_time, 'A.create_time');
         }
         if ($end_time != '') {
-            $find->endTime($end_time);
+            $find->endTime($end_time, 'A.create_time');
         }
         $find->page($page);
         $count = $find->count();
@@ -87,7 +87,7 @@ class LogController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $username = $this->gString('username');
+        $username = $this->gString('userName');
         $str_time = $this->gString('strTime');
         $end_time = $this->gString('endTime');
         $find = BAdminLog::find()
@@ -101,10 +101,10 @@ class LogController extends BaseController
             $find->andWhere(['or', ['like', 'B.real_name', $username], ['like', 'B.name', $username]]);
         }
         if ($str_time != '') {
-            $find->startTime($str_time);
+            $find->startTime($str_time, 'A.create_time');
         }
         if ($end_time != '') {
-            $find->endTime($end_time);
+            $find->endTime($end_time, 'A.create_time');
         }
         $data = $find->select(['A.create_time', 'B.department', 'A.route', 'A.ip', 'B.real_name'])->orderBy('A.create_time desc')->asArray()->all();
         $rule = [];
@@ -115,8 +115,12 @@ class LogController extends BaseController
                 $this_rule = BAdminRule::find()->where(['like', 'url', $v['route']])->one();
                 if ($this_rule) {
                     $p_rule = BAdminRule::find()->where(['id' => $this_rule->parent_id])->one();
-                    $rule[$v['route']]['controller'] = $p_rule->name;
-                    $rule[$v['route']]['action'] = $this_rule->name;
+                    if ($p_rule) {
+                        $rule[$v['route']]['controller'] = $p_rule->name;
+                        $rule[$v['route']]['action'] = $this_rule->name;
+                    } else {
+                        $rule[$v['route']]['controller'] = $rule[$v['route']]['action'] = '-';
+                    }
                 } else {
                     $rule[$v['route']]['controller'] = $rule[$v['route']]['action'] = '-';
                 }

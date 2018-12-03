@@ -8,6 +8,7 @@
     <el-input v-model="search" clearable placeholder="姓名/手机号/身份证号" class="btn-right" style="width:256px;" @change="searchData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchData"/>
     </el-input>
+    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
     已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
@@ -62,6 +63,7 @@
 
 <script>
 import { getList, getDetail, passVerified, failVerified } from '@/api/verified'
+import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
 
@@ -178,6 +180,18 @@ export default {
       // this.largeImg = src.substring(0, src.indexOf('!'))
       window.open(src.substring(0, src.indexOf('!')))
       // this.dialogLargeImg = true
+    },
+    downExcel() {
+      getVerifiCode().then(res => {
+        var url = `/identify/download?download_code=${res.content}&searchName=${this.search}&status=${this.checkTypetoNum}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
+      })
     }
   }
 }

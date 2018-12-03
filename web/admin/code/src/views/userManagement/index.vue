@@ -2,7 +2,8 @@
   <div class="app-container" @click.self="showUserInfo=false">
     <h4 style="display:inline-block;">用户管理</h4>
     <el-button v-if="buttons[2].child[0].isHave==1" class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
-    <el-button v-if="buttons[2].child[3].isHave==1" class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
+    <el-button class="btn-right" style="margin-right:10px;" @click="dialogRecom=true;initRecom()">推荐记录</el-button>
+    <el-button v-if="buttons[2].child[3].isHave==1" class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @change="searchRun">
@@ -288,13 +289,60 @@
         </div>
       </el-dialog>
     </el-dialog>
+
+    <el-dialog :visible.sync="dialogRecom" title="推荐记录">
+      <el-input v-model="recomSearchName" clearable placeholder="用户" style="width:300px;" @change="searchRecom">
+        <el-button slot="append" icon="el-icon-search" @click.native="searchRecom"/>
+      </el-input>
+      <el-select v-model="recomType" style="float:right;" @change="searchRecom">
+        <el-option
+          v-for="item in recomOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"/>
+      </el-select>
+      <br>
+      <div style="margin-top:20px;display:inline-block;">
+        推荐时间
+        <el-date-picker
+          v-model="recomDate"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          format="yyyy 年 MM 月 dd 日"
+          value-format="yyyy-MM-dd"
+          style="width:400px;"
+          @change="searchRecom"/>
+      </div>
+      <el-button style="float:right;margin-top:20px;" @click="downRecomExcel">导出excel</el-button>
+      <br>
+      <el-table
+        :data="recomData"
+        style="margin:10px 0;">
+        <el-table-column prop="pMoblie" label="用户"/>
+        <el-table-column prop="pRealname" label="姓名"/>
+        <el-table-column prop="pTypeId" label="类型"/>
+        <el-table-column prop="uMobile" label="被推荐用户"/>
+        <el-table-column prop="uRealname" label="姓名"/>
+        <el-table-column prop="uTypeId" label="类型"/>
+        <el-table-column prop="amount" label="赠送投票卷"/>
+        <el-table-column prop="createTime" label="推荐时间"/>
+      </el-table>
+      <el-pagination
+        :current-page.sync="recomCurrentPage"
+        :total="parseInt(recomTotal)"
+        :page-size="20"
+        layout="total, prev, pager, next, jumper"
+        @current-change="initRecom"/>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getUserList, getUserBase, getUserIdentify, getUserVote, getUserVoucher,
   getUserRecommend, getUserAddress, getUserWallet, freezeUser, thawUser, editUser,
-  addUser, giveInfo, saveGive, getRecommendList } from '@/api/admin'
+  addUser, giveInfo, saveGive, getRecommendList, getRecomList } from '@/api/admin'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
@@ -376,7 +424,23 @@ export default {
         gdt: [
           { pattern: /^(0|[1-9]\d*)(\s|$|\.\d{1,6}\b)/, required: true, message: '请输入大于0的数字', trigger: 'blur' }
         ]
-      }
+      },
+      dialogRecom: false,
+      recomData: [],
+      recomCurrentPage: 1,
+      recomTotal: 1,
+      recomSearchName: '',
+      recomOptions: [
+        { value: 0, label: '全部' },
+        { value: 1, label: '超级节点' },
+        { value: 2, label: '高级节点' },
+        { value: 3, label: '中级节点' },
+        { value: 4, label: '动力节点' },
+        { value: 5, label: '节点' },
+        { value: 6, label: '普通用户' }
+      ],
+      recomType: 0,
+      recomDate: ''
     }
   },
   computed: {
@@ -577,6 +641,18 @@ export default {
         this.dialogRewardTwo = false
       })
     },
+    // 初始化推荐记录
+    initRecom() {
+      getRecomList(this.recomCurrentPage, this.recomSearchName, this.recomType, this.recomDate[0], this.recomDate[1]).then(res => {
+        this.recomData = res.content.list
+        this.recomTotal = res.content.count
+      })
+    },
+    searchRecom() {
+      if (this.recomDate === null) this.searchDate = ''
+      this.recomCurrentPage = 1
+      this.initRecom()
+    },
     // 下载excel
     downExcel() {
       if (this.searchDate) {
@@ -588,6 +664,25 @@ export default {
       }
       getVerifiCode().then(res => {
         var url = `/user/download?download_code=${res.content}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
+      })
+    },
+    downRecomExcel() {
+      if (this.rocomDate) {
+        var str = this.rocomDate[0]
+        var end = this.rocomDate[1]
+      } else {
+        str = ''
+        end = ''
+      }
+      getVerifiCode().then(res => {
+        var url = `/user/recommend-download?download_code=${res.content}&searchName=${this.recomSearchName}&type=${this.recomType}&strTime=${str}&endTime=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
         elink.target = '_blank'

@@ -9,6 +9,7 @@
     <el-button v-if="buttons[3].child[2].isHave==1" style="float:right;margin-right:10px;" @click="dialogHistory=true;initHistory()">历史排名</el-button>
     <el-button v-if="buttons[3].child[0].isHave==1" style="float:right;" type="primary" @click="dialogAddNode=true;step=0">新增节点</el-button>
     <el-button v-if="buttons[3].child[4].isHave==1" style="float:right;" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[3].child[4].isHave==1" style="float:right;" @click="downExcel(0)">导出所有节点</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @change="searchTableData">
@@ -1127,7 +1128,7 @@ export default {
       this.step = 0
       this.jump = false
     },
-    downExcel() {
+    downExcel(type) {
       if (this.searchDate) {
         var str = this.searchDate[0]
         var end = this.searchDate[1]
@@ -1136,7 +1137,11 @@ export default {
         end = ''
       }
       getVerifiCode().then(res => {
-        var url = `/node/download?download_code=${res.content}&type=${this.allType[this.typeIndex].id}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        if (type === 0) {
+          var url = `/node/download?download_code=${res.content}&type=0&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        } else {
+          url = `/node/download?download_code=${res.content}&type=${this.allType[this.typeIndex].id}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        }
         const elink = document.createElement('a')
         elink.style.display = 'none'
         elink.target = '_blank'

@@ -655,6 +655,24 @@ export default {
     },
     // 下载excel
     downExcel() {
+      if (this.tableDataSelection.length > 0) {
+        let id = ''
+        this.tableDataSelection.forEach((item, index) => {
+          id = `${id}${item.id},`
+        })
+        // console.log(id.substr(0, id.length - 1));
+        getVerifiCode().then(res => {
+          var url = `/user/recommend-download?download_code=${res.content}&id=${id}`
+          const elink = document.createElement('a')
+          elink.style.display = 'none'
+          elink.target = '_blank'
+          elink.href = url
+          document.body.appendChild(elink)
+          elink.click()
+          document.body.removeChild(elink)
+        })
+        return
+      }
       if (this.searchDate) {
         var str = this.searchDate[0]
         var end = this.searchDate[1]

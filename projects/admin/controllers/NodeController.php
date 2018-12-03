@@ -252,9 +252,20 @@ class NodeController extends BaseController
             $item['status'] = BNode::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
+            $identify = BUserIdentify::find()->where(['user_id' => $v['user_id']])->one();
+            if ($identify) {
+                $item['username'] = $identify->realname;
+            }
+            $other = BUserOther::find()->where(['user_id' => $v['user_id']])->one();
+            if ($other) {
+                $item['weixin'] = $other->weixin;
+                $item['grt_address'] = $other->grt_address;
+                $item['tt_address'] = $other->tt_address;
+                $item['bpt_address'] = $other->bpt_address;
+            }
             $return[] = $item;
         }
-        $headers = ['name'=> '节点名称', 'type_name' => '节点类型', 'mobile' => '手机号', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
+        $headers = ['name'=> '节点名称', 'type_name' => '节点类型', 'mobile' => '手机号','username' => '姓名','weixin' => '微信','grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
         $this->download($return, $headers, '节点审核列表'.date('YmdHis'));
  
         return;

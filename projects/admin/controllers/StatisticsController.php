@@ -223,8 +223,8 @@ class StatisticsController extends BaseController
             // 实名非节点用户
             $find_province->andWhere(['C.status' => BUserIdentify::STATUS_ACTIVE]);
             $find_city->andWhere(['C.status' => BUserIdentify::STATUS_ACTIVE]);
-            $find_province->andWhere(['!=', 'D.status', BNode::STATUS_ON]);
-            $find_city->andWhere(['!=', 'D.status', BNode::STATUS_ON]);
+            $find_province->andWhere(['or',['!=', 'D.status', BNode::STATUS_ON], ['D.status' => null]]);
+            $find_city->andWhere(['or',['!=', 'D.status', BNode::STATUS_ON], ['D.status' => null]]);
         } elseif ($type == 4) {
             // 节点用户
             $find_province->andWhere(['D.status' => BNode::STATUS_ON]);

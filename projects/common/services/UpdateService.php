@@ -253,6 +253,16 @@ class UpdateService extends ServiceBase
         return $return;
     }
 
+    public static function begin_other()
+    {
+        $data = BUpdateDataOther::find()->where(['status' => BUpdateDataOther::$STATUS_OFF])->all();
+        foreach ($data as $v) {
+            if ($v->type == 1) {
+                // 清空用户推荐关系及相关数据
+            }
+        }
+    }
+
     // 更改所有用户上级列表
     public static function update_recommend_begin()
     {

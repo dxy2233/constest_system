@@ -119,7 +119,15 @@ class NodeController extends BaseController
             $id_arr[] = $v['id'];
         }
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
+        $id = $this->pString('id');
+        if ($id != '') {
+            $id_new_arr = explode(',' $id);
+        }
+            
         foreach ($data['list'] as $key => &$v) {
+            if(!in_array($v['id'], $id_new_arr)){
+                continue;
+            }
             if (isset($people[$v['id']])) {
                 $v['count'] = $people[$v['id']];
             } else {
@@ -218,8 +226,15 @@ class NodeController extends BaseController
             $order = 'A.create_time DESC';
         }
         $data = NodeService::getIndexList(0, $searchName, $str_time, $end_time, 0, $status, $order);
+        $id = $this->pString('id');
+        if ($id != '') {
+            $id_arr = explode(',' $id);
+        }
         $return = [];
         foreach ($data['list'] as $v) {
+            if(!in_array($v['id'], $id_arr)){
+                continue;
+            }
             $item = [];
             $item['id'] = $v['id'];
             $item['mobile'] = $v['mobile'];
@@ -621,6 +636,10 @@ class NodeController extends BaseController
         ->join('left join', BVote::tableName().' B', 'B.node_id = A.id')
         ->join('left join', BUser::tableName().' D', 'A.user_id = D.id')
         ->select(['sum(B.vote_number) as vote_number','D.mobile as username', 'A.name as nodeName', 'A.is_tenure', 'A.id']);
+        $id = $this->pString('id');
+        if ($id != '') {
+            $find->andWhere(['A.id' => explode(',', $id)]);
+        }
         $find->where(['<=', 'B.create_time', $endTime]);
         $find->andWhere(['or',['>', 'B.undo_time', $endTime], ['B.undo_time' => 0]]);
         $find->andWhere(['A.type_id' => $type]);

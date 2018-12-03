@@ -234,7 +234,7 @@ export default {
           id = `${id}${item.id},`
         })
         getVerifiCode().then(res => {
-          var url = `/node/examine-download?download_code=${res.content}&id=${id}`
+          var url = `/node/examine-download?download_code=${res.content}&status=${this.noticeChecktoNum}&id=${id}`
           const elink = document.createElement('a')
           elink.style.display = 'none'
           elink.target = '_blank'

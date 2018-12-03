@@ -121,12 +121,12 @@ class NodeController extends BaseController
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
         $id = $this->gString('id');
         if ($id != '') {
-            $id_new_arr = explode(',' $id);
+            $id_new_arr = explode(',', $id);
         }
             
         foreach ($data['list'] as $key => &$v) {
-            if(!in_array($v['id'], $id_new_arr)){
-                continue;
+            if (!in_array($v['id'], $id_new_arr)) {
+                unset($data['list'][$key]);
             }
             if (isset($people[$v['id']])) {
                 $v['count'] = $people[$v['id']];
@@ -137,6 +137,7 @@ class NodeController extends BaseController
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
             $v['status'] = BNode::getStatus($v['status']);
             $v['is_tenure'] = $v['is_tenure'] == 1 ? '任职' : '候补';
+
             $other = BUserOther::find()->where(['user_id' => $v['user_id']])->asArray()->one();
             if ($other) {
                 $v['weixin'] = $other['weixin'];
@@ -226,13 +227,14 @@ class NodeController extends BaseController
             $order = 'A.create_time DESC';
         }
         $data = NodeService::getIndexList(0, $searchName, $str_time, $end_time, 0, $status, $order);
+
         $id = $this->gString('id');
         if ($id != '') {
-            $id_arr = explode(',' $id);
+            $id_arr = explode(',', $id);
         }
         $return = [];
         foreach ($data['list'] as $v) {
-            if(!in_array($v['id'], $id_arr)){
+            if (!in_array($v['id'], $id_arr)) {
                 continue;
             }
             $item = [];

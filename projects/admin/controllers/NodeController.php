@@ -222,7 +222,7 @@ class NodeController extends BaseController
         $str_time = $this->gString('str_time', '');
         $end_time = $this->gString('end_time', '');
         $order = $this->gString('order');
-        if ($order != '') {
+        if ($order != 'null') {
             $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
             $order = $order_arr[$order];
         } else {
@@ -631,7 +631,7 @@ class NodeController extends BaseController
         
         if ($cache->exists($cache_name)) {
             $data = $cache->get($cache_name);
-            $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
+            $headers = ['order'=> '排名','nodeName' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 
             $this->download($data, $headers, '历史排名'.date('YmdHis'));
     
@@ -664,7 +664,7 @@ class NodeController extends BaseController
         }
 
 
-        $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
+        $headers = ['order'=> '排名','nodeName' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 
         $this->download($data, $headers, '历史排名'.date('YmdHis'));
 

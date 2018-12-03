@@ -122,12 +122,12 @@ class NodeController extends BaseController
         $id = $this->gString('id');
         if ($id != '') {
             $id_new_arr = explode(',', $id);
-        }else{
+        } else {
             $id_new_arr = [];
         }
             
         foreach ($data['list'] as $key => &$v) {
-            if (!in_array($v['id'], $id_new_arr)) {
+            if (count($id_new_arr) > 0 && !in_array($v['id'], $id_new_arr)) {
                 unset($data['list'][$key]);
             }
             if (isset($people[$v['id']])) {
@@ -233,12 +233,12 @@ class NodeController extends BaseController
         $id = $this->gString('id');
         if ($id != '') {
             $id_arr = explode(',', $id);
-        }else{
+        } else {
             $id_arr = [];
         }
         $return = [];
         foreach ($data['list'] as $v) {
-            if (!in_array($v['id'], $id_arr)) {
+            if (count($id_arr) > 0 && !in_array($v['id'], $id_arr)) {
                 continue;
             }
             $item = [];

@@ -80,14 +80,14 @@ class IdentifyController extends BaseController
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->join('left join', BUserIdentify::tableName().' B', 'B.user_id = A.id');
-        $id = $this->pString('id');
+        $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
         }
-        $status = $this->pInt('status', 0);
+        $status = $this->gInt('status', 0);
         $find->andWhere(['B.status' => $status]);
         $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
-        $searchName = $this->pString('searchName');
+        $searchName = $this->gString('searchName');
         
         if ($searchName != '') {
             $find->andWhere(['or',['like','B.realname',$searchName],['like', 'A.mobile', $searchName],['like', 'B.number', $searchName]]);

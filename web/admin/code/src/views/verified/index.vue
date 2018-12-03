@@ -182,6 +182,23 @@ export default {
       // this.dialogLargeImg = true
     },
     downExcel() {
+      if (this.tableDataSelection.length > 0) {
+        let id = ''
+        this.tableDataSelection.forEach((item, index) => {
+          id = `${id}${item.id},`
+        })
+        getVerifiCode().then(res => {
+          var url = `/identify/download?download_code=${res.content}&id=${id}`
+          const elink = document.createElement('a')
+          elink.style.display = 'none'
+          elink.target = '_blank'
+          elink.href = url
+          document.body.appendChild(elink)
+          elink.click()
+          document.body.removeChild(elink)
+        })
+        return
+      }
       getVerifiCode().then(res => {
         var url = `/identify/download?download_code=${res.content}&searchName=${this.search}&status=${this.checkTypetoNum}`
         const elink = document.createElement('a')

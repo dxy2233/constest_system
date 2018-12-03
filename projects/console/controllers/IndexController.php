@@ -35,6 +35,12 @@ class IndexController extends BaseController
         UpdateService::begin();
     }
 
+    // 后台修改数据，不提供前端操作
+    public function actionUpdateNode()
+    {
+        UpdateService::begin_other();
+    }
+
     // 重置所有用户上级列表字段
     public function actionUpdateRecommend()
     {

@@ -147,7 +147,10 @@ class UserController extends BaseController
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
-        
+        $id = $this->pString('id');
+        if ($id != '') {
+            $find->andWhere(['A.id' => explode(',', $id)]);
+        }
         $searchName = $this->gString('searchName');
         
         if ($searchName != '') {
@@ -834,6 +837,10 @@ class UserController extends BaseController
         ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id')
         ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id')
         ->join('left join', BNode::tableName(). ' E', 'A.user_id = E.user_id');
+        $id = $this->pString('id');
+        if ($id != '') {
+            $find->andWhere(['A.id' => explode(',', $id)]);
+        }
         $searchName = $this->pString('searchName');
         if ($searchName != '') {
             $find->andWhere(['like', 'B.mobile', $searchName]);

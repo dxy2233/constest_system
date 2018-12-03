@@ -93,6 +93,10 @@ class LogController extends BaseController
         $find = BAdminLog::find()
         ->from(BAdminLog::tableName()." A")
         ->join('left join', BAdminUser::tableName().' B', 'A.user_id = B.id');
+        $id = $this->pString('id');
+        if ($id != '') {
+            $find->andWhere(['A.id' => explode(',', $id)]);
+        }
         if ($username != '') {
             $find->andWhere(['or', ['like', 'B.real_name', $username], ['like', 'B.name', $username]]);
         }

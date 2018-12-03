@@ -122,6 +122,8 @@ class NodeController extends BaseController
         $id = $this->gString('id');
         if ($id != '') {
             $id_new_arr = explode(',', $id);
+        }else{
+            $id_new_arr = [];
         }
             
         foreach ($data['list'] as $key => &$v) {
@@ -231,6 +233,8 @@ class NodeController extends BaseController
         $id = $this->gString('id');
         if ($id != '') {
             $id_arr = explode(',', $id);
+        }else{
+            $id_arr = [];
         }
         $return = [];
         foreach ($data['list'] as $v) {

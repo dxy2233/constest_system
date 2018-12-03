@@ -814,6 +814,7 @@ class UserController extends BaseController
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $return = [];
         $return['count'] = $count;

@@ -277,11 +277,3 @@ ADD `parent_list` text NULL COMMENT '上级列表' AFTER `status`;
 ALTER TABLE `gr_user`
 CHANGE `parent_list` `parent_list` varchar(1000) COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' COMMENT '上级ID列表' AFTER `status`;
 
-
-#清除推荐关系步骤
-#1/查出推荐关系送出的对应gdt及投票券数量
-#2/删除gr_user_currency_detail及gr_voucher表中对应赠送数据
-#3/删除gr_voucher_detail表中投票券使用记录
-#4/删除gr_user_recommend表中推荐记录
-#5/修改gr_user表中所有相关推荐关系用户的parent_list字段内容
-#6/重算gr_user_currency表与gr_user_voucher表

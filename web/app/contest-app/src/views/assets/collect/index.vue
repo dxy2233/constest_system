@@ -15,6 +15,11 @@
           <qrcode :value="address" type="img" :size="230"></qrcode>
           <p>{{address}}</p>
         </div>
+        <ul class="tip" v-if="isCollect">
+          <li>• 请勿向上述地址转入非{{littleTitle}}积分，否则积分将不可找回</li>
+          <li>• 最小转入金额：0.01{{littleTitle}}，小于最小金额的充值将不会上账且无法退回。</li>
+          <li>• 请务必确认浏览器安全，防止信息被篡改或泄露。</li>
+        </ul>
         <x-button type="warn" id="copy" class="copy-btn" @click.native="" :data-clipboard-text="address">复制钱包地址</x-button>
       </div>
     </div>
@@ -37,15 +42,13 @@
       return {
         address: '',
         title:'',
-        littleTitle:''
+        littleTitle:'',
+        isCollect:false
       }
     },
     created() {
-      // this.address = this.$route.query.address
-      // this.getCollectAddress()
-      console.log(this.$route.path)
-      let path = this.$route.path
-      if (path.includes('collect')){//资产转入
+      this.isCollect = this.$route.path.includes('collect')
+      if (this.isCollect){//资产转入
         this.getCollectAddress()
         this.title = '转入地址'
         this.littleTitle = this.$route.query.name
@@ -120,7 +123,12 @@
         font-size $font-size-small-s
         color #939BA4
     .copy-btn
-      margin 40px 0
+      margin-top 40px
+      margin-bottom 10px
+    .tip
+      padding 20px
+      padding-bottom 0
+      font-size $font-size-small-s
 
 
 </style>

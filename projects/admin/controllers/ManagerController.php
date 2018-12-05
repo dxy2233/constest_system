@@ -78,6 +78,7 @@ class ManagerController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, 'name不能为空');
         }
+        
         $real_name = $this->pString('realName', '');
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');
@@ -112,6 +113,7 @@ class ManagerController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, 'name不能为空');
         }
+        
         $real_name = $this->pString('realName', '');
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');
@@ -143,7 +145,10 @@ class ManagerController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, 'name不能为空');
         }
-
+        $old_data =BAdminRole::find()->where(['name' => $name])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '已有同名角色');
+        }
         $admin_user = new BAdminRole();
         $admin_user->name = $name;
 
@@ -163,7 +168,10 @@ class ManagerController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, 'name不能为空');
         }
-
+        $old_data =BAdminRole::find()->where(['name' => $name])->andWhere(['!=', 'id', $id])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '已有同名角色');
+        }
         $admin_role = BAdminRole::find()->where(['id' => $id])->one();
         if (empty($admin_role)) {
             return $this->respondJson(1, '角色不存在');
@@ -191,13 +199,9 @@ class ManagerController extends BaseController
             return $this->respondJson(1, '角色不存在');
         }
         $res = BAdminUser::updateAll(['role_id' => 2], ['role_id' => $id]);
-        if ($res) {
-            if (!$data->delete()) {
-                return $this->respondJson(1, '删除失败', $data->getFirstErrorText());
-            }
-            return $this->respondJson(0, '删除成功');
+        if (!$data->delete()) {
+            return $this->respondJson(1, '删除失败', $data->getFirstErrorText());
         }
-
         return $this->respondJson(0, '删除成功');
     }
     //管理员列表
@@ -206,7 +210,7 @@ class ManagerController extends BaseController
         $search_name = $this->pString('searchName');
         $find = BAdminUser::find();
         if ($search_name != '') {
-            $find->andWhere(['or',['likg', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
+            $find->andWhere(['or',['like', 'mobile', $search_name], ['like', 'real_name', $search_name]]);
         }
         $page = $this->pInt('page', 1);
         $find->page($page);

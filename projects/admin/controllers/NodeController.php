@@ -121,12 +121,14 @@ class NodeController extends BaseController
         $people = NodeService::getPeopleNum($id_arr, $str_time, $end_time);
         $id = $this->gString('id');
         if ($id != '') {
-            $id_new_arr = explode(',' $id);
+            $id_new_arr = explode(',', $id);
+        } else {
+            $id_new_arr = [];
         }
             
         foreach ($data['list'] as $key => &$v) {
-            if(!in_array($v['id'], $id_new_arr)){
-                continue;
+            if (count($id_new_arr) > 0 && !in_array($v['id'], $id_new_arr)) {
+                unset($data['list'][$key]);
             }
             if (isset($people[$v['id']])) {
                 $v['count'] = $people[$v['id']];
@@ -137,6 +139,7 @@ class NodeController extends BaseController
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
             $v['status'] = BNode::getStatus($v['status']);
             $v['is_tenure'] = $v['is_tenure'] == 1 ? '任职' : '候补';
+
             $other = BUserOther::find()->where(['user_id' => $v['user_id']])->asArray()->one();
             if ($other) {
                 $v['weixin'] = $other['weixin'];
@@ -219,20 +222,23 @@ class NodeController extends BaseController
         $str_time = $this->gString('str_time', '');
         $end_time = $this->gString('end_time', '');
         $order = $this->gString('order');
-        if ($order != '') {
+        if ($order != 'null') {
             $order_arr = [1 => 'A.create_time', 2 => 'A.create_time DESC'];
             $order = $order_arr[$order];
         } else {
             $order = 'A.create_time DESC';
         }
         $data = NodeService::getIndexList(0, $searchName, $str_time, $end_time, 0, $status, $order);
+
         $id = $this->gString('id');
         if ($id != '') {
-            $id_arr = explode(',' $id);
+            $id_arr = explode(',', $id);
+        } else {
+            $id_arr = [];
         }
         $return = [];
         foreach ($data['list'] as $v) {
-            if(!in_array($v['id'], $id_arr)){
+            if (count($id_arr) > 0 && !in_array($v['id'], $id_arr)) {
                 continue;
             }
             $item = [];
@@ -246,9 +252,20 @@ class NodeController extends BaseController
             $item['status'] = BNode::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
+            $identify = BUserIdentify::find()->where(['user_id' => $v['user_id']])->one();
+            if ($identify) {
+                $item['username'] = $identify->realname;
+            }
+            $other = BUserOther::find()->where(['user_id' => $v['user_id']])->one();
+            if ($other) {
+                $item['weixin'] = $other->weixin;
+                $item['grt_address'] = $other->grt_address;
+                $item['tt_address'] = $other->tt_address;
+                $item['bpt_address'] = $other->bpt_address;
+            }
             $return[] = $item;
         }
-        $headers = ['name'=> '节点名称', 'type_name' => '节点类型', 'mobile' => '手机号', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
+        $headers = ['name'=> '节点名称', 'type_name' => '节点类型', 'mobile' => '手机号','username' => '姓名','weixin' => '微信','grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
         $this->download($return, $headers, '节点审核列表'.date('YmdHis'));
  
         return;
@@ -621,11 +638,11 @@ class NodeController extends BaseController
         }
         $cache = \Yii::$app->cache;
         
-        $cache_name = "node/get-history-order/$page/$type/$endTime";
+        $cache_name = "node/get-history-order/$type/$endTime";
         
         if ($cache->exists($cache_name)) {
             $data = $cache->get($cache_name);
-            $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
+            $headers = ['order'=> '排名','nodeName' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 
             $this->download($data, $headers, '历史排名'.date('YmdHis'));
     
@@ -653,13 +670,12 @@ class NodeController extends BaseController
         $people_data = NodeService::getPeopleNum($arr_id, '', date('Y-m-d H:i:s', $endTime));
         foreach ($data as $k => &$v) {
             $v['count'] = $people_data[$v['id']];
-            $v['order'] = ($page-1)*20 + $k +1;
+            $v['order'] = $k +1;
             $v['is_tenure'] = BNode::getTenure($v['is_tenure']);
         }
 
-        $cache->set($cache_name, $return, 3600*24);
 
-        $headers = ['order'=> '排名','node_name' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
+        $headers = ['order'=> '排名','nodeName' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 
         $this->download($data, $headers, '历史排名'.date('YmdHis'));
 

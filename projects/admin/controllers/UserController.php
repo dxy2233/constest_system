@@ -814,6 +814,7 @@ class UserController extends BaseController
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $return = [];
         $return['count'] = $count;
@@ -830,7 +831,7 @@ class UserController extends BaseController
         }
         $find = BUserRecommend::find()
         ->from(BUserRecommend::tableName()." A")
-        ->select(['B.mobile as p_moblie', 'F.realname as p_realname', 'D.type_id as p_type_id', 'C.mobile as u_mobile', 'G.realname as u_realname', 'E.type_id as u_type_id', 'A.amount', 'A.create_time'])
+        ->select(['B.mobile as p_mobile', 'F.realname as p_realname', 'D.type_id as p_type_id', 'C.mobile as u_mobile', 'G.realname as u_realname', 'E.type_id as u_type_id', 'A.amount', 'A.create_time'])
         ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')
         ->join('left join', BUser::tableName().' C', 'A.user_id = C.id')
         ->join('left join', BNode::tableName().' D', 'A.parent_id = D.user_id')

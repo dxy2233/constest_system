@@ -6,6 +6,7 @@ import { Message } from 'element-ui'
 import { getToken } from '@/utils/auth' // 验权
 
 const whiteList = ['/login'] // 不重定向白名单
+
 router.beforeEach((to, from, next) => {
   NProgress.start()
   if (getToken()) {
@@ -15,7 +16,11 @@ router.beforeEach((to, from, next) => {
     } else {
       if (store.getters.roles.length === 0) {
         store.dispatch('GetInfo').then(res => { // 拉取用户信息
-          next()
+          const roles = res.content.roleId
+          store.dispatch('GenerateRoutes', { roles }).then(res => { // 生成动态路由
+            router.addRoutes(store.getters.addRouters)
+            next({ ...to, replace: true })
+          })
         }).catch((err) => {
           store.dispatch('FedLogOut').then(() => {
             Message.error(err || 'Verification failed, please login again')

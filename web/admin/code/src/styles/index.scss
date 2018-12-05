@@ -198,3 +198,16 @@ a:hover {
     }
   }
 }
+
+// d3.js的弹出框样式
+.tooltip {
+	position: absolute;
+	// width: 150px;
+  padding: 0 10px;
+	height: 30px;
+  line-height: 30px;
+	text-align: center;
+	background: #fff;
+  border: 1px solid #ddd;
+	border-radius: 5px;
+}

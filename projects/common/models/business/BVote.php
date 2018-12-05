@@ -9,6 +9,8 @@ class BVote extends \common\models\Vote
 
     // 新增 赎回中状态
     const STATUS_INACTIVE_ING = 2;
+    const STATUS_ACTIVE = 1;
+    const STATUS_INACTIVE = 0;
 
     const TYPE_ALL = 0; // 全部
     const TYPE_ORDINARY = 1; // 持有投票

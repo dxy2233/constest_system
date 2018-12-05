@@ -51,7 +51,7 @@ class UpdateService extends ServiceBase
                 $msg[] = '节点不存在';
                 continue;
             }
-            $withdraw = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点充币'])->all();
+            $withdraw = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点转入积分'])->all();
             if (!$withdraw) {
                 $msg[] = '流水数据不存在';
                 continue;
@@ -161,7 +161,7 @@ class UpdateService extends ServiceBase
                     $name = $currency_id[$val];
                     if ($v->$name != 0) {
                         $res = NodeService::addCurrencyLogs($user->id, $val, $v->$name, $node->id);
-                        $w = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点充币', 'currency_id' => $val])->one();
+                        $w = BUserRechargeWithdraw::find()->where(['user_id' => $user->id, 'remark' => '添加节点转入积分', 'currency_id' => $val])->one();
                         if (!self::addUpdateLogs('user_recharge_withdraw', 'all_data', (string)json_encode($w->toArray()), 'add', $w->id)) {
                             $transaction->rollBack();
                             $msg[$user->id] = '日志写入失败';
@@ -253,6 +253,16 @@ class UpdateService extends ServiceBase
         return $return;
     }
 
+    public static function begin_other()
+    {
+        $data = BUpdateDataOther::find()->where(['status' => BUpdateDataOther::$STATUS_OFF])->all();
+        foreach ($data as $v) {
+            if ($v->type == 1) {
+                // 清空用户推荐关系及相关数据
+            }
+        }
+    }
+
     // 更改所有用户上级列表
     public static function update_recommend_begin()
     {
@@ -301,9 +311,8 @@ class UpdateService extends ServiceBase
         $arr = [];
         foreach ($all_data as $v) {
             $parent = BUser::find()->where(['id' => $v->parent_id])->one();
-
-            if (!empty($arr[$v->parent_id])) {
-                $str = $arr[$v->parent_id] . ',' . $v->parent_id;
+            if ($parent->parent_list != '') {
+                $str = $parent->parent_list . ',' . $v->parent_id;
             } else {
                 $str = $v->parent_id;
             }

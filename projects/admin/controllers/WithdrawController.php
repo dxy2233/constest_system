@@ -38,7 +38,7 @@ class WithdrawController extends BaseController
     {
         $currency_id = $this->pString('currency_id');
         if (empty($currency_id)) {
-            return $this->respondJson(1, '币种ID不能为空');
+            return $this->respondJson(1, '积分ID不能为空');
         }
         $withdraw_min_amount = $this->pFloat('withdraw_min_amount');
         if (empty($withdraw_min_amount)) {
@@ -59,7 +59,7 @@ class WithdrawController extends BaseController
         $is_identify = $this->pFloat('is_identify');
         $currency = BCurrency::find()->where(['id' => $currency_id])->one();
         if (empty($currency)) {
-            return $this->respondJson(1, '币种不存在');
+            return $this->respondJson(1, '积分不存在');
         }
         $currency->withdraw_min_amount = $withdraw_min_amount;
         $currency->withdraw_max_amount = $withdraw_max_amount;
@@ -87,11 +87,11 @@ class WithdrawController extends BaseController
     {
         $currency_id = $this->pString('currency_id');
         if (empty($currency_id)) {
-            return $this->respondJson(1, '币种ID不能为空');
+            return $this->respondJson(1, '积分ID不能为空');
         }
         $currency = BCurrency::find()->where(['id' => $currency_id])->one();
         if (empty($currency)) {
-            return $this->respondJson(1, '币种不存在');
+            return $this->respondJson(1, '积分不存在');
         }
         $return  = [];
         $return['withdraw_min_amount'] = (float)$currency->withdraw_min_amount;

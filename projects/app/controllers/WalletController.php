@@ -238,7 +238,7 @@ class WalletController extends BaseController
 
         $currency = BCurrency::find()->where(['id' => $currencyId])->one();
         if (empty($currency) || $currency->recharge_status == BCurrency::$RECHARGE_STATUS_OFF) {
-            return $this->respondJson(1, "此积分不可充币");
+            return $this->respondJson(1, "此积分不可转入");
         }
 
         $userId = $this->user->id;
@@ -326,7 +326,7 @@ class WalletController extends BaseController
         }
         //积分提现状态
         if ($currency->withdraw_status == BCurrency::$RECHARGE_STATUS_OFF) {
-            return $this->respondJson(1, '该积分暂不支持提币');
+            return $this->respondJson(1, '该积分暂不支持转出');
         }
         // 单笔最小数量
         $minAmount = $currency->withdraw_min_amount;

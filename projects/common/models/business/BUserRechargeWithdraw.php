@@ -9,13 +9,13 @@ class BUserRechargeWithdraw extends \common\models\UserRechargeWithdraw
     public $startTime;
     public $endTime;
 
-    public static $TYPE_RECHARGE = 1; //充币
+    public static $TYPE_RECHARGE = 1; //转入积分
     public static $TYPE_WITHDRAW = 2; //提币
     public static function getType($key = '')
     {
         $arr = [
-            self::$TYPE_RECHARGE => \Yii::t('app', '充币'),
-            self::$TYPE_WITHDRAW => \Yii::t('app', '提币'),
+            self::$TYPE_RECHARGE => \Yii::t('app', '转入积分'),
+            self::$TYPE_WITHDRAW => \Yii::t('app', '转出积分'),
         ];
         if ($key !== '') {
             return isset($arr[$key]) ? $arr[$key] : '';

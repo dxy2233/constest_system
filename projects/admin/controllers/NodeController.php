@@ -797,6 +797,9 @@ class NodeController extends BaseController
         $bpt = $this->pInt('bpt', 0);
 
         $quota = $this->pInt('quota', 0);
+        if($quota < 0){
+            $quota = 0;
+        }
         $gdt_reward = $this->pInt('gdtReward', 0);
         $node->is_examine = $is_examine;
         $node->gdt_reward = $gdt_reward;
@@ -1004,6 +1007,9 @@ class NodeController extends BaseController
         $quota = \Yii::$app->request->post('quota', null);
         if ($quota !== '' && $quota !== null) {
             $data->quota = round(floatval($quota), 2);
+            if($data->quota < 0){
+                $data->quota = 0;
+            }
         } else {
             $data->quota = null;
         }

@@ -3,23 +3,19 @@
     <router-link tag="li" v-for="(item,index) in list"
                  :to="'/home/node/dts'+item.id" :key="item.id+item.name+index">
       <div class="rank">
-        <!--<span :class="{'sign':index<3}">{{++index}}</span>-->
         <img v-if="index<3" :src="'/static/images/rank_'+(++index)+'.png'" alt="">
         <span v-else>{{++index}}</span>
       </div>
       <div class="content">
         <div class="left">
-          <!--<div class="avatar">
-            <img src="" alt="">
-          </div>-->
           <img :src="item.logo||'/static/images/node-avatar-default.jpg'" alt="" class="avatar">
-          <div class="text">
-            <h4>{{item.name}}</h4>
-            <h6>{{item.peopleNumber+'人支持'}}</h6>
-          </div>
         </div>
         <div class="right">
-          {{item.voteNumber+'票'}}
+          <h4>{{item.name}}</h4>
+          <h6>
+            <span>{{item.peopleNumber+'人支持'}}</span>
+            <span>{{item.voteNumber+'票'}}</span>
+          </h6>
         </div>
       </div>
       <div class="tenure" v-if="item.isTenure">
@@ -40,7 +36,7 @@
     },
     data() {
       return {
-        replaceImg: 'https://ww1.sinaimg.cn/large/663d3650gy1fq66vvsr72j20p00gogo2.jpg'
+        replaceImg: 'https://ww1.sinaimg.cn/large/663d3650gy1fq66vvsr72j20p00gogo2.jpg',
       }
     },
     watch: {},
@@ -56,14 +52,13 @@
   @import "~stylus/variable"
   @import "~stylus/mixin"
   .rank-list
-    /*padding $space-box 0*/
     min-height 30px
     li
       position relative
       display flex
       align-items center
-      padding-left $space-box
       overflow hidden
+      width 100%
       .tenure
         position absolute
         right -30px
@@ -79,42 +74,44 @@
           position relative
           top 43px
       .rank
-        flex 0 0 30px
+        padding-left $space-box
+        padding-right 10px
+        /*width 30px*/
         img
           width 20px
         span
           text-align center
-          /*background-color #DBDBDB*/
           padding 3px
           display inline-block
           min-width 10px
-          /*color #fff*/
           font-size $font-size-medium
           &.sign
             background-color #FFB24E
       .content
-        flex 1
-        display flex
-        justify-content space-between
-        align-items flex-end
+        width calc(100% - 45px)
         padding $space-box
-        padding-left 2px
+        padding-left 0
         border-bottom 1px solid $color-border
-        .left
+        box-sizing border-box
+        h4
+          font-size $font-size-small
+          color $color-text-minor
+          width 100%
+          no-wrap()
+        h6
           display flex
-          align-items center
-          h4
-            font-size $font-size-small
-            color $color-text-minor
-          h6
-            margin-top 10px
-            font-size $font-size-small-s
-            /*color #B4B5BC*/
+          justify-content space-between
+          margin-top 10px
+          font-size $font-size-small-s
+        .left
+          float left
+        .right
+          margin-left 50px
         .avatar
           width 40px
           height 40px
           margin-right 10px
-          /*border 1px solid #AFAFAF*/
+          margin-top 6px
           border-radius 50%
 
 </style>

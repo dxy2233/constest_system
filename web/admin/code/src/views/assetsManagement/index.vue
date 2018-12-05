@@ -1,15 +1,15 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">资产管理</h4>
-    <el-button class="btn-right" type="primary" @click="dialogLock=true;initLock()">锁仓记录</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[5].child[0].isHave==1" class="btn-right" type="primary" @click="dialogLock=true;initLock()">锁仓记录</el-button>
+    <el-button v-if="buttons[5].child[1].isHave==1" class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @keyup.enter.native="searchTableData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
-      <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;" @change="searchTableData">
+      <el-select v-model="moneyType" clearable placeholder="积分" style="width:100px;" @change="searchTableData">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -32,7 +32,7 @@
 
     <el-table :data="tableData" style="margin:10px 0;" @sort-change="sortChange">
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="name" label="币种" sortable="custom"/>
+      <el-table-column prop="name" label="积分" sortable="custom"/>
       <el-table-column prop="positionAmount" label="总额" sortable="custom"/>
       <el-table-column prop="useAmount" label="可用" sortable="custom"/>
       <el-table-column prop="frozenAmount" label="锁仓" sortable="custom"/>
@@ -48,7 +48,7 @@
       <el-input v-model="searchLockData" clearable placeholder="用户" style="width:150px;" @change="searchLock">
         <el-button slot="append" icon="el-icon-search" @click.native="searchLock"/>
       </el-input>
-      <el-select v-model="lockMoneyType" clearable placeholder="币种" style="width:100px;" @change="searchLock">
+      <el-select v-model="lockMoneyType" clearable placeholder="积分" style="width:100px;" @change="searchLock">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -71,7 +71,7 @@
       </div>
       <el-table :data="lockTableData" style="margin:10px 0;">
         <el-table-column prop="mobile" label="用户"/>
-        <el-table-column prop="name" label="币种"/>
+        <el-table-column prop="name" label="积分"/>
         <el-table-column prop="amount" label="数量"/>
         <el-table-column prop="remark" label="描述"/>
         <el-table-column prop="createTime" label="时间"/>
@@ -89,6 +89,7 @@
 <script>
 import { getFinanceList, getMoneyType, getLockList } from '@/api/assets'
 import { getVerifiCode } from '@/api/public'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'AssetsManagement',
@@ -116,6 +117,11 @@ export default {
       lockTotal: 1,
       lockCurrentPage: 1
     }
+  },
+  computed: {
+    ...mapGetters([
+      'buttons'
+    ])
   },
   created() {
     getMoneyType().then(res => {

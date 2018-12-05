@@ -56,7 +56,7 @@ let checkToken = function (callback) {
     return
   }
   let loginMsg = JSON.parse(localStorage.getItem('loginMsg'))
-  console.log(loginMsg)
+  // console.log(loginMsg)
   if (!!loginMsg) {
     let timestamp = parseInt(Date.parse(new Date()) / 1000)
     // loginMsg.expireTime = timestamp + 1000

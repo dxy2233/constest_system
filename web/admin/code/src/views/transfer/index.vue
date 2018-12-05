@@ -5,7 +5,7 @@
       <el-radio-button label="已通过"/>
       <el-radio-button label="未通过"/>
     </el-radio-group>
-    <el-button class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
+    <el-button v-if="buttons[10].child[1].isHave==1" class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="流水号/手机号" style="width:200px;" @change="searchData">
@@ -22,7 +22,7 @@
       style="float:right;width:400px;"
       @change="searchData"/>
     <span style="float:right;line-height:2.5;padding:0 5px;">申请时间</span>
-    <el-select v-model="moneyType" clearable placeholder="币种" style="float:right;" @change="searchData">
+    <el-select v-model="moneyType" clearable placeholder="积分" style="float:right;" @change="searchData">
       <el-option
         v-for="item in allMoneyType"
         :key="item.id"
@@ -32,7 +32,7 @@
     <br>
 
     已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
-    <el-button v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
+    <el-button v-if="buttons[10].child[0].isHave==1" v-show="checkTypetoNum==0" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allDoomPass">通过</el-button>
 
     <el-table
       :data="tableData"
@@ -41,7 +41,7 @@
       @row-click="clickRow">
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="orderNumber" label="流水号"/>
-      <el-table-column prop="name" label="币种"/>
+      <el-table-column prop="name" label="积分"/>
       <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="amount" label="数量"/>
       <el-table-column prop="type" label="类型"/>
@@ -67,12 +67,12 @@
           <img src="@/assets/img/user.jpg" alt="">
           <span class="name">{{ rowInfo.mobile }}<br><span>{{ checkType }}</span></span>
           <i class="el-icon-close btn" @click="showInfo=false"/>
-          <el-button v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
-          <el-button v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
+          <el-button v-if="buttons[10].child[0].isHave==1" v-show="checkType=='待审核'" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
+          <el-button v-if="buttons[10].child[0].isHave==1" v-show="checkType=='待审核'" type="primary" class="btn" @click="doomPass">通过</el-button>
         </div>
         <p v-show="checkTypetoNum==2">未通过原因：{{ rowInfo.statusRemark }}</p>
         <p><span>流水号</span>{{ rowInfo.orderNumber }}</p>
-        <p><span>币种</span>{{ rowInfo.name }}<span>类型</span>{{ rowInfo.type }}</p>
+        <p><span>积分</span>{{ rowInfo.name }}<span>类型</span>{{ rowInfo.type }}</p>
         <p><span>数量</span>{{ rowInfo.amount }}<span>剩余划拨数量</span>{{ payment }}</p>
         <p><span>备注</span>{{ rowInfo.remark }}</p>
         <p><span>对方钱包地址</span>{{ rowInfo.destinationAddress }}</p>
@@ -124,6 +124,7 @@
 import { getList, editSet, passTrial, failTrial, getSetValue, walletInfo } from '@/api/transfer'
 import { getMoneyType } from '@/api/assets'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Transfer',
@@ -170,6 +171,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      'buttons'
+    ]),
     checkTypetoNum() {
       if (this.checkType === '待审核') {
         return 0
@@ -220,10 +224,16 @@ export default {
     },
     // 通过
     doomPass() {
-      passTrial(this.rowInfo.id).then(res => {
-        this.showInfo = false
-        Message({ message: res.msg, type: 'success' })
-        this.init()
+      this.$confirm('确定通过吗?(请仔细核对，通过后不可取消)', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        passTrial(this.rowInfo.id).then(res => {
+          this.showInfo = false
+          Message({ message: res.msg, type: 'success' })
+          this.init()
+        })
       })
     },
     // 批量通过

@@ -78,7 +78,10 @@ class ManagerController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, 'name不能为空');
         }
-        
+        $old_data =BAdminUser::find()->where(['name' => $name])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '已有同名管理员');
+        }
         $real_name = $this->pString('realName', '');
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');
@@ -113,7 +116,10 @@ class ManagerController extends BaseController
         if (empty($name)) {
             return $this->respondJson(1, 'name不能为空');
         }
-        
+        $old_data =BAdminUser::find()->where(['name' => $name])->andWhere(['!=', 'id', $id])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '已有同名管理员');
+        }
         $real_name = $this->pString('realName', '');
         $department = $this->pString('department', '');
         $mobile = $this->pString('mobile', '');

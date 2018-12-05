@@ -79,16 +79,23 @@ class UserController extends BaseController
             return $this->respondJson(1, '推荐码格式错误');
         }
         $reCode = strtoupper($reCode);
-        $parentId = UserService::validateRemmendCode($reCode);
-        if (!$parentId) {
-            return $this->respondJson(1, '推荐人不存在');
+        $checkRecomment = UserService::checkUserRecommend($userModel->id, $reCode);
+        if ($checkRecomment->code) {
+            return $this->respondJson($checkRecomment->code, $checkRecomment->msg);
         }
-        if ($parentId === $userModel->id) {
-            return $this->respondJson(1, '推荐人不能是自己');
+
+
+        $checkVoucher = NodeService::checkVoucher($userModel->id);
+
+        if ($checkVoucher->code) {
+            return $this->respondJson($checkVoucher->code, $checkVoucher->msg);
         }
-        if (BUserRecommend::find()->where(['user_id' => $userModel->id])->exists()) {
-            return $this->respondJson(1, '已添加推荐人');
-        }
+        
+        return $this->respondJson(0, '设置成功');
+
+        /**
+         * 以下是单独赠送投票劵逻辑，暂保留一段时间，运行测试完成之后再进行剔除
+         */
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             $nodeModel = $userModel->node;

@@ -491,7 +491,6 @@ class NodeService extends ServiceBase
             $return['number'] = '未填写';
         }
     }
-
     // 轮询判断是否需要送投票券及gdt给当前用户
     public static function checkVoucher($user_id)
     {
@@ -518,7 +517,7 @@ class NodeService extends ServiceBase
         $parent = BUserRecommend::find()->where(['user_id' => $user_id])->one();
         if ($parent) {
             // 判断推荐人是否是节点
-            $node = BNode::find()->where(['user_id' => $parent->parent_id])->one();
+            $node = BNode::find()->where(['user_id' => $parent->parent_id])->active()->one();
             if ($node) {
                 $res = self::checkVoucherDo($parent, $node_parent);
                 if ($res->code != 0) {
@@ -531,7 +530,7 @@ class NodeService extends ServiceBase
         return new FuncResult(0, '补充成功');
     }
     // 具体赠送
-    public static function checkVoucherDo($recommend, $node)
+    public static function checkVoucherDo(BUserRecommend $recommend, BNode $node)
     {
         $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
         $gdt_num_arr = [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];

@@ -22,7 +22,7 @@
       style="float:right;width:400px;"
       @change="searchData"/>
     <span style="float:right;line-height:2.5;padding:0 5px;">申请时间</span>
-    <el-select v-model="moneyType" clearable placeholder="币种" style="float:right;" @change="searchData">
+    <el-select v-model="moneyType" clearable placeholder="积分" style="float:right;" @change="searchData">
       <el-option
         v-for="item in allMoneyType"
         :key="item.id"
@@ -41,7 +41,7 @@
       @row-click="clickRow">
       <el-table-column type="selection" width="55"/>
       <el-table-column prop="orderNumber" label="流水号"/>
-      <el-table-column prop="name" label="币种"/>
+      <el-table-column prop="name" label="积分"/>
       <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="amount" label="数量"/>
       <el-table-column prop="type" label="类型"/>
@@ -72,7 +72,7 @@
         </div>
         <p v-show="checkTypetoNum==2">未通过原因：{{ rowInfo.statusRemark }}</p>
         <p><span>流水号</span>{{ rowInfo.orderNumber }}</p>
-        <p><span>币种</span>{{ rowInfo.name }}<span>类型</span>{{ rowInfo.type }}</p>
+        <p><span>积分</span>{{ rowInfo.name }}<span>类型</span>{{ rowInfo.type }}</p>
         <p><span>数量</span>{{ rowInfo.amount }}<span>剩余划拨数量</span>{{ payment }}</p>
         <p><span>备注</span>{{ rowInfo.remark }}</p>
         <p><span>对方钱包地址</span>{{ rowInfo.destinationAddress }}</p>
@@ -224,10 +224,16 @@ export default {
     },
     // 通过
     doomPass() {
-      passTrial(this.rowInfo.id).then(res => {
-        this.showInfo = false
-        Message({ message: res.msg, type: 'success' })
-        this.init()
+      this.$confirm('确定通过吗?(请仔细核对，通过后不可取消)', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        passTrial(this.rowInfo.id).then(res => {
+          this.showInfo = false
+          Message({ message: res.msg, type: 'success' })
+          this.init()
+        })
       })
     },
     // 批量通过

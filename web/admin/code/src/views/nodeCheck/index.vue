@@ -162,10 +162,16 @@ export default {
     },
     // 通过审核
     doomPass() {
-      checkPass(this.rowInfo.id).then(res => {
-        Message({ message: res.msg, type: 'success' })
-        this.showInfo = false
-        this.init()
+      this.$confirm('确定通过吗?(请仔细核对，通过后不可取消)', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        checkPass(this.rowInfo.id).then(res => {
+          Message({ message: res.msg, type: 'success' })
+          this.showInfo = false
+          this.init()
+        })
       })
     },
     // 批量通过审核

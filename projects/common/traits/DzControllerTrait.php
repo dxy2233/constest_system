@@ -183,6 +183,9 @@ trait DzControllerTrait
         // 将变量转换为驼峰命名法
         $content = $camelize && !is_bool($content)? FuncHelper::keyCamelize($content) : $content;
         $this->respondData = array('code' => $errCode, 'msg' => $msg, 'content' => $content);
+        if ($this->module->id == 'admin' && $errCode == 1) {
+            $this->respondData = array('code' => $errCode, 'msg' => $msg.' '.(string)$content, 'content' => '');
+        }
         return json_encode($this->respondData, JSON_UNESCAPED_UNICODE);
     }
 

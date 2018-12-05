@@ -386,7 +386,7 @@ class UserService extends ServiceBase
         if (!empty($recommend) && $recommend->parent_id != $id) {
             return new ReturnInfo(1, "用户已有推荐人");
         }
-        
+            
         if ($id === $user_id) {
             return new ReturnInfo(1, "推荐人不能是自己");
         }

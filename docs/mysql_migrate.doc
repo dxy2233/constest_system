@@ -253,6 +253,7 @@ ADD `role_id` int NOT NULL COMMENT '角色ID' AFTER `department`;
 
 #修改 id 为 1的管理员权限为 1
 UPDATE `gr_admin_user` SET `role_id` = '1' WHERE `gr_admin_user`.`id` = 1;
+UPDATE `gr_admin_user` SET `role_id` = '2' WHERE `gr_admin_user`.`id` != 1;
 
 CREATE TABLE `gr_admin_rule` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

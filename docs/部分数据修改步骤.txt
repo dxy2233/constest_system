@@ -13,3 +13,21 @@
 #3/添加新实名认证信息,INSERT INTO `gr_user_identify` (`user_id`, `realname`, `type`, `number`, `pic_front`, `pic_back`, `status`, `status_remark`, `remark`, `audit_admin_id`, `examine_time`, `create_time`, `update_time`) VALUES
 ({$user_id},	'{$name}',	1,	'{$number}',	'{$image}',	'{$image}',	1,	'已通过',	'',	1,	0,	0,	0)
 #4/修改用户表绑定手机号update gr_user set mobile = {$new_mobile} where id = {$user_id}
+
+
+#取消节点步骤
+#gr_history
+#修改gr_node表对应数据为未审核
+#清除gr_user_currency_detail所有数据，包括成功节点送gdt，推荐向上级送gdt，推荐其它用户送gdt，成为节点时的grt,tt,bpt数据模拟
+#清除gr_user_currency_frozen中成为节点时模拟冻结的资产
+#清除gr_user_recharge_withdraw中成为节点时模拟转入的资产
+#修改gr_user_recommend中被推荐人是此用户的记录中node_id及amount
+#重算gr_user_currency表中所有币种数量
+
+
+#**判断gr_vote中是否存在对此节点进行的投票，若有、清除所有投票并退回投票花费的grt,投票券，追回投票奖励gdt，然后执行下一步
+#**清除gr_voucher_detail中所有使用投票券向此节点投票的记录及此节点的所有投票券使用记录
+
+
+#清除gr_voucher此用户推荐获得的所有投票券记录
+#重算gr_user_voucher表中投票券数量

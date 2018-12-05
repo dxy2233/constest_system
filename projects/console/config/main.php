@@ -57,6 +57,13 @@ return [
                     'logVars' => [],
                     'logFile' => '@console/runtime/logs/userCurrency.log'
                 ],
+                [
+                    'class'  => 'yii\log\FileTarget',
+                    'levels' => ['error', 'warning', 'info'],
+                    'categories'=> ['VoucherGDT'],
+                    'logVars' => [],
+                    'logFile' => '@console/runtime/logs/VoucherGDT.log'
+                ],
             ],
         ],
     ],

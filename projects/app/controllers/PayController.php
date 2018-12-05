@@ -61,6 +61,10 @@ class PayController extends BaseController
         if ($payPass !== $rePass) {
             return $this->respondJson(1, '两次支付密码不一致');
         }
+        if (!$userModel->pwd_salt) {
+            // 补录密码salt
+            $userModel->pwd_salt = md5(NOW_TIME . $userModel->mobile);
+        }
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
             $userModel->trans_password = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);
@@ -97,6 +101,10 @@ class PayController extends BaseController
         }
         if (UserService::validateTransPwd($userModel, $payPass)) {
             return $this->respondJson(1, '旧密码新密码不能一致');
+        }
+        if (!$userModel->pwd_salt) {
+            // 补录密码salt
+            $userModel->pwd_salt = md5(NOW_TIME . $userModel->mobile);
         }
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
@@ -139,7 +147,11 @@ class PayController extends BaseController
         if ($returnInfo->code != 0) {
             return $this->respondJson(1, $returnInfo->msg);
         }
-
+        
+        if (!$userModel->pwd_salt) {
+            // 补录密码salt
+            $userModel->pwd_salt = md5(NOW_TIME . $userModel->mobile);
+        }
         $passLen = (int) SettingService::get('user', 'trans_pass_num')->value;
         if ($passLen == strlen($payPass)) {
             $userModel->trans_password = UserService::generateTransPwdHash($userModel->pwd_salt, $payPass);

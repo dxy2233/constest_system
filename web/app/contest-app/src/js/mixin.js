@@ -47,12 +47,23 @@ export let limitFloating = (string)=>{
 //保证.只出现一次，而不能出现两次以上
   string = string.replace('.','$#$').replace(/\./g,'').replace('$#$','.');
   return string
-/*  let findex = string.indexOf('.')
+}
+
+
+export let limitIpt = (string, num) => {
+  num = Number(num)
+  string = string.toString()
+  if (num === 0) {
+    return string.replace(/[^\d]/g, '')
+  }
+  let findex = string.indexOf('.')
   if (findex >= 0) {
     let prefix = string.substring(0, findex);
-    let suffix = string.substring(findex, string.length);
+    let suffix = string.substring(findex, findex + num + 1);
     prefix = prefix.replace(/[^\d]/g, '')
+    // prefix = prefix.replace(/[^0-9]+/, '');
     suffix = suffix.replace(/[^\d]/g, '')
+    // suffix = suffix.replace(/[^0-9]+/, '');
     string = prefix + '.' + suffix;
   } else {
     string = string.replace(/[^\d]/g, '')
@@ -63,6 +74,7 @@ export let limitFloating = (string)=>{
     }
   }
   // console.log(string,num)
-  return string*/
+  return string
+
 
 }

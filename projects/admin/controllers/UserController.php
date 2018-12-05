@@ -398,7 +398,8 @@ class UserController extends BaseController
         ->from(BVoucher::tableName()." A")
         ->join('inner join', BNode::tableName().' B', 'A.node_id = B.id')
         ->join('inner join', BNodeType::tableName().' C', 'B.type_id = C.id')
-        ->select(['A.voucher_num', 'A.create_time','B.name as nodeName','C.name as typeName'])
+        ->join('inner join', BUser::tableName().' D', 'B.user_id = D.id')
+        ->select(['A.voucher_num', 'A.create_time','B.name as nodeName','C.name as typeName', 'D.mobile'])
         ->where(['A.user_id' => $userId])->orderBy('A.create_time desc')->asArray()->all();
         $all  = 0;
         foreach ($voucher_data as $v) {
@@ -406,7 +407,7 @@ class UserController extends BaseController
             $voucher_item['nodeName'] = $v['nodeName'];
             $voucher_item['typeName'] = $v['typeName'];
             $voucher_item['voucherNum'] = $v['voucher_num'];
-            $voucher_item['username'] = $user->mobile;
+            $voucher_item['username'] = $v['mobile'];
             $voucher_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
             $voucher[] = $voucher_item;
         }
@@ -581,13 +582,10 @@ class UserController extends BaseController
             return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
         }
         if ($code != '') {
-            $id = UserService::validateRemmendCode($code);
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user->id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
+            $res = UserService::checkUserRecommend($user->id, $code);
+            if ($res->code != 0) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '注册失败', $user_recommend->getFirstErrorText());
+                return $this->respondJson(1, $str.'失败', $res->msg);
             }
         }
         $user_voucher = new BUserVoucher();

@@ -288,36 +288,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '候选数量已达上限');
         }
         $transaction = \Yii::$app->db->beginTransaction();
-        // 赠送投票券
-        
-        // $old_recommend = BUserRecommend::find()->where(['user_id' => $data->user_id])->one();
-        // if ($old_recommend) {
-        //     $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
-        //     $setting_recommend_voucher = BSetting::find()->where(['key' => 'recommend_voucher'])->one();
-        //     $id = $old_recommend->parent_id;
-        //     $parent_node = BNode::find()->active()->where(['user_id' => $id])->one();
-        //     $old_recommend->node_id = $data->id;
-        //     if (!empty($parent_node) && $setting_recommend_voucher->value == 1) { //推荐人是节点直接送券
-                        
-        //         $old_recommend->amount = $tpq_num_arr[$type_id];
-        //         // $old_recommend->amount = $grt * $setting->value;
-        //         if (!$old_recommend->save()) {
-        //             $transaction->rollBack();
-        //             return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
-        //         }
     
-        //         $res = VoucherService::createNewVoucher($id, $data->id, $tpq_num_arr[$type_id]);
-        //         if ($res->code != 0) {
-        //             $transaction->rollBack();
-        //             return $this->respondJson(1, '注册失败'.$res->msg());
-        //         }
-        //     } else { // 其它情况只修改node 对应关系
-        //         if (!$old_recommend->save()) {
-        //             $transaction->rollBack();
-        //             return $this->respondJson(1, '注册失败'.$old_recommend->getFirstErrorText());
-        //         }
-        //     }
-        // }
 
         
         // 成为节点赠送gdt
@@ -1178,6 +1149,8 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '注册失败'.$node->getFirstErrorText());
         }
+
+
 
         $weixin = $this->pString('weixin', '');
 

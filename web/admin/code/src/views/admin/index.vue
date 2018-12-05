@@ -69,15 +69,15 @@ export default {
   data() {
     return {
       info1: [
-        { title: '今日登陆人数', num: null },
+        { title: '今日登录人数', num: null },
         { title: '今日新增用户数', num: null },
-        { title: '今日登投票量', num: null },
+        { title: '今日投票量', num: null },
         { title: '今日实名认证人数', num: null },
         { title: '今日新增节点数', num: null }
       ],
       info2: [
         { title: '用户总数', num: null },
-        { title: '7日内重复登陆人数', num: null },
+        { title: '7日内重复登录人数', num: null },
         { title: '合计投票量', num: null },
         { title: '实名认证总数', num: null },
         { title: '节点总数', num: null }

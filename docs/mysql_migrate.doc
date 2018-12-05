@@ -248,8 +248,6 @@ CHANGE `parent_list` `parent_list` varchar(1000) COLLATE 'utf8_general_ci' NOT N
 以上sql 2018-11-27 17:10已同步线上
 =============================================================
 
-ALTER TABLE `gr_admin_user`
-ADD `role_id` int NOT NULL COMMENT '角色ID' AFTER `department`;
 
 CREATE TABLE `gr_admin_rule` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

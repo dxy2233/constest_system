@@ -94,7 +94,7 @@ class NodeService extends ServiceBase
         ->join('left join', 'gr_vote C', 'A.id = C.node_id && C.status = '.BNotice::STATUS_ACTIVE)
         ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
         ->groupBy(['A.id'])
-        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name', 'D.id as type_id']);
+        ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name', 'D.id as type_id', 'A.user_id']);
         // ->orderBy('sum(C.vote_number) desc');
         
         
@@ -145,20 +145,21 @@ class NodeService extends ServiceBase
      * @param BUser $user
      * @return void
      */
-    public static function getPeopleNum(array $id_arr = [], string $str_time = '', string $end_time = '')
+    public static function getPeopleNum(array $id_arr = [], $str_time = '', $end_time = '')
     {
         $voteMode = BVote::find()
-        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number'])
-        ->active();
+        ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number']);
         if (!empty($id_arr)) {
             $voteMode->where(['node_id' => $id_arr]);
         }
-        
         if ($str_time != '') {
             $voteMode->startTime($str_time, 'create_time');
         }
         if ($end_time != '') {
             $voteMode->endTime($end_time, 'create_time');
+            $voteMode->andWhere(['or', ['>', 'undo_time', strtotime($end_time)], ['undo_time' => 0]]);
+        } else {
+            $voteMode->andWhere(['or', ['>', 'undo_time', time()], ['undo_time' => 0]]);
         }
 
         $res = $voteMode->groupBy(['node_id'])
@@ -402,7 +403,7 @@ class NodeService extends ServiceBase
         $withdraw ->transaction_id = (string)$transaction_id;
         $withdraw ->order_number = FuncHelper::generateOrderCode();
         $withdraw ->status = BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS;
-        $withdraw ->remark = "添加节点充币";
+        $withdraw ->remark = "添加节点转入积分";
         $withdraw ->audit_time = time();
         if (!$withdraw->save()) {
             return new FuncResult(1, '模拟失败', $withdraw->getFirstErrorText());
@@ -414,7 +415,7 @@ class NodeService extends ServiceBase
         $user_c_detail->currency_id = $currency_id;
         $user_c_detail->type = BUserCurrencyDetail::$TYPE_RECHARGE;
         $user_c_detail->amount = $amount;
-        $user_c_detail->remark = '充币';
+        $user_c_detail->remark = '转入积分';
         $user_c_detail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
         $user_c_detail->relate_table = 'user_recharge_withdraw';
         $user_c_detail->relate_id = $userRechargeWithdrawId;
@@ -490,7 +491,6 @@ class NodeService extends ServiceBase
             $return['number'] = '未填写';
         }
     }
-    
     // 轮询判断是否需要送投票券及gdt给当前用户
     public static function checkVoucher($user_id)
     {

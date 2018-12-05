@@ -41,7 +41,8 @@ class UserController extends BaseController
         
         $behaviors = [];
         $authActions = [
-            'download'
+            'download',
+            'recommend-download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -137,17 +138,19 @@ class UserController extends BaseController
 
     public function actionDownload()
     {
-        //header('Access-Control-Allow-Origin:*');
-        // $file = './a';
-        // $data = file_get_contents($file);
-        // return $data;
-        // exit;
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE);
-        
+        $id = $this->gString('id');
+        if ($id != '') {
+            $find->andWhere(['in', 'A.id', explode(',', $id)]);
+        }
         $searchName = $this->gString('searchName');
         
         if ($searchName != '') {
@@ -208,10 +211,8 @@ class UserController extends BaseController
         
         $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
 
-        $down = $this->download($list, $headers, '用户列表'.date('YmdHis'));
-        if (!$down) {
-            exit('验证失败');
-        }
+        $this->download($list, $headers, '用户列表'.date('YmdHis'));
+
         return;
     }
 
@@ -455,7 +456,7 @@ class UserController extends BaseController
         $recommend_data = BUserRecommend::find()
         ->from(BUserRecommend::tableName()." A")
         ->join('left join', 'gr_user D', 'A.user_id = D.id')
-        ->join('left join', 'gr_node B', 'B.user_id = D.id && B.status = '.BNode::STATUS_ON)
+        ->join('left join', 'gr_node B', 'B.user_id = D.id')
         ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
         
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
@@ -768,5 +769,109 @@ class UserController extends BaseController
         $return['consignee'] = $other->consignee;
         $return['consignee_mobile'] = $other->consignee_mobile;
         return $this->respondJson(0, '获取成功', $return);
+    }
+
+    // 推荐记录
+    public function actionRecommendList()
+    {
+        $find = BUserRecommend::find()
+        ->from(BUserRecommend::tableName()." A")
+        ->select(['B.mobile as p_moblie', 'F.realname as p_realname', 'D.type_id as p_type_id', 'C.mobile as u_mobile', 'G.realname as u_realname', 'E.type_id as u_type_id', 'A.amount', 'A.create_time'])
+        ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')
+        ->join('left join', BUser::tableName().' C', 'A.user_id = C.id')
+        ->join('left join', BNode::tableName().' D', 'A.parent_id = D.user_id')
+        ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id')
+        ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id')
+        ->join('left join', BNode::tableName(). ' E', 'A.user_id = E.user_id');
+        $searchName = $this->pString('searchName');
+        if ($searchName != '') {
+            $find->andWhere(['like', 'B.mobile', $searchName]);
+        }
+        $type = $this->pInt('type');
+        if ($type != 0) {
+            if ($type == 5) {
+                $find->andWhere(['>', 'D.id', 0]);
+            } elseif ($type <= 4) {
+                $find->andWhere(['D.type_id' => $type]);
+            } elseif ($type == 6) {
+                $find->andWhere(['D.id' => null]);
+            }
+        }
+        $strTime = $this->pString('strTime');
+        if ($strTime != '') {
+            $find->startTime($strTime, 'A.create_time');
+        }
+        $endTime = $this->pString('endTime');
+        if ($endTime != '') {
+            $find->endTime($endTime, 'A.create_time');
+        }
+        $count = $find->count();
+        $page = $this->pInt('page', 0);
+        $find->page($page);
+        $data = $find->orderBy('parent_id')->asArray()->all();
+        foreach ($data as &$v) {
+            $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
+            $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+        }
+        $return = [];
+        $return['count'] = $count;
+        $return['list'] = $data;
+        return $this->respondJson(0, '获取成功', $return);
+    }
+
+    // 推荐记录下载
+    public function actionRecommendDownload()
+    {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
+        $find = BUserRecommend::find()
+        ->from(BUserRecommend::tableName()." A")
+        ->select(['B.mobile as p_mobile', 'F.realname as p_realname', 'D.type_id as p_type_id', 'C.mobile as u_mobile', 'G.realname as u_realname', 'E.type_id as u_type_id', 'A.amount', 'A.create_time'])
+        ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')
+        ->join('left join', BUser::tableName().' C', 'A.user_id = C.id')
+        ->join('left join', BNode::tableName().' D', 'A.parent_id = D.user_id')
+        ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id')
+        ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id')
+        ->join('left join', BNode::tableName(). ' E', 'A.user_id = E.user_id');
+        $id = $this->gString('id');
+        if ($id != '') {
+            $find->andWhere(['A.id' => explode(',', $id)]);
+        }
+        $searchName = $this->gString('searchName');
+        if ($searchName != '') {
+            $find->andWhere(['like', 'B.mobile', $searchName]);
+        }
+        $type = $this->gInt('type');
+        if ($type != 0) {
+            if ($type == 5) {
+                $find->andWhere(['>', 'D.id', 0]);
+            } elseif ($type <= 4) {
+                $find->andWhere(['D.type_id' => $type]);
+            } elseif ($type == 6) {
+                $find->andWhere(['D.id' => null]);
+            }
+        }
+        $strTime = $this->gString('strTime');
+        if ($strTime != '') {
+            $find->startTime($strTime, 'A.create_time');
+        }
+        $endTime = $this->gString('endTime');
+        if ($endTime != '') {
+            $find->endTime($endTime, 'A.create_time');
+        }
+        $data = $find->orderBy('parent_id')->asArray()->all();
+        foreach ($data as &$v) {
+            $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
+            $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
+        }
+        $return = [];
+        $return['list'] = $data;
+        $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被推荐用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '推荐时间'];
+        $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
+
+        return;
     }
 }

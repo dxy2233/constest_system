@@ -1,14 +1,14 @@
 <template>
   <div class="app-container">
     <h4 style="display:inline-block;">财务流水</h4>
-    <el-button class="btn-right" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[6].child[0].isHave==1" class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户" style="margin-top:20px;width:300px;" @change="searchTableData">
       <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
-      <el-select v-model="moneyType" clearable placeholder="币种" style="width:100px;" @change="searchTableData">
+      <el-select v-model="moneyType" clearable placeholder="积分" style="width:100px;" @change="searchTableData">
         <el-option
           v-for="(item,index) in allMoneyType"
           :key="index"
@@ -38,7 +38,7 @@
     <el-table :data="tableData" style="margin:10px 0;">
       <el-table-column prop="id" label="流水号"/>
       <el-table-column prop="mobile" label="用户"/>
-      <el-table-column prop="name" label="币种"/>
+      <el-table-column prop="name" label="积分"/>
       <el-table-column prop="type2" label="收支"/>
       <el-table-column prop="type" label="类型"/>
       <el-table-column prop="amount" label="数量"/>
@@ -57,6 +57,7 @@
 <script>
 import { getRuningList, getMoneyType } from '@/api/assets'
 import { getVerifiCode } from '@/api/public'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Finance',
@@ -75,6 +76,11 @@ export default {
       total: 1,
       currentPage: 1
     }
+  },
+  computed: {
+    ...mapGetters([
+      'buttons'
+    ])
   },
   created() {
     getMoneyType().then(res => {

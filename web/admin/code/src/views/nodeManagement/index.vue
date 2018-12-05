@@ -5,10 +5,11 @@
     <el-radio-group v-model="nodeType" @change="changeNodeType">
       <el-radio-button v-for="(item,index) in allType" :key="index" :label="item.name"/>
     </el-radio-group>
-    <el-button style="float:right;" @click="openNodeSet">节点设置</el-button>
-    <el-button style="float:right;margin-right:10px;" @click="dialogHistory=true;initHistory()">历史排名</el-button>
-    <el-button style="float:right;" type="primary" @click="dialogAddNode=true;step=0">新增节点</el-button>
-    <el-button style="float:right;" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[3].child[3].isHave==1" style="float:right;" @click="openNodeSet">节点设置</el-button>
+    <el-button v-if="buttons[3].child[2].isHave==1" style="float:right;margin-right:10px;" @click="dialogHistory=true;initHistory()">历史排名</el-button>
+    <el-button v-if="buttons[3].child[0].isHave==1" style="float:right;" type="primary" @click="dialogAddNode=true;step=0">新增节点</el-button>
+    <el-button v-if="buttons[3].child[4].isHave==1" style="float:right;" @click="downExcel">导出excel</el-button>
+    <el-button v-if="buttons[3].child[4].isHave==1" style="float:right;" @click="downExcel(0)">导出所有节点</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="用户/节点名称" style="margin-top:20px;width:300px;" @change="searchTableData">
@@ -72,7 +73,7 @@
           <i class="el-icon-close btn" @click="showNodeInfo=false"/>
           <el-button v-show="rowInfo.status!='停用'" type="danger" plain class="btn" style="margin:0 10px;" @click="closeNode">停用</el-button>
           <el-button v-show="rowInfo.status=='停用'" type="primary" class="btn" style="margin:0 10px;" @click="openNode">启用</el-button>
-          <el-button type="primary" class="btn" @click="nodeBaseEdit">编辑</el-button>
+          <el-button v-if="buttons[3].child[1].isHave==1" type="primary" class="btn" @click="nodeBaseEdit">编辑</el-button>
           <el-button v-show="isCandidate&&rowInfo.isTenure==0" type="primary" class="btn" @click="openTenure">任职</el-button>
           <el-button v-show="isCandidate&&rowInfo.isTenure==1" type="danger" plain class="btn" @click="closeTenure">卸任</el-button>
         </div>
@@ -131,6 +132,7 @@
             <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.voteList">
               <el-table-column prop="mobile" label="手机号"/>
               <el-table-column prop="voteNumber" label="票数"/>
+              <el-table-column prop="type" label="投票方式"/>
               <el-table-column prop="createTime" label="投票时间"/>
             </el-table>
             <el-table v-show="pollName=='支持用户'" :data="nodeInfoVote.orderList">
@@ -503,6 +505,7 @@ import { getNodeList, getNodeType, getNodeBase, getNodeInfo, getNodeIdentify, ge
   getHistory, pushNodeSet, addNode, checkMobile, checkNode } from '@/api/nodePage'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'NodeManagement',
@@ -644,6 +647,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      'buttons'
+    ]),
     // 当前节点类型索引
     typeIndex() {
       let tem = 0
@@ -1122,7 +1128,24 @@ export default {
       this.step = 0
       this.jump = false
     },
-    downExcel() {
+    downExcel(type) {
+      if (this.tableDataSelection.length > 0) {
+        let id = ''
+        this.tableDataSelection.forEach((item, index) => {
+          id = `${id}${item.id},`
+        })
+        getVerifiCode().then(res => {
+          var url = `/node/download?download_code=${res.content}&id=${id}`
+          const elink = document.createElement('a')
+          elink.style.display = 'none'
+          elink.target = '_blank'
+          elink.href = url
+          document.body.appendChild(elink)
+          elink.click()
+          document.body.removeChild(elink)
+        })
+        return
+      }
       if (this.searchDate) {
         var str = this.searchDate[0]
         var end = this.searchDate[1]
@@ -1131,7 +1154,11 @@ export default {
         end = ''
       }
       getVerifiCode().then(res => {
-        var url = `/node/download?download_code=${res.content}&type=${this.allType[this.typeIndex].id}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        if (type === 0) {
+          var url = `/node/download?download_code=${res.content}&type=0&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        } else {
+          url = `/node/download?download_code=${res.content}&type=${this.allType[this.typeIndex].id}&searchName=${this.search}&str_time=${str}&end_time=${end}`
+        }
         const elink = document.createElement('a')
         elink.style.display = 'none'
         elink.target = '_blank'

@@ -18,7 +18,7 @@
           name="password"
           auto-complete="on"
           placeholder="密码"
-          @keyup.enter.native="handleLogin" />
+          @keyup.enter.native="handleLogin"/>
         <span class="show-pwd" @click="showPwd">
           <svg-icon icon-class="eye" />
         </span>
@@ -86,7 +86,7 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('Login', this.loginForm).then(() => {
+          this.$store.dispatch('Login', this.loginForm).then(res => {
             this.loading = false
             this.$router.push({ path: this.redirect || '/' })
           }).catch(() => {

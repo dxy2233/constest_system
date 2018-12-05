@@ -11,13 +11,16 @@ namespace common\traits;
 use common\components\FuncHelper;
 use moonland\phpexcel\Excel;
 use common\models\AdminUser;
+use common\models\business\BAdminRole;
+use common\models\business\BAdminRule;
+use common\models\business\BAdminUser;
 use Yii;
 
 trait DzControllerTrait
 {
     protected $respondData;
-   
-    final protected function download($list, $headers, $fileName = '')
+ 
+    final protected function checkDownloadCode()
     {
         $return = Yii::$app->request->get('download_code');
         if (empty($return)) {
@@ -25,14 +28,34 @@ trait DzControllerTrait
         }
         $code = FuncHelper::authCode($return);
         if ($code == '') {
-            // var_dump($code);
             return false;
         }
         $user_id = AdminUser::findIdentityByAccessToken($code);
         if (!$user_id) {
-            // var_dump($code);
             return false;
         }
+        // $user = BAdminUser::find()->where(['id' => $user_id->id])->one();
+        // $my_rule = BAdminRole::find()->where(['id' => $user->role_id])->one();
+        // if ($my_rule->id != 1) {
+        //     // 权限判断
+        //     $this_rule_str = \Yii::$app->request->getPathInfo();
+            
+        //     $my_rule_list = json_decode($my_rule->rule_list, true);
+        //     $this_rule = BAdminRule::find()->where(['like', 'url', $this_rule_str])->one();
+        //     if ($this_rule && !in_array($this_rule->id, $my_rule_list)) {
+        //         return false;
+        //         exit();
+        //     } elseif ($this_rule) {
+        //         if ($this_rule->parent_id && !in_array($this_rule->parent_id, $my_rule_list)) {
+        //             return false;
+        //             exit();
+        //         }
+        //     }
+        // }
+        return true;
+    }
+    final protected function download($list, $headers, $fileName = '')
+    {
         if ($fileName == '') {
             $fileName = time();
         }

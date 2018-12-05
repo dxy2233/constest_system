@@ -19,14 +19,14 @@
           <div class="form-item">
             <label for="">数量</label>
             <div class="ipt-box">
-              <input type="text" v-model="form.amount" :placeholder="'余额'+balance" @blur="vaildAmount">
+              <input type="text" v-model="form.amount" :placeholder="'余额'+balance">
               <span class="all-btn" @click="form.amount = balance" v-if="form.id">全部</span>
             </div>
           </div>
           <div class="form-item">
             <label for="">接收方钱包地址</label>
             <div class="ipt-box">
-              <input type="text" v-model="form.address" placeholder="输入或长按黏贴" @blur="vaildAdress">
+              <input type="text" v-model="form.address" placeholder="输入或长按黏贴">
             </div>
           </div>
           <div class="form-item">
@@ -53,6 +53,7 @@
   import validPayPsw from 'components/validPayPsw/index'
   import validVcode from 'views/assets/transfer/validVcode'
   import {Loading} from 'vux'
+  import {limitIpt} from 'js/mixin'
 
   export default {
     name: "index",
@@ -200,7 +201,12 @@
       this.currencyList = nL
       // this.form.id='1'
     },
-
+    watch:{
+      'form.amount':function () {
+        let p = limitIpt(this.form.amount, 2)
+        this.form.amount = p
+      }
+    }
   }
 </script>
 

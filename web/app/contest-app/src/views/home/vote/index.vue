@@ -46,7 +46,7 @@
             <span v-else></span>
             <span>{{typeInfo.number+'票'}}</span>
           </div>
-          <x-button type="warn" class="sbm-btn" @click.native="sbmVote">确定</x-button>
+          <x-button type="warn" class="sbm-btn" @click.native="sbmVote" :disabled="btnDisabled">确定</x-button>
         </div>
       </div>
       <choose-node v-show="chooseNodeShow" @close="chooseNodeShow=false" :selectId="nodeId"
@@ -81,7 +81,8 @@
         nodeId: '',
         chooseNodeShow: false,
         validPswShow: false,
-        currentTypeName:''
+        currentTypeName:'',
+        btnDisabled:false
       }
     },
     methods: {
@@ -114,6 +115,7 @@
             this.$vux.toast.show(res)
             return
           }
+          this.btnDisabled = true
           this.validPswShow = true
         })
       },
@@ -124,6 +126,7 @@
           number: this.number,
           pass: payPsw
         }, (res) => {
+          this.btnDisabled = false
           let type = res.code === 0 ? 'success' : 'warn'
           this.$vux.toast.show({
             text: res.msg,

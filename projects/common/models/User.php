@@ -50,7 +50,7 @@ class User extends DzModel implements IdentityInterface
             [['realname', 'mobile', 'last_login_ip'], 'string', 'max' => 20],
             [['pwd_salt'], 'string', 'max' => 32],
             [['equipment_number', 'trans_password'], 'string', 'max' => 128],
-            [['recommend_code'], 'unique'],
+            [['recommend_code','mobile'], 'unique'],
         ];
     }
 

@@ -20,7 +20,7 @@
             </x-input>
             <x-input title="" class="weui-vcode" placeholder="验证码" v-model="loginForm.vcode">
               <!--<x-button class="send-code" slot="right" type="primary" mini>发送验证码</x-button>-->
-              <x-button @click.native="clickCodeBtn"
+              <x-button @click.native="clickCodeBtn" :disabled="wait!==0"
                         :gradients="[colorSubTheme,colorTheme]" class="send-code" slot="right" mini>{{codeStr}}
               </x-button>
             </x-input>
@@ -28,7 +28,8 @@
                      v-model="loginForm.re_code"></x-input>
           </group>
           <div class="submit-box">
-            <x-button :gradients="[colorSubTheme,colorTheme]" @click.native="submitLogin" :show-loading="btnLoading">
+            <x-button :disabled="btnLoading" :gradients="[colorSubTheme,colorTheme]" @click.native="submitLogin"
+                      :show-loading="btnLoading">
               立即开启
             </x-button>
           </div>
@@ -141,8 +142,8 @@
         }, this.loginForm), (res) => {
           this.$vux.toast.show(res.msg)
           this.btnLoading = false
+          this.getImgCode()
           if (res.code === 0) {
-            // res.content.expireTime = parseInt(Date.parse(new Date()) / 1000) + 1000
             localStorage.setItem("loginMsg", JSON.stringify(res.content));
             this.setLoginMsg(res.content)
             for (let item in this.loginForm) {

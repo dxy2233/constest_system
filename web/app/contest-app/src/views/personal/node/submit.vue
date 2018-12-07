@@ -106,7 +106,7 @@
             </div>
           </div>
           <div class="sbm-btn-box">
-            <x-button type="warn" class="base-btn" @click.native="submitFrom" :show-loading="btnLoading">下一步
+            <x-button type="warn" class="base-btn" @click.native="submitFrom" :disabled="btnLoading" :show-loading="btnLoading">下一步
             </x-button>
           </div>
         </div>

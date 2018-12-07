@@ -42,7 +42,8 @@
             </ul>
           </div>
           <div class="btn-box">
-            <x-button type="warn" class="again-btn" @click.native="submitIdentify">下一步</x-button>
+            <x-button type="warn" class="again-btn"
+                      @click.native="submitIdentify" :disabled="btnLoading" :show-loading="btnLoading">下一步</x-button>
           </div>
         </div>
       </div>
@@ -79,7 +80,8 @@
         },
         frontImg: '',
         backImg: '',
-        claimList: claimList
+        claimList: claimList,
+        btnLoading: false
       }
     },
     methods: {
@@ -130,8 +132,10 @@
           this.$vux.toast.show(callback)
           return
         }
+        this.btnLoading = true
         http.post('/identify/submit', this.identifyForm, (res) => {
           this.$vux.toast.show(res.msg)
+          this.btnLoading = false
           if (res.code === 0) {
             this.getIdentifyMsg()
           }

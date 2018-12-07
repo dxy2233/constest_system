@@ -44,7 +44,8 @@
         <div class="ipt-box">
           <input type="text" v-model="code" class="vcode-ipt" placeholder="输入或粘贴介绍人邀请码">
         </div>
-        <x-button type="warn" class="reset-btn" @click.native="submitCode" :show-loading="btnLoading">提交</x-button>
+        <x-button type="warn" :disabled="btnLoading"
+                  class="reset-btn" @click.native="submitCode" :show-loading="btnLoading">提交</x-button>
       </x-dialog>
       <router-view></router-view>
       <router-view></router-view>

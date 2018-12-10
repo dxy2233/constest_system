@@ -1065,7 +1065,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '推荐人不是节点');
         }
         $parent_arr = explode(',', $recommend_user->parent_list);
-        if (in_array($user->id, $parent_arr)) {
+        if ($user &&　in_array($user->id, $parent_arr)) {
             return $this->respondJson(1, '推荐人不能是自己的下级');
         }
         return $this->respondJson(0, '验证成功');

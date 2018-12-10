@@ -96,7 +96,7 @@
         this.dataList = []
         this.page = 1
         this.loadShow = true
-        this.getList()
+        // this.getList()
       },
       clickRedeem(id){
         this.redeemId = id

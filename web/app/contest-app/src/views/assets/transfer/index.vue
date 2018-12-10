@@ -36,7 +36,7 @@
             </div>
           </div>
         </div>
-        <x-button type="warn" class="again-btn" @click.native="submitTransfer">确认支付</x-button>
+        <x-button type="warn" class="again-btn" @click.native="submitTransfer" :disabled="btnDisabled">确认支付</x-button>
         <valid-pay-psw v-if="validPswShow" @validSuccess="validPswSuccess" @close="validPswShow=false"></valid-pay-psw>
         <valid-vcode v-if="validVcodeShow" @close="validVcodeShow=false" @valid="validAll"></valid-vcode>
         <loading :show="loadingShow" text=""></loading>
@@ -81,7 +81,8 @@
         payPsw: '',
         vcode: "",
         loadingShow: false,
-        hasIdentify:true
+        hasIdentify:true,
+        btnDisabled:false
       }
     },
     methods: {
@@ -154,6 +155,7 @@
             this.$vux.toast.show('请先通过实名认证')
             return
           }
+          this.btnDisabled = true
           this.validPswShow = true
         })
 
@@ -170,6 +172,7 @@
           pass: this.payPsw,
           vcode: vcode
         }, this.form), (res) => {
+          this.btnDisabled = false
           this.loadingShow = false
           let type = res.code === 0 ? 'success' : 'warn'
           this.$vux.toast.show({

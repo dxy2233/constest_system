@@ -5,6 +5,7 @@ namespace app\controllers;
 use ErrorException;
 use yii\helpers\ArrayHelper;
 use common\services\NodeService;
+use common\services\UserService;
 use common\components\FuncHelper;
 use common\models\business\BNode;
 use common\models\business\BVote;
@@ -222,6 +223,7 @@ class NodeController extends BaseController
     {
         $typeId = $this->pInt('type_id', 1);
         $weixin = $this->pString('weixin');
+        $recommendMobile = $this->pString('recommend_mobile');
         if (!$weixin) {
             return $this->respondJson(1, '微信号不能为空');
         }
@@ -248,8 +250,39 @@ class NodeController extends BaseController
         if ($bptNum > 0 && is_null($bptAddress)) {
             return $this->respondJson(1, '美食通地址不能为空');
         }
+        $reCode = null;
+        // 判断推荐人
+        if ($typeId !== 1 && !is_null($recommendMobile)) {
+            if (!FuncHelper::validatMobile($recommendMobile)) {
+                return $this->respondJson(1, '手机号错误');
+            }
+            if ($recommendMobile == $userModel->mobile) {
+                return $this->respondJson(1, '推荐人不能是自己');
+            }
+            $recommendUser = BUser::find()->where(['mobile' => $recommendMobile])->one();
+            if (!$recommendUser) {
+                return $this->respondJson(1, '推荐人用户不存在');
+            }
+            $recommendNodeModel = $recommendUser->getNode()
+            ->active()
+            ->one();
+            if (!$recommendNodeModel) {
+                return $this->respondJson(1, '推荐人不是节点');
+            }
+            $parent_arr = explode(',', $recommendUser->parent_list);
+            if (in_array($userModel->id, $parent_arr)) {
+                return $this->respondJson(1, '推荐人不能是自己的下级');
+            }
+            $reCode = $recommendUser->recommend_code;
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         try {
+            if($reCode) {
+                $checkRecomment = UserService::checkUserRecommend($userModel->id, $reCode);
+                if ($checkRecomment->code) {
+                    throw new ErrorException($checkRecomment->msg);
+                }
+            }
             if ($nodeModel && in_array($nodeModel->status, [$nodeModel::STATUS_ON, $nodeModel::STATUS_WAIT, $nodeModel::STATUS_OFF])) {
                 throw new ErrorException('节点已存在');
             } elseif(!$nodeModel || $nodeModel->status == $nodeModel::STATUS_DEL) {

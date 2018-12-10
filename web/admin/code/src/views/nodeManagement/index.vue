@@ -384,6 +384,9 @@
           <el-form-item label="微信">
             <el-input v-model="addNodeData.weixin"/>
           </el-form-item>
+          <el-form-item prop="recommendMobile" label="推荐人手机号">
+            <el-input v-model="addNodeData.recommendMobile"/>
+          </el-form-item>
           <el-form-item prop="type_id" label="节点类型">
             <el-select v-model="addNodeData.type_id" placeholder="请选择" @change="recommendSelect">
               <el-option
@@ -574,6 +577,7 @@ export default {
       addNodeData: {
         mobile: '',
         weixin: '',
+        recommendMobile: '',
         type_id: '',
         is_tenure: 0,
         grt: '',
@@ -595,6 +599,9 @@ export default {
       rules: {
         mobile: [
           { required: true, message: '请输入手机号码', trigger: 'blur' },
+          { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+        ],
+        recommendMobile: [
           { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
         ],
         type_id: [

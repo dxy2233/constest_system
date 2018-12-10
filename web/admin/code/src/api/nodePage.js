@@ -242,3 +242,15 @@ export function checkNode(type_id, is_tenure) {
     }
   })
 }
+
+// 验证推荐人手机
+export function checkRecomMobile(mobile, recommendMobile) {
+  return request({
+    url: '/node/check-recommend',
+    method: 'post',
+    data: {
+      mobile,
+      recommendMobile
+    }
+  })
+}

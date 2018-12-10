@@ -505,7 +505,7 @@
 <script>
 import { getNodeList, getNodeType, getNodeBase, getNodeInfo, getNodeIdentify, getNodeVote, getNodeRule,
   getNodeAddress, onTenure, offTenure, stopNode, onNode, updataBase, getNodeSet, getRuleList, pushRuleList,
-  getHistory, pushNodeSet, addNode, checkMobile, checkNode } from '@/api/nodePage'
+  getHistory, pushNodeSet, addNode, checkMobile, checkNode, checkRecomMobile } from '@/api/nodePage'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
@@ -519,6 +519,22 @@ export default {
     }
   },
   data() {
+    const validate = (rule, value, callback) => {
+      if (value !== '') {
+        if (!this.addNodeData.mobile) {
+          callback(new Error('请输入节点手机号'))
+        } else if (!/^1\d{10}$/.test(value)) {
+          callback(new Error('请输入正确的手机号'))
+        } else {
+          checkRecomMobile(this.addNodeData.mobile, value).then(res => {
+            if (!res) callback(new Error('手机号有误'))
+            else callback()
+          })
+        }
+      } else {
+        callback()
+      }
+    }
     return {
       allType: [],
       nodeType: '',
@@ -602,7 +618,7 @@ export default {
           { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
         ],
         recommendMobile: [
-          { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+          { validator: validate, trigger: 'blur' }
         ],
         type_id: [
           { required: true, message: '请选择节点类型', trigger: 'change' }

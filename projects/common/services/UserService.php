@@ -391,6 +391,10 @@ class UserService extends ServiceBase
             return new ReturnInfo(1, "推荐人不能是自己");
         }
         $user = BUser::find()->where(['id' => $id])->one();
+        // $node = BNode::find()->where(['user_id' => $id])->active()->one();
+        // if (!$node) {
+        //     return new ReturnInfo(1, "推荐人不是节点");
+        // }
         $parent_arr = explode(',', $user->parent_list);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");

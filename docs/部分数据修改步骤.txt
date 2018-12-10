@@ -31,3 +31,27 @@
 
 #清除gr_voucher此用户推荐获得的所有投票券记录
 #重算gr_user_voucher表中投票券数量
+
+
+#曾嫦娥转张红丽事件处理方式意见
+
+#第一部分 撤消张红丽超级节点
+
+#清除gr_user_currency_detail所有数据，包括成功节点送gdt，推荐向上级送gdt，推荐其它用户送gdt，成为节点时的grt,tt,bpt数据模拟
+#清除gr_voucher,gr_user_voucher,gr_voucher_detail中张红丽获得的投票券，并清除gr_vote中张红丽使用这部分投票券的投票记录
+#清除gr_user_currency_frozen中成为节点时模拟冻结的资产
+#清除gr_user_recharge_withdraw中成为节点时模拟转入的资产
+#修改gr_user_recommend中被推荐人是此用户的记录中node_id及amount
+#重算gr_user_currency表中所有币种数量
+
+
+#第二部分 将曾嫦娥节点转让给张红丽
+
+#修改gr_node表中曾嫦娥的节点user_id为张红丽的user_id,
+#将gr_vote中所有指向原张红丽的节点的投票的node_id变更为上一步所转让的节点ID
+#将gr_user_currency_detail，gr_user_currency_frozen及gr_user_recharge_withdraw表中曾嫦娥因申请节点中的模拟数据更改user_id至张红丽名下，包括申请节点奖励的gdt
+#删除gr_node表中原张红丽超级节点对应数据
+#清除所有关于曾嫦娥的相关数据，包括gr_user,gr_voucher,gr_user_voucher,gr_voucher_detail,gr_vote,gr_user_currency,gr_user_currency_detail,gr_user_currency_frozen,gr_user_recharge_withdraw, gr_user_recharge_address,gr_user_other,gr_user_recommend,gr_node
+
+
+#第三部分 补回张红丽及其上级的推荐奖励

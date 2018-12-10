@@ -81,13 +81,22 @@ class BUser extends \common\models\User
         return $this->hasMany(BUserCurrencyFrozen::className(), ['user_id' => 'id']);
     }
     /**
-     * 用户推荐人
+     * 推荐的用户
      *  一对多
      * @return void
      */
     public function getUserRecommend()
     {
         return $this->hasMany(BUserRecommend::className(), ['parent_id' => 'id']);
+    }
+    /**
+     * 用户的推荐人
+     *  一对一
+     * @return void
+     */
+    public function getSelfRecommend()
+    {
+        return $this->hasOne(BUserRecommend::className(), ['user_id' => 'id']);
     }
     /**
      * 用户的投票劵

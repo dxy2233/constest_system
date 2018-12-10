@@ -383,39 +383,79 @@ class UserService extends ServiceBase
     {
         $recommend = BUserRecommend::find()->where(['user_id' => $user_id])->one();
         $id = self::validateRemmendCode($code);
-        if (!empty($recommend) && $recommend->parent_id != $id) {
-            return new ReturnInfo(1, "用户已有推荐人");
-        }
+        // if (!empty($recommend) && $recommend->parent_id != $id) {
+        //     return new ReturnInfo(1, "用户已有推荐人");
+        // }
             
         if ($id === $user_id) {
             return new ReturnInfo(1, "推荐人不能是自己");
         }
         $user = BUser::find()->where(['id' => $id])->one();
+        // $node = BNode::find()->where(['user_id' => $id])->active()->one();
+        // if (!$node) {
+        //     return new ReturnInfo(1, "推荐人不是节点");
+        // }
         $parent_arr = explode(',', $user->parent_list);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
-        if ($user->parent_list != '') {
-            $str = $user->parent_list . ',' . $id;
-        } else {
-            $str = $id;
-        }
-        //修改所有下级的上级列表
-        $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
-        $connection=\Yii::$app->db;
-        $command=$connection->createCommand($sql);
-        $rowCount=$command->execute();
-        // 修改用户自己的上级列表
-        $this_user = BUser::find()->where(['id' => $user_id])->one();
-        $this_user->parent_list = $str;
-        $this_user->save();
-        // 添加推荐关系
+
+        
+
+        // 如果是第一次添加
         if (empty($recommend)) {
+            if ($user->parent_list != '') {
+                $str = $user->parent_list . ',' . $id;
+            } else {
+                $str = $id;
+            }
+            
+            //修改所有相关用户的上级列表
+            $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+            // 修改用户自己的上级列表
+            $this_user = BUser::find()->where(['id' => $user_id])->one();
+            $this_user->parent_list = $str;
+            $this_user->save();
+
+            //添加推荐关系
             $user_recommend = new BUserRecommend();
             $user_recommend->user_id = $user_id;
             $user_recommend->parent_id = $id;
             if (!$user_recommend->save()) {
                 return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
+            }
+        } elseif ($recommend->parent_id != $id) {
+            //更换推荐人
+
+            if ($user->parent_list != '') {
+                $str = $user->parent_list . ',' . $id . ',' . $user_id;
+            } else {
+                $str = $id . ',' . $user_id;
+            }
+            $this_user = BUser::find()->where(['id' => $user_id])->one();
+            if ($this_user->parent_list != '') {
+                $old_str = $this_user->parent_list .  ',' . $user_id;
+            } else {
+                // 添加上级列表
+                $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
+            }
+            //修改所有相关用户的上级列表
+            if (empty($sql)) {
+                $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = replace(`parent_list`,'$old_str','$str') where `parent_list` like '".$old_str.',%'."' || `parent_list` = $old_str";
+            }
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+            // 修改用户自己的上级列表
+            $this_user->parent_list = $user->parent_list . ',' . $id;
+            $this_user->save();
+            //修改推荐关系
+            $recommend->parent_id = $id;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
             }
         }
         return new ReturnInfo(0, "推荐人关联成功");

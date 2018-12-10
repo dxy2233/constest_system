@@ -768,7 +768,7 @@ class NodeController extends BaseController
         $bpt = $this->pInt('bpt', 0);
 
         $quota = $this->pInt('quota', 0);
-        if($quota < 0){
+        if ($quota < 0) {
             $quota = 0;
         }
         $gdt_reward = $this->pInt('gdtReward', 0);
@@ -978,7 +978,7 @@ class NodeController extends BaseController
         $quota = \Yii::$app->request->post('quota', null);
         if ($quota !== '' && $quota !== null) {
             $data->quota = round(floatval($quota), 2);
-            if($data->quota < 0){
+            if ($data->quota < 0) {
                 $data->quota = 0;
             }
         } else {
@@ -1176,32 +1176,22 @@ class NodeController extends BaseController
             }
         }
 
-        // //推荐相关 现已不再填写推荐码
-        // $code = $this->pString('code');
-        // if ($code != '') {
-        //     $id = UserService::validateRemmendCode($code);
-        //     $old_recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
-        //     if ($old_recommend->parent_id != $id) {
-        //         $transaction->rollBack();
-        //         return $this->respondJson(1, '此用户已有推荐人且与本次输出推荐码不一致');
-        //     } elseif (empty($old_recommend)) {// 推荐关系为空时具有推荐码添加新推荐数据
-        //         $user_recommend = new BUserRecommend();
-        //         $user_recommend->user_id = $user->id;
-        //         $user_recommend->parent_id = $id;
-        //         $user_recommend->node_id = $node->id;
-        //         if (!$user_recommend->save()) {
-        //             $transaction->rollBack();
-        //             return $this->respondJson(1, '注册失败'.$user_recommend->getFirstErrorText());
-        //         }
-        //     }
-        // }
+        //推荐相关
+        $recommendMobile = $this->pString('recommendMobile', '');
+        if ($recommendMobile != '') {
+            $recommend_user = BUser::find()->where(['mobile' => $recommendMobile])->one();
+            if(!$recommend_user){
+                return $this->respondJson(1, '注册失败,推荐用户不存在');
+            }
+            UserService::checkUserRecommend($user->id, $recommend_user->recommend_code);
+        }
 
-        // //推荐赠送
-        // $res = NodeService::checkVoucher($user->id);
-        // if ($res->code != 0) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败', $res->msg);
-        // }
+        //推荐赠送
+        $res = NodeService::checkVoucher($user->id);
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '注册失败', $res->msg);
+        }
         
         // 补全充值冻结信息
         $log = NodeService::addNodeMakeLogs($node);

@@ -8,6 +8,7 @@ use common\services\NodeService;
 use common\services\UserService;
 use common\components\FuncHelper;
 use common\models\business\BNode;
+use common\models\business\BUser;
 use common\models\business\BVote;
 use common\services\SettingService;
 use common\models\business\BNodeType;
@@ -275,6 +276,7 @@ class NodeController extends BaseController
             }
             $reCode = $recommendUser->recommend_code;
         }
+        
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             if($reCode) {

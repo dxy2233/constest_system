@@ -46,7 +46,7 @@ class BUser extends \common\models\User
     }
     /**
      * 用户实名认证
-     *  一对多
+     *  一对一
      * @return void
      */
     public function getIdentify()

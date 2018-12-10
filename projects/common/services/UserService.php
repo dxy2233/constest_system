@@ -444,7 +444,7 @@ class UserService extends ServiceBase
             }
             //修改所有相关用户的上级列表
             if (empty($sql)) {
-                $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = replace(`parent_list`,'$old_str','$str') where `parent_list` like '".$old_str.',%'."' || `parent_list` = $old_str";
+                $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = replace(`parent_list`,'$old_str','$str') where `parent_list` like '".$old_str.',%'."' || `parent_list` = '$old_str'";
             }
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);

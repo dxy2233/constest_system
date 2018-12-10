@@ -16,7 +16,7 @@ use common\models\business\BNotice;
 use common\models\business\BCurrency;
 use common\models\business\BVoucher;
 use common\models\business\BNodeRule;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeRecommend;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserCurrencyDetail;
@@ -472,7 +472,7 @@ class NodeService extends ServiceBase
             return new FuncResult(1, '节点不存在');
         }
         $node_type = BNodeType::find()->where(['id' => $node->type_id])->one();
-        $recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
+        $recommend = BNodeRecommend::find()->where(['user_id' => $user->id])->one();
         $identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
         $return = [];
         $return['mobile'] = $mobile;
@@ -500,7 +500,7 @@ class NodeService extends ServiceBase
             return new FuncResult(0, '非节点不送奖励');
         }
         // 轮询此用户推荐的用户
-        $data = BUserRecommend::find()->where(['parent_id' => $user_id])->all();
+        $data = BNodeRecommend::find()->where(['parent_id' => $user_id])->all();
 
         foreach ($data as $v) {
             // 判断被推荐人是否节点
@@ -514,7 +514,7 @@ class NodeService extends ServiceBase
             }
         }
         //判断用户是否有推荐人
-        $parent = BUserRecommend::find()->where(['user_id' => $user_id])->one();
+        $parent = BNodeRecommend::find()->where(['user_id' => $user_id])->one();
         if ($parent) {
             // 判断推荐人是否是节点
             $node = BNode::find()->where(['user_id' => $parent->parent_id])->active()->one();
@@ -530,7 +530,7 @@ class NodeService extends ServiceBase
         return new FuncResult(0, '补充成功');
     }
     // 具体赠送
-    public static function checkVoucherDo(BUserRecommend $recommend, BNode $node)
+    public static function checkVoucherDo(BNodeRecommend $recommend, BNode $node)
     {
         $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
         $gdt_num_arr = [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];

@@ -5,7 +5,7 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "{{%user_recommend}}".
+ * This is the model class for table "{{%node_recommend}}".
  *
  * @property int $id
  * @property int $user_id 用户ID
@@ -19,7 +19,7 @@ class NodeRecommend extends \common\dzbase\DzModel
      */
     public static function tableName()
     {
-        return '{{%user_recommend}}';
+        return '{{%node_recommend}}';
     }
 
     /**

@@ -85,9 +85,9 @@ class BUser extends \common\models\User
      *  一对多
      * @return void
      */
-    public function getUserRecommend()
+    public function getNodeRecommend()
     {
-        return $this->hasMany(BUserRecommend::className(), ['parent_id' => 'id']);
+        return $this->hasMany(BNodeRecommend::className(), ['parent_id' => 'id']);
     }
     /**
      * 用户的推荐人
@@ -96,7 +96,7 @@ class BUser extends \common\models\User
      */
     public function getSelfRecommend()
     {
-        return $this->hasOne(BUserRecommend::className(), ['user_id' => 'id']);
+        return $this->hasOne(BNodeRecommend::className(), ['user_id' => 'id']);
     }
     /**
      * 用户的投票劵

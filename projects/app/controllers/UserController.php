@@ -13,7 +13,7 @@ use common\models\business\BNode;
 use common\models\business\BUser;
 use common\services\SettingService;
 use common\models\business\BVoucher;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeRecommend;
 use common\models\business\BUserOther;
 
 class UserController extends BaseController
@@ -62,7 +62,7 @@ class UserController extends BaseController
             }
         }
         $data['code'] = $userModel->recommend_code;
-        $data['re_code'] = BUserRecommend::find()->where(['user_id' => $userModel->id])->exists();
+        $data['re_code'] = BNodeRecommend::find()->where(['user_id' => $userModel->id])->exists();
         return $this->respondJson(0, '获取成功', $data);
     }
     /**
@@ -84,7 +84,7 @@ class UserController extends BaseController
         if (!$nodeModel) {
             return $this->respondJson(1, "推荐人不是节点");
         }
-        $checkRecomment = UserService::checkUserRecommend($userModel->id, $reCode);
+        $checkRecomment = UserService::checkNodeRecommend($userModel->id, $reCode);
         if ($checkRecomment->code) {
             return $this->respondJson($checkRecomment->code, $checkRecomment->msg);
         }
@@ -104,7 +104,7 @@ class UserController extends BaseController
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             $nodeModel = $userModel->node;
-            $recommendModel = new BUserRecommend();
+            $recommendModel = new BNodeRecommend();
             $recommendModel->parent_id = (int) $parentId;
             if (!is_null($nodeModel) && $nodeModel->status == BNode::STATUS_ON) {
                 // $multiple = (int) SettingService::get('vote', 'voucher_number')->value;
@@ -155,7 +155,7 @@ class UserController extends BaseController
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $userModel = $this->user;
-        $recommendModel = $userModel->getUserRecommend()
+        $recommendModel = $userModel->getNodeRecommend()
         ->alias('r')
         ->select(['r.id', 'r.create_time', 'nt.name as type_name', 'r.node_id', 'u.mobile', 'r.parent_id', 'r.user_id'])
         ->joinWith(['node n' => function ($query) {
@@ -171,7 +171,7 @@ class UserController extends BaseController
             if ($recommend['parent_id'] && !$recommend['node_id']) {
                 $parentNodeModel = BUser::findOne($recommend['user_id'])->node;
                 if (is_object($parentNodeModel) && $parentNodeModel->status == BNode::STATUS_ON) {
-                    $model = BUserRecommend::findOne($recommend['id']);
+                    $model = BNodeRecommend::findOne($recommend['id']);
                     $model->node_id = $parentNodeModel->id;
                     $model->save(false);
                     $recommend['type_name'] = $parentNodeModel->nodeType->name;

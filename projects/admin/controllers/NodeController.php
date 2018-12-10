@@ -26,7 +26,7 @@ use common\models\business\BUserCurrencyDetail;
 use common\models\business\BVoucherDetail;
 use common\models\business\BSmsTemplate;
 use common\models\business\BUserCurrencyFrozen;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeRecommend;
 use common\models\business\BSetting;
 use common\models\business\BCurrency;
 use common\models\business\BHistory;
@@ -329,7 +329,7 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $res->msg);
         }
-        $recommend = BUserRecommend::find()->where(['user_id' => $data->user_id])->one();
+        $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
         if ($recommend) {
             $recommend->node_id = $data->id;
             if (!$recommend->save()) {
@@ -1058,15 +1058,22 @@ class NodeController extends BaseController
         if (!$recommend_user) {
             return $this->respondJson(1, '推荐人用户不存在');
         }
-        $user = BUser::find()->where(['mobile' => $mobile])->one();
+        
         
         $node = BNode::find()->where(['user_id' => $recommend_user->id])->active()->one();
         if (!$node) {
             return $this->respondJson(1, '推荐人不是节点');
         }
-        $parent_arr = explode(',', $recommend_user->parent_list);
-        if ($user &&　in_array($user->id, $parent_arr)) {
-            return $this->respondJson(1, '推荐人不能是自己的下级');
+        $user = BUser::find()->where(['mobile' => $mobile])->one();
+        
+        if ($user) {
+            $recommend_parent = BNodeRecommend::find()->where(['user_id' => $recommend_user->id])->one();
+            if($recommend_parent){
+                $parent_arr = explode(',', $recommend_parent->parent_list);
+                if(in_array($user->id, $parent_arr)){
+                    return $this->respondJson(1, '推荐人不能是自己的下级');
+                }
+            }
         }
         return $this->respondJson(0, '验证成功');
     }
@@ -1207,7 +1214,7 @@ class NodeController extends BaseController
             if (!$recommend_user) {
                 return $this->respondJson(1, '注册失败,推荐用户不存在');
             }
-            UserService::checkUserRecommend($user->id, $recommend_user->recommend_code);
+            UserService::checkNodeRecommend($user->id, $recommend_user->recommend_code);
         }
 
         //推荐赠送

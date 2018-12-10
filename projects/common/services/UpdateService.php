@@ -11,7 +11,7 @@ use common\models\business\BUser;
 use common\models\business\BCurrency;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeRecommend;
 use common\models\business\BUserCurrencyDetail;
 use Yii;
 
@@ -271,7 +271,7 @@ class UpdateService extends ServiceBase
         $connection=\Yii::$app->db;
         $command=$connection->createCommand($sql);
         $rowCount=$command->execute();
-        $all_data = BUserRecommend::find()->all();
+        $all_data = BNodeRecommend::find()->all();
         $transaction = \Yii::$app->db->beginTransaction();
         $msg = [];
         foreach ($all_data as $v) {
@@ -307,7 +307,7 @@ class UpdateService extends ServiceBase
     // 检查用户推荐关系是否循环
     public static function checkRecommend()
     {
-        $all_data = BUserRecommend::find()->all();
+        $all_data = BNodeRecommend::find()->all();
         $arr = [];
         foreach ($all_data as $v) {
             $parent = BUser::find()->where(['id' => $v->parent_id])->one();

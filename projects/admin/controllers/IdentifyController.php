@@ -16,7 +16,7 @@ use common\models\business\BVoucher;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BVoucherDetail;
 use common\models\business\BUserCurrencyFrozen;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeRecommend;
 use common\components\FuncHelper;
 
 /**

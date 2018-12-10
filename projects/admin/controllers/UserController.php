@@ -24,7 +24,7 @@ use common\models\business\BVoucherDetail;
 use common\models\business\BNodeType;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BCurrency;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeRecommend;
 use common\models\business\BUserRechargeAddress;
 use common\components\FuncHelper;
 use common\models\business\Traits\UserCurrencyTrait;
@@ -115,8 +115,8 @@ class UserController extends BaseController
             if ($v['num'] == null) {
                 $v['num'] = 0;
             }
-            $recommend = BUserRecommend::find()
-            ->from(BUserRecommend::tableName()." A")
+            $recommend = BNodeRecommend::find()
+            ->from(BNodeRecommend::tableName()." A")
             ->select(['B.mobile'])
             ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $v['id']])->asArray()->one();
 
@@ -195,8 +195,8 @@ class UserController extends BaseController
             if ($v['num'] == null) {
                 $v['num'] = "0";
             }
-            $recommend = BUserRecommend::find()
-            ->from(BUserRecommend::tableName()." A")
+            $recommend = BNodeRecommend::find()
+            ->from(BNodeRecommend::tableName()." A")
             ->select(['B.mobile'])
             ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $v['id']])->asArray()->one();
 
@@ -242,8 +242,8 @@ class UserController extends BaseController
         }
         $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['user_id' => $userId])->active(BNotice::STATUS_ACTIVE)->asArray()->one();
         $info['num'] = $vote['num'] == null ? 0 : $vote['num'];
-        $recommend = BUserRecommend::find()
-            ->from(BUserRecommend::tableName()." A")
+        $recommend = BNodeRecommend::find()
+            ->from(BNodeRecommend::tableName()." A")
             ->select(['B.mobile'])
             ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')->where(['A.user_id' => $userId])->asArray()->one();
 
@@ -453,8 +453,8 @@ class UserController extends BaseController
 
         // 推荐
         $recommend = [];
-        $recommend_data = BUserRecommend::find()
-        ->from(BUserRecommend::tableName()." A")
+        $recommend_data = BNodeRecommend::find()
+        ->from(BNodeRecommend::tableName()." A")
         ->join('left join', 'gr_user D', 'A.user_id = D.id')
         ->join('left join', 'gr_node B', 'B.user_id = D.id')
         ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
@@ -538,13 +538,6 @@ class UserController extends BaseController
         }
 
         if ($user->save()) {
-            if ($code != '') {
-                $res = NodeService::checkVoucher($user->id);
-                if ($res->code != 0) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, $str.'失败', $res->msg);
-                }
-            }
             $transaction->commit();
             return $this->respondJson(0, $str.'成功');
         } else {
@@ -582,7 +575,7 @@ class UserController extends BaseController
             return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
         }
         if ($code != '') {
-            $res = UserService::checkUserRecommend($user->id, $code);
+            $res = UserService::checkNodeRecommend($user->id, $code);
             if ($res->code != 0) {
                 $transaction->rollBack();
                 return $this->respondJson(1, $str.'失败', $res->msg);
@@ -615,8 +608,8 @@ class UserController extends BaseController
         if (!$user_id) {
             return $this->respondJson(1, '用户ID不能为空');
         }
-        $list = BUserRecommend::find()
-        ->from(BUserRecommend::tableName()." A")
+        $list = BNodeRecommend::find()
+        ->from(BNodeRecommend::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->select(['B.mobile','B.id'])->where(['parent_id' => $user_id])->asArray()->all();
         foreach ($list as &$v) {
@@ -774,8 +767,8 @@ class UserController extends BaseController
     // 推荐记录
     public function actionRecommendList()
     {
-        $find = BUserRecommend::find()
-        ->from(BUserRecommend::tableName()." A")
+        $find = BNodeRecommend::find()
+        ->from(BNodeRecommend::tableName()." A")
         ->select(['B.mobile as p_moblie', 'F.realname as p_realname', 'D.type_id as p_type_id', 'C.mobile as u_mobile', 'G.realname as u_realname', 'E.type_id as u_type_id', 'A.amount', 'A.create_time'])
         ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')
         ->join('left join', BUser::tableName().' C', 'A.user_id = C.id')
@@ -827,8 +820,8 @@ class UserController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $find = BUserRecommend::find()
-        ->from(BUserRecommend::tableName()." A")
+        $find = BNodeRecommend::find()
+        ->from(BNodeRecommend::tableName()." A")
         ->select(['B.mobile as p_mobile', 'F.realname as p_realname', 'D.type_id as p_type_id', 'C.mobile as u_mobile', 'G.realname as u_realname', 'E.type_id as u_type_id', 'A.amount', 'A.create_time'])
         ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')
         ->join('left join', BUser::tableName().' C', 'A.user_id = C.id')

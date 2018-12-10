@@ -278,7 +278,7 @@ class NodeController extends BaseController
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             if($reCode) {
-                $checkRecomment = UserService::checkUserRecommend($userModel->id, $reCode);
+                $checkRecomment = UserService::checkNodeRecommend($userModel->id, $reCode);
                 if ($checkRecomment->code) {
                     throw new ErrorException($checkRecomment->msg);
                 }

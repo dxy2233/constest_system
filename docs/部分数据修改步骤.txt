@@ -32,6 +32,29 @@
 #清除gr_voucher此用户推荐获得的所有投票券记录
 #重算gr_user_voucher表中投票券数量
 
+#节点转让步骤 实际案例
+
+# 撤销 14717886999 的超级节点
+1、查询 gr_user mobile = 14717886999 是否存在获得 ${user_id}
+2、查询 gr_node user_id = ${user_id} 获取 ${node_id}
+3、查看 gr_vote node_id = ${node_id} 获取 ${vote_id} $(sum(vote_number) as vote_number) // 被投票数
+# 投票方式 支付投票/投票奖励GDT
+4、查看 gr_user_currency_datail relate_table = vote and relate_id = ${vote_id}
+4、查看 gr_user_currency_frozen relate_table = vote and relate_id = ${vote_id}
+
+删除实名认证，保留删除数据，下面备用 ${identify_data}
+其他数据不进行剔除的情况下  获取 gr_vote 查询的 所有投票记录 （node_id 需要投票转让的时候需替换转让节点ID）
+
+#节点用户 13501580622 转让 给 14717886999 用户
+
+1、查找 gr_user mobile = 13501580622 获取用户 ID ${id}
+2、查询 gr_node user_id = ${id} 获取 ${node_id}
+2、将 gr_user id = ${id} 更改手机号为 14717886999
+3、将 gr_user_identify 中 user_id = ${id} 的实名认证记录更换成上个撤销账户的实名认证 ${identify_data}
+4、将 gr_vote 中更改撤销账户的 node_id =  ${node_id}
+
+
+
 
 #曾嫦娥转张红丽事件处理方式意见
 

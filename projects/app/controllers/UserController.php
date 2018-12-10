@@ -308,4 +308,23 @@ class UserController extends BaseController
         }
         return $this->respondJson(1, $otherModel->getFirstErrorText());
     }
+
+    public function actionInfo()
+    {
+        $userModel = $this->user;
+        $mobile = $this->pString('mobile');
+        if (!$mobile) {
+            return $this->respondJson(1, '手机号不能为空');
+        }
+        $userInfo = BUser::find()
+        ->alias('u')
+        ->select(['u.mobile', 'n.name node_name', 'ui.realname'])
+        ->joinWith(['node n' => function($query) {
+            $queryModel = $query->modelClass;
+            $query->active($queryModel::STATUS_ON, 'n.');
+        }], false)
+        ->asArray()
+        ->one();
+        var_dump($userInfo);
+    }
 }

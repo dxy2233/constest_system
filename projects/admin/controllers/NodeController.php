@@ -1046,6 +1046,30 @@ class NodeController extends BaseController
         }
         return $this->respondJson(0, '验证成功');
     }
+
+    public function actionCheckRecommend()
+    {
+        $mobile = $this->pString('mobile', '');
+        $recommendMobile = $this->pString('recommendMobile', '');
+        if ($mobile == $recommendMobile) {
+            return $this->respondJson(1, '推荐人不能是自己');
+        }
+        $recommend_user = BUser::find()->where(['mobile' => $recommendMobile])->one();
+        if (!$recommend_user) {
+            return $this->respondJson(1, '推荐人用户不存在');
+        }
+        $user = BUser::find()->where(['mobile' => $mobile])->one();
+        
+        $node = BNode::find()->where(['user_id' => $recommend_user->id])->active()->one();
+        if (!$node) {
+            return $this->respondJson(1, '推荐人不是节点');
+        }
+        $parent_arr = explode(',', $recommend_user->parent_list);
+        if (in_array($user->id, $parent_arr)) {
+            return $this->respondJson(1, '推荐人不能是自己的下级');
+        }
+        return $this->respondJson(0, '验证成功');
+    }
     // 添加节点
     public function actionCreateUser()
     {
@@ -1180,7 +1204,7 @@ class NodeController extends BaseController
         $recommendMobile = $this->pString('recommendMobile', '');
         if ($recommendMobile != '') {
             $recommend_user = BUser::find()->where(['mobile' => $recommendMobile])->one();
-            if(!$recommend_user){
+            if (!$recommend_user) {
                 return $this->respondJson(1, '注册失败,推荐用户不存在');
             }
             UserService::checkUserRecommend($user->id, $recommend_user->recommend_code);

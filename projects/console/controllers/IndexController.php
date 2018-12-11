@@ -63,6 +63,16 @@ class IndexController extends BaseController
     }
 
     /**
+         * 重建node_recommend数据
+         *
+         * @return void
+         */
+    public function actionCreateNodeRecommend($type = 1)
+    {
+        UpdateService::createNodeRecommend($type);
+    }
+
+    /**
      * 已存在推荐关系赠送投票劵以及GDT
      *
      * @return void

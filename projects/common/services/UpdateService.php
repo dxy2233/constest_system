@@ -286,7 +286,6 @@ class UpdateService extends ServiceBase
             } else {
                 $str = $v->parent_id;
             }
-            $user = BUser::find()->where(['id' => $v->user_id])->one();
             $user = $v;
             $user->parent_list = $str;
             if (!$user->save()) {
@@ -335,6 +334,90 @@ class UpdateService extends ServiceBase
             if (in_array($k, $this_arr)) {
                 echo $k.',';
             }
+        }
+    }
+
+    // 重建node_recommend数据
+    public static function createNodeRecommend($type)
+    {
+        echo '开始'.PHP_EOL;
+        $transaction = \Yii::$app->db->beginTransaction();
+        $msg = [];
+        //清空原数据并重新转移
+        if ($type == 1) {
+            $sql = "delete from gr_node_recommend";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+            echo '删除所有原始数据'.PHP_EOL;
+            $all_data = BUserRecommend::find()->all();
+            foreach ($all_data as $v) {
+                if ($v->node_id == 0) {
+                    echo '第'.$v->id.'数据用户非节点'.PHP_EOL;
+                    continue;
+                }
+                $node = BNode::find()->where(['user_id' => $v->user_id])->one();
+                if ($node->type_id == 1) {
+                    echo '第'.$v->id.'数据用户是超级节点'.PHP_EOL;
+                    continue;
+                }
+                $parent_node = BNode::find()->where(['user_id' => $v->parent_id])->one();
+                if ($parent_node) {
+                    $node_recommend = new BNodeRecommend();
+                    $node_recommend->user_id = $v->user_id;
+                    $node_recommend->parent_id = $v->parent_id;
+                    $node_recommend->node_id = $v->node_id;
+                    $node_recommend->amount = $v->amount;
+                    if (!$node_recommend->save()) {
+                        echo '第'.$v->id.'数据转移出错'.PHP_EOL;
+                        
+                        $msg[$v->id] = $node_recommend->getFirstErrorText();
+                    }
+                    echo '第'.$v->id.'数据转移成功'.PHP_EOL;
+                } else {
+                    echo '第'.$v->id.'数据推荐人非节点'.PHP_EOL;
+                }
+            }
+        }
+        // 更新parent_list数据
+        $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = ''";
+        $connection=\Yii::$app->db;
+        $command=$connection->createCommand($sql);
+        $rowCount=$command->execute();
+        $all_data = BNodeRecommend::find()->all();
+        $all_arr = [];
+        foreach ($all_data as $v) {
+            $all_arr[$v['user_id']] = $v;
+        }
+        foreach ($all_data as $v) {
+            $parent = $all_arr[$v->parent_id] ?? false;
+            if ($parent && $parent->parent_list != '') {
+                $str = $parent->parent_list . ',' . $v->parent_id;
+            } else {
+                $str = $v->parent_id;
+            }
+            $user = $v;
+            $user->parent_list = $str;
+            if (!$user->save()) {
+                $msg[] = $user->getFirstErrorText();
+                break;
+            }
+            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+            echo '用户'.$v->user_id.'修改结束'.PHP_EOL;
+        }
+        if (count($msg) > 0) {
+            var_dump($msg);
+            $transaction->rollBack();
+            Yii::error(json_encode($msg), 'update');
+            return false;
+        } else {
+            $transaction->commit();
+            echo '执行完成'.PHP_EOL;
+            Yii::info('执行成功', 'update');
+            return true;
         }
     }
 }

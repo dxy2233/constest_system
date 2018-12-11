@@ -2,7 +2,7 @@
 
 namespace common\models\business;
 
-class BNodeRecommend extends \common\models\NodeRecommend
+class BUserRecommend extends \common\models\UserRecommend
 {
 
     /**

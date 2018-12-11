@@ -12,6 +12,7 @@ use common\models\business\BCurrency;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BNodeRecommend;
+use common\models\business\BUserRecommend;
 use common\models\business\BUserCurrencyDetail;
 use Yii;
 
@@ -267,30 +268,36 @@ class UpdateService extends ServiceBase
     public static function update_recommend_begin()
     {
         echo '开始'.PHP_EOL;
-        $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = ''";
+        $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = ''";
         $connection=\Yii::$app->db;
         $command=$connection->createCommand($sql);
         $rowCount=$command->execute();
-        $all_data = BNodeRecommend::find()->all();
+        $all_data = BUserRecommend::find()->all();
+        $all_arr = [];
+        foreach ($all_data as $v) {
+            $all_arr[$v['user_id']] = $v;
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         $msg = [];
         foreach ($all_data as $v) {
-            $parent = BUser::find()->where(['id' => $v->parent_id])->one();
-            if ($parent->parent_list != '') {
+            $parent = $all_arr[$v->parent_id] ?? false;
+            if ($parent && $parent->parent_list != '') {
                 $str = $parent->parent_list . ',' . $v->parent_id;
             } else {
                 $str = $v->parent_id;
             }
             $user = BUser::find()->where(['id' => $v->user_id])->one();
+            $user = $v;
             $user->parent_list = $str;
             if (!$user->save()) {
                 $msg[] = $user->getFirstErrorText();
                 break;
             }
-            $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
+            $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
+            echo '用户'.$v->user_id.'修改结束'.PHP_EOL;
         }
         if (count($msg) > 0) {
             $transaction->rollBack();

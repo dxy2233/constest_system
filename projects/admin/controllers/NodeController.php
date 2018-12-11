@@ -748,7 +748,7 @@ class NodeController extends BaseController
         if (!$data) {
             return $this->respondJson(1, '节点类型不存在');
         }
-        $tenure = BNode::find()->where(['type_id' => $type_id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        $tenure = BNode::find()->where(['type_id' => $type_id])->active()->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
         if (empty($tenure)) {
             $data['allCount'] = $data['allTenure'] = 0;
         } else {
@@ -790,7 +790,7 @@ class NodeController extends BaseController
         if ($is_candidate > 0 && empty($max_candidate)) {
             return $this->respondJson(1, '候选数量必须大于0');
         }
-        $tenure = BNode::find()->where(['type_id' => $id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        $tenure = BNode::find()->where(['type_id' => $id])->active()->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
         if ($tenure_num < $tenure['allTenure']) {
             return $this->respondJson(1, '任职数量必须大于当前任职数量');
         }

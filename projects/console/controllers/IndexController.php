@@ -25,26 +25,38 @@ class IndexController extends BaseController
     {
         echo "welcome";
     }
-
-    // 定期结算
+    /**
+             * 定期结算
+             *
+             * @return void
+             */
     public function actionBeginSettlement()
     {
         JobService::beginPut();
     }
-
-    // 后台修改节点质押数据，不提供前端操作
+    /**
+             * 后台修改节点质押数据，不提供前端操作
+             *
+             * @return void
+             */
     public function actionUpdateNode()
     {
         UpdateService::begin();
     }
-
-    // 重置所有用户上级列表字段
+    /**
+         * 重置所有用户上级列表字段
+         *
+         * @return void
+         */
     public function actionUpdateRecommend()
     {
         UpdateService::update_recommend_begin();
     }
-
-    // 检查用户推荐关系是否循环
+    /**
+         * 检查用户推荐�    �系是否循环
+         *
+         * @return void
+         */
     public function actionCheckRecommend()
     {
         UpdateService::checkRecommend();

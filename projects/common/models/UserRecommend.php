@@ -12,7 +12,7 @@ use Yii;
  * @property int $parent_id 推荐人ID
  * @property int $create_time 推荐时间
  */
-class NodeRecommend extends \common\dzbase\DzModel
+class UserRecommend extends \common\dzbase\DzModel
 {
     /**
      * {@inheritdoc}

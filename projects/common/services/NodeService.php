@@ -532,8 +532,8 @@ class NodeService extends ServiceBase
     // 具体赠送
     public static function checkVoucherDo(BNodeRecommend $recommend, BNode $node)
     {
-        $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
-        $gdt_num_arr = [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];
+        $tpq_num_arr = is_array(\Yii::$app->params['recommend']['voucher']) ? \Yii::$app->params['recommend']['voucher'] : [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
+        $gdt_num_arr = is_array(\Yii::$app->params['recommend']['gdt']) ? \Yii::$app->params['recommend']['gdt'] : [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];
         // 判断是否有投票券赠送记录
         $voucher = BVoucher::find()->where(['give_user_id' => $recommend->user_id, 'user_id' => $recommend->parent_id, 'node_id' => $node->id, 'voucher_num' => $tpq_num_arr[$node->type_id]])->one();
         if (!$voucher) {

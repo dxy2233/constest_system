@@ -364,6 +364,11 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        // 审核不通过时删除此用户的节点推荐关系
+        $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
+        if($recommend){
+            $recommend->delete();
+        }
         $data->status = BNode::STATUS_NO;
         $data->status_remark = $remark;
         if (!$data->save()) {
@@ -446,6 +451,42 @@ class NodeController extends BaseController
         return $this->respondJson(0, $msg, $return);
     }
 
+    
+    // 获取节点推荐信息
+    public function actionGetNodeRecommend()
+    {
+        $id = $this->pInt('id');
+        $node = BNode::find()->where(['id' => $id])->one();
+        if (!$node) {
+            return $this->respondJson(1, '不存在的节点');
+        }
+        $user = BUser::find()->where(['id' => $node->user_id])->one();
+        if (empty($user)) {
+            return $this->respondJson(1, '不存在的用户');
+        }
+
+        // 推荐
+        $recommend = [];
+        $recommend_data = BNodeRecommend::find()
+        ->from(BNodeRecommend::tableName()." A")
+        ->join('left join', 'gr_user D', 'A.user_id = D.id')
+        ->join('left join', 'gr_node B', 'B.user_id = D.id')
+        ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
+        ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
+        ->where(['A.parent_id' => $node->user_id])->orderBy('A.create_time desc')->asArray()->all();
+        foreach ($recommend_data as $v) {
+            $recommend_item = [];
+            $recommend_item['nodeName'] = $v['nodeName'];
+            $recommend_item['username'] = $v['username'];
+            $recommend_item['typeName'] = $v['typeName'];
+            $recommend_item['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
+            $recommend[] = $recommend_item;
+        }
+        
+        return $this->respondJson(0, '获取成功', $recommend);
+    }
+
+    // 获取地址信息
     public function actionGetAddress()
     {
         $nodeId = $this->pInt('nodeId');
@@ -712,7 +753,7 @@ class NodeController extends BaseController
         if (!$data) {
             return $this->respondJson(1, '节点类型不存在');
         }
-        $tenure = BNode::find()->where(['type_id' => $type_id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        $tenure = BNode::find()->where(['type_id' => $type_id])->active()->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
         if (empty($tenure)) {
             $data['allCount'] = $data['allTenure'] = 0;
         } else {
@@ -754,7 +795,7 @@ class NodeController extends BaseController
         if ($is_candidate > 0 && empty($max_candidate)) {
             return $this->respondJson(1, '候选数量必须大于0');
         }
-        $tenure = BNode::find()->where(['type_id' => $id])->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
+        $tenure = BNode::find()->where(['type_id' => $id])->active()->select(['count(id) as allCount', 'sum(is_tenure) as allTenure'])->asArray()->one();
         if ($tenure_num < $tenure['allTenure']) {
             return $this->respondJson(1, '任职数量必须大于当前任职数量');
         }
@@ -1068,9 +1109,9 @@ class NodeController extends BaseController
         
         if ($user) {
             $recommend_parent = BNodeRecommend::find()->where(['user_id' => $recommend_user->id])->one();
-            if($recommend_parent){
+            if ($recommend_parent) {
                 $parent_arr = explode(',', $recommend_parent->parent_list);
-                if(in_array($user->id, $parent_arr)){
+                if (in_array($user->id, $parent_arr)) {
                     return $this->respondJson(1, '推荐人不能是自己的下级');
                 }
             }

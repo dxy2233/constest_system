@@ -69,4 +69,10 @@ return [
 
     // 平台url
     'home_platform_url' => 'http://contest.vguiren.com',
+
+        // 推荐赠送相关数据
+        'recommend' => [
+            'voucher' => [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ],
+            'gdt' => [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ]
+        ]
 ];

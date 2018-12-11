@@ -15,16 +15,6 @@ class BUserRecommend extends \common\models\UserRecommend
         return $this->hasOne(BUser::className(), ['id' => 'user_id']);
     }
 
-    /** 已无用
-     * 对应推荐节点
-     *  一对多
-     * @return void
-     */
-    public function getNode()
-    {
-        return $this->hasOne(BNode::className(), ['id' => 'node_id']);
-    }
-
     /**
      * 对应推荐节点
      *  一对多

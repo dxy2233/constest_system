@@ -74,6 +74,9 @@ class PayController extends BaseController
         if (!$userModel->save()) {
             return $this->respondJson(1, '支付密码保存失败', $userModel->getFirstErrorText());
         }
+                // 写日志
+        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_CREATE_TRANS_PWD, BUserLog::$STATUS_SUCCESS, '创建支付密码', $userModel->last_login_ip);
+
         return $this->respondJson(0, '支付密码设置成功');
     }
     /**
@@ -116,7 +119,7 @@ class PayController extends BaseController
             return $this->respondJson(1, '支付密码保存失败', $userModel->getFirstErrorText());
         }
         // 写日志
-        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_ALERT_TRANS_PWD, BUserLog::$STATUS_SUCCESS, '登录成功', $userModel->last_login_ip);
+        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_ALERT_TRANS_PWD, BUserLog::$STATUS_SUCCESS, '修改密码', $userModel->last_login_ip);
         return $this->respondJson(0, '支付密码设置成功');
     }
 
@@ -162,7 +165,7 @@ class PayController extends BaseController
             return $this->respondJson(1, '支付密码保存失败', $userModel->getFirstErrorText());
         }
         // 写日志
-        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_RESET_TRANS_PWD, BUserLog::$STATUS_SUCCESS, '登录成功', $userModel->last_login_ip);
+        UserService::writeUserLog($userModel->id, BUserLog::$TYPE_RESET_TRANS_PWD, BUserLog::$STATUS_SUCCESS, '重置密码', $userModel->last_login_ip);
         return $this->respondJson(0, '支付密码设置成功');
     }
     /**

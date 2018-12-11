@@ -81,7 +81,7 @@ class BUser extends \common\models\User
         return $this->hasMany(BUserCurrencyFrozen::className(), ['user_id' => 'id']);
     }
     /**
-     * 推荐节点
+     * 推荐的用户
      *  一对多
      * @return void
      */
@@ -90,20 +90,20 @@ class BUser extends \common\models\User
         return $this->hasMany(BUserRecommend::className(), ['parent_id' => 'id']);
     }
     /**
-     * 节点推荐
-     *  一对多
+     * 用户推荐
+     *  一对一
      * @return void
      */
     public function getUserRecommend()
     {
-        return $this->hasMany(BUserRecommend::className(), ['user_id' => 'id']);
+        return $this->hasOne(BUserRecommend::className(), ['user_id' => 'id']);
     }
     /**
      * 推荐的节点
      *  一对多
      * @return void
      */
-    public function getNodeRecommend()
+    public function getParentNodeRecommend()
     {
         return $this->hasMany(BNodeRecommend::className(), ['parent_id' => 'id']);
     }
@@ -112,7 +112,7 @@ class BUser extends \common\models\User
      *  一对一
      * @return void
      */
-    public function getSelfRecommend()
+    public function getNodeRecommend()
     {
         return $this->hasOne(BNodeRecommend::className(), ['user_id' => 'id']);
     }

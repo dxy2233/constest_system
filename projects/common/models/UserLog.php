@@ -35,7 +35,7 @@ class UserLog extends \common\dzbase\DzModel
             [['user_id', 'type', 'status', 'create_time'], 'integer'],
             [['client_id'], 'string', 'max' => 32],
             [['content'], 'string', 'max' => 50],
-            [['ip'], 'string', 'max' => 20],
+            [['ip'], 'string', 'max' => 100],
         ];
     }
 

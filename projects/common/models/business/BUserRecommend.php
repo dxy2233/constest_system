@@ -15,7 +15,7 @@ class BNodeRecommend extends \common\models\NodeRecommend
         return $this->hasOne(BUser::className(), ['id' => 'user_id']);
     }
 
-    /**
+    /** 已无用
      * 对应推荐节点
      *  一对多
      * @return void

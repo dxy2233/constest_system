@@ -9,7 +9,7 @@ use common\components\FuncHelper;
 use common\models\business\BUser;
 use common\models\business\BSmsAuth;
 use common\models\business\BUserWallet;
-use common\models\business\BNodeRecommend;
+use common\models\business\BUserRecommend;
 use common\models\business\BUserAccessToken;
 use common\services\ValidationCodeSmsService;
 
@@ -104,7 +104,7 @@ class LoginController extends BaseController
             // 添加推荐关系
             if (!is_null($reCode)) {
                 if ($parentId = UserService::validateRemmendCode(strtoupper($reCode))) {
-                    $recommend = new BNodeRecommend();
+                    $recommend = new BUserRecommend();
                     $recommend->parent_id = $parentId;
                     $recommend->link('user', $userModel);
                 }

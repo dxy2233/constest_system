@@ -364,6 +364,11 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        // 审核不通过时删除此用户的节点推荐关系
+        $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
+        if($recommend){
+            $recommend->delete();
+        }
         $data->status = BNode::STATUS_NO;
         $data->status_remark = $remark;
         if (!$data->save()) {

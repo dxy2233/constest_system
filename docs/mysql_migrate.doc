@@ -315,3 +315,14 @@ CREATE TABLE `gr_node_recommend` (
 
 
 ALTER TABLE `gr_user` DROP `parent_list`;
+
+#调整申请表结构
+ALTER TABLE `gr_node_upgrade`
+CHANGE `node_id` `node_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER `id`,
+ADD `name` varchar(256) NOT NULL COMMENT '节点名称' AFTER `node_id`,
+ADD `logo` varchar(256) NOT NULL DEFAULT '' COMMENT 'LOGO' AFTER `name`,
+ADD `desc` text NOT NULL COMMENT '简介' AFTER `logo`,
+ADD `scheme` text NOT NULL COMMENT '建设方案' AFTER `desc`,
+ADD `weixin` varchar(128) NOT NULL COMMENT '微信号' AFTER `scheme`,
+ADD `recommend_mobile` varchar(32) NOT NULL COMMENT '推荐人手机号' AFTER `weixin`,
+ADD `recommend_name` varchar(32) NOT NULL COMMENT '推荐人姓名' AFTER `recommend_mobile`;

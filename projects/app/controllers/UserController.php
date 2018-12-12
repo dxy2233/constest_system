@@ -245,41 +245,4 @@ class UserController extends BaseController
         }
         return $this->respondJson(1, $otherModel->getFirstErrorText());
     }
-
-    public function actionRecommendInfo()
-    {
-        $userModel = $this->user;
-        $mobile = $this->pString('mobile');
-        if (!FuncHelper::validatMobile($mobile)) {
-            return $this->respondJson(1, '手机号错误');
-        }
-        if (!$mobile) {
-            return $this->respondJson(1, '手机号不能为空');
-        }
-        if ($mobile == $userModel->mobile) {
-            return $this->respondJson(1, '推荐人不能是自己');
-        }
-        $recommendUser = BUser::find()->where(['mobile' => $mobile])->one();
-        if (!$recommendUser) {
-            return $this->respondJson(1, '推荐人用户不存在');
-        }
-        $recommendNodeModel = $recommendUser->getNode()
-        ->active()
-        ->one();
-        if (!$recommendNodeModel) {
-            return $this->respondJson(1, '推荐人不是节点');
-        }
-        $parent_arr = explode(',', $recommendUser->parent_list);
-        if (in_array($userModel->id, $parent_arr)) {
-            return $this->respondJson(1, '推荐人不能是自己的下级');
-        }
-        $data = [
-            'mobile' => $mobile,
-            'realname' => $recommendUser->identify->realname,
-            'node_name' => $recommendNodeModel->name,
-            'type_id' => $recommendNodeModel->type_id,
-            'node_type' => $recommendNodeModel->nodeType->name,
-        ];
-        return $this->respondJson(0, '获取成功', $data);
-    }
 }

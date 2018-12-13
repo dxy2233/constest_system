@@ -30,6 +30,7 @@ class NodeController extends BaseController
             'recommend',
             'recommend-mobile',
             'upgrade',
+            'upgrade-status'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -115,7 +116,11 @@ class NodeController extends BaseController
         if (empty($nodeId) && !is_null($userModel)) {
             $nodeModel = $userModel->node;
             if (is_null($nodeModel)) {
-                return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
+                if (!$userModel->nodeExtend) {
+                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
+                } else {
+                    return $this->respondJson(0, '节点未激活', ['status' => 0, 'status_str' => '节点未激活']);
+                }
             } else {
                 if ($nodeModel->status !== $nodeModel::STATUS_ON) {
                     $nodeInfo = FuncHelper::arrayOnly($nodeModel->toArray(), ['status', 'status_remark', 'name']);
@@ -255,7 +260,7 @@ class NodeController extends BaseController
         if ($bptNum > 0 && is_null($bptAddress)) {
             return $this->respondJson(1, '美食通地址不能为空');
         }
-        $reCode = null;
+        $reParentId = null;
         // 判断推荐人 如果是超级节点则跳过判断，不进行关系数据绑定
         if ($typeId !== 1 && !is_null($recommendMobile)) {
             if (!FuncHelper::validatMobile($recommendMobile)) {
@@ -280,46 +285,34 @@ class NodeController extends BaseController
             if (in_array($userModel->id, $parent_arr)) {
                 return $this->respondJson(1, '推荐人不能是自己的下级');
             }
-            $reCode = $recommendUser->recommend_code;
+            $reParentId = $recommendUser->id;
         }
         
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            if($reCode) {
-                $checkRecomment = UserService::checkNodeRecommend($userModel->id, $reCode);
-                if ($checkRecomment->code) {
-                    throw new ErrorException($checkRecomment->msg);
-                }
-            }
             if ($nodeModel && in_array($nodeModel->status, [$nodeModel::STATUS_ON, $nodeModel::STATUS_WAIT, $nodeModel::STATUS_OFF])) {
                 throw new ErrorException('节点已存在');
             } elseif(!$nodeModel || $nodeModel->status == $nodeModel::STATUS_DEL) {
-                $maxId = BNode::find()->max('id') + 1;
-                $nodeModel = new BNode();
-                $nodeModel->type_id = $typeId;
-                $nodeModel->user_id = $userModel->id;
-                $nodeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
-                $nodeModel->desc = '该节点很懒什么都没有写';
-                $nodeModel->scheme = '该节点很懒什么都没有写';
+                $maxId = BNodeUpgrade::find()->max('id') + 1;
+                $nodeUpgradeModel = new BNodeUpgrade();
+                $nodeUpgradeModel->old_type = 0;
+                $nodeUpgradeModel->type_id = $typeId;
+                $nodeUpgradeModel->user_id = $userModel->id;
+                $nodeUpgradeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
+                $nodeUpgradeModel->desc = '该节点很懒什么都没有写';
+                $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
             }
-            $nodeModel->type_id = $typeId;
-            $nodeModel->status = $nodeModel::STATUS_WAIT;
-            $nodeModel->grt = $grtNum;
-            $nodeModel->tt = $ttNum;
-            $nodeModel->bpt = $bptNum;
-            if (!$nodeModel->save()) {
+            $nodeUpgradeModel->parent_id = $reParentId ?? 0;
+            $nodeUpgradeModel->type_id = $typeId;
+            $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_WAIT;
+            $nodeUpgradeModel->grt = $grtNum;
+            $nodeUpgradeModel->tt = $ttNum;
+            $nodeUpgradeModel->bpt = $bptNum;
+            $nodeUpgradeModel->grt_address = $grtAddress;
+            $nodeUpgradeModel->tt_address = $ttAddress;
+            $nodeUpgradeModel->bpt_address = $bptAddress;
+            if (!$otherModel->validate() || !$nodeUpgradeModel->save()) {
                 throw new ErrorException($voteModel->getFirstError());
-            }
-            $otherModel = $userModel->userOther;
-            if (!$otherModel) {
-                $otherModel = new BUserOther();
-                $otherModel->user_id = $userModel->id;
-            }
-            $otherModel->scenario = 'apply';
-            // 应用场景为 申请节点
-            $otherModel->attributes = \Yii::$app->request->post();
-            if (!$otherModel->validate() || !$otherModel->save()) {
-                throw new ErrorException($otherModel->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '申请成功');
@@ -465,7 +458,7 @@ class NodeController extends BaseController
         if ($bptNum > 0 && is_null($bptAddress)) {
             return $this->respondJson(1, '美食通地址不能为空');
         }
-        $reCode = null;
+        $reParentId = null;
         // 判断推荐人 如果是超级节点则跳过判断，不进行关系数据绑定
         if ($typeId !== 1 && !is_null($recommendMobile)) {
             if (!FuncHelper::validatMobile($recommendMobile)) {
@@ -490,7 +483,7 @@ class NodeController extends BaseController
             if (in_array($userModel->id, $parent_arr)) {
                 return $this->respondJson(1, '推荐人不能是自己的下级');
             }
-            $reCode = $recommendUser->id;
+            $reParentId = $recommendUser->id;
         }
         $grtNum = $this->pFloat('grt_num', 0);
         $grtAddress = $this->pString('grt_address');
@@ -508,11 +501,12 @@ class NodeController extends BaseController
                 throw new ErrorException('节点正在升级中');
             }
             $nodeUpgradeData = [
+                'user_id' => $userModel->id,
                 'status' => $nodeUpgradeModel::STATUS_WAIT,
                 'node_id' => $nodeModel->id,
                 'old_type' => $nodeModel->type_id,
                 'type_id' => $typeId,
-                'parent_id' => $reCode,
+                'parent_id' => $reParentId,
                 'grt' => $grtNum,
                 'tt' => $ttNum,
                 'bpt' => $bptNum,
@@ -524,7 +518,7 @@ class NodeController extends BaseController
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException('节点升级失败');
+                throw new ErrorException($nodeUpgradeModel->getFirstError());
             }
             $transaction->commit();
             return $this->respondJson(0, '申请成功');
@@ -533,5 +527,21 @@ class NodeController extends BaseController
             // var_dump($e->getMessage());
             return $this->respondJson(1, $e->getMessage());
         }
+    }
+
+    /**
+     * 节点升级状态
+     */
+    public function actionUpgradeStatus()
+    {
+        $userModel = $this->user;
+        $newNodeGradeModel = $userModel->newNodeGrade;
+        if (!$newNodeGradeModel) {
+            return $this->respondJson(1, '没有申请记录');
+        }
+        $newNodeGrade = FuncHelper::arrayOnly($newNodeGradeModel->toArray(), ['status', 'status_remark']);
+        $newNodeGrade['status_str'] = $newNodeGradeModel::getStatus($newNodeGrade['status']);
+        $newNodeGrade['status_remark'] = $newNodeGrade['status_remark'] ?: $newNodeGradeModel::getStatus($newNodeGrade['status']);
+        return $this->respondJson(0, '获取成功', $newNodeGrade);
     }
 }

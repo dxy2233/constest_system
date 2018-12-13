@@ -32,6 +32,7 @@ class NodeController extends BaseController
             'upgrade',
             'upgrade-status',
             'activation',
+            'has-recommend',
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -553,6 +554,11 @@ class NodeController extends BaseController
         return $this->respondJson(0, '获取成功', $newNodeGrade);
     }
 
+    /**
+     * 节点激活
+     *
+     * @return void
+     */
     public function actionActivation()
     {
         $userModel = $this->user;
@@ -611,5 +617,16 @@ class NodeController extends BaseController
             // var_dump($e->getMessage());
             return $this->respondJson(1, $e->getMessage());
         }
+    }
+
+    /**
+     * 用户是否存在推荐关系
+     *
+     * @return void
+     */
+    public function actionHasRecommend()
+    {
+        $userModel = $this->user;
+        return $this->respondJson(0, '获取成功', !is_null($userModel->nodeRecommend));
     }
 }

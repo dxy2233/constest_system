@@ -14,8 +14,6 @@ use Yii;
  * @property string $desc 简介
  * @property string $scheme 建设方案
  * @property string $weixin 微信号
- * @property string $recommend_mobile 推荐人手机号
- * @property string $recommend_name 推荐人姓名
  * @property int $old_type 升级前类型
  * @property int $type_id 升级类型
  * @property int $parent_id 补录推荐人ID
@@ -47,12 +45,11 @@ class NodeUpgrade extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['node_id', 'old_type', 'type_id', 'parent_id', 'status', 'grt', 'tt', 'bpt', 'examine_time', 'create_time', 'update_time'], 'integer'],
-            [['name', 'desc', 'scheme', 'weixin', 'recommend_mobile', 'recommend_name', 'old_type', 'type_id'], 'required'],
+            [['user_id', 'old_type', 'type_id', 'parent_id', 'status', 'grt', 'tt', 'bpt', 'examine_time', 'create_time', 'update_time'], 'integer'],
+            [['user_id', 'type_id'], 'required'],
             [['desc', 'scheme'], 'string'],
             [['name', 'logo', 'grt_address', 'tt_address', 'bpt_address'], 'string', 'max' => 256],
             [['weixin'], 'string', 'max' => 128],
-            [['recommend_mobile', 'recommend_name'], 'string', 'max' => 32],
             [['status_remark'], 'string', 'max' => 255],
         ];
     }
@@ -64,14 +61,12 @@ class NodeUpgrade extends \common\dzbase\DzModel
     {
         return [
             'id' => 'ID',
-            'node_id' => '节点ID',
+            'user_id' => '节点ID',
             'name' => '节点名称',
             'logo' => 'LOGO',
             'desc' => '简介',
             'scheme' => '建设方案',
             'weixin' => '微信号',
-            'recommend_mobile' => '推荐人手机号',
-            'recommend_name' => '推荐人姓名',
             'old_type' => '升级前类型',
             'type_id' => '升级类型',
             'parent_id' => '补录推荐人ID',

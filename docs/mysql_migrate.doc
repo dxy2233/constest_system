@@ -323,6 +323,7 @@ ADD `name` varchar(256) NOT NULL COMMENT '节点名称' AFTER `node_id`,
 ADD `logo` varchar(256) NOT NULL DEFAULT '' COMMENT 'LOGO' AFTER `name`,
 ADD `desc` text NOT NULL COMMENT '简介' AFTER `logo`,
 ADD `scheme` text NOT NULL COMMENT '建设方案' AFTER `desc`,
-ADD `weixin` varchar(128) NOT NULL COMMENT '微信号' AFTER `scheme`,
-ADD `recommend_mobile` varchar(32) NOT NULL COMMENT '推荐人手机号' AFTER `weixin`,
-ADD `recommend_name` varchar(32) NOT NULL COMMENT '推荐人姓名' AFTER `recommend_mobile`;
+ADD `weixin` varchar(128) NOT NULL COMMENT '微信号' AFTER `scheme`;
+
+ALTER TABLE `gr_node_type`
+ADD `conversion` decimal(18,8) NOT NULL DEFAULT '0' COMMENT '三通折合grt数量' AFTER `name`;

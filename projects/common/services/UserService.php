@@ -397,6 +397,9 @@ class UserService extends ServiceBase
         if (!$node) {
             return new ReturnInfo(1, "被推荐人不是节点");
         }
+        if ($node->type_id == 5) {
+            return new ReturnInfo(1, "推荐人不能是微店节点");
+        }
         $recommend_parent = BNodeRecommend::find()->where(['id' => $user_id])->one();
         $parent_arr = explode(',', $recommend_parent->parent_list);
         if (in_array($user_id, $parent_arr)) {

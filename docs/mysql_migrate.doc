@@ -346,7 +346,7 @@ CREATE TABLE `gr_node_upgrade` (
 CREATE TABLE `gr_node_extend` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL DEFAULT '' COMMENT '节点名称',
-  `type_id` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '节点类型ID',
+  `type_id` int(10) unsigned NOT NULL DEFAULT '10' COMMENT '节点类型ID',
   `type_name` varchar(255) NOT NULL DEFAULT '微店节点' COMMENT '节点类型名称',
   `quota` decimal(12,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '节点配额',
   `mobile` varchar(20) NOT NULL DEFAULT '' COMMENT '节点手机号',
@@ -358,4 +358,4 @@ CREATE TABLE `gr_node_extend` (
   KEY `quota` (`quota`),
   KEY `mobile` (`mobile`),
   KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COMMENT='节点预定系统转移微店节点';
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='节点预定系统转移微店节点';

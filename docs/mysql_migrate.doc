@@ -359,3 +359,7 @@ CREATE TABLE `gr_node_extend` (
   KEY `mobile` (`mobile`),
   KEY `status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='节点预定系统转移微店节点';
+
+INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `create_time`) VALUES 
+(40,	'node/examine-upgrade',	'节点升级列表',	0,	0),
+(41,	'node/examine-on,node/examine-off',	'节点升级审核',	40,	0);

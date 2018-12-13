@@ -280,6 +280,7 @@ class NodeController extends BaseController
             if (!$recommendNodeModel) {
                 return $this->respondJson(1, '推荐人不是节点');
             }
+            // 推荐人不能是微店节点
             if ($recommendNodeModel->type_id == 5) {
                 return $this->respondJson(1, '推荐人不能是微店节点');
             }
@@ -313,7 +314,7 @@ class NodeController extends BaseController
             $nodeUpgradeModel->grt_address = $grtAddress;
             $nodeUpgradeModel->tt_address = $ttAddress;
             $nodeUpgradeModel->bpt_address = $bptAddress;
-            if (!$otherModel->validate() || !$nodeUpgradeModel->save()) {
+            if (!$nodeUpgradeModel->save()) {
                 throw new ErrorException($voteModel->getFirstError());
             }
             $transaction->commit();
@@ -553,6 +554,7 @@ class NodeController extends BaseController
         if (!$userModel->is_identified) {
             return $this->respondJson(1, '未实名认证');
         }
+        $nodeModel = $userModel->node;
         if ($nodeModel && in_array($nodeModel->status, [$nodeModel::STATUS_ON, $nodeModel::STATUS_WAIT, $nodeModel::STATUS_OFF])) {
             return $this->respondJson(1, '节点已存在');
         }
@@ -561,6 +563,9 @@ class NodeController extends BaseController
         }
         $transaction = \Yii::$app->db->beginTransaction();
         try {
+            $statusRemark = '节点激活';
+            $desc = '该节点很懒什么都没有写';
+            $scheme = '该节点很懒什么都没有写';
             $nodeUpgradeModel = new BNodeUpgrade();
             $nodeUpgradeModel->old_type = 0;
             $nodeUpgradeModel->type_id = $nodeExtend->type_id;
@@ -569,13 +574,33 @@ class NodeController extends BaseController
             $nodeUpgradeModel->desc = '该节点很懒什么都没有写';
             $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
             $nodeUpgradeModel->parent_id = 0;
-            $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_WAIT;
-            if (!$otherModel->validate() || !$nodeUpgradeModel->save()) {
+            if (!$nodeUpgradeModel->save()) {
                 throw new ErrorException($voteModel->getFirstError());
             }
-            
+            $nodeModel = new BNode();
+            $nodeModel->user_id = $userModel->id;
+            $nodeModel->type_id = $nodeExtend->type_id;
+            $nodeModel->name = $nodeExtend->name;
+            $nodeModel->desc = $desc;
+            $nodeModel->scheme = $scheme;
+            if (!$nodeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
+            // 独立出状态修改以及状态备注 在审核时间上面加10秒 体现出状态修改痕迹
+            $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_ACTIVE;
+            $nodeUpgradeModel->status_remark = $statusRemark;
+            $nodeUpgradeModel->examine_time = time() + 10;
+            if (!$nodeUpgradeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
+            $nodeModel->status = $nodeModel::STATUS_ON;
+            $nodeModel->status_remark = $statusRemark;
+            $nodeModel->examine_time = time() + 10;
+            if (!$nodeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
             $transaction->commit();
-            return $this->respondJson(0, '申请成功');
+            return $this->respondJson(0, '激活成功');
         } catch (\Exception $e) {
             $transaction->rollBack();
             // var_dump($e->getMessage());

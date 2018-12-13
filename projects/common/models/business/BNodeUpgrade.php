@@ -2,11 +2,8 @@
 
 namespace common\models\business;
 
-
-
 class BNodeUpgrade extends \common\models\NodeUpgrade
- {
-
+{
     const STATUS_WAIT = 0; //待审核
     const STATUS_ACTIVE = 1; //审核通过
     const STATUS_FAIL = 2; //审核失败
@@ -33,7 +30,7 @@ class BNodeUpgrade extends \common\models\NodeUpgrade
     */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(),[
+        return array_merge(parent::attributeLabels(), [
 
         ]);
     }

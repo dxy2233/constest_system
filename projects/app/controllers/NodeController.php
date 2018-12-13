@@ -30,7 +30,9 @@ class NodeController extends BaseController
             'recommend',
             'recommend-mobile',
             'upgrade',
-            'upgrade-status'
+            'upgrade-status',
+            'activation',
+            'has-recommend',
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -279,6 +281,10 @@ class NodeController extends BaseController
             if (!$recommendNodeModel) {
                 return $this->respondJson(1, '推荐人不是节点');
             }
+            // 推荐人不能是微店节点
+            if ($recommendNodeModel->type_id == 5) {
+                return $this->respondJson(1, '推荐人不能是微店节点');
+            }
             // 获取节点推荐关系
             $nodeRecommend = $recommendUser->nodeRecommend;
             $parent_arr = $nodeRecommend ? explode(',', $nodeRecommend->parent_list) : [];
@@ -288,20 +294,18 @@ class NodeController extends BaseController
             $reParentId = $recommendUser->id;
         }
         
+        if ($nodeModel && in_array($nodeModel->status, [$nodeModel::STATUS_ON, $nodeModel::STATUS_WAIT, $nodeModel::STATUS_OFF])) {
+            return $this->respondJson(1, '节点已存在');
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            if ($nodeModel && in_array($nodeModel->status, [$nodeModel::STATUS_ON, $nodeModel::STATUS_WAIT, $nodeModel::STATUS_OFF])) {
-                throw new ErrorException('节点已存在');
-            } elseif(!$nodeModel || $nodeModel->status == $nodeModel::STATUS_DEL) {
-                $maxId = BNodeUpgrade::find()->max('id') + 1;
-                $nodeUpgradeModel = new BNodeUpgrade();
-                $nodeUpgradeModel->old_type = 0;
-                $nodeUpgradeModel->type_id = $typeId;
-                $nodeUpgradeModel->user_id = $userModel->id;
-                $nodeUpgradeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
-                $nodeUpgradeModel->desc = '该节点很懒什么都没有写';
-                $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
-            }
+            $nodeUpgradeModel = new BNodeUpgrade();
+            $maxId = BNodeUpgrade::find()->max('id') + 1;
+            $nodeUpgradeModel->old_type = 0;
+            $nodeUpgradeModel->user_id = $userModel->id;
+            $nodeUpgradeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
+            $nodeUpgradeModel->desc = '该节点很懒什么都没有写';
+            $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
             $nodeUpgradeModel->parent_id = $reParentId ?? 0;
             $nodeUpgradeModel->type_id = $typeId;
             $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_WAIT;
@@ -311,7 +315,7 @@ class NodeController extends BaseController
             $nodeUpgradeModel->grt_address = $grtAddress;
             $nodeUpgradeModel->tt_address = $ttAddress;
             $nodeUpgradeModel->bpt_address = $bptAddress;
-            if (!$otherModel->validate() || !$nodeUpgradeModel->save()) {
+            if (!$nodeUpgradeModel->save()) {
                 throw new ErrorException($voteModel->getFirstError());
             }
             $transaction->commit();
@@ -477,6 +481,10 @@ class NodeController extends BaseController
             if (!$recommendNodeModel) {
                 return $this->respondJson(1, '推荐人不是节点');
             }
+            // 推荐人不能是微店节点
+            if ($recommendNodeModel->type_id == 5) {
+                return $this->respondJson(1, '推荐人不能是微店节点');
+            }
             // 获取节点推荐关系
             $nodeRecommend = $recommendUser->nodeRecommend;
             $parent_arr = $nodeRecommend ? explode(',', $nodeRecommend->parent_list) : [];
@@ -485,6 +493,7 @@ class NodeController extends BaseController
             }
             $reParentId = $recommendUser->id;
         }
+        
         $grtNum = $this->pFloat('grt_num', 0);
         $grtAddress = $this->pString('grt_address');
         $ttNum = $this->pFloat('tt_num', 0);
@@ -543,5 +552,81 @@ class NodeController extends BaseController
         $newNodeGrade['status_str'] = $newNodeGradeModel::getStatus($newNodeGrade['status']);
         $newNodeGrade['status_remark'] = $newNodeGrade['status_remark'] ?: $newNodeGradeModel::getStatus($newNodeGrade['status']);
         return $this->respondJson(0, '获取成功', $newNodeGrade);
+    }
+
+    /**
+     * 节点激活
+     *
+     * @return void
+     */
+    public function actionActivation()
+    {
+        $userModel = $this->user;
+        if (!$userModel->is_identified) {
+            return $this->respondJson(1, '未实名认证');
+        }
+        $nodeModel = $userModel->node;
+        if ($nodeModel && in_array($nodeModel->status, [$nodeModel::STATUS_ON, $nodeModel::STATUS_WAIT, $nodeModel::STATUS_OFF])) {
+            return $this->respondJson(1, '节点已存在');
+        }
+        if (!$nodeExtend = $userModel->nodeExtend) {
+            return $this->respondJson(1, '激活节点不存在');
+        }
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $statusRemark = '节点激活';
+            $desc = '该节点很懒什么都没有写';
+            $scheme = '该节点很懒什么都没有写';
+            $nodeUpgradeModel = new BNodeUpgrade();
+            $nodeUpgradeModel->old_type = 0;
+            $nodeUpgradeModel->type_id = $nodeExtend->type_id;
+            $nodeUpgradeModel->user_id = $userModel->id;
+            $nodeUpgradeModel->name = $nodeExtend->name;
+            $nodeUpgradeModel->desc = '该节点很懒什么都没有写';
+            $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
+            $nodeUpgradeModel->parent_id = 0;
+            if (!$nodeUpgradeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
+            $nodeModel = new BNode();
+            $nodeModel->user_id = $userModel->id;
+            $nodeModel->type_id = $nodeExtend->type_id;
+            $nodeModel->name = $nodeExtend->name;
+            $nodeModel->desc = $desc;
+            $nodeModel->scheme = $scheme;
+            if (!$nodeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
+            // 独立出状态修改以及状态备注 在审核时间上面加10秒 体现出状态修改痕迹
+            $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_ACTIVE;
+            $nodeUpgradeModel->status_remark = $statusRemark;
+            $nodeUpgradeModel->examine_time = time() + 10;
+            if (!$nodeUpgradeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
+            $nodeModel->status = $nodeModel::STATUS_ON;
+            $nodeModel->status_remark = $statusRemark;
+            $nodeModel->examine_time = time() + 10;
+            if (!$nodeModel->save()) {
+                throw new ErrorException($voteModel->getFirstError());
+            }
+            $transaction->commit();
+            return $this->respondJson(0, '激活成功');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            // var_dump($e->getMessage());
+            return $this->respondJson(1, $e->getMessage());
+        }
+    }
+
+    /**
+     * 用户是否存在推荐关系
+     *
+     * @return void
+     */
+    public function actionHasRecommend()
+    {
+        $userModel = $this->user;
+        return $this->respondJson(0, '获取成功', !is_null($userModel->nodeRecommend));
     }
 }

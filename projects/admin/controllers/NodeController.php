@@ -1037,6 +1037,7 @@ class NodeController extends BaseController
         $tt = $this->pInt('tt', 0);
 
         $bpt = $this->pInt('bpt', 0);
+        $conversion = $this->pInt('conversion', 0);
 
         $quota = $this->pInt('quota', 0);
         if ($quota < 0) {
@@ -1046,6 +1047,7 @@ class NodeController extends BaseController
         $node->is_examine = $is_examine;
         $node->gdt_reward = $gdt_reward;
         $node->is_candidate = $is_candidate;
+        $node->conversion = $conversion;
         $node->is_vote = $is_vote;
         $node->is_order = $is_order;
         $node->tenure_num = $tenure_num;
@@ -1366,13 +1368,13 @@ class NodeController extends BaseController
             return $this->respondJson(1, '节点类型不能为空');
         }
         $is_tenure = $this->pInt('is_tenure');
-        if ($is_tenure == BNotice::STATUS_ACTIVE) {
-            $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
-            $setting = BNodeType::find()->where(['id' => $type_id])->one();
-            if ($now_count >= $setting->tenure_num) {
-                return $this->respondJson(1, '任职数量已达上限');
-            }
-        }
+        // if ($is_tenure == BNotice::STATUS_ACTIVE) {
+        //     $now_count = BNode::find()->where(['type_id' => $type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
+        //     $setting = BNodeType::find()->where(['id' => $type_id])->one();
+        //     if ($now_count >= $setting->tenure_num) {
+        //         return $this->respondJson(1, '任职数量已达上限');
+        //     }
+        // }
         $grt = $this->pInt('grt', 0);
 
         $tt = $this->pInt('tt', 0);
@@ -1412,15 +1414,17 @@ class NodeController extends BaseController
                 }
             }
         }
-        $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
-        $node_type = BNodeType::find()->where(['id' => $type_id])->one();
-        if ($now_count >= $node_type->max_candidate) {
-            return $this->respondJson(1, '候选数量已达上限');
-        }
-        $node = new BNode();
+        // $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
+        // $node_type = BNodeType::find()->where(['id' => $type_id])->one();
+        // if ($now_count >= $node_type->max_candidate) {
+        //     return $this->respondJson(1, '候选数量已达上限');
+        // }
+        // $node = new BNode();
+        $node = new BNodeUpgrade();
+        $node->old_type = 0;
         $node->user_id = $user->id;
         $node->type_id = $type_id;
-        $node->is_tenure = $is_tenure;
+        // $node->is_tenure = $is_tenure;
         $node->grt = $grt;
         $node->tt = $tt;
         $node->bpt = $bpt;
@@ -1441,14 +1445,32 @@ class NodeController extends BaseController
         if (empty($scheme)) {
             return $this->respondJson(1, '建设方案不能为空');
         }
+        $weixin = $this->pString('weixin', '');
+
+        $grt_address = $this->pString('grt_address', '');
+        $tt_address = $this->pString('tt_address', '');
+        $bpt_address = $this->pString('bpt_address', '');
         $node->logo = $logo;
         $node->name = $name;
         $node->desc = $desc;
         $node->scheme = $scheme;
+        $node->weixin = $weixin;
+        $node->grt_address = $grt_address;
+        $node->bpt_address = $bpt_address;
+        $node->tt_address = $tt_address;
+        //推荐相关
+        $recommendMobile = $this->pString('recommendMobile', '');
+        if ($recommendMobile != '') {
+            $recommend_user = BUser::find()->where(['mobile' => $recommendMobile])->one();
+            if (!$recommend_user) {
+                return $this->respondJson(1, '注册失败,推荐用户不存在');
+            }
+            // UserService::checkNodeRecommend($user->id, $recommend_user->recommend_code);
+            $node->parent_id = $recommend_user->id;
+        }
 
-
-        $node->status = BNode::STATUS_ON;
-        $node->examine_time = time();
+        $node->status = BNodeUpgrade::STATUS_WAIT;
+        // $node->examine_time = time();
 
         if (!$node->save()) {
             $transaction->rollBack();
@@ -1457,71 +1479,59 @@ class NodeController extends BaseController
 
 
 
-        $weixin = $this->pString('weixin', '');
 
-        $grt_address = $this->pString('grt_address', '');
-        $tt_address = $this->pString('tt_address', '');
-        $bpt_address = $this->pString('bpt_address', '');
-        if ($bpt_address || $weixin || $grt_address || $tt_address) {
-            // 添加个人其它信息
-            $other = BUserOther::find()->where(['user_id' => $user->id])->one();
-            if (empty($other)) {
-                $other = new BUserOther();
-                $other->user_id = $user->id;
-            }
-            $other->weixin = $weixin;
+        // if ($bpt_address || $weixin || $grt_address || $tt_address) {
+        //     // 添加个人其它信息
+        //     $other = BUserOther::find()->where(['user_id' => $user->id])->one();
+        //     if (empty($other)) {
+        //         $other = new BUserOther();
+        //         $other->user_id = $user->id;
+        //     }
+        //     $other->weixin = $weixin;
 
-            $other->grt_address = $grt_address;
-            $other->tt_address = $tt_address;
-            $other->scenario = BUserOther::SCENARIO_APPLY;
-            $other->bpt_address = $bpt_address;
-            if (!$other->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '注册失败'.$other->getFirstErrorText());
-            }
-        }
+        //     $other->grt_address = $grt_address;
+        //     $other->tt_address = $tt_address;
+        //     $other->scenario = BUserOther::SCENARIO_APPLY;
+        //     $other->bpt_address = $bpt_address;
+        //     if (!$other->save()) {
+        //         $transaction->rollBack();
+        //         return $this->respondJson(1, '注册失败'.$other->getFirstErrorText());
+        //     }
+        // }
 
-        //推荐相关
-        $recommendMobile = $this->pString('recommendMobile', '');
-        if ($recommendMobile != '') {
-            $recommend_user = BUser::find()->where(['mobile' => $recommendMobile])->one();
-            if (!$recommend_user) {
-                return $this->respondJson(1, '注册失败,推荐用户不存在');
-            }
-            UserService::checkNodeRecommend($user->id, $recommend_user->recommend_code);
-        }
 
-        //推荐赠送
-        $res = NodeService::checkVoucher($user->id);
-        if ($res->code != 0) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败', $res->msg);
-        }
+
+        // 推荐赠送
+        // $res = NodeService::checkVoucher($user->id);
+        // if ($res->code != 0) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败', $res->msg);
+        // }
         
-        // 补全充值冻结信息
-        $log = NodeService::addNodeMakeLogs($node);
-        if ($log->code != 0) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败'.$log->content);
-        }
-        // 赠送gdt
-        $currencyDetail = new BUserCurrencyDetail();
-        $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
-        $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-        $currencyDetail->effect_time = NOW_TIME;
-        $currencyDetail->remark = '申请节点奖励';
-        $currencyDetail->user_id = $user->id;
-        $currencyDetail->relate_table = 'node';
-        $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
-        $currencyDetail->relate_id = $node->id;
-        $currencyDetail->amount = $node_type->gdt_reward;
+        // // 补全充值冻结信息
+        // $log = NodeService::addNodeMakeLogs($node);
+        // if ($log->code != 0) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败'.$log->content);
+        // }
+        // // 赠送gdt
+        // $currencyDetail = new BUserCurrencyDetail();
+        // $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
+        // $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
+        // $currencyDetail->effect_time = NOW_TIME;
+        // $currencyDetail->remark = '申请节点奖励';
+        // $currencyDetail->user_id = $user->id;
+        // $currencyDetail->relate_table = 'node';
+        // $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
+        // $currencyDetail->relate_id = $node->id;
+        // $currencyDetail->amount = $node_type->gdt_reward;
 
-        if (!$currencyDetail->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '注册失败'.$currencyDetail->getFirstErrorText());
-        }
-        //重算gdt
-        UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
+        // if (!$currencyDetail->save()) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, '注册失败'.$currencyDetail->getFirstErrorText());
+        // }
+        // //重算gdt
+        // UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
         // 实名认证信息
         $user_id = $user->id;
         

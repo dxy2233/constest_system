@@ -251,6 +251,7 @@ CHANGE `parent_list` `parent_list` varchar(1000) COLLATE 'utf8_general_ci' NOT N
 ALTER TABLE `gr_admin_user`
 ADD `role_id` int NOT NULL COMMENT '角色ID' AFTER `department`;
 
+
 #修改 id 为 1的管理员权限为 1
 UPDATE `gr_admin_user` SET `role_id` = '1' WHERE `gr_admin_user`.`id` = 1;
 UPDATE `gr_admin_user` SET `role_id` = '2' WHERE `gr_admin_user`.`id` != 1;
@@ -359,3 +360,10 @@ CREATE TABLE `gr_node_extend` (
   KEY `mobile` (`mobile`),
   KEY `status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='节点预定系统转移微店节点';
+
+ALTER TABLE `gr_node_type`
+ADD `conversion` int NOT NULL COMMENT '三通折合grt数量' AFTER `name`;
+
+INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `create_time`) VALUES 
+(40,	'node/examine-upgrade',	'节点升级列表',	0,	0),
+(41,	'node/examine-on,node/examine-off',	'节点升级审核',	40,	0);

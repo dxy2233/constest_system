@@ -34,7 +34,7 @@
             <sel :dataList="nodeSelData" placeholder="请选择节点类型" :select="form.type_id"
                  value="id" label="name" @changeSel="changeNode"></sel>
           </div>
-          <div class="form-item" v-show="isShowRecommend">
+          <div class="form-item" v-show="!hasRecommend">
             <div class="label">
               推荐人手机号
               <span>{{recommend_name}}</span>
@@ -76,6 +76,7 @@
   import http from 'js/http'
   import sel from 'components/sel/index'
   import {limitFloating} from 'js/mixin'
+  import {mapGetters} from 'vuex'
 
   export default {
     name: "upgrade",
@@ -110,11 +111,20 @@
         },
         nodeSelData: [],
         btnLoading: false,
-        recommend_name: ''
+        recommend_name: '',
+        hasRecommend: true,
       }
     },
     methods: {
       submitFrom() {
+        if (this.myNodeInfo.isTenure){
+          this.$vux.toast.show('任职状态下不能升级')
+          return
+        }
+        if (this.form.type_id >= this.myNodeInfo.typeId) {
+          this.$vux.toast.show('只能升级到更高的节点')
+          return
+        }
         let grt = Number(this.form.grt_num)
         if (!grt) {
           this.$vux.toast.show('请输入有效的贵人通数量')
@@ -170,14 +180,24 @@
         this.form.type_id = item.id
         // this.form.grt_num = item.grt
       },
+      getHasRecommend() {
+        http.post('/node/has-recommend', {}, (res) => {
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.hasRecommend = res.content
+        })
+      }
     },
     computed: {
-      isShowRecommend() {
-        return this.form.type_id !== '1'
-      }
+      ...mapGetters([
+        'myNodeInfo'
+      ]),
     },
     created() {
       this.getNodeSel()
+      this.getHasRecommend()
     },
     watch: {
       'form.grt_num'(v) {

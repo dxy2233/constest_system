@@ -37,7 +37,7 @@ export let GetUrlParam = (paraName) => {
 }
 
 export let limitFloating = (string)=>{
-  if (!string) return 0
+  // if (!string) return 0
   string = string.toString()
   string = string.replace(/[^\d\.]/g,'');
 //必须保证第一个为数字而不是.

@@ -69,15 +69,7 @@ class BNode extends \common\models\Node
     {
         return $this->hasOne(BNodeType::className(), ['id' => 'type_id']);
     }
-    /**
-     * 节点升级关联
-     *  一对多
-     * @return void
-     */
-    public function getNodeUpgrade()
-    {
-        return $this->hasMany(BNodeUpgrade::className(), ['node_id' => 'id']);
-    }
+
     /**
      * 节点下投票关联
      *  一对多

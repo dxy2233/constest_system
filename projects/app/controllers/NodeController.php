@@ -504,9 +504,9 @@ class NodeController extends BaseController
         $transaction = \Yii::$app->db->beginTransaction();
         try{
             $nodeUpgradeModel = new BNodeUpgrade();
-            $nodeUpgradeQuery = $nodeModel->getNodeUpgrade()
+            $userUpgradeQuery = $userModel->getNewNodeGrade()
             ->active($nodeUpgradeModel::STATUS_WAIT);
-            if ($nodeUpgradeQuery->exists()) {
+            if ($userUpgradeQuery->exists()) {
                 throw new ErrorException('节点正在升级中');
             }
             $nodeUpgradeData = [

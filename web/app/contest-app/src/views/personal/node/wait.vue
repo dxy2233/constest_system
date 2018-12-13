@@ -2,12 +2,12 @@
   <slide>
     <div class="node-wait">
       <app-header>
-        我的节点
+        {{headerStr}}
       </app-header>
       <div class="h-main ">
         <div class="node-wait-content">
           <img src="/static/images/state-wait.png" alt="" class="icon">
-          <span>您的节点信息已提交，等待审核中... ...</span>
+          <span>{{detailsStr}}</span>
           <!--<x-button type="warn" class="revoke-btn">撤回申请</x-button>-->
         </div>
       </div>
@@ -24,6 +24,24 @@
     components: {
       slide
     },
+    data() {
+      return {
+        headerStr: '',
+        detailsStr: ''
+      }
+    },
+    computed: {
+    },
+    created() {
+      let isUpgrade = this.$route.path.includes('node/index')
+      if (isUpgrade) {
+        this.headerStr = '节点升级'
+        this.detailsStr = '您的节点升级信息已提交，等待审核中... ...'
+      } else {
+        this.headerStr = '我的节点'
+        this.detailsStr = '您的节点信息已提交，等待审核中... ...'
+      }
+    }
   }
 </script>
 

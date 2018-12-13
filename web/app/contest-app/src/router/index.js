@@ -137,6 +137,22 @@ export let mainRouter = [
                 path: 'edit',
                 component: () => import('views/personal/node/edit'),
               },
+              {
+                path: 'upgrade',
+                component: () => import('views/personal/node/upgrade'),
+              },
+              {
+                path: 'record',
+                component: () => import('views/personal/node/record'),
+              },
+              {
+                path: 'fail',
+                component: () => import('views/personal/node/fail'),
+              },
+              {
+                path: 'wait',
+                component: () => import('views/personal/node/wait'),
+              },
             ]
           },
           {

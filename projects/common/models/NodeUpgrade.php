@@ -48,7 +48,7 @@ class NodeUpgrade extends \common\dzbase\DzModel
     {
         return [
             [['node_id', 'old_type', 'type_id', 'parent_id', 'status', 'grt', 'tt', 'bpt', 'examine_time', 'create_time', 'update_time'], 'integer'],
-            [['name', 'desc', 'scheme', 'weixin', 'recommend_mobile', 'recommend_name', 'old_type', 'type_id'], 'required'],
+            [['name', 'desc', 'scheme', 'recommend_mobile', 'recommend_name', 'old_type', 'type_id'], 'required'],
             [['desc', 'scheme'], 'string'],
             [['name', 'logo', 'grt_address', 'tt_address', 'bpt_address'], 'string', 'max' => 256],
             [['weixin'], 'string', 'max' => 128],

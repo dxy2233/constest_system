@@ -480,6 +480,10 @@ class NodeController extends BaseController
             if (!$recommendNodeModel) {
                 return $this->respondJson(1, '推荐人不是节点');
             }
+            // 推荐人不能是微店节点
+            if ($recommendNodeModel->type_id == 5) {
+                return $this->respondJson(1, '推荐人不能是微店节点');
+            }
             // 获取节点推荐关系
             $nodeRecommend = $recommendUser->nodeRecommend;
             $parent_arr = $nodeRecommend ? explode(',', $nodeRecommend->parent_list) : [];
@@ -488,6 +492,7 @@ class NodeController extends BaseController
             }
             $reParentId = $recommendUser->id;
         }
+        
         $grtNum = $this->pFloat('grt_num', 0);
         $grtAddress = $this->pString('grt_address');
         $ttNum = $this->pFloat('tt_num', 0);

@@ -419,14 +419,12 @@ class UserService extends ServiceBase
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
-            // 修改用户自己的上级列表
-            $this_user = BUser::find()->where(['id' => $user_id])->one();
-            $this_user->parent_list = $str;
-            $this_user->save();
+
 
             //添加推荐关系
             $user_recommend = new BNodeRecommend();
             $user_recommend->user_id = $user_id;
+            $user_recommend->parent_list = $str;
             $user_recommend->parent_id = $id;
             if (!$user_recommend->save()) {
                 return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
@@ -439,9 +437,8 @@ class UserService extends ServiceBase
             } else {
                 $str = $id . ',' . $user_id;
             }
-            $this_user = BUser::find()->where(['id' => $user_id])->one();
-            if ($this_user->parent_list != '') {
-                $old_str = $this_user->parent_list .  ',' . $user_id;
+            if ($recommend->parent_list != '') {
+                $old_str = $recommend->parent_list .  ',' . $user_id;
             } else {
                 // 添加上级列表
                 $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
@@ -453,11 +450,10 @@ class UserService extends ServiceBase
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
-            // 修改用户自己的上级列表
-            $this_user->parent_list = $user->parent_list . ',' . $id;
-            $this_user->save();
+
             //修改推荐关系
             $recommend->parent_id = $id;
+            $recommend->parent_list = $user->parent_list . ',' . $id;
             if (!$recommend->save()) {
                 return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
             }
@@ -493,10 +489,7 @@ class UserService extends ServiceBase
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
-            // 修改用户自己的上级列表
-            $this_user = BUser::find()->where(['id' => $user_id])->one();
-            $this_user->parent_list = $str;
-            $this_user->save();
+
 
             //添加推荐关系
             $user_recommend = new BUserRecommend();

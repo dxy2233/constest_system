@@ -22,6 +22,17 @@ class BNodeUpgrade extends \common\models\NodeUpgrade
         return $arr;
     }
 
+    
+    /**
+     * 节点下类型关联
+     *  一对多
+     * @return void
+     */
+    public function getNodeType()
+    {
+        return $this->hasOne(BNodeType::className(), ['id' => 'type_id']);
+    }
+
 
 
     /**

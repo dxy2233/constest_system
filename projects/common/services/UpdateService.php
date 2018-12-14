@@ -433,7 +433,7 @@ class UpdateService extends ServiceBase
         ->select(['A.*', 'C.weixin', 'C.grt_address', 'C.tt_address', 'C.bpt_address'])
         ->join('left join', BNodeUpgrade::tableName().' B', 'A.user_id = B.user_id && B.status = '.BNodeUpgrade::STATUS_ACTIVE)
         ->join('left join', BUserOther::tableName().' C', 'A.user_id = C.user_id')
-        ->where(['in', 'A.status', [0, 1]])
+        ->where(['in', 'A.status', [0, 1, 2]])
         ->andWhere(['B.id' => null])
         ->asArray()->all();
         $msg = [];
@@ -463,6 +463,7 @@ class UpdateService extends ServiceBase
             }
             echo '节点'.$v['name'].'数据填充完成'.PHP_EOL;
         }
+
         if (count($msg) > 0) {
             var_dump($msg);
             $transaction->rollBack();

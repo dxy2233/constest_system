@@ -97,6 +97,7 @@
         this.page = 1
         this.loadShow = true
         // this.getList()
+        this.$refs.my_scroller.finishInfinite(false);
       },
       clickRedeem(id){
         this.redeemId = id

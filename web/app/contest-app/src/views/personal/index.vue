@@ -12,7 +12,7 @@
                    style='background-image: url("/static/images/person-node.png")'>
       </router-link>-->
       <div class="node-brief">
-        <div v-if="nodeInfo.status===-1" class="node_0">
+        <div v-if="nodeInfo.status===-1" class="node_1">
           <img src="/static/images/personal-node/bg.png" alt="" class="bg">
           <div class="node-content">
             <div class="left">
@@ -21,6 +21,25 @@
             </div>
             <div class="right">
               <router-link tag="button" to="/personal/applynode">去申请</router-link>
+            </div>
+          </div>
+        </div>
+        <div v-if="nodeInfo.status===0" class="node_0">
+          <img src="/static/images/personal-node/bg5.png" alt="" class="bg">
+          <div class="node-content">
+            <div class="left">
+              <img src="/static/images/personal-node/icon_5.png" alt="">
+              <div>
+                <h3>
+                  您的微店节点
+                </h3>
+                <p>
+                  待激活
+                </p>
+              </div>
+            </div>
+            <div class="right">
+              <button @click="activateNode">去激活</button>
             </div>
           </div>
         </div>
@@ -51,7 +70,6 @@
                 <p>{{nodeInfo.statusStr}}</p>
               </div>
               <div class="right">
-                <!--<button>查看</button>-->
                 <router-link tag="button" :to="'/personal/node/'+nodePath">查看</router-link>
               </div>
             </div>
@@ -179,6 +197,26 @@
       ]),
     },
     methods: {
+      activateNode(){
+        if (!this.identifyMsg.isIdentify||this.identifyMsg.status!==1){
+          this.$vux.toast.show('请先完成实名认证')
+          return
+        }
+        http.post('/node/activation', {}, (res) => {
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.$vux.toast.show({
+            text: res.msg,
+            type: 'success'
+          })
+          setTimeout(()=>{
+            this.getNodeInfo()
+          },500)
+
+        })
+      },
       getNodeInfo() {
         http.post('/node/info', {}, (res) => {
           // console.log(res.content)
@@ -216,15 +254,7 @@
             path: `/login`
           })
         } else {
-          // console.log(this.loginMsg.isNode)
-          /*if (!!this.loginMsg.isNode) {
-            this.getNodeInfo()
-          }*/
           this.getNodeInfo()
-          // console.log(this.identifyMsg,JSON.stringify(this.identifyMsg)==='{}')
-          /*if (JSON.stringify(identifyMsg)==='{}'){
-            this.getIdentifyMsg()
-          }*/
           this.identifyMsg = {}
           this.getIdentifyMsg()
         }
@@ -347,11 +377,11 @@
         p
           margin-top 10px
           font-size $font-size-small-s
-      .node_0
+      .node_1
         color #f4db9e
         button
           background none
-          border 1px solid color #f4db9e
+          border 2px solid #f4db9e
           color #f4db9e
           font-size $font-size-medium
           padding 5px 10px
@@ -394,6 +424,26 @@
             font-size $font-size-medium
             padding 5px 15px
             border-radius 20px
+      .node_0
+        position relative
+        .left
+          display flex
+          align-items center
+          color white
+          p
+            margin-top 2px
+          h3
+            font-size $font-size-medium-x
+          img
+            margin-right 10px
+            height 60px
+        button
+          background none
+          border 2px solid white
+          color white
+          font-size $font-size-medium
+          padding 5px 10px
+          border-radius 20px
 </style>
 
 

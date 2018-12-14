@@ -41,6 +41,15 @@
               </div>
               <input type="text" v-model="form.weixin" placeholder="输入您的微信">
             </div>
+            <div class="form-item" v-show="isShowRecommend">
+              <div class="label">
+                推荐人手机号
+                <span>{{recommend_name}}</span>
+              </div>
+              <input onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)"
+                     @blur="getRecommendMsg" maxlength="11"
+                     type="text" v-model="form.recommend_mobile" placeholder="输入推荐人手机号">
+            </div>
             <!--<div class="form-item">
               <div class="label">
                 推荐人姓名
@@ -106,7 +115,8 @@
             </div>
           </div>
           <div class="sbm-btn-box">
-            <x-button type="warn" class="base-btn" @click.native="submitFrom" :disabled="btnLoading" :show-loading="btnLoading">下一步
+            <x-button type="warn" class="base-btn" @click.native="submitFrom" :disabled="btnLoading"
+                      :show-loading="btnLoading">下一步
             </x-button>
           </div>
         </div>
@@ -146,10 +156,12 @@
           tt_address: '',
           tt_num: '',
           bpt_address: '',
-          bpt_num: ''
+          bpt_num: '',
+          recommend_mobile: ''
         },
         nodeSelData: [],
-        btnLoading: false
+        btnLoading: false,
+        recommend_name: ''
       }
     },
     methods: {
@@ -218,6 +230,15 @@
           }, 1500)
         })
       },
+      getRecommendMsg() {
+        http.post('/node/recommend-mobile', {mobile: this.form.recommend_mobile}, (res) => {
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.recommend_name = res.content.realname
+        })
+      }
     },
     created() {
       this.getNodeSel()
@@ -235,6 +256,11 @@
         let n = limitFloating(v)
         this.form.bpt_num = n
       },
+    },
+    computed: {
+      isShowRecommend() {
+        return this.form.type_id !== '1'
+      }
     }
   }
 </script>

@@ -1,10 +1,8 @@
 <template>
   <slide>
     <div class="node-fail">
-      <!--<x-header :left-options="{backText: ''}">我的节点
-      </x-header>-->
       <app-header>
-        我的节点
+        {{headerStr}}
       </app-header>
       <div class="h-main">
         <div class="top">
@@ -12,10 +10,10 @@
           <span>申请失败</span>
         </div>
         <div class="bottom">
-          <p>节点申请失败原因：</p>
+          <p>{{detailsStr}}</p>
           <p>{{myNodeInfo.statusRemark}}</p>
           <div class="again">
-            <router-link to="/personal/applynode/submit">
+            <router-link :to="againPath">
               <x-button type="warn" class="again-btn">重新申请</x-button>
             </router-link>
           </div>
@@ -36,10 +34,23 @@
       slide
     },
     data(){
-      return{
+      return {
+        headerStr: '',
+        detailsStr: '',
+        againPath:''
       }
     },
     created(){
+      let isUpgrade = this.$route.path.includes('node/index')
+      if (isUpgrade) {
+        this.headerStr = '节点升级'
+        this.detailsStr = '节点申请失败原因：'
+        this.againPath = '/personal/node/index/upgrade'
+      } else {
+        this.headerStr = '我的节点'
+        this.detailsStr = '节点升级失败原因：'
+        this.againPath = '/personal/applynode/submit'
+      }
     },
     computed: {
       ...mapGetters([

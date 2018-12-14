@@ -376,5 +376,18 @@ export const asyncRouterMap = {
     ]
   },
 
+  40: {
+    path: '/nodeup',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'NodeUp',
+        component: () => import('@/views/nodeUp/index'),
+        meta: { title: '节点升级', icon: '用户日志' }
+      }
+    ]
+  },
+
   404: { path: '*', redirect: '/404', hidden: true }
 }

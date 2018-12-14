@@ -73,6 +73,15 @@ class IndexController extends BaseController
     }
 
     /**
+             * 补完历史节点申请
+             *
+             * @return void
+             */
+    public function actionCreateOldUpgrade()
+    {
+        UpdateService::createOldUpgrade();
+    }
+    /**
      * 已存在推荐关系赠送投票劵以及GDT
      *
      * @return void

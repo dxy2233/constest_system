@@ -9,6 +9,8 @@ use common\models\business\BUpdateLog;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BCurrency;
+use common\models\business\BNodeUpgrade;
+use common\models\business\BUserOther;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BNodeRecommend;
@@ -407,6 +409,59 @@ class UpdateService extends ServiceBase
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
             echo '用户'.$v->user_id.'修改结束'.PHP_EOL;
+        }
+        if (count($msg) > 0) {
+            var_dump($msg);
+            $transaction->rollBack();
+            Yii::error(json_encode($msg), 'update');
+            return false;
+        } else {
+            $transaction->commit();
+            echo '执行完成'.PHP_EOL;
+            Yii::info('执行成功', 'update');
+            return true;
+        }
+    }
+
+    // 补完历史节点申请数据
+    public static function createOldUpgrade()
+    {
+        echo '开始'.PHP_EOL;
+        $transaction = \Yii::$app->db->beginTransaction();
+        $data = BNode::find()
+        ->from(BNode::tableName()." A")
+        ->select(['A.*', 'C.weixin', 'C.grt_address', 'C.tt_address', 'C.bpt_address'])
+        ->join('left join', BNodeUpgrade::tableName().' B', 'A.user_id = B.user_id && B.status = '.BNodeUpgrade::STATUS_ACTIVE)
+        ->join('left join', BUserOther::tableName().' C', 'A.user_id = C.user_id')
+        ->where(['in', 'A.status', [0, 1]])
+        ->andWhere(['B.id' => null])
+        ->asArray()->all();
+        $msg = [];
+        foreach ($data as $v) {
+            $node_upgrade = new BNodeUpgrade();
+            $node_upgrade->user_id = $v['user_id'];
+            $node_upgrade->weixin = $v['weixin'] ?? '';
+            $node_upgrade->grt_address = $v['grt_address'] ?? '';
+            $node_upgrade->tt_address = $v['tt_address'] ?? '';
+            $node_upgrade->bpt_address = $v['bpt_address'] ?? '';
+            $node_upgrade->name = $v['name'];
+            $node_upgrade->logo = $v['logo'];
+            $node_upgrade->desc = $v['desc'];
+            $node_upgrade->scheme = $v['scheme'];
+            $node_upgrade->type_id = $v['type_id'];
+            $node_upgrade->status = BNodeUpgrade::STATUS_ACTIVE;
+            $node_upgrade->status_remark = '已通过';
+            $node_upgrade->grt = $v['grt'];
+            $node_upgrade->tt = $v['tt'];
+            $node_upgrade->bpt = $v['bpt'];
+            $node_upgrade->examine_time = $v['create_time'];
+            $node_upgrade->old_type = 0;
+            if (!$node_upgrade->save()) {
+                echo '节点'.$v['name'].'数据填充错误'.PHP_EOL;
+                $msg[$v->id] = $node_upgrade->getFirstErrorText();
+                break;
+            }
+            echo '节点'.$v['name'].'数据填充完成'.PHP_EOL;
         }
         if (count($msg) > 0) {
             var_dump($msg);

@@ -2,9 +2,6 @@
 
 namespace common\services;
 
-use common\models\business\BUserCurrency;
-use common\models\business\BUserCurrencyDetail;
-use common\models\business\BUserCurrencyFrozen;
 use common\models\User;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
@@ -14,13 +11,17 @@ use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BUser;
 use common\models\business\BUserLog;
-use common\models\business\BUserWallet;
-use common\models\business\BNodeRecommend;
-use common\models\business\BUserAccessToken;
-use common\models\business\BVoucherDetail;
-use common\models\business\BUserVoucher;
 use common\models\business\BVoucher;
+use common\models\business\BUserWallet;
+use common\models\business\BUserVoucher;
+use common\models\business\BUserCurrency;
+use common\models\business\BNodeRecommend;
+use common\models\business\BUserRecommend;
+use common\models\business\BVoucherDetail;
+use common\models\business\BUserAccessToken;
 use common\models\business\BUserRefreshToken;
+use common\models\business\BUserCurrencyDetail;
+use common\models\business\BUserCurrencyFrozen;
 
 class UserService extends ServiceBase
 {
@@ -397,6 +398,9 @@ class UserService extends ServiceBase
         if (!$node) {
             return new ReturnInfo(1, "被推荐人不是节点");
         }
+        if ($node->type_id == 5) {
+            return new ReturnInfo(1, "推荐人不能是微店节点");
+        }
         $recommend_parent = BNodeRecommend::find()->where(['id' => $user_id])->one();
         $parent_arr = explode(',', $recommend_parent->parent_list);
         if (in_array($user_id, $parent_arr)) {
@@ -472,15 +476,15 @@ class UserService extends ServiceBase
             return new ReturnInfo(1, "推荐人不能是自己");
         }
         $recommend_parent = BUserRecommend::find()->where(['id' => $user_id])->one();
-
-        $parent_arr = explode(',', $recommend_parent->parent_list);
+        $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
+        $parent_arr = explode(',', $parentStr);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
         // 如果是第一次添加
         if (empty($recommend)) {
-            if ($recommend_parent->parent_list != '') {
-                $str = $recommend_parent->parent_list . ',' . $id;
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id;
             } else {
                 $str = $id;
             }

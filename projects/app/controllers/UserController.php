@@ -79,8 +79,6 @@ class UserController extends BaseController
             return $this->respondJson(1, '推荐码格式错误');
         }
         $reCode = strtoupper($reCode);
-        $parentId = UserService::validateRemmendCode($reCode);
-
         $checkRecomment = UserService::checkUserRecommend($userModel->id, $reCode);
         if ($checkRecomment->code) {
             return $this->respondJson($checkRecomment->code, $checkRecomment->msg);

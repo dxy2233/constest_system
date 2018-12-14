@@ -184,4 +184,34 @@ class BUser extends \common\models\User
     {
         return $this->hasOne(BUserOther::className(), ['user_id' => 'id']);
     }
+
+    /**
+     * 用户节点申请以及升级
+     * 一对多 一个用户可以申请多次以及多条升级
+     * @return void
+     */
+    public function getNodeGrade()
+    {
+        return $this->hasMany(BNodeUpgrade::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * 用户节点申请以及升级 的单条记录
+     * 一对一
+     * @return void
+     */
+    public function getNewNodeGrade()
+    {
+        return $this->hasOne(BNodeUpgrade::className(), ['user_id' => 'id'])->orderBy(['id' => SORT_DESC]);
+    }
+    
+    /**
+     * 微店节点关联
+     * 一对一
+     * @return void
+     */
+    public function getNodeExtend()
+    {
+        return $this->hasOne(BNodeExtend::className(), ['mobile' => 'mobile']);
+    }
 }

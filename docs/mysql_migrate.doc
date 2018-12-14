@@ -251,6 +251,7 @@ CHANGE `parent_list` `parent_list` varchar(1000) COLLATE 'utf8_general_ci' NOT N
 ALTER TABLE `gr_admin_user`
 ADD `role_id` int NOT NULL COMMENT '角色ID' AFTER `department`;
 
+
 #修改 id 为 1的管理员权限为 1
 UPDATE `gr_admin_user` SET `role_id` = '1' WHERE `gr_admin_user`.`id` = 1;
 UPDATE `gr_admin_user` SET `role_id` = '2' WHERE `gr_admin_user`.`id` != 1;
@@ -315,3 +316,54 @@ CREATE TABLE `gr_node_recommend` (
 
 
 ALTER TABLE `gr_user` DROP `parent_list`;
+
+#节点申请表结构
+CREATE TABLE `gr_node_upgrade` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `name` varchar(256) NOT NULL COMMENT '节点名称',
+  `logo` varchar(256) NOT NULL DEFAULT '' COMMENT 'LOGO',
+  `desc` text NOT NULL COMMENT '简介',
+  `scheme` text NOT NULL COMMENT '建设方案',
+  `weixin` varchar(128) NOT NULL COMMENT '微信号',
+  `old_type` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级前类型',
+  `type_id` int(11) unsigned NOT NULL COMMENT '升级类型',
+  `parent_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '补录推荐人ID',
+  `status` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '升级状态 0 待升级 1 升级成功 2 升级失败',
+  `status_remark` varchar(255) NOT NULL DEFAULT '' COMMENT '状态备注',
+  `grt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级质押grt',
+  `grt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '贵人通地址',
+  `tt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级质押tt',
+  `tt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '茶通地址',
+  `bpt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级质押bpt',
+  `bpt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '美食通地址',
+  `examine_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '审核时间',
+  `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='节点升级记录表';
+
+#节点预定系统转移微店节点
+CREATE TABLE `gr_node_extend` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL DEFAULT '' COMMENT '节点名称',
+  `type_id` int(10) unsigned NOT NULL DEFAULT '5' COMMENT '节点类型ID',
+  `type_name` varchar(255) NOT NULL DEFAULT '微店节点' COMMENT '节点类型名称',
+  `quota` decimal(12,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '节点配额',
+  `mobile` varchar(20) NOT NULL DEFAULT '' COMMENT '节点手机号',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '节点状态 0 未激活 1 已激活 2 停用',
+  `company` varchar(255) NOT NULL DEFAULT '' COMMENT '所属公司',
+  `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
+  PRIMARY KEY (`id`),
+  KEY `quota` (`quota`),
+  KEY `mobile` (`mobile`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='节点预定系统转移微店节点';
+
+ALTER TABLE `gr_node_type`
+ADD `conversion` int NOT NULL COMMENT '三通折合grt数量' AFTER `name`;
+
+INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `create_time`) VALUES 
+(40,	'node/examine-upgrade',	'节点升级列表',	0,	0),
+(41,	'node/examine-on,node/examine-off',	'节点升级审核',	40,	0);

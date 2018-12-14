@@ -176,6 +176,8 @@ class NodeController extends BaseController
         if (empty($status)) {
             return $this->respondJson(1, '审核状态不能为空');
         }
+        $status_arr = [1 => 1, 2 => 0, 4 => 2];
+        $status = $status_arr[$status];
         $searchName = $this->pString('searchName', '');
         $page = $this->pInt('page', 1);
         $order = $this->pString('order');

@@ -476,15 +476,15 @@ class UserService extends ServiceBase
             return new ReturnInfo(1, "推荐人不能是自己");
         }
         $recommend_parent = BUserRecommend::find()->where(['id' => $user_id])->one();
-
-        $parent_arr = explode(',', $recommend_parent->parent_list);
+        $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
+        $parent_arr = explode(',', $parentStr);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
         // 如果是第一次添加
         if (empty($recommend)) {
-            if ($recommend_parent->parent_list != '') {
-                $str = $recommend_parent->parent_list . ',' . $id;
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id;
             } else {
                 $str = $id;
             }

@@ -282,6 +282,9 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        if($data->status == BNode::STATUS_ON){
+            return $this->respondJson(1, '错误的状态');
+        }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
         if ($now_count >= $node_type->max_candidate) {

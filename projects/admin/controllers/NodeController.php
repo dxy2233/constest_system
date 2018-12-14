@@ -264,7 +264,6 @@ class NodeController extends BaseController
         $currencyDetail->relate_table = 'node_upgrade';
         $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
         $currencyDetail->relate_id = $data->id;
-        //待修改
         $amount = NodeService::getGiveGdtNumber($data->old_type, $data->type_id);
         $currencyDetail->amount = $amount;
         if (!$currencyDetail->save()) {
@@ -291,7 +290,6 @@ class NodeController extends BaseController
         // 添加节点信息
         $node = BNode::find()->where(['user_id' => $data->user_id])->one();
         $node->type_id = $data->type_id;
-        //待修改
         $node->quota = $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
         $node->examine_time = $data->examine_time;
         if (!$node->save()) {
@@ -317,6 +315,13 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
+        }elseif($data->type_id == 1){
+            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+            $recommend->delete();
+
         }
         
 

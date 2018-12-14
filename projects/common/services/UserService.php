@@ -2,9 +2,6 @@
 
 namespace common\services;
 
-use common\models\business\BUserCurrency;
-use common\models\business\BUserCurrencyDetail;
-use common\models\business\BUserCurrencyFrozen;
 use common\models\User;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
@@ -14,13 +11,17 @@ use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BUser;
 use common\models\business\BUserLog;
-use common\models\business\BUserWallet;
-use common\models\business\BNodeRecommend;
-use common\models\business\BUserAccessToken;
-use common\models\business\BVoucherDetail;
-use common\models\business\BUserVoucher;
 use common\models\business\BVoucher;
+use common\models\business\BUserWallet;
+use common\models\business\BUserVoucher;
+use common\models\business\BUserCurrency;
+use common\models\business\BNodeRecommend;
+use common\models\business\BUserRecommend;
+use common\models\business\BVoucherDetail;
+use common\models\business\BUserAccessToken;
 use common\models\business\BUserRefreshToken;
+use common\models\business\BUserCurrencyDetail;
+use common\models\business\BUserCurrencyFrozen;
 
 class UserService extends ServiceBase
 {

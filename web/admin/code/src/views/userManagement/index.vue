@@ -292,13 +292,6 @@
       <el-input v-model="recomSearchName" clearable placeholder="用户" style="width:250px;" @change="searchRecom">
         <el-button slot="append" icon="el-icon-search" @click.native="searchRecom"/>
       </el-input>
-      <!-- <el-select v-model="recomType" style="float:right;" @change="searchRecom">
-        <el-option
-          v-for="item in recomOptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"/>
-      </el-select> -->
       <div style="margin-top:20px;margin-left:20px;display:inline-block;">
         邀请时间
         <el-date-picker
@@ -433,7 +426,6 @@ export default {
         { value: 5, label: '节点' },
         { value: 6, label: '普通用户' }
       ],
-      recomType: 0,
       recomDate: ''
     }
   },
@@ -637,13 +629,13 @@ export default {
     },
     // 初始化推荐记录
     initRecom() {
-      getRecomList(this.recomCurrentPage, this.recomSearchName, this.recomType, this.recomDate[0], this.recomDate[1]).then(res => {
+      getRecomList(this.recomCurrentPage, this.recomSearchName, this.recomDate[0], this.recomDate[1]).then(res => {
         this.recomData = res.content.list
         this.recomTotal = res.content.count
       })
     },
     searchRecom() {
-      if (this.recomDate === null) this.searchDate = ''
+      if (this.recomDate === null) this.recomDate = ''
       this.recomCurrentPage = 1
       this.initRecom()
     },
@@ -694,7 +686,7 @@ export default {
         end = ''
       }
       getVerifiCode().then(res => {
-        var url = `/user/recommend-download?download_code=${res.content}&searchName=${this.recomSearchName}&type=${this.recomType}&strTime=${str}&endTime=${end}`
+        var url = `/user/recommend-download?download_code=${res.content}&searchName=${this.recomSearchName}&strTime=${str}&endTime=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
         elink.target = '_blank'

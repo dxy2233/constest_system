@@ -124,16 +124,16 @@ class NodeController extends BaseController
                 } else {
                     return $this->respondJson(0, '节点未激活', ['status' => 0, 'status_str' => '节点未激活']);
                 }
-            } elseif($newNodeGrade) {
-                if ($newNodeGrade->status !== $newNodeGrade::STATUS_ACTIVE) {
-                    $nodeInfo = FuncHelper::arrayOnly($newNodeGrade->toArray(), ['status', 'status_remark', 'name']);
-                    $nodeInfo['status_str'] = $newNodeGrade::getStatus($nodeInfo['status']);
-                    $nodeType = $newNodeGrade->nodeType;
+            } else {
+                $nodeInfoModel = $nodeModel ?? $newNodeGrade;
+                if ($nodeInfoModel->status !== $nodeInfoModel::STATUS_ACTIVE) {
+                    $nodeInfo = FuncHelper::arrayOnly($nodeInfoModel->toArray(), ['status', 'status_remark', 'name']);
+                    $nodeInfo['status_str'] = $nodeInfoModel::getStatus($nodeInfo['status']);
+                    $nodeType = $nodeInfoModel->nodeType;
                     $nodeInfo['type_id'] = $nodeType->id;
                     $nodeInfo['type_name'] = $nodeType->name;
                     return $this->respondJson(0, '获取成功', $nodeInfo);
                 }
-            } else {
                 $nodeId = $nodeModel->id;
             }
         }

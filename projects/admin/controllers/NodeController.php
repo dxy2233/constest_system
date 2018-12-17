@@ -155,7 +155,7 @@ class NodeController extends BaseController
             } else {
                 $v['weixin'] = $v['grt_address'] = $v['tt_address'] = $v['bpt_address'] = $v['consignee'] = $v['consignee_mobile'] = $v['zip_code'] = $v['address'] = '';
             }
-            $identify = BUserIdentify::find()->where(['user_id' => $v['user_id']])->one();
+            $identify = BUserIdentify::find()->where(['user_id' => $v['user_id']])->active()->one();
             if ($identify) {
                 $v['realname'] = $identify->realname;
                 $v['number'] = $identify->number;
@@ -225,7 +225,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '数据不存在');
         }
         $user = BUser::find()->where(['id' => $data->user_id])->one();
-        $identify = BUserIdentify::find()->where(['user_id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->where(['user_id' => $data->user_id])->active()->one();
         $return = [];
         $return['old_name'] = BNodeType::GetName($data->old_type);
         $return['new_name'] = BNodeType::GetName($data->type_id);

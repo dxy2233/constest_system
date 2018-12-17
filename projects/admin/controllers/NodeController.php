@@ -654,18 +654,15 @@ class NodeController extends BaseController
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
-        $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
         $return = [];
-        if ($other) {
-            $return['weixin'] = $other->weixin;
+
+            $return['weixin'] = $data->weixin;
             // $return['recommend_name'] = $other->recommend_name;
             // $return['recommend_mobile'] = $other->recommend_mobile;
-            $return['grt_address'] = $other->grt_address;
-            $return['tt_address'] = $other->tt_address;
-            $return['bpt_address'] = $other->bpt_address;
-        } else {
-            $return['weixin'] =  $return['grt_address'] = $return['tt_address'] = $return['bpt_address'] = '';
-        }
+            $return['grt_address'] = $data->grt_address;
+            $return['tt_address'] = $data->tt_address;
+            $return['bpt_address'] = $data->bpt_address;
+
         
         if ($identify) {
             $return['username'] = $identify->realname;
@@ -676,7 +673,6 @@ class NodeController extends BaseController
         $return['type_name'] = $node_type->name;
         $return['status_remark'] = $data->status_remark;
 
-        $res = NodeService::getNodeQuota($user->mobile);
         $msg = '获取成功';
 
         $return['grt'] = $data->grt;

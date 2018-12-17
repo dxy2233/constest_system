@@ -423,12 +423,12 @@ class UserService extends ServiceBase
 
 
             //添加推荐关系
-            $user_recommend = new BNodeRecommend();
-            $user_recommend->user_id = $user_id;
-            $user_recommend->parent_list = $str;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
-                return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
+            $recommend = new BNodeRecommend();
+            $recommend->user_id = $user_id;
+            $recommend->parent_list = $str;
+            $recommend->parent_id = $id;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
             }
         } elseif ($recommend->parent_id != $id) {
             //更换推荐人
@@ -495,12 +495,12 @@ class UserService extends ServiceBase
 
 
             //添加推荐关系
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user_id;
-            $user_recommend->parent_id = $id;
-            $user_recommend->parent_list = $str;
-            if (!$user_recommend->save()) {
-                return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
+            $recommend = new BUserRecommend();
+            $recommend->user_id = $user_id;
+            $recommend->parent_id = $id;
+            $recommend->parent_list = $str;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
             }
         } elseif ($recommend->parent_id != $id) {
             //更换推荐人

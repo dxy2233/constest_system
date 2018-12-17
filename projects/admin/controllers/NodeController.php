@@ -319,9 +319,11 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-        } elseif ($data->type_id == 1) {
+        } elseif ($data->type_id == 1 && $recommend) {
             // 如果升级为超级节点清除推荐关系
-            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
+                $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
+
+
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
@@ -372,6 +374,8 @@ class NodeController extends BaseController
         if (empty($status)) {
             return $this->respondJson(1, '审核状态不能为空');
         }
+        $status_arr = [1 => 1, 2 => 0, 4 => 2];
+        $status = $status_arr[$status];
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
@@ -397,8 +401,9 @@ class NodeController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-        $find->andWhere(['A.status' => $status, 'old_type' => 0]);
         
+        $find->andWhere(['A.status' => $status, 'old_type' => 0]);
+        echo $find->createCommand()->getRawSql();
         //$data = NodeService::getIndexList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
         $return['count'] = $find->count();
@@ -495,7 +500,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的申请');
         }
-        if($data->status == BNode::STATUS_ON){
+        if ($data->status == BNode::STATUS_ON) {
             return $this->respondJson(1, '错误的状态');
         }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();

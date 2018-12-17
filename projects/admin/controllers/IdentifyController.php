@@ -161,7 +161,7 @@ class IdentifyController extends BaseController
             return $this->respondJson(1, '用户ID不能为空');
         }
 
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id DESC')->one();
+        $data = BUserIdentify::find()->where(['id' => $user_id])->orderBy('id DESC')->one();
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }

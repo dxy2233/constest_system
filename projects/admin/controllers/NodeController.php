@@ -321,9 +321,7 @@ class NodeController extends BaseController
             }
         } elseif ($data->type_id == 1 && $recommend) {
             // 如果升级为超级节点清除推荐关系
-                $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
-
-
+            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
@@ -644,6 +642,47 @@ class NodeController extends BaseController
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
+    }
+    // 节点基本信息
+    public function actionGetNodeExamineDetail()
+    {
+        $nodeId = $this->pInt('nodeId');
+        $data = BNodeUpgrade::find()->where(['id' => $nodeId])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的申请');
+        }
+        $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
+        $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
+        $return = [];
+        if ($other) {
+            $return['weixin'] = $other->weixin;
+            // $return['recommend_name'] = $other->recommend_name;
+            // $return['recommend_mobile'] = $other->recommend_mobile;
+            $return['grt_address'] = $other->grt_address;
+            $return['tt_address'] = $other->tt_address;
+            $return['bpt_address'] = $other->bpt_address;
+        } else {
+            $return['weixin'] =  $return['grt_address'] = $return['tt_address'] = $return['bpt_address'] = '';
+        }
+        
+        if ($identify) {
+            $return['username'] = $identify->realname;
+        } else {
+            $return['username'] = '';
+        }
+        $return['mobile'] = $user->mobile;
+        $return['type_name'] = $node_type->name;
+        $return['status_remark'] = $data->status_remark;
+
+        $res = NodeService::getNodeQuota($user->mobile);
+        $msg = '获取成功';
+
+        $return['grt'] = $data->grt;
+        $return['tt'] = $data->tt;
+        $return['bpt'] = $data->bpt;
+        return $this->respondJson(0, $msg, $return);
     }
     // 节点基本信息
     public function actionGetNodeUserData()
@@ -1437,6 +1476,11 @@ class NodeController extends BaseController
         //     return $this->respondJson(1, '候选数量已达上限');
         // }
         // $node = new BNode();
+        $old_upgrade = BNodeUpgrade::find()->where(['user_id' => $user->id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
+        if($old_upgrade){
+            $transaction->rollBack();
+                    return $this->respondJson(1, '此用户已有申请在审核中');
+        }
         $node = new BNodeUpgrade();
         $node->old_type = 0;
         $node->user_id = $user->id;

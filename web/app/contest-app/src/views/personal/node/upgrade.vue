@@ -34,7 +34,14 @@
             <sel :dataList="nodeSelData" placeholder="请选择节点类型" :select="form.type_id"
                  value="id" label="name" @changeSel="changeNode"></sel>
           </div>
-          <div class="form-item" v-show="!hasRecommend">
+          <div v-if="form.type_id==='1'" class="form-item">
+            <div class="label">
+              升级成功后，推荐你成为“填写用户当前的节点身份”的用户将不再获得节点推荐奖,同时清除推荐关系
+              <span class="must">*</span>
+            </div>
+            <check-icon :value.sync="form.remove_recommend">同意清除关系</check-icon>
+          </div>
+          <div v-else class="form-item" v-show="!hasRecommend">
             <div class="label">
               推荐人手机号
               <span>{{recommend_name}}</span>
@@ -43,6 +50,7 @@
                    @blur="getRecommendMsg" maxlength="11"
                    type="text" v-model="form.recommend_mobile" placeholder="输入推荐人手机号">
           </div>
+
           <div class="form-item">
             <div class="label">
               确认已转入贵人通数量
@@ -77,18 +85,20 @@
   import sel from 'components/sel/index'
   import {limitFloating} from 'js/mixin'
   import {mapGetters} from 'vuex'
+  import {CheckIcon} from 'vux'
 
   export default {
     name: "upgrade",
     components: {
       slide,
-      sel
+      sel,
+      CheckIcon
     },
     data() {
       return {
         table: [
           [
-            '升级节点', '升级节点', '动力节点', '中级节点', '高级节点'
+            '升级节点', '微店节点', '动力节点', '中级节点', '高级节点'
           ],
           [
             '动力节点', '2000GRT', '', '', ''
@@ -107,22 +117,28 @@
           type_id: '',
           grt_address: '',
           grt_num: '',
-          recommend_mobile: ''
+          recommend_mobile: '',
+          remove_recommend: false
         },
         nodeSelData: [],
         btnLoading: false,
         recommend_name: '',
         hasRecommend: true,
+
       }
     },
     methods: {
       submitFrom() {
-        if (this.myNodeInfo.isTenure){
+        if (this.myNodeInfo.isTenure) {
           this.$vux.toast.show('任职状态下不能升级')
           return
         }
         if (this.form.type_id >= this.myNodeInfo.typeId) {
           this.$vux.toast.show('只能升级到更高的节点')
+          return
+        }
+        if (this.form.type_id==='1'&&!this.form.remove_recommend){
+          this.$vux.toast.show('请同意清除关系')
           return
         }
         let grt = Number(this.form.grt_num)
@@ -156,6 +172,7 @@
         })
       },
       getRecommendMsg() {
+        if (!this.form.recommend_mobile) return
         http.post('/node/recommend-mobile', {mobile: this.form.recommend_mobile}, (res) => {
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
@@ -214,6 +231,8 @@
   .upgrade
     fixed-full-screen()
     overflow auto
+    .vux-check-icon > .weui-icon-success:before, .vux-check-icon > .weui-icon-success-circle:before
+      color $color-theme
     .app-header
       border-bottom 1px solid $color-border
       background $color-background-sub

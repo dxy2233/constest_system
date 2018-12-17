@@ -199,12 +199,13 @@ class NodeController extends BaseController
         if ($searchName != '') {
             $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
         }
-        $find->andWhere(['a.status' => $status]);
+        $find->andWhere(['A.status' => $status]);
+        $find->andWhere(['!=', 'A.old_type', 0]);
         $count = $find->count();
         $data =  $find->page($page)->orderBy($order)->asArray()->all();
         foreach ($data as &$v) {
-            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-            $v['examine_time'] = date('Y-m-d H:i:s', $v['examine_time']);
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['status'] = BNodeUpgrade::getStatus($v['status']);
         }
         $return = [];
@@ -233,6 +234,7 @@ class NodeController extends BaseController
         $return['payable'] = NodeService::getGrtNumber($data->old_type, $data->type_id);
         $return['grt'] = $data->grt;
         $return['grt_address'] = $data->grt_address;
+        $return['status_remark'] = $data->status_remark;
         return $this->respondJson(0, '获取成功', $return);
     }
     // 升级审核通过
@@ -317,13 +319,15 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-        }elseif($data->type_id == 1){
-            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
+        } elseif ($data->type_id == 1 && $recommend) {
+            // 如果升级为超级节点清除推荐关系
+                $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
+
+
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
             $recommend->delete();
-
         }
         
 
@@ -354,7 +358,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的申请');
         }
-
+        $data->examine_time = NOW_TIME;
         $data->status = BNodeUpgrade::STATUS_FAIL;
         $data->status_remark = $remark;
         if (!$data->save()) {
@@ -370,6 +374,8 @@ class NodeController extends BaseController
         if (empty($status)) {
             return $this->respondJson(1, '审核状态不能为空');
         }
+        $status_arr = [1 => 1, 2 => 0, 4 => 2];
+        $status = $status_arr[$status];
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
@@ -395,8 +401,9 @@ class NodeController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-        $find->andWhere(['A.status' => $status, 'old_type' => 0]);
         
+        $find->andWhere(['A.status' => $status, 'old_type' => 0]);
+        // echo $find->createCommand()->getRawSql();
         //$data = NodeService::getIndexList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
         $return['count'] = $find->count();
@@ -492,6 +499,9 @@ class NodeController extends BaseController
         $data = BNodeUpgrade::find()->where(['id' => $nodeId])->one();
         if (empty($data)) {
             return $this->respondJson(1, '不存在的申请');
+        }
+        if ($data->status == BNode::STATUS_ON) {
+            return $this->respondJson(1, '错误的状态');
         }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
@@ -1344,7 +1354,7 @@ class NodeController extends BaseController
         if (!$node) {
             return $this->respondJson(1, '推荐人不是节点');
         }
-        if($node->type_id == 5){
+        if ($node->type_id == 5) {
             return $this->respondJson(1, '推荐人不能是微店节点');
         }
         $user = BUser::find()->where(['mobile' => $mobile])->one();

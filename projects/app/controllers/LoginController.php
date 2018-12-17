@@ -103,11 +103,15 @@ class LoginController extends BaseController
             $userModel = $createUser->content;
             // 添加推荐关系
             if (!is_null($reCode)) {
-                if ($parentId = UserService::validateRemmendCode(strtoupper($reCode))) {
-                    $recommend = new BUserRecommend();
-                    $recommend->parent_id = $parentId;
-                    $recommend->link('user', $userModel);
+                $recommend = UserService::checkUserRecommend($userModel->id, $reCode);
+                if ($recommend->code) {
+                    return $this->respondJson($recommend->code, $recommend->msg, $recommend->content);
                 }
+                // if ($parentId = UserService::validateRemmendCode(strtoupper($reCode))) {
+                //     $recommend = new BUserRecommend();
+                //     $recommend->parent_id = $parentId;
+                //     $recommend->link('user', $userModel);
+                // }
             }
         }
         // 处理登录触发事件

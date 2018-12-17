@@ -1230,7 +1230,7 @@ export default {
       })
     },
     searchRecom() {
-      if (this.recomDate === null) this.searchDate = ''
+      if (this.recomDate === null) this.recomDate = ''
       this.recomCurrentPage = 1
       this.initRecom()
     },

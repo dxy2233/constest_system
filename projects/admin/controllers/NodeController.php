@@ -403,7 +403,7 @@ class NodeController extends BaseController
         }
         
         $find->andWhere(['A.status' => $status, 'old_type' => 0]);
-        echo $find->createCommand()->getRawSql();
+        // echo $find->createCommand()->getRawSql();
         //$data = NodeService::getIndexList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
         $return['count'] = $find->count();

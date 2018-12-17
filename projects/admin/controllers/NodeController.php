@@ -234,6 +234,7 @@ class NodeController extends BaseController
         $return['payable'] = NodeService::getGrtNumber($data->old_type, $data->type_id);
         $return['grt'] = $data->grt;
         $return['grt_address'] = $data->grt_address;
+        $return['status_remark'] = $data->status_remark;
         return $this->respondJson(0, '获取成功', $return);
     }
     // 升级审核通过
@@ -319,6 +320,7 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
         } elseif ($data->type_id == 1) {
+            // 如果升级为超级节点清除推荐关系
             $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
@@ -354,7 +356,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的申请');
         }
-
+        $data->examine_time = NOW_TIME;
         $data->status = BNodeUpgrade::STATUS_FAIL;
         $data->status_remark = $remark;
         if (!$data->save()) {

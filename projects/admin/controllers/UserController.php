@@ -862,8 +862,8 @@ class UserController extends BaseController
         }
         $return = [];
         $return['list'] = $data;
-        $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被推荐用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '推荐时间'];
-        $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
+        $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被邀请用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '邀请时间'];
+        $this->download($return['list'], $headers, '邀请列表'.date('YmdHis'));
 
         return;
     }

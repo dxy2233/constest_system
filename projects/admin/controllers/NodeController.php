@@ -199,12 +199,13 @@ class NodeController extends BaseController
         if ($searchName != '') {
             $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
         }
-        $find->andWhere(['a.status' => $status]);
+        $find->andWhere(['A.status' => $status]);
+        $find->andWhere(['!=', 'A.old_type', 0]);
         $count = $find->count();
         $data =  $find->page($page)->orderBy($order)->asArray()->all();
         foreach ($data as &$v) {
-            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-            $v['examine_time'] = date('Y-m-d H:i:s', $v['examine_time']);
+            $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['status'] = BNodeUpgrade::getStatus($v['status']);
         }
         $return = [];
@@ -317,13 +318,12 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-        }elseif($data->type_id == 1){
+        } elseif ($data->type_id == 1) {
             $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
             $recommend->delete();
-
         }
         
 
@@ -1344,7 +1344,7 @@ class NodeController extends BaseController
         if (!$node) {
             return $this->respondJson(1, '推荐人不是节点');
         }
-        if($node->type_id == 5){
+        if ($node->type_id == 5) {
             return $this->respondJson(1, '推荐人不能是微店节点');
         }
         $user = BUser::find()->where(['mobile' => $mobile])->one();

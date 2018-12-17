@@ -446,6 +446,11 @@ class NodeController extends BaseController
         if ($typeId >= $nodeModel->type_id) {
             return $this->respondJson(1, '节点类型不能低于当前节点');
         }
+        // 勾选清除推荐关系
+        $hasRemoveRecommend = $this->pString('remove_recommend');
+        if ($typeId == 1 && $hasRemoveRecommend !== 'true') {
+            return $this->respondJson(1, '需勾选清除推荐关系');
+        }
         
         $grtNum = $this->pFloat('grt_num', 0);
         $grtAddress = $this->pString('grt_address');

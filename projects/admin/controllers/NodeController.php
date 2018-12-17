@@ -416,7 +416,7 @@ class NodeController extends BaseController
             $item['tt'] = $v['tt'];
             $item['grt'] = $v['grt'];
             $item['type_name'] = $v['type_name'];
-            $item['status'] = BNode::getStatus($v['status']);
+            $item['status'] = BNodeUpgrade::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $return['list'][] = $item;

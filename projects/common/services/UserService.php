@@ -401,7 +401,7 @@ class UserService extends ServiceBase
         if ($node->type_id == 5) {
             return new ReturnInfo(1, "推荐人不能是微店节点");
         }
-        $recommend_parent = BNodeRecommend::find()->where(['id' => $user_id])->one();
+        $recommend_parent = BNodeRecommend::find()->where(['user_id' => $id])->one();
         $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
         $parent_arr = explode(',', $parentStr);
         if (in_array($user_id, $parent_arr)) {
@@ -474,12 +474,13 @@ class UserService extends ServiceBase
         if ($id === $user_id) {
             return new ReturnInfo(1, "推荐人不能是自己");
         }
-        $recommend_parent = BUserRecommend::find()->where(['id' => $user_id])->one();
+        $recommend_parent = BUserRecommend::find()->where(['user_id' => $id])->one();
         $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
         $parent_arr = explode(',', $parentStr);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
+
         // 如果是第一次添加
         if (empty($recommend)) {
             if ($parentStr != '') {

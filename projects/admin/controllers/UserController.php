@@ -56,6 +56,12 @@ class UserController extends BaseController
 
     public function actionIndex()
     {
+        $searchName = $this->pString('searchName');
+        $address = false;
+        if (strlen($searchName) > 30) {
+            $address = BUserRechargeAddress::find()->where(['address' => $searchName])->one();
+        }
+
         $find = BUser::find()
         ->from(BUser::tableName()." A")
 
@@ -66,20 +72,22 @@ class UserController extends BaseController
         $pageSize = $this->pInt('pageSize');
         $page = $this->pInt('page', 1);
         
-        $searchName = $this->pString('searchName');
-        
-        if ($searchName != '') {
-            $find->andWhere(['or',['like','A.username',$searchName],['like','C.name', $searchName]]);
+        if ($address) {
+            $find->andWhere(['A.id' => $address->user_id]);
+        } else {
+            if ($searchName != '') {
+                $find->andWhere(['or',['like','A.username',$searchName],['like','C.name', $searchName]]);
+            }
+            $str_time = $this->pString('str_time');
+            if ($str_time != '') {
+                $find->startTime($str_time, 'A.create_time');
+            }
+            $end_time = $this->pString('end_time');
+            if ($end_time != '') {
+                $find->endTime($end_time, 'A.create_time');
+            }
         }
-        $str_time = $this->pString('str_time');
-        if ($str_time != '') {
-            $find->startTime($str_time, 'A.create_time');
-        }
-        $end_time = $this->pString('end_time');
-        if ($end_time != '') {
-            $find->endTime($end_time, 'A.create_time');
-        }
-        
+
         $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time', 4 => 'sum(B.vote_number) desc', 5 => 'A.create_time desc', 6 => 'A.last_login_time desc'];
@@ -862,8 +870,8 @@ class UserController extends BaseController
         }
         $return = [];
         $return['list'] = $data;
-        $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被推荐用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '推荐时间'];
-        $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
+        $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被邀请用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '邀请时间'];
+        $this->download($return['list'], $headers, '邀请列表'.date('YmdHis'));
 
         return;
     }

@@ -117,18 +117,21 @@ class NodeController extends BaseController
         
         if (empty($nodeId) && !is_null($userModel)) {
             $nodeModel = $userModel->node;
-            if (is_null($nodeModel)) {
+            $newNodeGrade = $userModel->newNodeGrade;
+            if (!$nodeModel && !$newNodeGrade) {
                 if (!$userModel->nodeExtend) {
                     return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
                 } else {
                     return $this->respondJson(0, '节点未激活', ['status' => 0, 'status_str' => '节点未激活']);
                 }
             } else {
-                if ($nodeModel->status !== $nodeModel::STATUS_ON) {
-                    $nodeInfo = FuncHelper::arrayOnly($nodeModel->toArray(), ['status', 'status_remark', 'name']);
-                    $nodeInfo['status_str'] = $nodeModel::getStatus($nodeInfo['status']);
-                    $nodeInfo['type_id'] = $nodeModel->nodeType->id;
-                    $nodeInfo['type_name'] = $nodeModel->nodeType->name;
+                $nodeInfoModel = $nodeModel ?? $newNodeGrade;
+                if ($nodeInfoModel->status !== $nodeInfoModel::STATUS_ACTIVE) {
+                    $nodeInfo = FuncHelper::arrayOnly($nodeInfoModel->toArray(), ['status', 'status_remark', 'name']);
+                    $nodeInfo['status_str'] = $nodeInfoModel::getStatus($nodeInfo['status']);
+                    $nodeType = $nodeInfoModel->nodeType;
+                    $nodeInfo['type_id'] = $nodeType->id;
+                    $nodeInfo['type_name'] = $nodeType->name;
                     return $this->respondJson(0, '获取成功', $nodeInfo);
                 }
                 $nodeId = $nodeModel->id;

@@ -2,9 +2,6 @@
 
 namespace common\services;
 
-use common\models\business\BUserCurrency;
-use common\models\business\BUserCurrencyDetail;
-use common\models\business\BUserCurrencyFrozen;
 use common\models\User;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
@@ -14,13 +11,17 @@ use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BUser;
 use common\models\business\BUserLog;
-use common\models\business\BUserWallet;
-use common\models\business\BNodeRecommend;
-use common\models\business\BUserAccessToken;
-use common\models\business\BVoucherDetail;
-use common\models\business\BUserVoucher;
 use common\models\business\BVoucher;
+use common\models\business\BUserWallet;
+use common\models\business\BUserVoucher;
+use common\models\business\BUserCurrency;
+use common\models\business\BNodeRecommend;
+use common\models\business\BUserRecommend;
+use common\models\business\BVoucherDetail;
+use common\models\business\BUserAccessToken;
 use common\models\business\BUserRefreshToken;
+use common\models\business\BUserCurrencyDetail;
+use common\models\business\BUserCurrencyFrozen;
 
 class UserService extends ServiceBase
 {
@@ -400,15 +401,16 @@ class UserService extends ServiceBase
         if ($node->type_id == 5) {
             return new ReturnInfo(1, "推荐人不能是微店节点");
         }
-        $recommend_parent = BNodeRecommend::find()->where(['id' => $user_id])->one();
-        $parent_arr = explode(',', $recommend_parent->parent_list);
+        $recommend_parent = BNodeRecommend::find()->where(['user_id' => $id])->one();
+        $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
+        $parent_arr = explode(',', $parentStr);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
         // 如果是第一次添加
         if (empty($recommend)) {
-            if ($recommend_parent->parent_list != '') {
-                $str = $recommend_parent->parent_list . ',' . $id;
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id;
             } else {
                 $str = $id;
             }
@@ -418,29 +420,28 @@ class UserService extends ServiceBase
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
-            // 修改用户自己的上级列表
-            $this_user = BUser::find()->where(['id' => $user_id])->one();
-            $this_user->parent_list = $str;
-            $this_user->save();
+
 
             //添加推荐关系
-            $user_recommend = new BNodeRecommend();
-            $user_recommend->user_id = $user_id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
-                return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
+            $recommend = new BNodeRecommend();
+            $recommend->user_id = $user_id;
+            $recommend->parent_list = $str;
+            $recommend->parent_id = $id;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
             }
         } elseif ($recommend->parent_id != $id) {
             //更换推荐人
 
-            if ($recommend_parent->parent_list != '') {
-                $str = $recommend_parent->parent_list . ',' . $id . ',' . $user_id;
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id . ',' . $user_id;
+                $this_parent_list = $parentStr . ',' . $id;
             } else {
                 $str = $id . ',' . $user_id;
+                $this_parent_list = $id;
             }
-            $this_user = BUser::find()->where(['id' => $user_id])->one();
-            if ($this_user->parent_list != '') {
-                $old_str = $this_user->parent_list .  ',' . $user_id;
+            if ($recommend->parent_list != '') {
+                $old_str = $recommend->parent_list .  ',' . $user_id;
             } else {
                 // 添加上级列表
                 $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
@@ -452,11 +453,10 @@ class UserService extends ServiceBase
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
-            // 修改用户自己的上级列表
-            $this_user->parent_list = $user->parent_list . ',' . $id;
-            $this_user->save();
+
             //修改推荐关系
             $recommend->parent_id = $id;
+            $recommend->parent_list = $this_parent_list;
             if (!$recommend->save()) {
                 return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
             }
@@ -474,16 +474,17 @@ class UserService extends ServiceBase
         if ($id === $user_id) {
             return new ReturnInfo(1, "推荐人不能是自己");
         }
-        $recommend_parent = BUserRecommend::find()->where(['id' => $user_id])->one();
-
-        $parent_arr = explode(',', $recommend_parent->parent_list);
+        $recommend_parent = BUserRecommend::find()->where(['user_id' => $id])->one();
+        $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
+        $parent_arr = explode(',', $parentStr);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
+
         // 如果是第一次添加
         if (empty($recommend)) {
-            if ($recommend_parent->parent_list != '') {
-                $str = $recommend_parent->parent_list . ',' . $id;
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id;
             } else {
                 $str = $id;
             }
@@ -492,17 +493,15 @@ class UserService extends ServiceBase
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
-            // 修改用户自己的上级列表
-            $this_user = BUser::find()->where(['id' => $user_id])->one();
-            $this_user->parent_list = $str;
-            $this_user->save();
+
 
             //添加推荐关系
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user_id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
-                return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
+            $recommend = new BUserRecommend();
+            $recommend->user_id = $user_id;
+            $recommend->parent_id = $id;
+            $recommend->parent_list = $str;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
             }
         } elseif ($recommend->parent_id != $id) {
             //更换推荐人

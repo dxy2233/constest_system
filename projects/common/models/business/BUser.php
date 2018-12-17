@@ -205,6 +205,11 @@ class BUser extends \common\models\User
         return $this->hasOne(BNodeUpgrade::className(), ['user_id' => 'id'])->orderBy(['id' => SORT_DESC]);
     }
     
+    /**
+     * 微店节点关联
+     * 一对一
+     * @return void
+     */
     public function getNodeExtend()
     {
         return $this->hasOne(BNodeExtend::className(), ['mobile' => 'mobile']);

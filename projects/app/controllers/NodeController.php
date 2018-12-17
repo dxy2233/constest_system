@@ -321,7 +321,7 @@ class NodeController extends BaseController
                 'tt_address' => $ttAddress,
                 'bpt_address' => $bptAddress,
             ];
-            $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function($item) {
+            $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function ($item) {
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
@@ -516,7 +516,7 @@ class NodeController extends BaseController
         $bptAddress = $this->pString('bpt_address');
         
         $transaction = \Yii::$app->db->beginTransaction();
-        try{
+        try {
             $nodeUpgradeModel = new BNodeUpgrade();
             $userUpgradeQuery = $userModel->getNewNodeGrade()
             ->active($nodeUpgradeModel::STATUS_WAIT);
@@ -536,7 +536,7 @@ class NodeController extends BaseController
                 'tt_address' => $ttAddress,
                 'bpt_address' => $bptAddress,
             ];
-            $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function($item) {
+            $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function ($item) {
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {

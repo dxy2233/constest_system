@@ -526,7 +526,7 @@
       </el-select>
       <el-button style="float:right;" @click="downRecomExcel">导出excel</el-button>
       <div style="margin-top:20px;display:inline-block;">
-        邀请时间
+        推荐时间
         <el-date-picker
           v-model="recomDate"
           type="daterange"
@@ -545,7 +545,7 @@
         <el-table-column prop="pMoblie" label="用户"/>
         <el-table-column prop="pRealname" label="姓名"/>
         <el-table-column prop="pTypeId" label="类型"/>
-        <el-table-column prop="uMobile" label="被邀请用户"/>
+        <el-table-column prop="uMobile" label="被推荐用户"/>
         <el-table-column prop="uRealname" label="姓名"/>
         <el-table-column prop="uTypeId" label="类型"/>
         <el-table-column prop="amount" label="赠送投票券"/>

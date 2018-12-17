@@ -321,7 +321,7 @@ class NodeController extends BaseController
             }
         } elseif ($data->type_id == 1 && $recommend) {
             // 如果升级为超级节点清除推荐关系
-            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
+            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list.",".$data->user_id."%'";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();

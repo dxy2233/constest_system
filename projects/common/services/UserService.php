@@ -495,6 +495,7 @@ class UserService extends ServiceBase
             $user_recommend = new BUserRecommend();
             $user_recommend->user_id = $user_id;
             $user_recommend->parent_id = $id;
+            $user_recommend->parent_list = $recommend_parent->parent_list . ',' . $id;
             if (!$user_recommend->save()) {
                 return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
             }

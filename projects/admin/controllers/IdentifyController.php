@@ -138,9 +138,9 @@ class IdentifyController extends BaseController
         if (empty($remark)) {
             return $this->respondJson(1, '原因不能为空');
         }
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id DESC')->one();
+        $data = BUserIdentify::find()->where(['id' => $user_id])->orderBy('id DESC')->one();
         if (empty($data)) {
-            return $this->respondJson(1, '不存在的节点');
+            return $this->respondJson(1, '不存在的内容');
         }
         $data->status = BUserIdentify::STATUS_FAIL;
         $data->status_remark = BUserIdentify::getStatus(BUserIdentify::STATUS_FAIL);

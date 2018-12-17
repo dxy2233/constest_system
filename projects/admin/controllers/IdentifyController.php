@@ -51,7 +51,7 @@ class IdentifyController extends BaseController
         $page = $this->pInt('page', 1);
         $status = $this->pInt('status', 0);
         $find->andWhere(['B.status' => $status]);
-        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
+        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','B.id', 'B.examine_time']);
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
@@ -88,7 +88,7 @@ class IdentifyController extends BaseController
         }
         $status = $this->gInt('status', 0);
         $find->andWhere(['B.status' => $status]);
-        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
+        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','B.id', 'B.examine_time']);
         $searchName = $this->gString('searchName');
         
         if ($searchName != '') {
@@ -117,11 +117,11 @@ class IdentifyController extends BaseController
     {
         $user_id = $this->pInt('user_id');
         if (empty($user_id)) {
-            return $this->respondJson(1, '用户ID不能为空');
+            return $this->respondJson(1, 'ID不能为空');
         }
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id desc')->asArray()->one();
+        $data = BUserIdentify::find()->where(['id' => $user_id])->orderBy('id desc')->asArray()->one();
         if (empty($data)) {
-            return $this->respondJson(1, '此用户没有实名信息');
+            return $this->respondJson(1, '没有实名信息');
         }
         $data['pic_back'] = FuncHelper::getImageUrl($data['pic_back'], 640, 640);
         $data['pic_front'] = FuncHelper::getImageUrl($data['pic_front'], 640, 640);

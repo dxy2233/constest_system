@@ -44,11 +44,11 @@
       let isUpgrade = this.$route.path.includes('node/index')
       if (isUpgrade) {
         this.headerStr = '节点升级'
-        this.detailsStr = '节点申请失败原因：'
+        this.detailsStr = '节点升级失败原因：'
         this.againPath = '/personal/node/index/upgrade'
       } else {
         this.headerStr = '我的节点'
-        this.detailsStr = '节点升级失败原因：'
+        this.detailsStr = '节点申请失败原因：'
         this.againPath = '/personal/applynode/submit'
       }
     },

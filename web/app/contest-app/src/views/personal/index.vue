@@ -24,7 +24,7 @@
             </div>
           </div>
         </div>
-        <div v-if="nodeInfo.status===0" class="node_0">
+        <div v-else-if="nodeInfo.status===0" class="node_0">
           <img src="/static/images/personal-node/bg5.png" alt="" class="bg">
           <div class="node-content">
             <div class="left">
@@ -88,7 +88,7 @@
           <x-icon type="ios-arrow-right"></x-icon>
         </router-link>
         <router-link tag="li" to="/personal/rcmd">
-          <span class="text">我的推荐</span>
+          <span class="text">我的邀请</span>
           <x-icon type="ios-arrow-right"></x-icon>
         </router-link>
       </ul>

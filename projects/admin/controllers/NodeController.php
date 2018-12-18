@@ -1210,6 +1210,10 @@ class NodeController extends BaseController
         if (!$bool) {
             return $this->respondJson(1, '当前处于不可任职时间');
         }
+        $upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
+        if($upgrade){
+            return $this->respondJson(1, '当前节点有未处理的升级申请，不能任职');
+        }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
         if ($now_count >= $setting->tenure_num) {

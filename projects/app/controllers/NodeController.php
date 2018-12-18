@@ -246,7 +246,7 @@ class NodeController extends BaseController
         if (!$nodeTypeModel) {
             return $this->respondJson(1, '节点类型不存在');
         }
-        $typeNodeCount = BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
+        $typeNodeCount = (int) BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
         if ($nodeTypeModel->max_candidate < $typeNodeCount) {
             return $this->respondJson(1, '候选人数已满');
         }

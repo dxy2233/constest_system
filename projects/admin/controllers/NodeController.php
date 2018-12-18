@@ -577,16 +577,16 @@ class NodeController extends BaseController
             // } else {
             //     $str = $parent->parent_list.','.$data->parent_id;
             // }
-            // $recommend = new BNodeRecommend();
-            // $recommend->user_id = $data->user_id;
-            // $recommend->parent_id = $data->parent_id;
-            // $recommend->node_id = $node->id;
-            // $recommend->parent_list = $str;
-            // if (!$recommend->save()) {
-            //     $transaction->rollBack();
-            //     return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
-            // }
-            
+            $str = '';
+            $recommend = new BNodeRecommend();
+            $recommend->user_id = $data->user_id;
+            $recommend->parent_id = $data->parent_id;
+            $recommend->node_id = $node->id;
+            $recommend->parent_list = $str;
+            if (!$recommend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
+            }
         }
         
         //推荐赠送

@@ -216,7 +216,6 @@ class NodeController extends BaseController
     // 升级审核详情
     public function actionUpgradeDetail()
     {
-
         $id = $this->pInt('id', 0);
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
@@ -571,13 +570,6 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
         }
-        //推荐赠送
-        $res = NodeService::checkVoucher($data->user_id);
-        if ($res->code != 0) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', $res->msg);
-        }
-
         if ($data->parent_id) {
             $parent = BNodeRecommend::find()->where(['user_id' => $data->parent_id])->one();
             if (!$parent) {
@@ -596,6 +588,15 @@ class NodeController extends BaseController
             }
         }
         
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
+
+
 
         // 发送短信通知用户
         $user = BUser::find()->where(['id' => $data->user_id])->one();

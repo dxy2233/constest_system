@@ -571,22 +571,21 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
         }
         if ($data->parent_id) {
-            // $parent = BNodeRecommend::find()->where(['user_id' => $data->parent_id])->one();
-            // if (!$parent) {
-            //     $str = $data->parent_id;
-            // } else {
-            //     $str = $parent->parent_list.','.$data->parent_id;
-            // }
-            $str = '';
+            $parent = BNodeRecommend::find()->where(['user_id' => $data->parent_id])->one();
+            if (!$parent) {
+                $str = $data->parent_id;
+            } else {
+                $str = $parent->parent_list.','.$data->parent_id;
+            }
             $recommend = new BNodeRecommend();
             $recommend->user_id = $data->user_id;
             $recommend->parent_id = $data->parent_id;
             $recommend->node_id = $node->id;
             $recommend->parent_list = $str;
-            if (!$recommend->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
-            }
+            // if (!$recommend->save()) {
+            //     $transaction->rollBack();
+            //     return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
+            // }
         }
         
         //推荐赠送

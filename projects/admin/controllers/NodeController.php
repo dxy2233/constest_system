@@ -297,7 +297,7 @@ class NodeController extends BaseController
         $node = BNode::find()->where(['user_id' => $data->user_id])->one();
         $node->type_id = $data->type_id;
         
-        $node->quota = ($node->quota == null) ? null : $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
+        $node->quota = $node->quota ?? $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
         // if($data->old_type == 5){
         //     $node->quota += 82000;
         // }

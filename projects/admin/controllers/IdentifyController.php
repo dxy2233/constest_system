@@ -165,6 +165,9 @@ class IdentifyController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        if ($data->status == BUserIdentify::STATUS_ACTIVE) {
+            return $this->respondJson(1, '已处于通过状态');
+        }
         $data->status = BUserIdentify::STATUS_ACTIVE;
         $data->status_remark = '已通过';
         $data->examine_time = time();

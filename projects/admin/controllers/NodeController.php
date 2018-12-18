@@ -248,7 +248,9 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '数据不存在');
         }
-
+        if ($data->status == BNodeUpgrade::STATUS_ACTIVE) {
+            return $this->respondJson(1, '已处于通过状态');
+        }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
         if ($now_count >= $node_type->max_candidate) {
@@ -656,12 +658,12 @@ class NodeController extends BaseController
         $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
         $return = [];
 
-            $return['weixin'] = $data->weixin;
-            // $return['recommend_name'] = $other->recommend_name;
-            // $return['recommend_mobile'] = $other->recommend_mobile;
-            $return['grt_address'] = $data->grt_address;
-            $return['tt_address'] = $data->tt_address;
-            $return['bpt_address'] = $data->bpt_address;
+        $return['weixin'] = $data->weixin;
+        // $return['recommend_name'] = $other->recommend_name;
+        // $return['recommend_mobile'] = $other->recommend_mobile;
+        $return['grt_address'] = $data->grt_address;
+        $return['tt_address'] = $data->tt_address;
+        $return['bpt_address'] = $data->bpt_address;
 
         
         if ($identify) {
@@ -1473,9 +1475,9 @@ class NodeController extends BaseController
         // }
         // $node = new BNode();
         $old_upgrade = BNodeUpgrade::find()->where(['user_id' => $user->id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
-        if($old_upgrade){
+        if ($old_upgrade) {
             $transaction->rollBack();
-                    return $this->respondJson(1, '此用户已有申请在审核中');
+            return $this->respondJson(1, '此用户已有申请在审核中');
         }
         $node = new BNodeUpgrade();
         $node->old_type = 0;

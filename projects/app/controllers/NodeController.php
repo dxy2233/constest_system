@@ -603,6 +603,16 @@ class NodeController extends BaseController
         if (!$nodeExtend = $userModel->nodeExtend) {
             return $this->respondJson(1, '激活节点不存在');
         }
+        
+        // 判断类型以及人数是否已满
+        $nodeTypeModel = BNodeType::findOne($nodeExtend->type_id);
+        if (!$nodeTypeModel) {
+            return $this->respondJson(1, '节点类型不存在');
+        }
+        $typeNodeCount = (int) BNode::find()->where(['type_id' => $nodeExtend->type_id, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
+        if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
+            return $this->respondJson(1, '候选人数已满');
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         try {
             $statusRemark = '节点激活';

@@ -242,6 +242,15 @@ class NodeController extends BaseController
         if (!$weixin) {
             return $this->respondJson(1, '微信号不能为空');
         }
+        $nodeTypeModel = BNodeType::findOne($typeId);
+        if (!$nodeTypeModel) {
+            return $this->respondJson(1, '节点类型不存在');
+        }
+        $typeNodeCount = BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
+        if ($nodeTypeModel->max_candidate < $typeNodeCount) {
+            return $this->respondJson(1, '候选人数已满');
+        }
+
         $userModel = $this->user;
         $nodeModel = $userModel->node;
         if (!$userModel->is_identified) {
@@ -451,6 +460,15 @@ class NodeController extends BaseController
         }
         if ($typeId >= $nodeModel->type_id) {
             return $this->respondJson(1, '节点类型不能低于当前节点');
+        }
+        // 判断类型以及人数是否已满
+        $nodeTypeModel = BNodeType::findOne($typeId);
+        if (!$nodeTypeModel) {
+            return $this->respondJson(1, '节点类型不存在');
+        }
+        $typeNodeCount = BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
+        if ($nodeTypeModel->max_candidate < $typeNodeCount) {
+            return $this->respondJson(1, '候选人数已满');
         }
         // 勾选清除推荐关系
         $hasRemoveRecommend = $this->pString('remove_recommend');

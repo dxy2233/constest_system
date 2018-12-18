@@ -537,7 +537,7 @@ class NodeService extends ServiceBase
         $node_upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_ACTIVE])->all();
         $type = $node->type_id;
         foreach ($node_upgrade as $v) {
-            if ($v->old_type != 0 && $v->old_type < $type) {
+            if ($v->old_type <= count(gdt_num_arr) && $v->old_type > $type) {
                 $type = $v->old_type;
             }
         }

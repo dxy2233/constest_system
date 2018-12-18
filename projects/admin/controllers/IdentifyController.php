@@ -165,6 +165,9 @@ class IdentifyController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
+        if ($data->status == BUserIdentify::STATUS_ACTIVE) {
+            return $this->respondJson(1, '已处于通过状态');
+        }
         $data->status = BUserIdentify::STATUS_ACTIVE;
         $data->status_remark = '已通过';
         $data->examine_time = time();
@@ -172,7 +175,7 @@ class IdentifyController extends BaseController
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
-        $user = BUser::find()->where(['id' => $user_id])->one();
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
         $user->is_identified = BNotice::STATUS_ACTIVE;
         if (!$user->save()) {
             return $this->respondJson(1, '审核失败', $user->getFirstErrorText());

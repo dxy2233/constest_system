@@ -51,7 +51,7 @@ class BUser extends \common\models\User
      */
     public function getIdentify()
     {
-        return $this->hasOne(BUserIdentify::className(), ['user_id' => 'id']);
+        return $this->hasOne(BUserIdentify::className(), ['user_id' => 'id'])->orderBy(['id' => SORT_DESC]);
     }
     /**
      * 用户钱包

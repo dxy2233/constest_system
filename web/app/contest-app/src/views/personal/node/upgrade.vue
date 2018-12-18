@@ -34,9 +34,9 @@
             <sel :dataList="nodeSelData" placeholder="请选择节点类型" :select="form.type_id"
                  value="id" label="name" @changeSel="changeNode"></sel>
           </div>
-          <div v-if="form.type_id==='1'" class="form-item">
+          <div v-if="form.type_id==='1'" class="form-item" v-show="hasRecommend">
             <div class="label">
-              升级成功后，推荐你成为“填写用户当前的节点身份”的用户将不再获得节点推荐奖,同时清除推荐关系
+              升级成功后，推荐你成为“{{myNodeInfo.name}}”的用户将不再获得节点推荐奖,同时清除推荐关系
               <span class="must">*</span>
             </div>
             <check-icon :value.sync="form.remove_recommend">同意清除关系</check-icon>
@@ -49,6 +49,9 @@
             <input onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)"
                    @blur="getRecommendMsg" maxlength="11"
                    type="text" v-model="form.recommend_mobile" placeholder="输入推荐人手机号">
+            <p class="ps">
+              请正确填写节点推荐人手机号，节点推荐人将获得奖励，不填或填写错误提交后将不可修改
+            </p>
           </div>
 
           <div class="form-item">
@@ -124,20 +127,19 @@
         btnLoading: false,
         recommend_name: '',
         hasRecommend: true,
-
       }
     },
     methods: {
       submitFrom() {
         if (this.myNodeInfo.isTenure) {
-          this.$vux.toast.show('任职状态下不能升级')
+          this.$vux.toast.show('任职状态不能升级')
           return
         }
         if (this.form.type_id >= this.myNodeInfo.typeId) {
           this.$vux.toast.show('只能升级到更高的节点')
           return
         }
-        if (this.form.type_id==='1'&&!this.form.remove_recommend){
+        if (this.form.type_id === '1' && !this.form.remove_recommend) {
           this.$vux.toast.show('请同意清除关系')
           return
         }
@@ -239,6 +241,10 @@
     .h-main
       padding-left $space-box
       padding-right $space-box
+    .ps
+      color $color-theme
+      font-size $font-size-small-s
+      margin-top 5px
     .upgrade-top
       padding-top 35px
       h1

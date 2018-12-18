@@ -48,3 +48,14 @@ export function deleteNote(nodeId) {
     }
   })
 }
+
+// 获取节点基本信息
+export function getNodeBase(nodeId) {
+  return request({
+    url: '/node/get-node-examine-detail',
+    method: 'post',
+    data: {
+      nodeId
+    }
+  })
+}

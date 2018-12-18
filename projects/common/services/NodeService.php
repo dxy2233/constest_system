@@ -537,10 +537,11 @@ class NodeService extends ServiceBase
         $node_upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_ACTIVE])->all();
         $type = $node->type_id;
         foreach ($node_upgrade as $v) {
-            if ($v->old_type != 0 && $v->old_type < $type) {
+            if ($v->old_type <= count($gdt_num_arr) && $v->old_type > $type) {
                 $type = $v->old_type;
             }
         }
+
         // 判断是否有投票券赠送记录
         // 由于节点可升级且升级后不再次赠送，故取消数量判断
         $voucher = BVoucher::find()->where(['give_user_id' => $recommend->user_id, 'user_id' => $recommend->parent_id, 'node_id' => $node->id])->one();
@@ -557,6 +558,7 @@ class NodeService extends ServiceBase
                 return new FuncResult(1, '补充失败', $recommend->getFirstErrorText());
             }
         }
+
         // 判断是否有gdt赠送记录
         $old_gdt = BUserCurrencyDetail::find()->where(['type' => BUserCurrencyDetail::$TYPE_REWARD,  'relate_table' => 'voucher', 'relate_id' => $voucher->id, 'currency_id' => BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT)])->one();
         if (!$old_gdt) {
@@ -573,6 +575,7 @@ class NodeService extends ServiceBase
                 return new FuncResult(1, '补充失败', $json->msg);
             }
         }
+
         return new FuncResult(0, '补充成功');
     }
     

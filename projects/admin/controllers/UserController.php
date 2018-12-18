@@ -583,10 +583,10 @@ class UserController extends BaseController
             return $this->respondJson(1, '注册失败', $user->getFirstErrorText());
         }
         if ($code != '') {
-            $res = UserService::checkNodeRecommend($user->id, $code);
+            $res = UserService::checkUserRecommend($user->id, $code);
             if ($res->code != 0) {
                 $transaction->rollBack();
-                return $this->respondJson(1, $str.'失败', $res->msg);
+                return $this->respondJson(1, '注册失败', $res->msg);
             }
         }
         $user_voucher = new BUserVoucher();
@@ -867,6 +867,7 @@ class UserController extends BaseController
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $return = [];
         $return['list'] = $data;

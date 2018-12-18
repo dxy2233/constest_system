@@ -119,10 +119,10 @@ class NodeController extends BaseController
             $nodeModel = $userModel->node;
             $newNodeGrade = $userModel->newNodeGrade;
             if (!$nodeModel && !$newNodeGrade) {
-                if (!$userModel->nodeExtend) {
-                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
+                if (!$nodeExtendModel = $userModel->nodeExtend) {
+                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'type_id'=> 0, 'status_str' => '节点不存在']);
                 } else {
-                    return $this->respondJson(0, '节点未激活', ['status' => 0, 'status_str' => '节点未激活']);
+                    return $this->respondJson(0, '节点未激活', ['status' => -2, 'type_id' => $nodeExtendModel->type_id, 'status_str' => '节点未激活']);
                 }
             } else {
                 $nodeInfoModel = $nodeModel ?? $newNodeGrade;
@@ -132,6 +132,9 @@ class NodeController extends BaseController
                     $nodeType = $nodeInfoModel->nodeType;
                     $nodeInfo['type_id'] = $nodeType->id;
                     $nodeInfo['type_name'] = $nodeType->name;
+                    if ($nodeModel) {
+                        $nodeInfo['status'] = $nodeModel->status ?: -100;
+                    }
                     return $this->respondJson(0, '获取成功', $nodeInfo);
                 }
                 $nodeId = $nodeModel->id;
@@ -242,6 +245,15 @@ class NodeController extends BaseController
         if (!$weixin) {
             return $this->respondJson(1, '微信号不能为空');
         }
+        $nodeTypeModel = BNodeType::findOne($typeId);
+        if (!$nodeTypeModel) {
+            return $this->respondJson(1, '节点类型不存在');
+        }
+        $typeNodeCount = (int) BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
+        if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
+            return $this->respondJson(1, '候选人数已满');
+        }
+
         $userModel = $this->user;
         $nodeModel = $userModel->node;
         if (!$userModel->is_identified) {
@@ -304,20 +316,26 @@ class NodeController extends BaseController
         try {
             $nodeUpgradeModel = new BNodeUpgrade();
             $maxId = BNodeUpgrade::find()->max('id') + 1;
-            $nodeUpgradeModel->old_type = 0;
-            $nodeUpgradeModel->user_id = $userModel->id;
-            $nodeUpgradeModel->name = '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT);
-            $nodeUpgradeModel->desc = '该节点很懒什么都没有写';
-            $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
-            $nodeUpgradeModel->parent_id = $reParentId ?? 0;
-            $nodeUpgradeModel->type_id = $typeId;
-            $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_WAIT;
-            $nodeUpgradeModel->grt = $grtNum;
-            $nodeUpgradeModel->tt = $ttNum;
-            $nodeUpgradeModel->bpt = $bptNum;
-            $nodeUpgradeModel->grt_address = $grtAddress;
-            $nodeUpgradeModel->tt_address = $ttAddress;
-            $nodeUpgradeModel->bpt_address = $bptAddress;
+            $nodeUpgradeData = [
+                'weixin' => $weixin ?? '未设置',
+                'desc' => '该节点很懒什么都没有写',
+                'scheme' => '该节点很懒什么都没有写',
+                'name' => '节点' . str_pad($maxId, 4, '0', STR_PAD_LEFT),
+                'user_id' => $userModel->id,
+                'status' => $nodeUpgradeModel::STATUS_WAIT,
+                'old_type' => 0,
+                'type_id' => $typeId,
+                'parent_id' => $reParentId ?? 0,
+                'grt' => $grtNum,
+                'tt' => $ttNum,
+                'bpt' => $bptNum,
+                'grt_address' => $grtAddress,
+                'tt_address' => $ttAddress,
+                'bpt_address' => $bptAddress,
+            ];
+            $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function ($item) {
+                return !is_null($item);
+            });
             if (!$nodeUpgradeModel->save()) {
                 throw new ErrorException($voteModel->getFirstError());
             }
@@ -446,6 +464,20 @@ class NodeController extends BaseController
         if ($typeId >= $nodeModel->type_id) {
             return $this->respondJson(1, '节点类型不能低于当前节点');
         }
+        // 判断类型以及人数是否已满
+        $nodeTypeModel = BNodeType::findOne($typeId);
+        if (!$nodeTypeModel) {
+            return $this->respondJson(1, '节点类型不存在');
+        }
+        $typeNodeCount = (int) BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
+        if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
+            return $this->respondJson(1, '候选人数已满');
+        }
+        // 勾选清除推荐关系
+        $hasRemoveRecommend = $this->pString('remove_recommend');
+        if ($typeId == 1 && $hasRemoveRecommend !== 'true') {
+            return $this->respondJson(1, '需勾选清除推荐关系');
+        }
         
         $grtNum = $this->pFloat('grt_num', 0);
         $grtAddress = $this->pString('grt_address');
@@ -505,7 +537,7 @@ class NodeController extends BaseController
         $bptAddress = $this->pString('bpt_address');
         
         $transaction = \Yii::$app->db->beginTransaction();
-        try{
+        try {
             $nodeUpgradeModel = new BNodeUpgrade();
             $userUpgradeQuery = $userModel->getNewNodeGrade()
             ->active($nodeUpgradeModel::STATUS_WAIT);
@@ -515,10 +547,9 @@ class NodeController extends BaseController
             $nodeUpgradeData = [
                 'user_id' => $userModel->id,
                 'status' => $nodeUpgradeModel::STATUS_WAIT,
-                'node_id' => $nodeModel->id,
                 'old_type' => $nodeModel->type_id,
                 'type_id' => $typeId,
-                'parent_id' => $reParentId,
+                'parent_id' => $reParentId ?? 0,
                 'grt' => $grtNum,
                 'tt' => $ttNum,
                 'bpt' => $bptNum,
@@ -526,7 +557,7 @@ class NodeController extends BaseController
                 'tt_address' => $ttAddress,
                 'bpt_address' => $bptAddress,
             ];
-            $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function($item) {
+            $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function ($item) {
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
@@ -574,6 +605,16 @@ class NodeController extends BaseController
         }
         if (!$nodeExtend = $userModel->nodeExtend) {
             return $this->respondJson(1, '激活节点不存在');
+        }
+        
+        // 判断类型以及人数是否已满
+        $nodeTypeModel = BNodeType::findOne($nodeExtend->type_id);
+        if (!$nodeTypeModel) {
+            return $this->respondJson(1, '节点类型不存在');
+        }
+        $typeNodeCount = (int) BNode::find()->where(['type_id' => $nodeExtend->type_id, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
+        if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
+            return $this->respondJson(1, '候选人数已满');
         }
         $transaction = \Yii::$app->db->beginTransaction();
         try {

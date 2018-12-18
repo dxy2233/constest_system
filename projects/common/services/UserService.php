@@ -12,6 +12,7 @@ use common\components\FuncResult;
 use common\models\business\BUser;
 use common\models\business\BUserLog;
 use common\models\business\BVoucher;
+use common\models\business\BNode;
 use common\models\business\BUserWallet;
 use common\models\business\BUserVoucher;
 use common\models\business\BUserCurrency;

@@ -155,7 +155,7 @@ class NodeController extends BaseController
             } else {
                 $v['weixin'] = $v['grt_address'] = $v['tt_address'] = $v['bpt_address'] = $v['consignee'] = $v['consignee_mobile'] = $v['zip_code'] = $v['address'] = '';
             }
-            $identify = BUserIdentify::find()->where(['user_id' => $v['user_id']])->one();
+            $identify = BUserIdentify::find()->where(['user_id' => $v['user_id']])->active()->one();
             if ($identify) {
                 $v['realname'] = $identify->realname;
                 $v['number'] = $identify->number;
@@ -225,7 +225,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '数据不存在');
         }
         $user = BUser::find()->where(['id' => $data->user_id])->one();
-        $identify = BUserIdentify::find()->where(['user_id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->where(['user_id' => $data->user_id])->active()->one();
         $return = [];
         $return['old_name'] = BNodeType::GetName($data->old_type);
         $return['new_name'] = BNodeType::GetName($data->type_id);
@@ -234,6 +234,7 @@ class NodeController extends BaseController
         $return['payable'] = NodeService::getGrtNumber($data->old_type, $data->type_id);
         $return['grt'] = $data->grt;
         $return['grt_address'] = $data->grt_address;
+        $return['status_remark'] = $data->status_remark;
         return $this->respondJson(0, '获取成功', $return);
     }
     // 升级审核通过
@@ -247,7 +248,9 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '数据不存在');
         }
-
+        if ($data->status == BNodeUpgrade::STATUS_ACTIVE) {
+            return $this->respondJson(1, '已处于通过状态');
+        }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
         if ($now_count >= $node_type->max_candidate) {
@@ -293,7 +296,15 @@ class NodeController extends BaseController
         // 添加节点信息
         $node = BNode::find()->where(['user_id' => $data->user_id])->one();
         $node->type_id = $data->type_id;
-        $node->quota = $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
+        // 升级时若原销售配额不为空则累加需补充部分
+        $node->quota = ($node->quota == null) ? null : $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
+
+        if($data->old_type == 5){
+            // 微店第一次升级时，多增加微店设置值的销售配额
+            $now_quota = BNodeType::find()->where(['id' => $data->type_id])->one();
+            $wd_quota = BNodeType::find()->where(['id' => 5])->one();
+            $node->quota = ($node->quota == null) ? $now_quota->quota + $wd_quota->quota : $node->quota += $wd_quota->quota;
+        }
         $node->examine_time = $data->examine_time;
         if (!$node->save()) {
             $transaction->rollBack();
@@ -318,12 +329,21 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-        } elseif ($data->type_id == 1) {
-            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list."',".$data->user_id."%'";
+        } elseif ($data->type_id == 1 && $recommend) {
+            // 如果升级为超级节点清除推荐关系
+            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list.",".$data->user_id."%'";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
             $recommend->delete();
+        }
+        
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
         }
         
 
@@ -354,7 +374,7 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的申请');
         }
-
+        $data->examine_time = NOW_TIME;
         $data->status = BNodeUpgrade::STATUS_FAIL;
         $data->status_remark = $remark;
         if (!$data->save()) {
@@ -370,6 +390,8 @@ class NodeController extends BaseController
         if (empty($status)) {
             return $this->respondJson(1, '审核状态不能为空');
         }
+        $status_arr = [1 => 1, 2 => 0, 4 => 2];
+        $status = $status_arr[$status];
         $searchName = $this->pString('searchName', '');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
@@ -395,8 +417,9 @@ class NodeController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-        $find->andWhere(['A.status' => $status, 'old_type' => 0]);
         
+        $find->andWhere(['A.status' => $status, 'old_type' => 0]);
+        // echo $find->createCommand()->getRawSql();
         //$data = NodeService::getIndexList($page, $searchName, $str_time, $end_time, 0, $status, $order);
         $return = [];
         $return['count'] = $find->count();
@@ -411,7 +434,7 @@ class NodeController extends BaseController
             $item['tt'] = $v['tt'];
             $item['grt'] = $v['grt'];
             $item['type_name'] = $v['type_name'];
-            $item['status'] = BNode::getStatus($v['status']);
+            $item['status'] = BNodeUpgrade::getStatus($v['status']);
             $item['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $item['examine_time'] = $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $return['list'][] = $item;
@@ -493,8 +516,8 @@ class NodeController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '不存在的申请');
         }
-        if($data->status == BNode::STATUS_ON){
-            return $this->respondJson(1, '错误的状态');
+        if ($data->status == BNode::STATUS_ON) {
+            return $this->respondJson(1, '已处于通过状态');
         }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
@@ -555,13 +578,6 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
         }
-        //推荐赠送
-        $res = NodeService::checkVoucher($data->user_id);
-        if ($res->code != 0) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', $res->msg);
-        }
-
         if ($data->parent_id) {
             $parent = BNodeRecommend::find()->where(['user_id' => $data->parent_id])->one();
             if (!$parent) {
@@ -580,6 +596,15 @@ class NodeController extends BaseController
             }
         }
         
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
+
+
 
         // 发送短信通知用户
         $user = BUser::find()->where(['id' => $data->user_id])->one();
@@ -637,6 +662,43 @@ class NodeController extends BaseController
         $return['scheme'] = $data->scheme;
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
+    }
+    // 节点基本信息
+    public function actionGetNodeExamineDetail()
+    {
+        $nodeId = $this->pInt('nodeId');
+        $data = BNodeUpgrade::find()->where(['id' => $nodeId])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的申请');
+        }
+        $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
+        $return = [];
+
+        $return['weixin'] = $data->weixin;
+        // $return['recommend_name'] = $other->recommend_name;
+        // $return['recommend_mobile'] = $other->recommend_mobile;
+        $return['grt_address'] = $data->grt_address;
+        $return['tt_address'] = $data->tt_address;
+        $return['bpt_address'] = $data->bpt_address;
+
+        
+        if ($identify) {
+            $return['username'] = $identify->realname;
+        } else {
+            $return['username'] = '';
+        }
+        $return['mobile'] = $user->mobile;
+        $return['type_name'] = $node_type->name;
+        $return['status_remark'] = $data->status_remark;
+
+        $msg = '获取成功';
+
+        $return['grt'] = $data->grt;
+        $return['tt'] = $data->tt;
+        $return['bpt'] = $data->bpt;
+        return $this->respondJson(0, $msg, $return);
     }
     // 节点基本信息
     public function actionGetNodeUserData()
@@ -1156,6 +1218,10 @@ class NodeController extends BaseController
         if (!$bool) {
             return $this->respondJson(1, '当前处于不可任职时间');
         }
+        $upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
+        if($upgrade){
+            return $this->respondJson(1, '当前节点有未处理的升级申请，不能任职');
+        }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
         if ($now_count >= $setting->tenure_num) {
@@ -1430,6 +1496,11 @@ class NodeController extends BaseController
         //     return $this->respondJson(1, '候选数量已达上限');
         // }
         // $node = new BNode();
+        $old_upgrade = BNodeUpgrade::find()->where(['user_id' => $user->id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
+        if ($old_upgrade) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '此用户已有申请在审核中');
+        }
         $node = new BNodeUpgrade();
         $node->old_type = 0;
         $node->user_id = $user->id;

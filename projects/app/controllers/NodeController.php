@@ -247,7 +247,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '节点类型不存在');
         }
         $typeNodeCount = (int) BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
-        if ($nodeTypeModel->max_candidate < $typeNodeCount) {
+        if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
             return $this->respondJson(1, '候选人数已满');
         }
 
@@ -467,7 +467,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '节点类型不存在');
         }
         $typeNodeCount = (int) BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
-        if ($nodeTypeModel->max_candidate < $typeNodeCount) {
+        if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
             return $this->respondJson(1, '候选人数已满');
         }
         // 勾选清除推荐关系

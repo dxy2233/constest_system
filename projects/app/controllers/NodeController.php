@@ -119,10 +119,10 @@ class NodeController extends BaseController
             $nodeModel = $userModel->node;
             $newNodeGrade = $userModel->newNodeGrade;
             if (!$nodeModel && !$newNodeGrade) {
-                if (!$userModel->nodeExtend) {
-                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
+                if (!$nodeExtendModel = $userModel->nodeExtend) {
+                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'type_id'=> 0, 'status_str' => '节点不存在']);
                 } else {
-                    return $this->respondJson(0, '节点未激活', ['status' => 0, 'status_str' => '节点未激活']);
+                    return $this->respondJson(0, '节点未激活', ['status' => -2, 'type_id' => $nodeExtendModel->type_id, 'status_str' => '节点未激活']);
                 }
             } else {
                 $nodeInfoModel = $nodeModel ?? $newNodeGrade;
@@ -132,6 +132,9 @@ class NodeController extends BaseController
                     $nodeType = $nodeInfoModel->nodeType;
                     $nodeInfo['type_id'] = $nodeType->id;
                     $nodeInfo['type_name'] = $nodeType->name;
+                    if ($nodeModel) {
+                        $nodeInfo['status'] = $nodeModel->status ?: -100;
+                    }
                     return $this->respondJson(0, '获取成功', $nodeInfo);
                 }
                 $nodeId = $nodeModel->id;

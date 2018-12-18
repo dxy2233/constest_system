@@ -300,8 +300,8 @@ class NodeController extends BaseController
         $node->quota = $node->quota ?? $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
         if($data->old_type == 5){
             // 微店第一次升级时，多增加微店设置值的销售配额
-            $now_quota = BNodeType::find()->where(['type' => $data->type_id])->one();
-            $wd_quota = BNodeType::find()->where(['type' => 5])->one();
+            $now_quota = BNodeType::find()->where(['id' => $data->type_id])->one();
+            $wd_quota = BNodeType::find()->where(['id' => 5])->one();
             $node->quota = ($node->quota == null) ? $now_quota->quota + $wd_quota->quota : $node->quota += $wd_quota->quota;
         }
         $node->examine_time = $data->examine_time;

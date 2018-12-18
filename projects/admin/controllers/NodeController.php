@@ -582,10 +582,10 @@ class NodeController extends BaseController
             $recommend->parent_id = $data->parent_id;
             $recommend->node_id = $node->id;
             $recommend->parent_list = $str;
-            // if (!$recommend->save()) {
-            //     $transaction->rollBack();
-            //     return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
-            // }
+            if (!$recommend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
+            }
         }
         
         //推荐赠送

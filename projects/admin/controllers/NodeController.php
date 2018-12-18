@@ -584,7 +584,7 @@ class NodeController extends BaseController
             $recommend->parent_list = $str;
             if (!$recommend->save()) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
+                return $this->respondJson(1, '审核失败');
             }
         }
         

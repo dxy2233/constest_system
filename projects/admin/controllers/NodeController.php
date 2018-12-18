@@ -216,7 +216,6 @@ class NodeController extends BaseController
     // 升级审核详情
     public function actionUpgradeDetail()
     {
-
         $id = $this->pInt('id', 0);
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
@@ -337,6 +336,14 @@ class NodeController extends BaseController
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
             $recommend->delete();
+        }
+        
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
         }
         
 
@@ -510,7 +517,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '不存在的申请');
         }
         if ($data->status == BNode::STATUS_ON) {
-            return $this->respondJson(1, '错误的状态');
+            return $this->respondJson(1, '已处于通过状态');
         }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();
@@ -571,13 +578,6 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
         }
-        //推荐赠送
-        $res = NodeService::checkVoucher($data->user_id);
-        if ($res->code != 0) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', $res->msg);
-        }
-
         if ($data->parent_id) {
             $parent = BNodeRecommend::find()->where(['user_id' => $data->parent_id])->one();
             if (!$parent) {
@@ -596,6 +596,15 @@ class NodeController extends BaseController
             }
         }
         
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
+
+
 
         // 发送短信通知用户
         $user = BUser::find()->where(['id' => $data->user_id])->one();
@@ -1208,6 +1217,10 @@ class NodeController extends BaseController
         }
         if (!$bool) {
             return $this->respondJson(1, '当前处于不可任职时间');
+        }
+        $upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
+        if($upgrade){
+            return $this->respondJson(1, '当前节点有未处理的升级申请，不能任职');
         }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();

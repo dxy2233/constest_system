@@ -338,6 +338,14 @@ class NodeController extends BaseController
             $recommend->delete();
         }
         
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
+        
 
         // 发送短信通知用户
         $user = BUser::find()->where(['id' => $data->user_id])->one();

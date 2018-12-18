@@ -216,6 +216,7 @@ class NodeController extends BaseController
     // 升级审核详情
     public function actionUpgradeDetail()
     {
+
         $id = $this->pInt('id', 0);
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
@@ -297,7 +298,8 @@ class NodeController extends BaseController
         $node = BNode::find()->where(['user_id' => $data->user_id])->one();
         $node->type_id = $data->type_id;
         // 升级时若原销售配额不为空则累加需补充部分
-        $node->quota = $node->quota ?? $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
+        $node->quota = ($node->quota == null) ? null : $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
+
         if($data->old_type == 5){
             // 微店第一次升级时，多增加微店设置值的销售配额
             $now_quota = BNodeType::find()->where(['id' => $data->type_id])->one();

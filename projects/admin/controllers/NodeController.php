@@ -510,7 +510,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '不存在的申请');
         }
         if ($data->status == BNode::STATUS_ON) {
-            return $this->respondJson(1, '错误的状态');
+            return $this->respondJson(1, '已处于通过状态');
         }
         $now_count = BNode::find()->where(['type_id' => $data->type_id, 'status' => BNode::STATUS_ON])->count();
         $node_type = BNodeType::find()->where(['id' => $data->type_id])->one();

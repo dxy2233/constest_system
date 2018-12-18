@@ -38,7 +38,7 @@
       <el-table-column prop="userType" label="类型"/>
       <el-table-column prop="nodeName" label="拥有节点"/>
       <el-table-column prop="num" label="已投票数" sortable="custom"/>
-      <el-table-column prop="referee" label="推荐人"/>
+      <el-table-column prop="referee" label="邀请人"/>
       <el-table-column prop="status" label="状态"/>
       <el-table-column prop="createTime" label="注册时间" sortable="custom"/>
       <el-table-column prop="lastLoginTime" label="最近一次登录时间" sortable="custom"/>

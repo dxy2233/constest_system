@@ -104,9 +104,11 @@ const user = {
         if (roles === 1) {
           for (var i = 0; i < 12; i++) {
             accessedRouters.push(asyncRouterMap[i])
+            // if (i === 8) accessedRouters.push(asyncRouterMap[40])
           }
           accessedRouters.push(asyncRouterMap[38])
           accessedRouters.push(asyncRouterMap[37])
+          accessedRouters.push(asyncRouterMap[40])
           accessedRouters.push(asyncRouterMap[404])
           getRolePurview(roles).then(res => {
             const routersInfo = res.content

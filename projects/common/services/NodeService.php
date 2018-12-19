@@ -16,7 +16,8 @@ use common\models\business\BNotice;
 use common\models\business\BCurrency;
 use common\models\business\BVoucher;
 use common\models\business\BNodeRule;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeUpgrade;
+use common\models\business\BNodeRecommend;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
 use common\models\business\BUserCurrencyDetail;
@@ -369,7 +370,6 @@ class NodeService extends ServiceBase
         foreach ($currency_arr  as $v) {
             $currency_id[$v['code']] = $v['id'];
         }
-        $user = BNode::find()->where(['id' => $node->user_id])->one();
 
         //GRT
         if ($node->grt != 0) {
@@ -431,7 +431,7 @@ class NodeService extends ServiceBase
         $frozen->remark = '节点竞选';
         $frozen->status = BUserCurrencyFrozen::STATUS_FROZEN;
         $frozen->type = BUserCurrencyFrozen::$TYPE_ELECTION;
-        $frozen->relate_table = 'node';
+        $frozen->relate_table = 'node_upgrade';
         $frozen->relate_id = $transaction_id;
         if (!$frozen->save()) {
             return new FuncResult(1, '模拟失败', $frozen->getFirstErrorText());
@@ -472,7 +472,7 @@ class NodeService extends ServiceBase
             return new FuncResult(1, '节点不存在');
         }
         $node_type = BNodeType::find()->where(['id' => $node->type_id])->one();
-        $recommend = BUserRecommend::find()->where(['user_id' => $user->id])->one();
+        $recommend = BNodeRecommend::find()->where(['user_id' => $user->id])->one();
         $identify = BUserIdentify::find()->where(['user_id' => $user->id])->one();
         $return = [];
         $return['mobile'] = $mobile;
@@ -500,7 +500,7 @@ class NodeService extends ServiceBase
             return new FuncResult(0, '非节点不送奖励');
         }
         // 轮询此用户推荐的用户
-        $data = BUserRecommend::find()->where(['parent_id' => $user_id])->all();
+        $data = BNodeRecommend::find()->where(['parent_id' => $user_id])->all();
 
         foreach ($data as $v) {
             // 判断被推荐人是否节点
@@ -514,7 +514,7 @@ class NodeService extends ServiceBase
             }
         }
         //判断用户是否有推荐人
-        $parent = BUserRecommend::find()->where(['user_id' => $user_id])->one();
+        $parent = BNodeRecommend::find()->where(['user_id' => $user_id])->one();
         if ($parent) {
             // 判断推荐人是否是节点
             $node = BNode::find()->where(['user_id' => $parent->parent_id])->active()->one();
@@ -530,34 +530,44 @@ class NodeService extends ServiceBase
         return new FuncResult(0, '补充成功');
     }
     // 具体赠送
-    public static function checkVoucherDo(BUserRecommend $recommend, BNode $node)
+    public static function checkVoucherDo(BNodeRecommend $recommend, BNode $node)
     {
-        $tpq_num_arr = [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
-        $gdt_num_arr = [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];
+        $tpq_num_arr = is_array(\Yii::$app->params['recommend']['voucher']) ? \Yii::$app->params['recommend']['voucher'] : [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ];
+        $gdt_num_arr = is_array(\Yii::$app->params['recommend']['gdt']) ? \Yii::$app->params['recommend']['gdt'] : [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ];
+        $node_upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_ACTIVE])->all();
+        $type = $node->type_id;
+        foreach ($node_upgrade as $v) {
+            if ($v->old_type <= count($gdt_num_arr) && $v->old_type > $type) {
+                $type = $v->old_type;
+            }
+        }
+
         // 判断是否有投票券赠送记录
-        $voucher = BVoucher::find()->where(['give_user_id' => $recommend->user_id, 'user_id' => $recommend->parent_id, 'node_id' => $node->id, 'voucher_num' => $tpq_num_arr[$node->type_id]])->one();
+        // 由于节点可升级且升级后不再次赠送，故取消数量判断
+        $voucher = BVoucher::find()->where(['give_user_id' => $recommend->user_id, 'user_id' => $recommend->parent_id, 'node_id' => $node->id])->one();
         if (!$voucher) {
-            $res = VoucherService::createNewVoucher($recommend->parent_id, $node->id, $tpq_num_arr[$node->type_id], $recommend->user_id);
+            $res = VoucherService::createNewVoucher($recommend->parent_id, $node->id, $tpq_num_arr[$type], $recommend->user_id);
             if ($res->code != 0) {
                 return new FuncResult(1, '补充失败');
             } else {
                 $voucher = $res->content;
             }
             $recommend->node_id = $node->id;
-            $recommend->amount = $tpq_num_arr[$node->type_id];
+            $recommend->amount = $tpq_num_arr[$type];
             if (!$recommend->save()) {
                 return new FuncResult(1, '补充失败', $recommend->getFirstErrorText());
             }
         }
+
         // 判断是否有gdt赠送记录
-        $old_gdt = BUserCurrencyDetail::find()->where(['type' => BUserCurrencyDetail::$TYPE_REWARD, 'amount' => $gdt_num_arr[$node->type_id], 'relate_table' => 'voucher', 'relate_id' => $voucher->id, 'currency_id' => BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT)])->one();
+        $old_gdt = BUserCurrencyDetail::find()->where(['type' => BUserCurrencyDetail::$TYPE_REWARD,  'relate_table' => 'voucher', 'relate_id' => $voucher->id, 'currency_id' => BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT)])->one();
         if (!$old_gdt) {
             $res = [
                     'user_id' => $recommend->parent_id,
                     'type' => BUserCurrencyDetail::$TYPE_REWARD,
                     'relate_table' => 'voucher',
                     'relate_id' => $voucher->id,
-                    'amount' => $gdt_num_arr[$node->type_id],
+                    'amount' => $gdt_num_arr[$type],
                     'remark' => '推荐送GDT',
                 ];
             $json = VoteService::giveCurrency($res);
@@ -565,6 +575,62 @@ class NodeService extends ServiceBase
                 return new FuncResult(1, '补充失败', $json->msg);
             }
         }
+
         return new FuncResult(0, '补充成功');
+    }
+    
+    //获取节点升级后应得配额
+    public static function getUpgradeQuota($old_type_id, $new_type_id)
+    {
+        $old_type = BNodeType::find()->where(['id' => $old_type_id])->one();
+        if (!$old_type) {
+            $old_quota = 0;
+        } else {
+            $old_quota = $old_type->quota;
+        }
+        $new_type = BNodeType::find()->where(['id' => $new_type_id])->one();
+        if (!$new_type) {
+            return 0;
+        } else {
+            $new_quota = $new_type->quota;
+        }
+        if ($old_type_id == 5) {
+            $new_quota += 82000;
+        }
+        return $new_quota - $old_quota;
+    }
+    //获取节点升级后补送gdt数量
+    public static function getGiveGdtNumber($old_type_id, $new_type_id)
+    {
+        $old_type = BNodeType::find()->where(['id' => $old_type_id])->one();
+        if (!$old_type) {
+            $old_gdt = 0;
+        } else {
+            $old_gdt = $old_type->gdt_reward;
+        }
+        $new_type = BNodeType::find()->where(['id' => $new_type_id])->one();
+        if (!$new_type) {
+            return 0;
+        } else {
+            $new_gdt = $new_type->gdt_reward;
+        }
+        return $new_gdt - $old_gdt;
+    }
+    //获取节点升级需补缴grt数量
+    public static function getGrtNumber($old_type_id, $new_type_id)
+    {
+        $old_type = BNodeType::find()->where(['id' => $old_type_id])->one();
+        if (!$old_type) {
+            $old_grt = 0;
+        } else {
+            $old_grt = $old_type->conversion;
+        }
+        $new_type = BNodeType::find()->where(['id' => $new_type_id])->one();
+        if (!$new_type) {
+            return 0;
+        } else {
+            $new_grt = $new_type->conversion;
+        }
+        return $new_grt - $old_grt;
     }
 }

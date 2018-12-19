@@ -1,24 +1,19 @@
 <template>
   <slide>
-    <div class="record">
-      <!--<x-header :left-options="{backText: ''}">
-        推荐记录
-      </x-header>-->
+    <div class="invitation-record">
       <app-header>
-        推荐记录
+        邀请记录
       </app-header>
       <div class="record-main">
         <scroller :on-infinite="handleBottom" ref="my_scroller">
           <div class="no-data" v-if="!dataList.length&&!loadShow">
             <img src="/static/images/state-fail.png" alt="">
-            <!--<p>你还没有推荐过用户</p>-->
           </div>
           <ul class="list">
             <li v-for="item in dataList" :key="item.id">
               <h4>{{item.mobile}}</h4>
               <p>
-                <span>{{item.typeName}}</span>
-                <span>{{item.createTime}}</span>
+                {{item.createTime}}
               </p>
             </li>
           </ul>
@@ -48,8 +43,6 @@
     },
     methods: {
       handleBottom() {
-        /*this.page++
-        this.getList()*/
         if (this.total!==''&&this.dataList.length >= parseInt(this.total)){
           this.$refs.my_scroller.finishInfinite(true);
           return
@@ -89,7 +82,6 @@
       },
     },
     created() {
-      // this.getList()
     }
   }
 </script>
@@ -97,7 +89,7 @@
 <style lang="stylus" rel="stylesheet/stylus">
   @import "~stylus/variable"
   @import "~stylus/mixin"
-  .record
+  .invitation-record
     fixed-full-screen()
     &>.app-header
       border-bottom 1px solid $color-border-sub
@@ -114,14 +106,13 @@
           padding $space-box
           border-bottom 1px solid $color-border
           font-size $font-size-medium
+          display flex
+          justify-content space-between
+          align-items center
           p
-            margin-top 5px
-            display flex
-            justify-content space-between
-            align-items center
             font-size $font-size-small-s
             color $color-text-minor
-      .no-data
+      .no-datas
         text-align center
         padding-top 55px
         img

@@ -8,6 +8,7 @@
     <el-button v-if="buttons[3].child[3].isHave==1" style="float:right;" @click="openNodeSet">节点设置</el-button>
     <el-button v-if="buttons[3].child[2].isHave==1" style="float:right;margin-right:10px;" @click="dialogHistory=true;initHistory()">历史排名</el-button>
     <el-button v-if="buttons[3].child[0].isHave==1" style="float:right;" type="primary" @click="dialogAddNode=true;step=0">新增节点</el-button>
+    <el-button style="float:right;" @click="dialogRecom=true;initRecom()">推荐记录</el-button>
     <el-button v-if="buttons[3].child[4].isHave==1" style="float:right;" @click="downExcel">导出excel</el-button>
     <el-button v-if="buttons[3].child[4].isHave==1" style="float:right;" @click="downExcel(0)">导出所有节点</el-button>
     <br>
@@ -157,6 +158,14 @@
             <p style="margin-top:50px;">邮编</p>
             <p>{{ nodeInfoAddress.zipCode | noContent }}</p>
           </el-tab-pane>
+          <el-tab-pane label="推荐记录" name="5">
+            <el-table :data="nodeInfoRecommend">
+              <el-table-column prop="nodeName" label="节点名称"/>
+              <el-table-column prop="typeName" label="节点类型"/>
+              <el-table-column prop="username" label="推荐用户"/>
+              <el-table-column prop="createTime" label="推荐时间"/>
+            </el-table>
+          </el-tab-pane>
         </el-tabs>
       </div>
     </transition>
@@ -224,6 +233,10 @@
           <p>候选数量</p>
           <el-input v-model="dialogSetData.maxCandidate" placeholder="请输入内容"/>
           <p>当前候选数量 {{ this_tenureNum }}</p>
+        </div>
+        <div>
+          <p>折合GRT数量</p>
+          <el-input v-model="dialogSetData.conversion" placeholder="请输入内容" style="width:80%;"/> GRT
         </div>
         <div>
           <p>质押GRT</p>
@@ -384,6 +397,9 @@
           <el-form-item label="微信">
             <el-input v-model="addNodeData.weixin"/>
           </el-form-item>
+          <el-form-item v-if="addNodeData.type_id!=2" prop="recommendMobile" label="推荐人手机号">
+            <el-input v-model="addNodeData.recommendMobile"/>
+          </el-form-item>
           <el-form-item prop="type_id" label="节点类型">
             <el-select v-model="addNodeData.type_id" placeholder="请选择" @change="recommendSelect">
               <el-option
@@ -496,13 +512,59 @@
         </el-button>
       </span>
     </el-dialog>
+
+    <el-dialog :visible.sync="dialogRecom" title="推荐记录">
+      <el-input v-model="recomSearchName" clearable placeholder="用户" style="width:250px;" @change="searchRecom">
+        <el-button slot="append" icon="el-icon-search" @click.native="searchRecom"/>
+      </el-input>
+      <el-select v-model="recomType" :clearable="true" placeholder="全部" @change="searchRecom">
+        <el-option
+          v-for="item in allType"
+          :key="item.id"
+          :label="item.name"
+          :value="item.id"/>
+      </el-select>
+      <el-button style="float:right;" @click="downRecomExcel">导出excel</el-button>
+      <div style="margin-top:20px;display:inline-block;">
+        推荐时间
+        <el-date-picker
+          v-model="recomDate"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          format="yyyy 年 MM 月 dd 日"
+          value-format="yyyy-MM-dd"
+          style="width:400px;"
+          @change="searchRecom"/>
+      </div>
+      <br>
+      <el-table
+        :data="recomData"
+        style="margin:10px 0;">
+        <el-table-column prop="pMoblie" label="用户"/>
+        <el-table-column prop="pRealname" label="姓名"/>
+        <el-table-column prop="pTypeId" label="类型"/>
+        <el-table-column prop="uMobile" label="被推荐用户"/>
+        <el-table-column prop="uRealname" label="姓名"/>
+        <el-table-column prop="uTypeId" label="类型"/>
+        <el-table-column prop="amount" label="赠送投票券"/>
+        <el-table-column prop="createTime" label="推荐时间"/>
+      </el-table>
+      <el-pagination
+        :current-page.sync="recomCurrentPage"
+        :total="parseInt(recomTotal)"
+        :page-size="20"
+        layout="total, prev, pager, next, jumper"
+        @current-change="initRecom"/>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getNodeList, getNodeType, getNodeBase, getNodeInfo, getNodeIdentify, getNodeVote, getNodeRule,
   getNodeAddress, onTenure, offTenure, stopNode, onNode, updataBase, getNodeSet, getRuleList, pushRuleList,
-  getHistory, pushNodeSet, addNode, checkMobile, checkNode } from '@/api/nodePage'
+  getHistory, pushNodeSet, addNode, checkMobile, checkNode, checkRecomMobile, getNodeRecommend, getRecomList } from '@/api/nodePage'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
@@ -516,6 +578,22 @@ export default {
     }
   },
   data() {
+    const validate = (rule, value, callback) => {
+      if (value !== '') {
+        if (!this.addNodeData.mobile) {
+          callback(new Error('请输入节点手机号'))
+        } else if (!/^1\d{10}$/.test(value)) {
+          callback(new Error('请输入正确的手机号'))
+        } else {
+          checkRecomMobile(this.addNodeData.mobile, value).then(res => {
+            if (!res) callback(new Error('手机号有误'))
+            else callback()
+          })
+        }
+      } else {
+        callback()
+      }
+    }
     return {
       allType: [],
       nodeType: '',
@@ -544,6 +622,7 @@ export default {
       nodeInfoVote: [], // 投票信息
       nodeInfoRule: [], // 权限信息
       nodeInfoAddress: [], // 收货地址信息
+      nodeInfoRecommend: [], // 推荐记录
       pollName: '投票记录',
       dialogEdit: false,
       uploadLogo: '', // 上传图片后返回的地址
@@ -574,6 +653,7 @@ export default {
       addNodeData: {
         mobile: '',
         weixin: '',
+        recommendMobile: '',
         type_id: '',
         is_tenure: 0,
         grt: '',
@@ -596,6 +676,9 @@ export default {
         mobile: [
           { required: true, message: '请输入手机号码', trigger: 'blur' },
           { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+        ],
+        recommendMobile: [
+          { validator: validate, trigger: 'blur' }
         ],
         type_id: [
           { required: true, message: '请选择节点类型', trigger: 'change' }
@@ -643,7 +726,14 @@ export default {
           { required: true, message: '必填', trigger: 'blur' },
           { max: 1000, message: '最多1000个字', trigger: 'blur' }
         ]
-      }
+      },
+      dialogRecom: false,
+      recomData: [],
+      recomCurrentPage: 1,
+      recomTotal: 1,
+      recomSearchName: '',
+      recomType: null,
+      recomDate: ''
     }
   },
   computed: {
@@ -774,6 +864,10 @@ export default {
       } else if (val.name === '4') {
         getNodeAddress(this.rowInfo.id).then(res => {
           this.nodeInfoAddress = res.content
+        })
+      } else if (val.name === '5') {
+        getNodeRecommend(this.rowInfo.id).then(res => {
+          this.nodeInfoRecommend = res.content
         })
       }
     },
@@ -1128,6 +1222,18 @@ export default {
       this.step = 0
       this.jump = false
     },
+    // 推荐记录
+    initRecom() {
+      getRecomList(this.recomCurrentPage, this.recomSearchName, this.recomType, this.recomDate[0], this.recomDate[1]).then(res => {
+        this.recomData = res.content.list
+        this.recomTotal = res.content.count
+      })
+    },
+    searchRecom() {
+      if (this.recomDate === null) this.recomDate = ''
+      this.recomCurrentPage = 1
+      this.initRecom()
+    },
     downExcel(type) {
       if (this.tableDataSelection.length > 0) {
         let id = ''
@@ -1171,6 +1277,26 @@ export default {
     downExcelHistory() {
       getVerifiCode().then(res => {
         var url = `/node/history-download?download_code=${res.content}&type=${this.historyId}&endTime=${this.dialogHistorySearch}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
+      })
+    },
+    // 导出推荐记录
+    downRecomExcel() {
+      if (this.rocomDate) {
+        var str = this.rocomDate[0]
+        var end = this.rocomDate[1]
+      } else {
+        str = ''
+        end = ''
+      }
+      getVerifiCode().then(res => {
+        var url = `/node/recommend-download?download_code=${res.content}&searchName=${this.recomSearchName}&type=${this.recomType}&strTime=${str}&endTime=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
         elink.target = '_blank'

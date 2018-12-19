@@ -51,6 +51,7 @@ class NodeType extends \common\dzbase\DzModel
         return [
             'id' => 'ID',
             'name' => '节点名',
+            'conversion' => '三通折合grt数量',
             'grt' => 'grt最低标准',
             'tt' => 'tt最低标准',
             'bpt' => 'bpt最低标准',

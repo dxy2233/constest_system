@@ -46,12 +46,12 @@ class BUser extends \common\models\User
     }
     /**
      * 用户实名认证
-     *  一对多
+     *  一对一
      * @return void
      */
     public function getIdentify()
     {
-        return $this->hasOne(BUserIdentify::className(), ['user_id' => 'id']);
+        return $this->hasOne(BUserIdentify::className(), ['user_id' => 'id'])->orderBy(['id' => SORT_DESC]);
     }
     /**
      * 用户钱包
@@ -81,13 +81,40 @@ class BUser extends \common\models\User
         return $this->hasMany(BUserCurrencyFrozen::className(), ['user_id' => 'id']);
     }
     /**
-     * 用户推荐人
+     * 推荐的用户
      *  一对多
+     * @return void
+     */
+    public function getParentUserRecommend()
+    {
+        return $this->hasMany(BUserRecommend::className(), ['parent_id' => 'id']);
+    }
+    /**
+     * 用户推荐
+     *  一对一
      * @return void
      */
     public function getUserRecommend()
     {
-        return $this->hasMany(BUserRecommend::className(), ['parent_id' => 'id']);
+        return $this->hasOne(BUserRecommend::className(), ['user_id' => 'id']);
+    }
+    /**
+     * 推荐的节点
+     *  一对多
+     * @return void
+     */
+    public function getParentNodeRecommend()
+    {
+        return $this->hasMany(BNodeRecommend::className(), ['parent_id' => 'id']);
+    }
+    /**
+     * 节点的推荐人
+     *  一对一
+     * @return void
+     */
+    public function getNodeRecommend()
+    {
+        return $this->hasOne(BNodeRecommend::className(), ['user_id' => 'id']);
     }
     /**
      * 用户的投票劵
@@ -156,5 +183,35 @@ class BUser extends \common\models\User
     public function getUserOther()
     {
         return $this->hasOne(BUserOther::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * 用户节点申请以及升级
+     * 一对多 一个用户可以申请多次以及多条升级
+     * @return void
+     */
+    public function getNodeGrade()
+    {
+        return $this->hasMany(BNodeUpgrade::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * 用户节点申请以及升级 的单条记录
+     * 一对一
+     * @return void
+     */
+    public function getNewNodeGrade()
+    {
+        return $this->hasOne(BNodeUpgrade::className(), ['user_id' => 'id'])->orderBy(['id' => SORT_DESC]);
+    }
+    
+    /**
+     * 微店节点关联
+     * 一对一
+     * @return void
+     */
+    public function getNodeExtend()
+    {
+        return $this->hasOne(BNodeExtend::className(), ['mobile' => 'mobile']);
     }
 }

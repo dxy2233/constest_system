@@ -69,6 +69,7 @@ class BNode extends \common\models\Node
     {
         return $this->hasOne(BNodeType::className(), ['id' => 'type_id']);
     }
+
     /**
      * 节点下投票关联
      *  一对多

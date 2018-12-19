@@ -23,7 +23,7 @@ Vue.component('load-more', loadMore)
 Vue.component('app-header', appHeader)
 import 'stylus/index.styl'
 
-Vue.use(ToastPlugin, {time: 1500, type: 'text', width: '12em'})
+Vue.use(ToastPlugin, {time: 1500, type: 'text', width: '10em'})
 
 FastClick.attach(document.body)
 

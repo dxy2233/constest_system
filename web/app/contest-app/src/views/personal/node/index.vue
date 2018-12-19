@@ -3,8 +3,10 @@
     <div class="node-index-wrapper">
       <div class="node-index">
         <app-header>
-          我的节点
-          <router-link tag="span" to="/personal/node/index/edit" slot="right">编辑</router-link>
+          <div class="header-item" slot="right">
+            <router-link tag="b" to="/personal/node/index/record">推荐记录</router-link>
+            <router-link tag="span" to="/personal/node/index/edit">编辑</router-link>
+          </div>
         </app-header>
         <div class="node-details-content">
           <div class="top" :style="bgStyle">
@@ -46,8 +48,13 @@
             </dl>
           </div>
         </div>
-        <div class="btn-box">
-          <router-link v-if="myNodeInfo.typeId===1||myNodeInfo.typeId===2" tag="button" to='/personal/node/index/invite'>拉票
+        <div :class="[myNodeInfo.typeId===2?'btn-box-2':'btn-box-1']">
+          <!--:to='upgradePath-->
+          <button v-if="myNodeInfo.typeId!==1" @click="handUpgrade">
+            {{upgradeStr}}
+          </button>
+          <router-link v-if="(myNodeInfo.typeId===1||myNodeInfo.typeId===2)" tag="button"
+                       to='/personal/node/index/invite'>拉票
           </router-link>
         </div>
       </div>
@@ -68,9 +75,12 @@
     },
     data() {
       return {
-        replaceStr:function (str) {
+        replaceStr: function (str) {
           if (!str) return ''
           return str.replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, '&nbsp')
+        },
+        upgradeMsg: {
+          status: ''
         }
       }
     },
@@ -82,19 +92,63 @@
           backgroundImage: "url(/static/images/personal-node/bg_" + id + ".jpg)"
         }
       },
+      upgradeStr() {
+        if (this.upgradeMsg.status === 0 || this.upgradeMsg.status === 2) {
+          return '升级状态'
+        } else {
+          return '升级'
+        }
+      },
+      upgradePath() {
+        let path = ''
+        switch (this.upgradeMsg.status) {
+          case -1:
+          case 1:
+            path = 'upgrade'
+            break
+          case 0:
+            path = 'wait'
+            break
+          case 2:
+            path = 'fail'
+            break
+        }
+        return `/personal/node/index/${path}`
+      },
       ...mapGetters([
         'myNodeInfo'
       ]),
     },
     methods: {
+      handUpgrade() {
+        if (this.upgradeStr === '升级' && this.myNodeInfo.isTenure) {
+          this.$vux.toast.show('任职状态不能升级')
+          return
+        }
+        this.$router.push({path: this.upgradePath})
+      },
       goVoting() {
         this.$router.push({
           path: `/home/node/dts${this.$route.params.id}/voting`
         })
       },
+      getUpgradeStatus() {
+        http.post('/node/upgrade-status', {}, (res) => {
+          if (res.code === 0) {
+            this.upgradeMsg = res.content
+          } else {
+            this.upgradeMsg = {
+              status: -1
+            }
+          }
+          localStorage.setItem('nodeUpgradeMsg', JSON.stringify(this.upgradeMsg))
+        })
+      }
     },
     created() {
+      this.getUpgradeStatus()
     },
+
 
   }
 </script>
@@ -109,6 +163,13 @@
     fixed-full-screen()
     background $color-background-sub
     overflow auto
+    .header-item
+      b
+        font-size $font-size-medium
+        color #ff6a2f
+        margin-right 10px
+      span
+        color $color-text-minor
     .app-header
       background $color-background-sub !important
     .node-details-content
@@ -195,7 +256,7 @@
           align-items center
           font-size $font-size-small
           line-height 1.5em
-    .btn-box
+    .btn-box-1
       position fixed
       bottom 0
       left 0
@@ -214,5 +275,21 @@
         background $color-theme
         font-size $font-size-medium-x
         border-radius 10px
+    .btn-box-2
+      position fixed
+      bottom 0
+      left 0
+      right 0
+      overflow hidden
+      button
+        float left
+        width 50%
+        line-height 45px
+        border 0
+        color white
+        font-size $font-size-medium-x
+        background $color-theme
+        &:first-of-type
+          background #ff9e45
 
 </style>

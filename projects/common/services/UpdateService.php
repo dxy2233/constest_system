@@ -9,8 +9,11 @@ use common\models\business\BUpdateLog;
 use common\models\business\BNode;
 use common\models\business\BUser;
 use common\models\business\BCurrency;
+use common\models\business\BNodeUpgrade;
+use common\models\business\BUserOther;
 use common\models\business\BUserRechargeWithdraw;
 use common\models\business\BUserCurrencyFrozen;
+use common\models\business\BNodeRecommend;
 use common\models\business\BUserRecommend;
 use common\models\business\BUserCurrencyDetail;
 use Yii;
@@ -267,30 +270,35 @@ class UpdateService extends ServiceBase
     public static function update_recommend_begin()
     {
         echo '开始'.PHP_EOL;
-        $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = ''";
+        $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = ''";
         $connection=\Yii::$app->db;
         $command=$connection->createCommand($sql);
         $rowCount=$command->execute();
         $all_data = BUserRecommend::find()->all();
+        $all_arr = [];
+        foreach ($all_data as $v) {
+            $all_arr[$v['user_id']] = $v;
+        }
         $transaction = \Yii::$app->db->beginTransaction();
         $msg = [];
         foreach ($all_data as $v) {
-            $parent = BUser::find()->where(['id' => $v->parent_id])->one();
-            if ($parent->parent_list != '') {
+            $parent = $all_arr[$v->parent_id] ?? false;
+            if ($parent && $parent->parent_list != '') {
                 $str = $parent->parent_list . ',' . $v->parent_id;
             } else {
                 $str = $v->parent_id;
             }
-            $user = BUser::find()->where(['id' => $v->user_id])->one();
+            $user = $v;
             $user->parent_list = $str;
             if (!$user->save()) {
                 $msg[] = $user->getFirstErrorText();
                 break;
             }
-            $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
+            $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
             $connection=\Yii::$app->db;
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
+            echo '用户'.$v->user_id.'修改结束'.PHP_EOL;
         }
         if (count($msg) > 0) {
             $transaction->rollBack();
@@ -307,7 +315,7 @@ class UpdateService extends ServiceBase
     // 检查用户推荐关系是否循环
     public static function checkRecommend()
     {
-        $all_data = BUserRecommend::find()->all();
+        $all_data = BNodeRecommend::find()->all();
         $arr = [];
         foreach ($all_data as $v) {
             $parent = BUser::find()->where(['id' => $v->parent_id])->one();
@@ -328,6 +336,144 @@ class UpdateService extends ServiceBase
             if (in_array($k, $this_arr)) {
                 echo $k.',';
             }
+        }
+    }
+
+    // 重建node_recommend数据
+    public static function createNodeRecommend($type)
+    {
+        echo '开始'.PHP_EOL;
+        $transaction = \Yii::$app->db->beginTransaction();
+        $msg = [];
+        //清空原数据并重新转移
+        if ($type == 1) {
+            $sql = "delete from gr_node_recommend";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+            echo '删除所有原始数据'.PHP_EOL;
+            $all_data = BUserRecommend::find()->all();
+            foreach ($all_data as $v) {
+                if ($v->node_id == 0) {
+                    echo '第'.$v->id.'数据用户非节点'.PHP_EOL;
+                    continue;
+                }
+                $node = BNode::find()->where(['user_id' => $v->user_id])->one();
+                if ($node->type_id == 1) {
+                    echo '第'.$v->id.'数据用户是超级节点'.PHP_EOL;
+                    continue;
+                }
+                $parent_node = BNode::find()->where(['user_id' => $v->parent_id])->one();
+                if ($parent_node) {
+                    $node_recommend = new BNodeRecommend();
+                    $node_recommend->user_id = $v->user_id;
+                    $node_recommend->parent_id = $v->parent_id;
+                    $node_recommend->node_id = $v->node_id;
+                    $node_recommend->amount = $v->amount;
+                    if (!$node_recommend->save()) {
+                        echo '第'.$v->id.'数据转移出错'.PHP_EOL;
+                        
+                        $msg[$v->id] = $node_recommend->getFirstErrorText();
+                    }
+                    echo '第'.$v->id.'数据转移成功'.PHP_EOL;
+                } else {
+                    echo '第'.$v->id.'数据推荐人非节点'.PHP_EOL;
+                }
+            }
+        }
+        // 更新parent_list数据
+        $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = ''";
+        $connection=\Yii::$app->db;
+        $command=$connection->createCommand($sql);
+        $rowCount=$command->execute();
+        $all_data = BNodeRecommend::find()->all();
+        $all_arr = [];
+        foreach ($all_data as $v) {
+            $all_arr[$v['user_id']] = $v;
+        }
+        foreach ($all_data as $v) {
+            $parent = $all_arr[$v->parent_id] ?? false;
+            if ($parent && $parent->parent_list != '') {
+                $str = $parent->parent_list . ',' . $v->parent_id;
+            } else {
+                $str = $v->parent_id;
+            }
+            $user = $v;
+            $user->parent_list = $str;
+            if (!$user->save()) {
+                $msg[] = $user->getFirstErrorText();
+                break;
+            }
+            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$v->user_id.',%'."' || `parent_list` = $v->user_id";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+            echo '用户'.$v->user_id.'修改结束'.PHP_EOL;
+        }
+        if (count($msg) > 0) {
+            var_dump($msg);
+            $transaction->rollBack();
+            Yii::error(json_encode($msg), 'update');
+            return false;
+        } else {
+            $transaction->commit();
+            echo '执行完成'.PHP_EOL;
+            Yii::info('执行成功', 'update');
+            return true;
+        }
+    }
+
+    // 补完历史节点申请数据
+    public static function createOldUpgrade()
+    {
+        echo '开始'.PHP_EOL;
+        $transaction = \Yii::$app->db->beginTransaction();
+        $data = BNode::find()
+        ->from(BNode::tableName()." A")
+        ->select(['A.*', 'C.weixin', 'C.grt_address', 'C.tt_address', 'C.bpt_address'])
+        ->join('left join', BNodeUpgrade::tableName().' B', 'A.user_id = B.user_id && B.status = '.BNodeUpgrade::STATUS_ACTIVE)
+        ->join('left join', BUserOther::tableName().' C', 'A.user_id = C.user_id')
+        ->where(['in', 'A.status', [0, 1, 2]])
+        ->andWhere(['B.id' => null])
+        ->asArray()->all();
+        $msg = [];
+        foreach ($data as $v) {
+            $node_upgrade = new BNodeUpgrade();
+            $node_upgrade->user_id = $v['user_id'];
+            $node_upgrade->weixin = $v['weixin'] ?? '';
+            $node_upgrade->grt_address = $v['grt_address'] ?? '';
+            $node_upgrade->tt_address = $v['tt_address'] ?? '';
+            $node_upgrade->bpt_address = $v['bpt_address'] ?? '';
+            $node_upgrade->name = $v['name'];
+            $node_upgrade->logo = $v['logo'];
+            $node_upgrade->desc = $v['desc'];
+            $node_upgrade->scheme = $v['scheme'];
+            $node_upgrade->type_id = $v['type_id'];
+            $node_upgrade->status = BNodeUpgrade::STATUS_ACTIVE;
+            $node_upgrade->status_remark = '已通过';
+            $node_upgrade->grt = $v['grt'];
+            $node_upgrade->tt = $v['tt'];
+            $node_upgrade->bpt = $v['bpt'];
+            $node_upgrade->examine_time = $v['create_time'];
+            $node_upgrade->old_type = 0;
+            if (!$node_upgrade->save()) {
+                echo '节点'.$v['name'].'数据填充错误'.PHP_EOL;
+                $msg[$v->id] = $node_upgrade->getFirstErrorText();
+                break;
+            }
+            echo '节点'.$v['name'].'数据填充完成'.PHP_EOL;
+        }
+
+        if (count($msg) > 0) {
+            var_dump($msg);
+            $transaction->rollBack();
+            Yii::error(json_encode($msg), 'update');
+            return false;
+        } else {
+            $transaction->commit();
+            echo '执行完成'.PHP_EOL;
+            Yii::info('执行成功', 'update');
+            return true;
         }
     }
 }

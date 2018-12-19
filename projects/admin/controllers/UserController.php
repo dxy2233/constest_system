@@ -217,7 +217,7 @@ class UserController extends BaseController
 
 //        return $this->respondJson(0, '获取成功', $list);
         
-        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
+        $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '邀请人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
 
         $this->download($list, $headers, '用户列表'.date('YmdHis'));
 
@@ -546,13 +546,6 @@ class UserController extends BaseController
         }
 
         if ($user->save()) {
-            if ($code != '') {
-                $res = NodeService::checkVoucher($user->id);
-                if ($res->code != 0) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, $str.'失败', $res->msg);
-                }
-            }
             $transaction->commit();
             return $this->respondJson(0, $str.'成功');
         } else {
@@ -593,7 +586,7 @@ class UserController extends BaseController
             $res = UserService::checkUserRecommend($user->id, $code);
             if ($res->code != 0) {
                 $transaction->rollBack();
-                return $this->respondJson(1, $str.'失败', $res->msg);
+                return $this->respondJson(1, '注册失败', $res->msg);
             }
         }
         $user_voucher = new BUserVoucher();
@@ -816,7 +809,7 @@ class UserController extends BaseController
         $count = $find->count();
         $page = $this->pInt('page', 0);
         $find->page($page);
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->groupBy('A.id')->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
@@ -870,15 +863,16 @@ class UserController extends BaseController
         if ($endTime != '') {
             $find->endTime($endTime, 'A.create_time');
         }
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->groupBy('A.id')->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $return = [];
         $return['list'] = $data;
-        $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被推荐用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '推荐时间'];
-        $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
+        $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被邀请用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '邀请时间'];
+        $this->download($return['list'], $headers, '邀请列表'.date('YmdHis'));
 
         return;
     }

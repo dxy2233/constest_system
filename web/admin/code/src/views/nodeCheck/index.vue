@@ -75,8 +75,7 @@
 </template>
 
 <script>
-import { getCheckList, checkPass, checkFail, deleteNote } from '@/api/nodeCheck'
-import { getNodeBase } from '@/api/nodePage'
+import { getCheckList, checkPass, checkFail, deleteNote, getNodeBase } from '@/api/nodeCheck'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'

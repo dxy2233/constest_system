@@ -16,7 +16,7 @@ use common\models\business\BVoucher;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BVoucherDetail;
 use common\models\business\BUserCurrencyFrozen;
-use common\models\business\BUserRecommend;
+use common\models\business\BNodeRecommend;
 use common\components\FuncHelper;
 
 /**
@@ -47,10 +47,11 @@ class IdentifyController extends BaseController
         $find = BUser::find()
         ->from(BUser::tableName()." A")
         ->join('left join', BUserIdentify::tableName().' B', 'B.user_id = A.id');
+
         $page = $this->pInt('page', 1);
         $status = $this->pInt('status', 0);
         $find->andWhere(['B.status' => $status]);
-        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
+        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','B.id', 'B.examine_time']);
         $searchName = $this->pString('searchName');
         
         if ($searchName != '') {
@@ -87,7 +88,7 @@ class IdentifyController extends BaseController
         }
         $status = $this->gInt('status', 0);
         $find->andWhere(['B.status' => $status]);
-        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','A.id', 'B.examine_time']);
+        $find->select(['A.mobile','B.realname','B.number','B.status','B.create_time','B.id', 'B.examine_time']);
         $searchName = $this->gString('searchName');
         
         if ($searchName != '') {
@@ -116,11 +117,11 @@ class IdentifyController extends BaseController
     {
         $user_id = $this->pInt('user_id');
         if (empty($user_id)) {
-            return $this->respondJson(1, '用户ID不能为空');
+            return $this->respondJson(1, 'ID不能为空');
         }
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id desc')->asArray()->one();
+        $data = BUserIdentify::find()->where(['id' => $user_id])->orderBy('id desc')->asArray()->one();
         if (empty($data)) {
-            return $this->respondJson(1, '此用户没有实名信息');
+            return $this->respondJson(1, '没有实名信息');
         }
         $data['pic_back'] = FuncHelper::getImageUrl($data['pic_back'], 640, 640);
         $data['pic_front'] = FuncHelper::getImageUrl($data['pic_front'], 640, 640);
@@ -137,9 +138,9 @@ class IdentifyController extends BaseController
         if (empty($remark)) {
             return $this->respondJson(1, '原因不能为空');
         }
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id DESC')->one();
+        $data = BUserIdentify::find()->where(['id' => $user_id])->orderBy('id DESC')->one();
         if (empty($data)) {
-            return $this->respondJson(1, '不存在的节点');
+            return $this->respondJson(1, '不存在的内容');
         }
         $data->status = BUserIdentify::STATUS_FAIL;
         $data->status_remark = BUserIdentify::getStatus(BUserIdentify::STATUS_FAIL);
@@ -160,9 +161,12 @@ class IdentifyController extends BaseController
             return $this->respondJson(1, '用户ID不能为空');
         }
 
-        $data = BUserIdentify::find()->where(['user_id' => $user_id])->orderBy('id DESC')->one();
+        $data = BUserIdentify::find()->where(['id' => $user_id])->orderBy('id DESC')->one();
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
+        }
+        if ($data->status == BUserIdentify::STATUS_ACTIVE) {
+            return $this->respondJson(1, '已处于通过状态');
         }
         $data->status = BUserIdentify::STATUS_ACTIVE;
         $data->status_remark = '已通过';
@@ -171,7 +175,7 @@ class IdentifyController extends BaseController
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
-        $user = BUser::find()->where(['id' => $user_id])->one();
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
         $user->is_identified = BNotice::STATUS_ACTIVE;
         if (!$user->save()) {
             return $this->respondJson(1, '审核失败', $user->getFirstErrorText());

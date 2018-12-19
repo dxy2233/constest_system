@@ -2,7 +2,7 @@
   <div class="app-container" @click.self="showUserInfo=false">
     <h4 style="display:inline-block;">用户管理</h4>
     <el-button v-if="buttons[2].child[0].isHave==1" class="btn-right" type="primary" @click="dialogAddUser=true">新增用户</el-button>
-    <el-button class="btn-right" style="margin-right:10px;" @click="dialogRecom=true;initRecom()">推荐记录</el-button>
+    <el-button class="btn-right" style="margin-right:10px;" @click="dialogRecom=true;initRecom()">邀请记录</el-button>
     <el-button v-if="buttons[2].child[3].isHave==1" class="btn-right" @click="downExcel">导出excel</el-button>
     <br>
 
@@ -38,7 +38,7 @@
       <el-table-column prop="userType" label="类型"/>
       <el-table-column prop="nodeName" label="拥有节点"/>
       <el-table-column prop="num" label="已投票数" sortable="custom"/>
-      <el-table-column prop="referee" label="推荐人"/>
+      <el-table-column prop="referee" label="邀请人"/>
       <el-table-column prop="status" label="状态"/>
       <el-table-column prop="createTime" label="注册时间" sortable="custom"/>
       <el-table-column prop="lastLoginTime" label="最近一次登录时间" sortable="custom"/>
@@ -193,12 +193,10 @@
             <p style="margin-top:50px;">邮编</p>
             <p>{{ userInfoAddress.zipCode | noContent }}</p>
           </el-tab-pane>
-          <el-tab-pane label="推荐记录" name="Recommend">
+          <el-tab-pane label="邀请记录" name="Recommend">
             <el-table :data="userInfoRecommend">
-              <el-table-column prop="username" label="推荐用户"/>
-              <el-table-column prop="nodeName" label="节点名称"/>
-              <el-table-column prop="typeName" label="节点类型"/>
-              <el-table-column prop="createTime" label="推荐时间"/>
+              <el-table-column prop="username" label="邀请用户"/>
+              <el-table-column prop="createTime" label="邀请时间"/>
             </el-table>
           </el-tab-pane>
         </el-tabs>
@@ -290,20 +288,12 @@
       </el-dialog>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogRecom" title="推荐记录">
-      <el-input v-model="recomSearchName" clearable placeholder="用户" style="width:300px;" @change="searchRecom">
+    <el-dialog :visible.sync="dialogRecom" title="邀请记录">
+      <el-input v-model="recomSearchName" clearable placeholder="用户" style="width:250px;" @change="searchRecom">
         <el-button slot="append" icon="el-icon-search" @click.native="searchRecom"/>
       </el-input>
-      <el-select v-model="recomType" style="float:right;" @change="searchRecom">
-        <el-option
-          v-for="item in recomOptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"/>
-      </el-select>
-      <br>
-      <div style="margin-top:20px;display:inline-block;">
-        推荐时间
+      <div style="margin-top:20px;margin-left:20px;display:inline-block;">
+        邀请时间
         <el-date-picker
           v-model="recomDate"
           type="daterange"
@@ -322,12 +312,9 @@
         style="margin:10px 0;">
         <el-table-column prop="pMoblie" label="用户"/>
         <el-table-column prop="pRealname" label="姓名"/>
-        <el-table-column prop="pTypeId" label="类型"/>
-        <el-table-column prop="uMobile" label="被推荐用户"/>
+        <el-table-column prop="uMobile" label="被邀请用户"/>
         <el-table-column prop="uRealname" label="姓名"/>
-        <el-table-column prop="uTypeId" label="类型"/>
-        <el-table-column prop="amount" label="赠送投票卷"/>
-        <el-table-column prop="createTime" label="推荐时间"/>
+        <el-table-column prop="createTime" label="邀请时间"/>
       </el-table>
       <el-pagination
         :current-page.sync="recomCurrentPage"
@@ -439,7 +426,6 @@ export default {
         { value: 5, label: '节点' },
         { value: 6, label: '普通用户' }
       ],
-      recomType: 0,
       recomDate: ''
     }
   },
@@ -643,13 +629,13 @@ export default {
     },
     // 初始化推荐记录
     initRecom() {
-      getRecomList(this.recomCurrentPage, this.recomSearchName, this.recomType, this.recomDate[0], this.recomDate[1]).then(res => {
+      getRecomList(this.recomCurrentPage, this.recomSearchName, this.recomDate[0], this.recomDate[1]).then(res => {
         this.recomData = res.content.list
         this.recomTotal = res.content.count
       })
     },
     searchRecom() {
-      if (this.recomDate === null) this.searchDate = ''
+      if (this.recomDate === null) this.recomDate = ''
       this.recomCurrentPage = 1
       this.initRecom()
     },
@@ -700,7 +686,7 @@ export default {
         end = ''
       }
       getVerifiCode().then(res => {
-        var url = `/user/recommend-download?download_code=${res.content}&searchName=${this.recomSearchName}&type=${this.recomType}&strTime=${str}&endTime=${end}`
+        var url = `/user/recommend-download?download_code=${res.content}&searchName=${this.recomSearchName}&strTime=${str}&endTime=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
         elink.target = '_blank'

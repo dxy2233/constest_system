@@ -2,9 +2,6 @@
 
 namespace common\services;
 
-use common\models\business\BUserCurrency;
-use common\models\business\BUserCurrencyDetail;
-use common\models\business\BUserCurrencyFrozen;
 use common\models\User;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
@@ -14,13 +11,18 @@ use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BUser;
 use common\models\business\BUserLog;
-use common\models\business\BUserWallet;
-use common\models\business\BUserRecommend;
-use common\models\business\BUserAccessToken;
-use common\models\business\BVoucherDetail;
-use common\models\business\BUserVoucher;
 use common\models\business\BVoucher;
+use common\models\business\BNode;
+use common\models\business\BUserWallet;
+use common\models\business\BUserVoucher;
+use common\models\business\BUserCurrency;
+use common\models\business\BNodeRecommend;
+use common\models\business\BUserRecommend;
+use common\models\business\BVoucherDetail;
+use common\models\business\BUserAccessToken;
 use common\models\business\BUserRefreshToken;
+use common\models\business\BUserCurrencyDetail;
+use common\models\business\BUserCurrencyFrozen;
 
 class UserService extends ServiceBase
 {
@@ -379,6 +381,90 @@ class UserService extends ServiceBase
     }
 
     // 验证推荐人是否可以使用
+    public static function checkNodeRecommend($user_id, $code)
+    {
+        $recommend = BNodeRecommend::find()->where(['user_id' => $user_id])->one();
+        $id = self::validateRemmendCode($code);
+        // if (!empty($recommend) && $recommend->parent_id != $id) {
+        //     return new ReturnInfo(1, "用户已有推荐人");
+        // }
+        if ($id === $user_id) {
+            return new ReturnInfo(1, "推荐人不能是自己");
+        }
+        $node_parent = BNode::find()->where(['user_id' => $id])->active()->one();
+        if (!$node_parent) {
+            return new ReturnInfo(1, "推荐人不是节点");
+        }
+        $node = BNode::find()->where(['user_id' => $user_id])->active()->one();
+        if (!$node) {
+            return new ReturnInfo(1, "被推荐人不是节点");
+        }
+        if ($node->type_id == 5) {
+            return new ReturnInfo(1, "推荐人不能是微店节点");
+        }
+        $recommend_parent = BNodeRecommend::find()->where(['user_id' => $id])->one();
+        $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
+        $parent_arr = explode(',', $parentStr);
+        if (in_array($user_id, $parent_arr)) {
+            return new ReturnInfo(1, "推荐人不能是自己的下级");
+        }
+        // 如果是第一次添加
+        if (empty($recommend)) {
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id;
+            } else {
+                $str = $id;
+            }
+            
+            //修改所有相关用户的上级列表
+            $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+
+
+            //添加推荐关系
+            $recommend = new BNodeRecommend();
+            $recommend->user_id = $user_id;
+            $recommend->parent_list = $str;
+            $recommend->parent_id = $id;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
+            }
+        } elseif ($recommend->parent_id != $id) {
+            //更换推荐人
+
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id . ',' . $user_id;
+                $this_parent_list = $parentStr . ',' . $id;
+            } else {
+                $str = $id . ',' . $user_id;
+                $this_parent_list = $id;
+            }
+            if ($recommend->parent_list != '') {
+                $old_str = $recommend->parent_list .  ',' . $user_id;
+            } else {
+                // 添加上级列表
+                $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
+            }
+            //修改所有相关用户的上级列表
+            if (empty($sql)) {
+                $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'$old_str','$str') where `parent_list` like '".$old_str.',%'."' || `parent_list` = '$old_str'";
+            }
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+
+            //修改推荐关系
+            $recommend->parent_id = $id;
+            $recommend->parent_list = $this_parent_list;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
+            }
+        }
+        return new ReturnInfo(0, "推荐人关联成功");
+    }
+    // 验证推荐人是否可以使用
     public static function checkUserRecommend($user_id, $code)
     {
         $recommend = BUserRecommend::find()->where(['user_id' => $user_id])->one();
@@ -386,37 +472,68 @@ class UserService extends ServiceBase
         if (!empty($recommend) && $recommend->parent_id != $id) {
             return new ReturnInfo(1, "用户已有推荐人");
         }
-            
         if ($id === $user_id) {
             return new ReturnInfo(1, "推荐人不能是自己");
         }
-        $user = BUser::find()->where(['id' => $id])->one();
-        $parent_arr = explode(',', $user->parent_list);
+        $recommend_parent = BUserRecommend::find()->where(['user_id' => $id])->one();
+        $parentStr = $recommend_parent ? $recommend_parent->parent_list : '';
+        $parent_arr = explode(',', $parentStr);
         if (in_array($user_id, $parent_arr)) {
             return new ReturnInfo(1, "推荐人不能是自己的下级");
         }
-        if ($user->parent_list != '') {
-            $str = $user->parent_list . ',' . $id;
-        } else {
-            $str = $id;
-        }
-        //修改所有下级的上级列表
-        $sql = "UPDATE `gr_contest`.`gr_user` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
-        $connection=\Yii::$app->db;
-        $command=$connection->createCommand($sql);
-        $rowCount=$command->execute();
-        // 修改用户自己的上级列表
-        $this_user = BUser::find()->where(['id' => $user_id])->one();
-        $this_user->parent_list = $str;
-        $this_user->save();
-        // 添加推荐关系
+
+        // 如果是第一次添加
         if (empty($recommend)) {
-            $user_recommend = new BUserRecommend();
-            $user_recommend->user_id = $user_id;
-            $user_recommend->parent_id = $id;
-            if (!$user_recommend->save()) {
-                return new ReturnInfo(1, "关联失败", $user_recommend->getFirstErrorText());
+            if ($parentStr != '') {
+                $str = $parentStr . ',' . $id;
+            } else {
+                $str = $id;
             }
+            //修改所有相关用户的上级列表
+            $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
+            $connection=\Yii::$app->db;
+            $command=$connection->createCommand($sql);
+            $rowCount=$command->execute();
+
+
+            //添加推荐关系
+            $recommend = new BUserRecommend();
+            $recommend->user_id = $user_id;
+            $recommend->parent_id = $id;
+            $recommend->parent_list = $str;
+            if (!$recommend->save()) {
+                return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
+            }
+        } elseif ($recommend->parent_id != $id) {
+            //更换推荐人
+
+            // if ($recommend_parent->parent_list != '') {
+            //     $str = $recommend_parent->parent_list . ',' . $id . ',' . $user_id;
+            // } else {
+            //     $str = $id . ',' . $user_id;
+            // }
+            // $this_user = BUser::find()->where(['id' => $user_id])->one();
+            // if ($this_user->parent_list != '') {
+            //     $old_str = $this_user->parent_list .  ',' . $user_id;
+            // } else {
+            //     // 添加上级列表
+            //     $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = CONCAT('".$str."',',',`parent_list`) where `parent_list` like '".$user_id.',%'."' || `parent_list` = $user_id";
+            // }
+            // //修改所有相关用户的上级列表
+            // if (empty($sql)) {
+            //     $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$old_str','$str') where `parent_list` like '".$old_str.',%'."' || `parent_list` = '$old_str'";
+            // }
+            // $connection=\Yii::$app->db;
+            // $command=$connection->createCommand($sql);
+            // $rowCount=$command->execute();
+            // // 修改用户自己的上级列表
+            // $this_user->parent_list = $user->parent_list . ',' . $id;
+            // $this_user->save();
+            // //修改推荐关系
+            // $recommend->parent_id = $id;
+            // if (!$recommend->save()) {
+            //     return new ReturnInfo(1, "关联失败", $recommend->getFirstErrorText());
+            // }
         }
         return new ReturnInfo(0, "推荐人关联成功");
     }

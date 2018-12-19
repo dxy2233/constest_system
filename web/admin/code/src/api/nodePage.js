@@ -84,6 +84,16 @@ export function getNodeAddress(nodeId) {
     }
   })
 }
+// 获取节点推荐记录信息
+export function getNodeRecommend(id) {
+  return request({
+    url: '/node/get-node-recommend',
+    method: 'post',
+    data: {
+      id
+    }
+  })
+}
 
 // 停用
 export function stopNode(nodeId) {
@@ -239,6 +249,33 @@ export function checkNode(type_id, is_tenure) {
     data: {
       type_id,
       is_tenure
+    }
+  })
+}
+
+// 验证推荐人手机
+export function checkRecomMobile(mobile, recommendMobile) {
+  return request({
+    url: '/node/check-recommend',
+    method: 'post',
+    data: {
+      mobile,
+      recommendMobile
+    }
+  })
+}
+
+// 推荐记录列表
+export function getRecomList(page, searchName, type, strTime, endTime) {
+  return request({
+    url: '/node/recommend-list',
+    method: 'post',
+    data: {
+      page,
+      searchName,
+      type,
+      strTime,
+      endTime
     }
   })
 }

@@ -10,6 +10,7 @@ class BUserLog extends \common\models\UserLog
     public static $TYPE_ALERT_MOBILE = 4; // 修改手机号码
     public static $TYPE_CHECK_TRANS_PWD = 5; // 校验交易密码
     public static $TYPE_RESET_TRANS_PWD = 6; // 重置交易密码
+    public static $TYPE_CREATE_TRANS_PWD = 7; // 创建交易密码
     public static function getType($key = '')
     {
         $arr = [
@@ -19,6 +20,7 @@ class BUserLog extends \common\models\UserLog
             static::$TYPE_ALERT_MOBILE => \Yii::t('app', '修改手机号码'),
             static::$TYPE_CHECK_TRANS_PWD => \Yii::t('app', '校验交易密码'),
             static::$TYPE_RESET_TRANS_PWD => \Yii::t('app', '重置交易密码'),
+            static::$TYPE_CREATE_TRANS_PWD => \Yii::t('app', '创建交易密码'),
         ];
         if ($key !== '') {
             return isset($arr[$key]) ? $arr[$key] : '';

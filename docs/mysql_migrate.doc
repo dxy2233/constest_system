@@ -367,3 +367,7 @@ ADD `conversion` int NOT NULL COMMENT '三通折合grt数量' AFTER `name`;
 INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `create_time`) VALUES 
 (40,	'node/examine-upgrade',	'节点升级列表',	0,	0),
 (41,	'node/examine-on,node/examine-off',	'节点升级审核',	40,	0);
+
+
+INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
+VALUES ('节点升级通过-通知', '7', '尊敬的用户，您的${name}节点升级审核已通过，感谢您的支持。', 'zh-CN', '1', NULL, '0');

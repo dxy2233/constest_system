@@ -809,7 +809,7 @@ class UserController extends BaseController
         $count = $find->count();
         $page = $this->pInt('page', 0);
         $find->page($page);
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
@@ -863,7 +863,7 @@ class UserController extends BaseController
         if ($endTime != '') {
             $find->endTime($endTime, 'A.create_time');
         }
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);

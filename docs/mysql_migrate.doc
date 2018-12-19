@@ -377,6 +377,51 @@ INSERT INTO `gr_node_type` (`id`, `name`, `conversion`, `grt`, `tt`, `bpt`, `gdt
 ALTER TABLE `gr_admin_rule`
 ADD `sort` int(11) NOT NULL COMMENT '排序' AFTER `parent_id`;
 
+delete from gr_admin_rule;
+
+INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `sort`, `create_time`) VALUES
+(1,	'statistics/index,statistics/get-statistics-data,statistics/get-address-data',	' 统计报表',	0,	0,	0),
+(2,	'user/index,user/get-user-info,user/get-address,user/get-user-identify,user/get-user-vote,user/get-currency,user/get-user-voucher,user/get-user-recommend',	' 用户管理',	0,	1,	0),
+(3,	'node/index,node/get-node-data,node/get-address,node/get-node-identify,node/get-vote-list,node/get-rule',	'节点管理',	0,	2,	0),
+(4,	'vote/index',	'投票管理',	0,	3,	0),
+(5,	'finance/index',	'资产管理',	0,	4,	0),
+(6,	'finance/get-finance-list',	'财务流水',	0,	5,	0),
+(7,	'notice/index,notice/get-detail',	'公告管理',	0,	6,	0),
+(8,	'node/examine',	'节点审核',	0,	7,	0),
+(9,	'identify/index,identify/detail',	'实名认证',	0,	9,	0),
+(10,	'withdraw/index,withdraw/wallet-info',	'转账审核',	0,	10,	0),
+(11,	'manager/get-admin-list',	'成员列表',	0,	11,	0),
+(12,	'user/create-user',	'新增用户',	2,	0,	0),
+(13,	'user/edit-user,user/stop-user,user/open-user',	'用户编辑',	2,	0,	0),
+(14,	'user/get-give-info,user/get-recommend-list,user/give',	'派发奖励',	2,	0,	0),
+(15,	'user/download',	'导出excel',	2,	0,	0),
+(16,	'node/create-user,node/check-mobile,node/check-node',	'新增节点',	3,	0,	0),
+(17,	'node/update-node,node/open-node,node/stop-node,node/un-tenure,node/tenure',	'节点编辑',	3,	0,	0),
+(18,	'node/get-history-order',	'查看排名',	3,	0,	0),
+(19,	'node/set-rule,node/update',	'节点设置',	3,	0,	0),
+(20,	'node/download,node/history-download',	'导出excel',	3,	0,	0),
+(21,	'vote/get-vote-order',	'查看排名',	4,	0,	0),
+(22,	'cycle/create-cycle,cycle/update-cycle,cycle/del,cycle/index,cycle/history,cycle/get-setting,cycle/set-setting',	'竞选设置',	4,	0,	0),
+(23,	'vote/get-setting-list,vote/set-vote',	'投票设置',	4,	0,	0),
+(24,	'vote/download,vote/vote-order-download',	'导出excel',	4,	0,	0),
+(25,	'finance/get-frozen-list',	'锁仓记录',	5,	0,	0),
+(26,	'finance/download,finance/frozen-download',	'导出excel',	5,	0,	0),
+(27,	'finance/finance-download',	'导出excel',	6,	0,	0),
+(28,	'notice/create',	'发布公告',	7,	0,	0),
+(29,	'notice/edit,notice/del-notice,notice/on-shelf,notice/off-shelf,notice/set-top,notice/set-un-top',	'公告编辑',	7,	0,	0),
+(30,	'notice/get-setting-list,notice/set-notice',	'公告设置',	7,	0,	0),
+(31,	'node/examine-on,node/examine-off,node/del-old-data',	'审核操作',	8,	0,	0),
+(32,	'identify/examine-on,identify/examine-off',	'审核操作',	9,	0,	0),
+(33,	'withdraw/examine-on,withdraw/examine-off',	'审核操作',	10,	0,	0),
+(34,	'withdraw/get-setting-list,withdraw/set-vote',	'转账设置',	10,	0,	0),
+(35,	'manager/set-role-rule,manager/create-role',	'编辑权限',	38,	0,	0),
+(36,	'manager/edit-role,manager/create-admin,manager/edit-admin',	'成员编辑',	11,	0,	0),
+(37,	'log/index',	'操作日志',	0,	12,	0),
+(38,	'manager/get-role-list',	'权限设置',	0,	13,	0),
+(39,	'log/download',	'日志导出',	37,	0,	0),
+(40,	'node/examine-upgrade',	'节点升级列表',	0,	8,	0),
+(41,	'node/examine-on,node/examine-off',	'节点升级审核',	40,	0,	0);
+
 # 执行控制台 
 # 重建 node_recommend 数据
 # php yii index/create-node-recommend 

@@ -371,6 +371,11 @@ class UpdateService extends ServiceBase
                     $node_recommend->node_id = $v->node_id;
                     $node_recommend->amount = $v->amount;
                     $node_recommend->create_time = $v->create_time;
+                    $timeBehavior = 0;
+                    if ($node_recommend->getBehavior($timeBehavior) instanceof \yii\behaviors\TimestampBehavior) {
+                        // 删除指定 behavior 行为
+                        $node_recommend->detachBehavior($timeBehavior);
+                    }
                     if (!$node_recommend->save()) {
                         echo '第'.$v->id.'数据转移出错'.PHP_EOL;
                         

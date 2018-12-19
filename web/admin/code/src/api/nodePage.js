@@ -138,7 +138,7 @@ export function offTenure(nodeId) {
 }
 
 // 编辑节点基本信息
-export function updataBase(nodeId, logo, name, desc, scheme, quota) {
+export function updataBase(nodeId, logo, name, desc, scheme, recommendMobile, quota) {
   return request({
     url: '/node/update-node',
     method: 'post',
@@ -148,6 +148,7 @@ export function updataBase(nodeId, logo, name, desc, scheme, quota) {
       name,
       desc,
       scheme,
+      recommendMobile,
       quota
     }
   })

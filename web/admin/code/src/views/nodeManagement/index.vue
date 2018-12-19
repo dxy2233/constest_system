@@ -198,7 +198,7 @@
       </div>
       <div v-if="rowInfo.typeId!=1&&rowInfo.typeId!=5&&!nodeInfoBase.recommendMobile" class="item">
         <div class="title">添加推荐人手机号</div>
-        <el-input v-model="nodeInfoBase.recommendMobile"/>
+        <el-input v-model="nodeInfoBase.recommendMobile2"/>
       </div>
       <hr>
       <h4>权益信息</h4>
@@ -971,12 +971,12 @@ export default {
     },
     // 修改节点基本信息
     editNodeBase() {
-      this.dialogEdit = false
       updataBase(this.rowInfo.id, this.nodeInfoBase.logo, this.nodeInfoBase.name,
-        this.nodeInfoBase.desc, this.nodeInfoBase.scheme, this.nodeInfoBase.quota).then(res => {
+        this.nodeInfoBase.desc, this.nodeInfoBase.scheme, this.nodeInfoBase.recommendMobile2, this.nodeInfoBase.quota).then(res => {
         Message({ message: res.msg, type: 'success' })
         this.init()
         this.changeTabs({ name: this.activeName })
+        this.dialogEdit = false
       })
     },
     // 打开节点设置

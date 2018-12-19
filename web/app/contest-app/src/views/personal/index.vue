@@ -52,7 +52,7 @@
             <div class="info">
               <h2>
                 <span>{{nodeInfo.name}}</span>
-                <span class="sign" v-if="nodeInfo.isTenure">任职</span>git
+                <span class="sign" v-if="nodeInfo.isTenure">任职</span>
               </h2>
               <p v-if="nodeInfo.typeId===1||nodeInfo.typeId===2">
                 <span class="gray">{{nodeInfo.peopleNumber+' 人支持'}}</span>

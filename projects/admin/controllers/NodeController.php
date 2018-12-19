@@ -350,7 +350,7 @@ class NodeController extends BaseController
         // 发送短信通知用户
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $typeName = str_replace('节点', '', $node_type->name);
-        $returnInfo = SmsService::send($user->mobile, ['name' => $typeName], BSmsTemplate::$TYPE_NODE_EXAMINE);
+        $returnInfo = SmsService::send($user->mobile, ['name' => $typeName], BSmsTemplate::$TYPE_NODE_UP_EXAMINE);
         if ($returnInfo->code != 0) {
             $transaction->rollBack();
             return $this->respondJson($returnInfo->code, $returnInfo->msg);
@@ -663,7 +663,7 @@ class NodeController extends BaseController
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
     }
-    // 节点基本信息
+    // 节点申请基本信息
     public function actionGetNodeExamineDetail()
     {
         $nodeId = $this->pInt('nodeId');
@@ -711,7 +711,7 @@ class NodeController extends BaseController
         $node_type = BNodeType::find()->where(['id' => $data['type_id']])->one();
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
-        $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
+        $other = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'type_id' => $data->type_id, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
         $return = [];
         if ($other) {
             $return['weixin'] = $other->weixin;
@@ -1719,7 +1719,7 @@ class NodeController extends BaseController
         $count = $find->count();
         $page = $this->pInt('page', 0);
         $find->page($page);
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->groupBy('A.id')->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
@@ -1773,7 +1773,7 @@ class NodeController extends BaseController
         if ($endTime != '') {
             $find->endTime($endTime, 'A.create_time');
         }
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->groupBy('A.id')->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);

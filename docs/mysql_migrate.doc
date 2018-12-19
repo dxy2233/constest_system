@@ -297,7 +297,11 @@ ALTER TABLE `gr_user_recommend`
 ADD UNIQUE `user_id` (`user_id`),
 DROP INDEX `user_id`;
 
-update gr_user a join gr_user_recommend b on a.id = b.user_id set b.parent_list = a.parent_list
+# 转移 层级关系字段数据到 user_recommend表中
+update gr_user a join gr_user_recommend b on a.id = b.user_id set b.parent_list = a.parent_list;
+
+# 删除user 表中的 层级关系字段
+ALTER TABLE `gr_user` DROP `parent_list`;
 
 CREATE TABLE `gr_node_recommend` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -311,9 +315,6 @@ CREATE TABLE `gr_node_recommend` (
   UNIQUE KEY `user_id` (`user_id`),
   KEY `parent_id` (`parent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户推荐关系表';
-
-
-ALTER TABLE `gr_user` DROP `parent_list`;
 
 #节点申请表结构
 CREATE TABLE `gr_node_upgrade` (
@@ -369,3 +370,9 @@ INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `create_time`) VA
 
 INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
 VALUES ('节点升级通过-通知', '7', '尊敬的用户，您的${name}节点升级审核已通过，感谢您的支持。', 'zh-CN', '1', NULL, '0');
+
+# 执行控制台 
+# 重建 node_recommend 数据
+# php yii index/create-node-recommend 
+# 补录历史节点申请数据
+# php yii index/create-old-upgrade 

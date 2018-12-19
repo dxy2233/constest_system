@@ -6,7 +6,7 @@
         <router-link tag="a" slot="right" to="/personal/rcmd/record">推荐记录</router-link>
       </x-header>-->
       <app-header>
-        我的推荐
+        我的邀请
         <router-link tag="span" slot="right" to="/personal/rcmd/record">邀请记录</router-link>
       </app-header>
       <div class="recommend-content">

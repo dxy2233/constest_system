@@ -337,7 +337,7 @@ class NodeController extends BaseController
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '申请成功');
@@ -561,7 +561,7 @@ class NodeController extends BaseController
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($nodeUpgradeModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '申请成功');
@@ -630,7 +630,7 @@ class NodeController extends BaseController
             $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
             $nodeUpgradeModel->parent_id = 0;
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $nodeModel = new BNode();
             $nodeModel->user_id = $userModel->id;
@@ -639,20 +639,20 @@ class NodeController extends BaseController
             $nodeModel->desc = $desc;
             $nodeModel->scheme = $scheme;
             if (!$nodeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             // 独立出状态修改以及状态备注 在审核时间上面加10秒 体现出状态修改痕迹
             $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_ACTIVE;
             $nodeUpgradeModel->status_remark = $statusRemark;
             $nodeUpgradeModel->examine_time = time() + 10;
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $nodeModel->status = $nodeModel::STATUS_ON;
             $nodeModel->status_remark = $statusRemark;
             $nodeModel->examine_time = time() + 10;
             if (!$nodeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '激活成功');

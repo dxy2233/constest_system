@@ -11,6 +11,7 @@ use common\models\business\BNode;
 use common\models\business\BAdminRole;
 use common\models\business\BAdminRule;
 use common\models\business\BAdminUser;
+use common\components\FuncHelper;
 
 /**
  * Site controller
@@ -283,7 +284,7 @@ class ManagerController extends BaseController
     public function actionGetRoleRuleList()
     {
         // 所有权限
-        $rule = BAdminRule::find()->orderBy('parent_id')->asArray()->all();
+        $rule = BAdminRule::find()->orderBy('sort')->asArray()->all();
         $new_data = [];
         foreach ($rule as $v) {
             if ($v['parent_id'] == 0) {
@@ -328,7 +329,7 @@ class ManagerController extends BaseController
             }
             $r[] = $v;
         }
-
+        $r = FuncHelper::arr_sort($r, 'sort', 0, 1);
         return  $this->respondJson(0, '获取成功', $r);
     }
     // 权限编辑

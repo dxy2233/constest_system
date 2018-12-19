@@ -42,6 +42,7 @@ class AdminRule extends \common\dzbase\DzModel
             'id' => 'ID',
             'url' => '路由地址',
             'name' => '权限名称',
+            'sort' => '排序',
             'parent_id' => '上级权限ID',
         ];
     }

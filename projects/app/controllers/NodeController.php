@@ -337,7 +337,7 @@ class NodeController extends BaseController
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstError());
             }
             $transaction->commit();
             return $this->respondJson(0, '申请成功');

@@ -227,6 +227,8 @@ class NodeController extends BaseController
     {
         $nodeTypeQuery = BNodeType::find()
         ->select(['id', 'name', 'grt', 'tt', 'bpt'])
+        // 获取节点类型不调用 微店节点
+        ->where(['<>', 'id', 5])
         ->active();
         $nodeType = $nodeTypeQuery->orderBy(['sort' => SORT_ASC])->asArray()->all();
         return $this->respondJson(0, '获取成功', $nodeType);

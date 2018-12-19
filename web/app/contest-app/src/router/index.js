@@ -285,7 +285,6 @@ export let mainRouter = [
       }
     ]
   },
-
 ]
 
 export default new Router({

@@ -49,9 +49,10 @@
           </div>
         </div>
         <div :class="[myNodeInfo.typeId===2?'btn-box-2':'btn-box-1']">
-          <router-link v-if="myNodeInfo.typeId!==1" tag="button" :to='upgradePath'>
+          <!--:to='upgradePath-->
+          <button v-if="myNodeInfo.typeId!==1" @click="handUpgrade">
             {{upgradeStr}}
-          </router-link>
+          </button>
           <router-link v-if="(myNodeInfo.typeId===1||myNodeInfo.typeId===2)" tag="button"
                        to='/personal/node/index/invite'>拉票
           </router-link>
@@ -119,6 +120,13 @@
       ]),
     },
     methods: {
+      handUpgrade() {
+        if (this.upgradeStr === '升级' && this.myNodeInfo.isTenure) {
+          this.$vux.toast.show('任职状态不能升级')
+          return
+        }
+        this.$router.push({path: this.upgradePath})
+      },
       goVoting() {
         this.$router.push({
           path: `/home/node/dts${this.$route.params.id}/voting`
@@ -133,7 +141,7 @@
               status: -1
             }
           }
-          sessionStorage.setItem('nodeUpgradeMsg', JSON.stringify(this.upgradeMsg))
+          localStorage.setItem('nodeUpgradeMsg', JSON.stringify(this.upgradeMsg))
         })
       }
     },

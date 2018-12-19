@@ -36,7 +36,7 @@
           </div>
           <div v-if="form.type_id==='1'" class="form-item" v-show="hasRecommend">
             <div class="label">
-              升级成功后，推荐你成为“{{myNodeInfo.name}}”的用户将不再获得节点推荐奖,同时清除推荐关系
+              升级成功后，推荐你成为“{{myNodeInfo.typeName}}”的用户将不再获得节点推荐奖,同时清除推荐关系
               <span class="must">*</span>
             </div>
             <check-icon :value.sync="form.remove_recommend">同意清除关系</check-icon>

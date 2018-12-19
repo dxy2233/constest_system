@@ -711,7 +711,7 @@ class NodeController extends BaseController
         $node_type = BNodeType::find()->where(['id' => $data['type_id']])->one();
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
-        $other = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'type_id' => $data->type_id])->one();
+        $other = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'type_id' => $data->type_id, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
         $return = [];
         if ($other) {
             $return['weixin'] = $other->weixin;

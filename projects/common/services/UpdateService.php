@@ -370,6 +370,7 @@ class UpdateService extends ServiceBase
                     $node_recommend->parent_id = $v->parent_id;
                     $node_recommend->node_id = $v->node_id;
                     $node_recommend->amount = $v->amount;
+                    $node_recommend->create_time = $v->create_time;
                     if (!$node_recommend->save()) {
                         echo '第'.$v->id.'数据转移出错'.PHP_EOL;
                         

@@ -646,10 +646,18 @@ class NodeController extends BaseController
     {
         $nodeId = $this->pInt('nodeId');
         $data = BNode::find()->where(['id' => $nodeId])->one();
+        
         if (empty($data)) {
             return $this->respondJson(1, '不存在的节点');
         }
         $return = [];
+        $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
+        if($recommend){
+            $recommend_user = BUser::find()->where(['id' => $recommend->parent_id])->one();
+            $return['recommend_mobile'] = $recommend_user->mobile;
+        }else{
+            $return['recommend_mobile'] = '';
+        }
         $return['name'] = $data->name;
         $return['desc'] = $data->desc;
         $return['status_remark'] = $data->status_remark;
@@ -1109,7 +1117,7 @@ class NodeController extends BaseController
         $tt = $this->pInt('tt', 0);
 
         $bpt = $this->pInt('bpt', 0);
-        $conversion = $this->pInt('conversion', 0);
+        $conversion = $this->pFloat('conversion', 0);
 
         $quota = $this->pInt('quota', 0);
         if ($quota < 0) {
@@ -1318,7 +1326,28 @@ class NodeController extends BaseController
         if (empty($desc)) {
             return $this->respondJson(1, '简介不能为空');
         }
-
+        // 推荐人手机号
+        $recommend_mobile = $this->pString('recommendMobile', '');
+        if($recommend_mobile != ''){
+            $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
+            if($recommend){
+                return $this->respondJson(1, '已有推荐人');
+            }else{
+                $parent = BUser::find()->where(['mobile' => $recommend_mobile])->one();
+                if(!$parent){
+                    return $this->respondJson(1, '推荐人不存在');
+                }
+                $res = UserService::checkNodeRecommend($data->user_id, $parent->recommend_code);
+                if($res->code){
+                    return $this->respondJson($res->code, '审核失败', $res->msg);
+                }
+                //推荐赠送
+                $res = NodeService::checkVoucher($data->user_id);
+                if ($res->code != 0) {
+                    return $this->respondJson($res->code, '审核失败', $res->msg);
+                }
+            }
+        }
         $scheme = $this->pString('scheme', '');
         if (empty($scheme)) {
             return $this->respondJson(1, '建设方案不能为空');

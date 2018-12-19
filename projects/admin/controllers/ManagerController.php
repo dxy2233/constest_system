@@ -284,7 +284,7 @@ class ManagerController extends BaseController
     public function actionGetRoleRuleList()
     {
         // 所有权限
-        $rule = BAdminRule::find()->orderBy('sort')->asArray()->all();
+        $rule = BAdminRule::find()->asArray()->all();
         $new_data = [];
         foreach ($rule as $v) {
             if ($v['parent_id'] == 0) {

@@ -338,11 +338,19 @@ class NodeController extends BaseController
             $recommend->delete();
         }
         
+        //推荐赠送
+        $res = NodeService::checkVoucher($data->user_id);
+
+        if ($res->code != 0) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $res->msg);
+        }
+        
 
         // 发送短信通知用户
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $typeName = str_replace('节点', '', $node_type->name);
-        $returnInfo = SmsService::send($user->mobile, ['name' => $typeName], BSmsTemplate::$TYPE_NODE_EXAMINE);
+        $returnInfo = SmsService::send($user->mobile, ['name' => $typeName], BSmsTemplate::$TYPE_NODE_UP_EXAMINE);
         if ($returnInfo->code != 0) {
             $transaction->rollBack();
             return $this->respondJson($returnInfo->code, $returnInfo->msg);
@@ -655,7 +663,7 @@ class NodeController extends BaseController
         $return['logo'] = FuncHelper::getImageUrl($data->logo, 640, 640);
         return $this->respondJson(0, '获取成功', $return);
     }
-    // 节点基本信息
+    // 节点申请基本信息
     public function actionGetNodeExamineDetail()
     {
         $nodeId = $this->pInt('nodeId');
@@ -703,7 +711,7 @@ class NodeController extends BaseController
         $node_type = BNodeType::find()->where(['id' => $data['type_id']])->one();
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
-        $other = BUserOther::find()->where(['user_id' => $data->user_id])->one();
+        $other = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'type_id' => $data->type_id, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
         $return = [];
         if ($other) {
             $return['weixin'] = $other->weixin;
@@ -1210,6 +1218,10 @@ class NodeController extends BaseController
         if (!$bool) {
             return $this->respondJson(1, '当前处于不可任职时间');
         }
+        $upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
+        if($upgrade){
+            return $this->respondJson(1, '当前节点有未处理的升级申请，不能任职');
+        }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
         $setting = BNodeType::find()->where(['id' => $node->type_id])->one();
         if ($now_count >= $setting->tenure_num) {
@@ -1707,7 +1719,7 @@ class NodeController extends BaseController
         $count = $find->count();
         $page = $this->pInt('page', 0);
         $find->page($page);
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->groupBy('A.id')->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
@@ -1761,7 +1773,7 @@ class NodeController extends BaseController
         if ($endTime != '') {
             $find->endTime($endTime, 'A.create_time');
         }
-        $data = $find->orderBy('parent_id')->asArray()->all();
+        $data = $find->groupBy('A.id')->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);

@@ -24,7 +24,7 @@
             </div>
           </div>
         </div>
-        <div v-else-if="nodeInfo.status===0" class="node_0">
+        <div v-else-if="nodeInfo.status===-2" class="node_0">
           <img src="/static/images/personal-node/bg5.png" alt="" class="bg">
           <div class="node-content">
             <div class="left">
@@ -52,7 +52,7 @@
             <div class="info">
               <h2>
                 <span>{{nodeInfo.name}}</span>
-                <span class="sign" v-if="nodeInfo.isTenure">任职</span>
+                <span class="sign" v-if="nodeInfo.isTenure">任职</span>git
               </h2>
               <p v-if="nodeInfo.typeId===1||nodeInfo.typeId===2">
                 <span class="gray">{{nodeInfo.peopleNumber+' 人支持'}}</span>
@@ -70,7 +70,9 @@
                 <p>{{nodeInfo.statusStr}}</p>
               </div>
               <div class="right">
-                <router-link tag="button" :to="'/personal/node/'+nodePath">查看</router-link>
+                <router-link v-show="nodePath" tag="button"
+                             :to="'/personal/node/'+nodePath">查看
+                </router-link>
               </div>
             </div>
           </div>
@@ -181,14 +183,19 @@
 
       },
       nodePath() {
-        //0 停用 1 已生效 2 审核中 3 撤销 4 审核未通过 5 删除'
+        //-100停用 0 审核中 1 已生效 2 审核失败  5 删除' -1不存在 -2未激活
         if (!this.nodeInfo) return ''
         switch (this.nodeInfo.status) {
-          case 2:
+          case 0:
             return 'wait'
-          case 4:
+          case 2:
             return 'fail'
+          default:
+            return ''
         }
+       /* if (this.nodeInfo.status === 0) {
+          // if ()
+        }*/
 
       },
       ...mapGetters([
@@ -197,8 +204,8 @@
       ]),
     },
     methods: {
-      activateNode(){
-        if (!this.identifyMsg.isIdentify||this.identifyMsg.status!==1){
+      activateNode() {
+        if (!this.identifyMsg.isIdentify || this.identifyMsg.status !== 1) {
           this.$vux.toast.show('请先完成实名认证')
           return
         }
@@ -211,9 +218,9 @@
             text: res.msg,
             type: 'success'
           })
-          setTimeout(()=>{
+          setTimeout(() => {
             this.getNodeInfo()
-          },500)
+          }, 500)
 
         })
       },
@@ -270,7 +277,7 @@
         hidMobile: hidMobile,
         personalRouter: mainRouter[2],
         nodeInfo: {
-          typeId:''
+          typeId: ''
         },
         identifyMsg: {}
       }
@@ -419,7 +426,7 @@
             color #bfbfbf
           button
             background none
-            border 1px solid color #ddcfac
+            border 2px solid #ddcfac
             color #ddcfac
             font-size $font-size-medium
             padding 5px 15px

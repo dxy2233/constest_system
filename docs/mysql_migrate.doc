@@ -290,8 +290,6 @@ INSERT INTO `gr_admin_role` (`id`, `name`, `rule_list`, `status`, `create_time`)
 以上sql 2018-12-05 17:00已同步线上
 =============================================================
 
-
-
 ALTER TABLE `gr_user_recommend`
 ADD `parent_list` varchar(1000) NOT NULL DEFAULT '' COMMENT '上级列表' AFTER `node_id`;
 
@@ -326,22 +324,22 @@ CREATE TABLE `gr_node_upgrade` (
   `desc` text NOT NULL COMMENT '简介',
   `scheme` text NOT NULL COMMENT '建设方案',
   `weixin` varchar(128) NOT NULL COMMENT '微信号',
-  `old_type` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级前类型',
-  `type_id` int(11) unsigned NOT NULL COMMENT '升级类型',
+  `old_type` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '提交前类型',
+  `type_id` int(11) unsigned NOT NULL COMMENT '节点类型',
   `parent_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '补录推荐人ID',
-  `status` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '升级状态 0 待升级 1 升级成功 2 升级失败',
+  `status` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '审核状态 0 待审核 1 已审核 2 审核失败',
   `status_remark` varchar(255) NOT NULL DEFAULT '' COMMENT '状态备注',
-  `grt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级质押grt',
+  `grt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '质押grt',
   `grt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '贵人通地址',
-  `tt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级质押tt',
+  `tt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '质押tt',
   `tt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '茶通地址',
-  `bpt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '升级质押bpt',
+  `bpt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '质押bpt',
   `bpt_address` varchar(256) NOT NULL DEFAULT '' COMMENT '美食通地址',
   `examine_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '审核时间',
   `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='节点升级记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=385 DEFAULT CHARSET=utf8 COMMENT='节点升级记录表';
 
 #节点预定系统转移微店节点
 CREATE TABLE `gr_node_extend` (
@@ -367,3 +365,7 @@ ADD `conversion` int NOT NULL COMMENT '三通折合grt数量' AFTER `name`;
 INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `create_time`) VALUES 
 (40,	'node/examine-upgrade',	'节点升级列表',	0,	0),
 (41,	'node/examine-on,node/examine-off',	'节点升级审核',	40,	0);
+
+
+INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
+VALUES ('节点升级通过-通知', '7', '尊敬的用户，您的${name}节点升级审核已通过，感谢您的支持。', 'zh-CN', '1', NULL, '0');

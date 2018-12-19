@@ -49,6 +49,9 @@
               <input onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)"
                      @blur="getRecommendMsg" maxlength="11"
                      type="text" v-model="form.recommend_mobile" placeholder="输入推荐人手机号">
+              <p class="ps">
+                请正确填写节点推荐人手机号，节点推荐人将获得奖励，不填或填写错误提交后将不可修改
+              </p>
             </div>
             <!--<div class="form-item">
               <div class="label">
@@ -231,6 +234,7 @@
         })
       },
       getRecommendMsg() {
+        if (!this.form.recommend_mobile) return
         http.post('/node/recommend-mobile', {mobile: this.form.recommend_mobile}, (res) => {
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
@@ -272,6 +276,10 @@
     fixed-full-screen()
     overflow auto
     line-height 1.2em
+    .ps
+      color $color-theme
+      font-size $font-size-small-s
+      margin-top 5px
     .title-img
       width 100%
     .wrapper

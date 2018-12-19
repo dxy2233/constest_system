@@ -11,7 +11,7 @@
         </div>
         <div class="bottom">
           <p>{{detailsStr}}</p>
-          <p>{{myNodeInfo.statusRemark}}</p>
+          <p>{{remark}}</p>
           <div class="again">
             <router-link :to="againPath">
               <x-button type="warn" class="again-btn">重新申请</x-button>
@@ -33,23 +33,27 @@
     components: {
       slide
     },
-    data(){
+    data() {
       return {
         headerStr: '',
         detailsStr: '',
-        againPath:''
+        againPath: '',
+        remark: ''
       }
     },
-    created(){
+    created() {
       let isUpgrade = this.$route.path.includes('node/index')
       if (isUpgrade) {
         this.headerStr = '节点升级'
         this.detailsStr = '节点升级失败原因：'
         this.againPath = '/personal/node/index/upgrade'
+        let nodeUpgradeMsg = JSON.parse(localStorage.getItem("nodeUpgradeMsg"))
+        this.remark = nodeUpgradeMsg.statusRemark
       } else {
         this.headerStr = '我的节点'
         this.detailsStr = '节点申请失败原因：'
         this.againPath = '/personal/applynode/submit'
+        this.remark = this.myNodeInfo.statusRemark
       }
     },
     computed: {
@@ -79,7 +83,7 @@
         font-size 16px
     .bottom
       padding 20px 30px
-      &>p
+      & > p
         margin-bottom 25px
       .again
         padding-top 50px

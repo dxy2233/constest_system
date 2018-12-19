@@ -119,10 +119,10 @@ class NodeController extends BaseController
             $nodeModel = $userModel->node;
             $newNodeGrade = $userModel->newNodeGrade;
             if (!$nodeModel && !$newNodeGrade) {
-                if (!$userModel->nodeExtend) {
-                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'status_str' => '节点不存在']);
+                if (!$nodeExtendModel = $userModel->nodeExtend) {
+                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'type_id'=> 0, 'status_str' => '节点不存在']);
                 } else {
-                    return $this->respondJson(0, '节点未激活', ['status' => 0, 'status_str' => '节点未激活']);
+                    return $this->respondJson(0, '节点未激活', ['status' => -2, 'type_id' => $nodeExtendModel->type_id, 'status_str' => '节点未激活']);
                 }
             } else {
                 $nodeInfoModel = $nodeModel ?? $newNodeGrade;
@@ -132,6 +132,9 @@ class NodeController extends BaseController
                     $nodeType = $nodeInfoModel->nodeType;
                     $nodeInfo['type_id'] = $nodeType->id;
                     $nodeInfo['type_name'] = $nodeType->name;
+                    if ($nodeModel) {
+                        $nodeInfo['status'] = $nodeModel->status ?: -100;
+                    }
                     return $this->respondJson(0, '获取成功', $nodeInfo);
                 }
                 $nodeId = $nodeModel->id;
@@ -224,6 +227,8 @@ class NodeController extends BaseController
     {
         $nodeTypeQuery = BNodeType::find()
         ->select(['id', 'name', 'grt', 'tt', 'bpt'])
+        // 获取节点类型不调用 微店节点
+        ->where(['<>', 'id', 5])
         ->active();
         $nodeType = $nodeTypeQuery->orderBy(['sort' => SORT_ASC])->asArray()->all();
         return $this->respondJson(0, '获取成功', $nodeType);
@@ -334,7 +339,7 @@ class NodeController extends BaseController
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '申请成功');
@@ -558,7 +563,7 @@ class NodeController extends BaseController
                 return !is_null($item);
             });
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($nodeUpgradeModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '申请成功');
@@ -627,7 +632,7 @@ class NodeController extends BaseController
             $nodeUpgradeModel->scheme = '该节点很懒什么都没有写';
             $nodeUpgradeModel->parent_id = 0;
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $nodeModel = new BNode();
             $nodeModel->user_id = $userModel->id;
@@ -636,20 +641,20 @@ class NodeController extends BaseController
             $nodeModel->desc = $desc;
             $nodeModel->scheme = $scheme;
             if (!$nodeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             // 独立出状态修改以及状态备注 在审核时间上面加10秒 体现出状态修改痕迹
             $nodeUpgradeModel->status = $nodeUpgradeModel::STATUS_ACTIVE;
             $nodeUpgradeModel->status_remark = $statusRemark;
             $nodeUpgradeModel->examine_time = time() + 10;
             if (!$nodeUpgradeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $nodeModel->status = $nodeModel::STATUS_ON;
             $nodeModel->status_remark = $statusRemark;
             $nodeModel->examine_time = time() + 10;
             if (!$nodeModel->save()) {
-                throw new ErrorException($voteModel->getFirstError());
+                throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '激活成功');

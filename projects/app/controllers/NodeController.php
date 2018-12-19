@@ -475,10 +475,12 @@ class NodeController extends BaseController
         if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
             return $this->respondJson(1, '候选人数已满');
         }
-        // 勾选清除推荐关系
-        $hasRemoveRecommend = $this->pString('remove_recommend');
-        if ($typeId == 1 && $hasRemoveRecommend !== 'true') {
-            return $this->respondJson(1, '需勾选清除推荐关系');
+        if ($userModel->nodeRecommend) {
+            // 勾选清除推荐关系
+            $hasRemoveRecommend = $this->pString('remove_recommend');
+            if ($typeId == 1 && $hasRemoveRecommend !== 'true') {
+                return $this->respondJson(1, '需勾选清除推荐关系');
+            }
         }
         
         $grtNum = $this->pFloat('grt_num', 0);

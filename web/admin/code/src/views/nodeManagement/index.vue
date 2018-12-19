@@ -196,6 +196,10 @@
         <div class="title">社区建设方案</div>
         <el-input v-model="nodeInfoBase.scheme" :rows="2" type="textarea"/>
       </div>
+      <div v-if="rowInfo.typeId!=1&&rowInfo.typeId!=5&&!nodeInfoBase.recommendMobile" class="item">
+        <div class="title">添加推荐人手机号</div>
+        <el-input v-model="nodeInfoBase.recommendMobile"/>
+      </div>
       <hr>
       <h4>权益信息</h4>
       <div class="item">
@@ -397,7 +401,7 @@
           <el-form-item label="微信">
             <el-input v-model="addNodeData.weixin"/>
           </el-form-item>
-          <el-form-item v-if="addNodeData.type_id!=2" prop="recommendMobile" label="推荐人手机号">
+          <el-form-item v-if="addNodeData.type_id!=1&&addNodeData.type_id!=5" prop="recommendMobile" label="推荐人手机号">
             <el-input v-model="addNodeData.recommendMobile"/>
           </el-form-item>
           <el-form-item prop="type_id" label="节点类型">
@@ -800,6 +804,7 @@ export default {
       this.search = ''
       this.searchDate = ''
       this.currentPage = 1
+      this.showNodeInfo = false
       this.init()
     },
     // 主表格搜索
@@ -943,8 +948,8 @@ export default {
     },
     // 节点基本信息编辑按钮
     nodeBaseEdit() {
-      this.dialogEdit = true
       this.changeTabs({ name: '0' })
+      this.dialogEdit = true
     },
     // 上传图片的限制
     beforeAvatarUpload(file) {

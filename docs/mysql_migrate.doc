@@ -371,11 +371,11 @@ INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `create_time`) VA
 INSERT INTO `gr_sms_template` (`name`, `type`, `content`, `language`, `status`, `outer_template_id`, `create_time`)
 VALUES ('节点升级通过-通知', '7', '尊敬的用户，您的${name}节点升级审核已通过，感谢您的支持。', 'zh-CN', '1', NULL, '0');
 
+INSERT INTO `gr_node_type` (`id`, `name`, `conversion`, `grt`, `tt`, `bpt`, `gdt_reward`, `quota`, `max_candidate`, `is_examine`, `is_candidate`, `is_vote`, `is_order`, `tenure_num`, `status`, `sort`, `create_time`) VALUES
+(5,	'微店节点',	0.00000000,	0.00000000,	0.00000000,	0.00000000,	0.00000000,	82000.00,	1000,	1,	1,	0,	0,	1000,	1,	50,	0);
+
 # 执行控制台 
 # 重建 node_recommend 数据
 # php yii index/create-node-recommend 
 # 补录历史节点申请数据
 # php yii index/create-old-upgrade 
-
-INSERT INTO `gr_node_type` (`id`, `name`, `conversion`, `grt`, `tt`, `bpt`, `gdt_reward`, `quota`, `max_candidate`, `is_examine`, `is_candidate`, `is_vote`, `is_order`, `tenure_num`, `status`, `sort`, `create_time`) VALUES
-(5,	'微店节点',	0.00000000,	0.00000000,	0.00000000,	0.00000000,	0.00000000,	82000.00,	1000,	1,	1,	0,	0,	1000,	1,	50,	0);

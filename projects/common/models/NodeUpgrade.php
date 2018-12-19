@@ -14,16 +14,16 @@ use Yii;
  * @property string $desc 简介
  * @property string $scheme 建设方案
  * @property string $weixin 微信号
- * @property int $old_type 升级前类型
- * @property int $type_id 升级类型
+ * @property int $old_type 前类型
+ * @property int $type_id 类型
  * @property int $parent_id 补录推荐人ID
- * @property int $status 升级状态 0 待升级 1 升级成功 2 升级失败
+ * @property int $status 状态 0 待审核 1 已审核 2 审核失败,
  * @property string $status_remark 状态备注
- * @property int $grt 升级质押grt
+ * @property int $grt 质押grt
  * @property string $grt_address 贵人通地址
- * @property int $tt 升级质押tt
+ * @property int $tt 质押tt
  * @property string $tt_address 茶通地址
- * @property int $bpt 升级质押bpt
+ * @property int $bpt 质押bpt
  * @property string $bpt_address 美食通地址
  * @property int $examine_time 审核时间
  * @property int $create_time 创建时间
@@ -67,16 +67,16 @@ class NodeUpgrade extends \common\dzbase\DzModel
             'desc' => '简介',
             'scheme' => '建设方案',
             'weixin' => '微信号',
-            'old_type' => '升级前类型',
-            'type_id' => '升级类型',
+            'old_type' => '以前节点类型',
+            'type_id' => '节点类型',
             'parent_id' => '补录推荐人ID',
-            'status' => '升级状态 0 待升级 1 升级成功 2 升级失败',
+            'status' => '状态 0 待审核 1 已审核 2 审核失败',
             'status_remark' => '状态备注',
-            'grt' => '升级质押grt',
+            'grt' => '质押grt',
             'grt_address' => '贵人通地址',
-            'tt' => '升级质押tt',
+            'tt' => '质押tt',
             'tt_address' => '茶通地址',
-            'bpt' => '升级质押bpt',
+            'bpt' => '质押bpt',
             'bpt_address' => '美食通地址',
             'examine_time' => '审核时间',
             'create_time' => '创建时间',

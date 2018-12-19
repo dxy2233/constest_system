@@ -636,6 +636,7 @@ class NodeController extends BaseController
 
         $data->status = BNodeUpgrade::STATUS_FAIL;
         $data->status_remark = $remark;
+        $data->examine_time = time();
         if (!$data->save()) {
             return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }

@@ -139,7 +139,7 @@
           this.$vux.toast.show('只能升级到更高的节点')
           return
         }
-        if (this.form.type_id === '1' && !this.form.remove_recommend) {
+        if (this.form.type_id === '1' && this.hasRecommend && !this.form.remove_recommend) {
           this.$vux.toast.show('请同意清除关系')
           return
         }
@@ -233,32 +233,41 @@
   .upgrade
     fixed-full-screen()
     overflow auto
+
     .vux-check-icon > .weui-icon-success:before, .vux-check-icon > .weui-icon-success-circle:before
       color $color-theme
+
     .app-header
       border-bottom 1px solid $color-border
       background $color-background-sub
+
     .h-main
       padding-left $space-box
       padding-right $space-box
+
     .ps
       color $color-theme
       font-size $font-size-small-s
       margin-top 5px
+
     .upgrade-top
       padding-top 35px
+
       h1
         text-align center
         font-size $font-size-large-x
+
       h6
         margin-top 5px
         text-align center
         font-size $font-size-small-s
+
       p
         line-height 1.25em
         font-size $font-size-small-s
         margin-top 30px
         color $color-theme
+
       button
         margin 25px 0
         background #FF9E45
@@ -273,33 +282,42 @@
       p
         color $color-text-minor
         margin-bottom 5px
+
       table
         width 100%
         background #fffaf7
         border-collapse: collapse;
         border-spacing: 0;
         overflow hidden
+
       td
         border 1px solid #ECE5E1
         text-align center
         font-size $font-size-small-s
+
         &:first-of-type
           color #FF7F32
+
     .upgrade-form
       margin-top 20px
+
       .form-item
         margin-bottom 15px
         ipt-pr(#959da6)
+
         .label
           margin-bottom 2px
           color $color-text-minor
           font-size $font-size-small-s
+
           span
             font-weight normal
             margin-top 5px
             color $color-text-minor
+
           .must
             color #f52e00
+
         input
           width 100%
           line-height 42px
@@ -307,6 +325,7 @@
           box-sizing border-box
           padding 0 10px
           border 1px solid $color-border-sub
+
       .sbm-btn-box
         padding 25px 0
 </style>

@@ -14,7 +14,7 @@
       <div class="info">
         <h4 style="display:inline-block;margin-right:20px;">管理员设置</h4>
         <el-button v-show="activeRole!='1' && activeRole!='2'" size="small" @click="rename">重命名</el-button>
-        <el-button v-if="buttons[38].child[0].isHave==1" size="small" style="float:right;margin-top:10px;" @click="saveRolePurview">保存</el-button>
+        <el-button size="small" style="float:right;margin-top:10px;" @click="saveRolePurview">保存</el-button>
         <el-button v-show="activeRole!='1' && activeRole!='2'" type="danger" size="small" style="float:right;margin-top:10px;" @click="deleteRole">删除角色</el-button>
         <el-checkbox-group v-model="checkList">
           <div v-for="(item,index) in rolePurviewList" :key="index" class="checkbox">

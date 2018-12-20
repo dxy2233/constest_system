@@ -13,7 +13,6 @@
 
     已选择<span style="color:#3e84e9;display:inline-block;margin-top:20px;">{{ tableDataSelection.length }}</span>项
     <el-button v-if="buttons[8].child[0].isHave==1" v-show="noticeChecktoNum==2" :disabled="(tableDataSelection.length<1)" size="small" type="primary" plain @click="allPass">通过</el-button>
-    <el-button v-if="buttons[7].child[0].isHave==1" v-show="noticeChecktoNum==4" :disabled="(tableDataSelection.length<1)" size="small" type="danger" plain @click="allFail">删除记录</el-button>
 
     <el-table
       :data="tableData"
@@ -47,7 +46,6 @@
           <i class="el-icon-close btn" @click="showInfo=false"/>
           <el-button v-if="buttons[8].child[0].isHave==1" v-show="noticeChecktoNum==2" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
           <el-button v-if="buttons[8].child[0].isHave==1" v-show="noticeChecktoNum==2" type="primary" class="btn" @click="doomPass">通过</el-button>
-          <el-button v-if="buttons[8].child[0].isHave==1" v-show="noticeChecktoNum==4" type="danger" plain class="btn" @click="delteFailNote">删除记录</el-button>
         </div>
         <p v-show="noticeChecktoNum==4">未通过原因：{{ rowDetail.statusRemark }}</p>
         <!-- <p style="color:#888;">logo</p>
@@ -207,13 +205,13 @@ export default {
       })
     },
     // 删除记录
-    delteFailNote() {
-      deleteNote(this.rowInfo.id).then(res => {
-        Message({ message: res.msg, type: 'success' })
-        this.showInfo = false
-        this.init()
-      })
-    },
+    // delteFailNote() {
+    //   deleteNote(this.rowInfo.id).then(res => {
+    //     Message({ message: res.msg, type: 'success' })
+    //     this.showInfo = false
+    //     this.init()
+    //   })
+    // },
     // 批量删除记录
     allFail() {
       if (this.tableDataSelection.length < 1) return

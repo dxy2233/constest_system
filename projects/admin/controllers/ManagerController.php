@@ -288,9 +288,17 @@ class ManagerController extends BaseController
         $new_data = [];
         foreach ($rule as $v) {
             if ($v['parent_id'] == 0) {
-                $new_data[$v['id']] = $v;
-                $new_data[$v['id']]['child'] = [];
+                if (!empty($new_data[$v['id']])) {
+                    $v['child'] = $new_data[$v['id']]['child'];
+                    $new_data[$v['id']] = $v;
+                } else {
+                    $new_data[$v['id']] = $v;
+                    $new_data[$v['id']]['child'] = [];
+                }
             } else {
+                if (empty($new_data[$v['parent_id']])) {
+                    $new_data[$v['parent_id']] = [];
+                }
                 $new_data[$v['parent_id']]['child'][$v['id']] = $v;
             }
         }

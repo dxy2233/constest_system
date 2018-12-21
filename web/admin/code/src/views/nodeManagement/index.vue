@@ -95,8 +95,6 @@
             <div class="row"> <span>手机号</span> {{ nodeInfoOther.mobile | noContent }} </div>
             <div class="row"> <span>微信号</span> {{ nodeInfoOther.weixin | noContent }} </div>
             <div class="row"> <span>节点类型</span> {{ nodeInfoOther.typeName | noContent }} </div>
-            <div class="row"> <span>推荐人姓名</span> {{ nodeInfoOther.recommendName | noContent }} </div>
-            <div class="row"> <span>推荐人手机号</span> {{ nodeInfoOther.recommendMobile | noContent }} </div>
             <div class="row"> <span>质押GRT数量</span> {{ nodeInfoOther.grt | noContent }} </div>
             <div class="row"> <span>GRT钱包地址</span> {{ nodeInfoOther.grtAddress | noContent }} </div>
             <div class="row"> <span>质押BPT数量</span> {{ nodeInfoOther.bpt | noContent }} </div>

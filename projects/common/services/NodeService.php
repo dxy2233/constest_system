@@ -12,6 +12,7 @@ use common\components\FuncHelper;
 use common\components\FuncResult;
 use common\models\business\BNode;
 use common\models\business\BVote;
+use common\models\business\BUser;
 use common\models\business\BNotice;
 use common\models\business\BCurrency;
 use common\models\business\BVoucher;
@@ -91,8 +92,8 @@ class NodeService extends ServiceBase
     {
         $find = BNode::find()
         ->from(BNode::tableName()." A")
-        ->join('left join', 'gr_user B', 'A.user_id = B.id')
-        ->join('left join', 'gr_vote C', 'A.id = C.node_id && C.status = '.BNotice::STATUS_ACTIVE)
+        ->join('left join', BUser::tablename().' B', 'A.user_id = B.id')
+        ->join('left join', BVote::tablename().' C', 'A.id = C.node_id && C.status = '.BNotice::STATUS_ACTIVE)
         ->join('left join', BNodeType::tablename().' D', 'A.type_id = D.id')
         ->groupBy(['A.id'])
         ->select(['sum(C.vote_number) as vote_number','A.name','B.mobile','A.grt', 'A.tt', 'A.bpt','A.is_tenure','A.create_time', 'A.examine_time','A.status','A.id','A.is_tenure','D.name as type_name', 'D.id as type_id', 'A.user_id']);
@@ -133,6 +134,19 @@ class NodeService extends ServiceBase
         foreach ($data as &$v) {
             if ($v['vote_number'] == null) {
                 $v['vote_number'] = '0';
+            }
+            $recommend =
+            BNodeRecommend::find()
+            ->from(BNodeRecommend::tableName()." A")
+            ->join('left join', BUser::tablename().' B', 'A.parent_id = B.id')
+            ->select(['B.mobile'])
+            ->where(['A.user_id' => $v['user_id']])
+            ->asArray()
+            ->one();
+            if ($recommend) {
+                $v['recommend_mobile'] = $recommend['mobile'];
+            } else {
+                $v['recommend_mobile'] = '-';
             }
         }
         

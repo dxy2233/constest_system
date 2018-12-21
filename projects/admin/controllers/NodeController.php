@@ -164,7 +164,7 @@ class NodeController extends BaseController
             }
         }
 
-        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态', 'type_name' => '节点类型', 'weixin' => '微信', 'grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'consignee' => '收件人姓名', 'consignee_mobile' => '收件人电话', 'zip_code' => '邮编', 'address' => '收货地址', 'realname' => '姓名', 'number' => '身份证号'];
+        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'recommend_mobile' => '推荐人手机号', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态', 'type_name' => '节点类型', 'weixin' => '微信', 'grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'consignee' => '收件人姓名', 'consignee_mobile' => '收件人电话', 'zip_code' => '邮编', 'address' => '收货地址', 'realname' => '姓名', 'number' => '身份证号'];
         $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
 
         return;
@@ -1720,8 +1720,8 @@ class NodeController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')
         ->join('left join', BUser::tableName().' C', 'A.user_id = C.id')
         ->join('left join', BNode::tableName().' D', 'A.parent_id = D.user_id')
-        ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id')
-        ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id')
+        ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id && F.status = '.BUserIdentify::STATUS_ACTIVE)
+        ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id && G.status = '.BUserIdentify::STATUS_ACTIVE)
         ->join('left join', BNode::tableName(). ' E', 'A.user_id = E.user_id');
 
         $searchName = $this->pString('searchName');
@@ -1746,10 +1746,11 @@ class NodeController extends BaseController
         if ($endTime != '') {
             $find->endTime($endTime, 'A.create_time');
         }
+        $find->groupBy('A.id');
         $count = $find->count();
         $page = $this->pInt('page', 0);
         $find->page($page);
-        $data = $find->groupBy('A.id')->orderBy('A.create_time DESC')->asArray()->all();
+        $data = $find->orderBy('A.create_time DESC')->asArray()->all();
         foreach ($data as &$v) {
             $v['p_type_id'] = BNodeType::GetName($v['p_type_id']);
             $v['u_type_id'] = BNodeType::GetName($v['u_type_id']);
@@ -1774,8 +1775,8 @@ class NodeController extends BaseController
         ->join('left join', BUser::tableName().' B', 'A.parent_id = B.id')
         ->join('left join', BUser::tableName().' C', 'A.user_id = C.id')
         ->join('left join', BNode::tableName().' D', 'A.parent_id = D.user_id')
-        ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id')
-        ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id')
+        ->join('left join', BUserIdentify::tableName().' F', 'A.parent_id = F.user_id && F.status = '.BUserIdentify::STATUS_ACTIVE)
+        ->join('left join', BUserIdentify::tableName().' G', 'A.user_id = G.user_id && G.status = '.BUserIdentify::STATUS_ACTIVE)
         ->join('left join', BNode::tableName(). ' E', 'A.user_id = E.user_id');
         $id = $this->gString('id');
         if ($id != '') {

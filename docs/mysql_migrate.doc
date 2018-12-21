@@ -427,3 +427,8 @@ INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `sort`, `create_t
 # php yii index/create-node-recommend 
 # 补录历史节点申请数据
 # php yii index/create-old-upgrade 
+
+update gr_node_extend set type_id = 5;
+
+以上sql 2018-12-20 14:00已同步线上
+=============================================================

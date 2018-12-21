@@ -164,7 +164,7 @@ class NodeController extends BaseController
             }
         }
 
-        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态', 'type_name' => '节点类型', 'weixin' => '微信', 'grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'consignee' => '收件人姓名', 'consignee_mobile' => '收件人电话', 'zip_code' => '邮编', 'address' => '收货地址', 'realname' => '姓名', 'number' => '身份证号'];
+        $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'recommend_mobile' => '推荐人手机号', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态', 'type_name' => '节点类型', 'weixin' => '微信', 'grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'consignee' => '收件人姓名', 'consignee_mobile' => '收件人电话', 'zip_code' => '邮编', 'address' => '收货地址', 'realname' => '姓名', 'number' => '身份证号'];
         $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
 
         return;

@@ -45,6 +45,7 @@
       <el-table-column prop="order" label="排名"/>
       <el-table-column prop="name" label="节点名称"/>
       <el-table-column prop="mobile" label="用户"/>
+      <el-table-column prop="recommendMobile" label="推荐人手机号"/>
       <el-table-column prop="voteNumber" label="票数"/>
       <el-table-column prop="count" label="支持人数"/>
       <el-table-column prop="grt" label="质押GRT"/>
@@ -617,7 +618,8 @@ export default {
         { name: '投票人数', value: null },
         { name: '质押GRT', value: null },
         { name: '质押BPT', value: null },
-        { name: '质押TT', value: null }
+        { name: '质押TT', value: null },
+        { name: '推荐人', value: null }
       ],
       activeName: '-1',
       nodeInfoOther: [], // 1.2新加节点基本信息
@@ -830,7 +832,6 @@ export default {
     },
     // 点击表格行
     clickRow(row) {
-      // this.rowInfo = row
       this.rowIndex = row.index
       this.showNodeInfo = true
       this.cardData[0].value = row.order
@@ -840,6 +841,7 @@ export default {
       this.cardData[4].value = row.grt
       this.cardData[5].value = row.bpt
       this.cardData[6].value = row.tt
+      this.cardData[7].value = row.recommendMobile
       this.changeTabs({ name: this.activeName })
     },
     // 选项卡切换

@@ -74,5 +74,12 @@ return [
     'recommend' => [
         'voucher' => [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000 ],
         'gdt' => [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200 ]
-    ]
+    ],
+
+    // IET 接口配置
+    'ietApiConfig'=> [
+        'url' => 'https://gdttest.huaxuec.com',
+        'key' => '!#&Gh$dd&a*hd**12Q_!QAZ',
+        'signType' => 'MD5',
+    ],
 ];

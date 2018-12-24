@@ -12,8 +12,8 @@ return [
     'showScriptName'      => false,
     'enableStrictParsing' => false,
     'rules'               => [
-        '/'                             => 'record/index',
-        '/index'                             => 'record/index',
+        '/'                             => 'index/index',
+        '/index'                             => 'index/index',
         '<controller:\w+>/<action:\w+>' => '<controller>/<action>',
     ]
 ];

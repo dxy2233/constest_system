@@ -3,6 +3,7 @@ namespace app\controllers;
 
 use yii\helpers\ArrayHelper;
 use yii\filters\Cors;
+use common\services\IetSystemService;
 
 /**
  * Site controller
@@ -42,6 +43,7 @@ class IndexController extends \common\dzbase\DzController
     public function actionIndex()
     {
         return $this->respondJson(0, "获取成功");
+        exit;
     }
 
     /**

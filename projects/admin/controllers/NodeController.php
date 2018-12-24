@@ -296,10 +296,13 @@ class NodeController extends BaseController
         // 添加节点信息
         $node = BNode::find()->where(['user_id' => $data->user_id])->one();
         $node->type_id = $data->type_id;
+        $node->grt = (float)$node->grt + (float)$data->grt;
+        $node->tt = (float)$node->tt + (float)$data->tt;
+        $node->bpt = (float)$node->bpt + (float)$data->bpt;
         // 升级时若原销售配额不为空则累加需补充部分
         $node->quota = ($node->quota == null) ? null : $node->quota + NodeService::getUpgradeQuota($data->old_type, $data->type_id);
 
-        if($data->old_type == 5){
+        if ($data->old_type == 5) {
             // 微店第一次升级时，多增加微店设置值的销售配额
             $now_quota = BNodeType::find()->where(['id' => $data->type_id])->one();
             $wd_quota = BNodeType::find()->where(['id' => 5])->one();
@@ -653,10 +656,10 @@ class NodeController extends BaseController
         }
         $return = [];
         $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
-        if($recommend){
+        if ($recommend) {
             $recommend_user = BUser::find()->where(['id' => $recommend->parent_id])->one();
             $return['recommend_mobile'] = $recommend_user->mobile;
-        }else{
+        } else {
             $return['recommend_mobile'] = '';
         }
         $return['name'] = $data->name;
@@ -1228,7 +1231,7 @@ class NodeController extends BaseController
             return $this->respondJson(1, '当前处于不可任职时间');
         }
         $upgrade = BNodeUpgrade::find()->where(['user_id' => $node->user_id, 'status' => BNodeUpgrade::STATUS_WAIT])->one();
-        if($upgrade){
+        if ($upgrade) {
             return $this->respondJson(1, '当前节点有未处理的升级申请，不能任职');
         }
         $now_count = BNode::find()->where(['type_id' => $node->type_id, 'is_tenure' => BNode::STATUS_ON, 'status' => BNode::STATUS_ON])->count();
@@ -1329,17 +1332,17 @@ class NodeController extends BaseController
         }
         // 推荐人手机号
         $recommend_mobile = $this->pString('recommendMobile', '');
-        if($recommend_mobile != ''){
+        if ($recommend_mobile != '') {
             $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
-            if($recommend){
+            if ($recommend) {
                 return $this->respondJson(1, '已有推荐人');
-            }else{
+            } else {
                 $parent = BUser::find()->where(['mobile' => $recommend_mobile])->one();
-                if(!$parent){
+                if (!$parent) {
                     return $this->respondJson(1, '推荐人不存在');
                 }
                 $res = UserService::checkNodeRecommend($data->user_id, $parent->recommend_code);
-                if($res->code){
+                if ($res->code) {
                     return $this->respondJson($res->code, '审核失败', $res->msg);
                 }
                 //推荐赠送

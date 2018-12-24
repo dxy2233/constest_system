@@ -293,6 +293,7 @@ class WalletController extends BaseController
 
     public function actionTransfer()
     {
+        
         $currencyId = $this->pInt('id');
         $userModel = $this->user;
         if (!$currencyId) {

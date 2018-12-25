@@ -4,6 +4,7 @@ namespace common\services;
 use yii\base\Exception;
 use yii\httpclient\Client;
 use common\components\FuncHelper;
+use common\models\business\BIetPush;
 
 class IetSystemService extends ServiceBase
 {
@@ -32,6 +33,9 @@ class IetSystemService extends ServiceBase
         }
     }
     
+    
+    
+
     /**
      * 生成签名
     */
@@ -39,10 +43,18 @@ class IetSystemService extends ServiceBase
     {
         self::GetConfig();
         //签名步骤一：按字典序排序参数
+        foreach ($values as $k => $v) {
+            if ($v === '') {
+                unset($values[$k]);
+            }
+        }
+
         ksort($values);
         $string = self::ToUrlParams($values);
+
         //签名步骤二：在string后加入KEY
         $string = $string . "&key=".self::$config['key'];
+
         //签名步骤三：MD5加密
         if (self::$config['signType'] == "MD5") {
             $string = md5($string);
@@ -84,10 +96,11 @@ class IetSystemService extends ServiceBase
     public static function push(string $url, array $data)
     {
         $data['sign'] = self::MakeSign($data);
-        // 自定义方法
-        $response = FuncHelper::curlPost(self::$config['url'] . $url, $data);
-        $response = json_decode($response);
-        return new ReturnInfo($response->code, $response->msg, $response->success);
+        // // 自定义方法
+        // $response = FuncHelper::curlPost(self::$config['url'] . $url, $data);
+        // $response = json_decode($response);
+        // self::createLog($url, $data, $response);
+        // return new ReturnInfo($response->code, $response->msg, $response->success);
         // 系统方法
         $client = new Client(['baseUrl' => self::$config['url']]);
         $response = $client->createRequest()
@@ -98,12 +111,32 @@ class IetSystemService extends ServiceBase
         ->setOptions([
           'timeout' => 5, // set timeout to 5 seconds for the case server is not responding
         ])->send();
+        self::createLog($url, $data, $response);
+
         if ($response->isOk) {
-            return new ReturnInfo($response->data['code'], $response->data['msg'], $response->data['success']);
+            return new ReturnInfo($response->data['code'], $response->data['message'], $response->data['data']);
         }
         return new ReturnInfo(0, '推送失败');
         // $response = FuncHelper::curlPost(self::$config['url'], $data);
-        print_r($response);
-        exit;
+        // print_r($response);
+        // exit;
+    }
+
+
+    /**
+     * 记录日志
+     *
+     * @param array $data
+     * @return void
+     */
+    public static function createLog(string $url, array $data, $response)
+    {
+        $iet_push = new BIetPush();
+        $iet_push->push_type = array_search($url, self::IET_URL);
+        $iet_push->push_data = json_encode($data);
+        $iet_push->response = json_encode($response);
+        $iet_push->status = ($response->data['code'] == 0) ? 1 : 2;
+        $iet_push->create_time = time();
+        $iet_push->save();
     }
 }

@@ -8,6 +8,7 @@ use common\services\NodeService;
 use common\services\SmsService;
 use common\services\RechargeService;
 use common\services\VoucherService;
+use common\services\IetSystemService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUser;
 use common\models\business\BArea;
@@ -315,6 +316,7 @@ class NodeController extends BaseController
         }
 
         $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
 
         if (!$recommend && $data->parent_id) {
             $parent = BNodeRecommend::find()->where(['user_id' => $data->parent_id])->one();
@@ -332,6 +334,19 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
+             // 向IET同步数据
+            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            $inviteCode = $parent_user->recommend_code;
+            $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->active()->one();
+            $inviteName = $parent_identify->realname;
+            $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
+            $url = IetSystemService::IET_URL['cusIdentity_sync'];
+            $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code];
+            $res_curl = IetSystemService::push($url, $data_arr);
+            if ($res_curl->code) {
+                $transaction->rollBack();
+                return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+            }
         } elseif ($data->type_id == 1 && $recommend) {
             // 如果升级为超级节点清除推荐关系
             $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list.",".$data->user_id."%'";
@@ -340,6 +355,7 @@ class NodeController extends BaseController
             $rowCount=$command->execute();
             $recommend->delete();
         }
+
         
         //推荐赠送
         $res = NodeService::checkVoucher($data->user_id);
@@ -349,9 +365,25 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $res->msg);
         }
         
+        // 向IET同步数据
+        if ($data->old_type == 5) {
+            //微店节点升级
+            $url = IetSystemService::IET_URL['wd_upgrade'];
+            $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
+        } else {
+            $url = IetSystemService::IET_URL['node_upgrade'];
+            $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
+        }
+
+        $res_curl = IetSystemService::push($url, $data_arr);
+
+        if ($res_curl->code) {
+            $transaction->rollBack();
+            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        }
 
         // 发送短信通知用户
-        $user = BUser::find()->where(['id' => $data->user_id])->one();
+        
         $typeName = str_replace('节点', '', $node_type->name);
         $returnInfo = SmsService::send($user->mobile, ['name' => $typeName], BSmsTemplate::$TYPE_NODE_UP_EXAMINE);
         if ($returnInfo->code != 0) {
@@ -597,6 +629,13 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
+            $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
+            $inviteName = $parent_ifentify->realname;
+            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            $inviteCode = $parent_user->recommend_code;
+        }else{
+            $inviteName = '';
+            $inviteCode = '';
         }
         
         //推荐赠送
@@ -607,10 +646,18 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $res->msg);
         }
 
-
+        // 向IET同步数据
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
+        $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
+        $url = IetSystemService::IET_URL['cusIdentity_sync'];
+        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code];
+        $res_curl = IetSystemService::push($url, $data_arr);
+        if ($res_curl->code) {
+            $transaction->rollBack();
+            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        }
 
         // 发送短信通知用户
-        $user = BUser::find()->where(['id' => $data->user_id])->one();
         $typeName = str_replace('节点', '', $node_type->name);
         $returnInfo = SmsService::send($user->mobile, ['name' => $typeName], BSmsTemplate::$TYPE_NODE_EXAMINE);
         if ($returnInfo->code != 0) {

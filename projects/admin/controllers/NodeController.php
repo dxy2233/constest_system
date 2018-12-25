@@ -341,7 +341,9 @@ class NodeController extends BaseController
             $inviteName = $parent_identify->realname;
             $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
             $url = IetSystemService::IET_URL['cusIdentity_sync'];
-            $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code];
+            $old_up = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'old_type' => 5, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
+            $up_status = $old_up ? 1 : 0;
+            $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code, 'upgradeFlag' => $up_status];
             $res_curl = IetSystemService::push($url, $data_arr);
             if ($res_curl->code) {
                 $transaction->rollBack();
@@ -630,12 +632,14 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
             $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
-            $inviteName = $parent_ifentify->realname;
+            $inviteName = $parent_identify->realname;
             $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
             $inviteCode = $parent_user->recommend_code;
         }else{
-            $inviteName = '';
-            $inviteCode = '';
+            $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
+            $inviteName = $parent_identify->realname;
+            $parent_user = BUser::find()->where(['id' => 97])->one();
+            $inviteCode = $parent_user->recommend_code;
         }
         
         //推荐赠送
@@ -650,7 +654,7 @@ class NodeController extends BaseController
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
         $url = IetSystemService::IET_URL['cusIdentity_sync'];
-        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code];
+        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code, 'upgradeFlag' => 0];
         $res_curl = IetSystemService::push($url, $data_arr);
         if ($res_curl->code) {
             $transaction->rollBack();

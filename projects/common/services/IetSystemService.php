@@ -43,12 +43,6 @@ class IetSystemService extends ServiceBase
     {
         self::GetConfig();
         //签名步骤一：按字典序排序参数
-        foreach ($values as $k => $v) {
-            if ($v === '') {
-                unset($values[$k]);
-            }
-        }
-
         ksort($values);
         $string = self::ToUrlParams($values);
 
@@ -95,6 +89,11 @@ class IetSystemService extends ServiceBase
      */
     public static function push(string $url, array $data)
     {
+        foreach ($data as $k => $v) {
+            if ($v === '') {
+                unset($data[$k]);
+            }
+        }
         $data['sign'] = self::MakeSign($data);
         // // 自定义方法
         // $response = FuncHelper::curlPost(self::$config['url'] . $url, $data);
@@ -114,7 +113,7 @@ class IetSystemService extends ServiceBase
         self::createLog($url, $data, $response);
 
         if ($response->isOk) {
-            return new ReturnInfo($response->data['code'], $response->data['message'], $response->data['data']);
+            return new ReturnInfo($response->data['code'], $response->data['msg'], $response->data['success']);
         }
         return new ReturnInfo(0, '推送失败');
         // $response = FuncHelper::curlPost(self::$config['url'], $data);
@@ -132,6 +131,7 @@ class IetSystemService extends ServiceBase
     public static function createLog(string $url, array $data, $response)
     {
         $iet_push = new BIetPush();
+        $iet_push->push_name = array_search($url, self::IET_URL);
         $iet_push->push_type = array_search($url, self::IET_URL);
         $iet_push->push_data = json_encode($data);
         $iet_push->response = json_encode($response);

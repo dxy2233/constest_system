@@ -34,7 +34,7 @@ class IetPush extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['push_name', 'push_type', 'push_data', 'response', 'relate_table', 'relate_id'], 'required'],
+            [['push_data', 'response'], 'required'],
             [['push_data', 'response'], 'string'],
             [['status', 'relate_id', 'create_time', 'update_time'], 'integer'],
             [['push_name'], 'string', 'max' => 255],

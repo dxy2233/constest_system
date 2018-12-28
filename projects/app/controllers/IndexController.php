@@ -42,6 +42,9 @@ class IndexController extends \common\dzbase\DzController
      */
     public function actionIndex()
     {
+        // $data = '{"phone":"13358360058","username":"\u795e\u519c\u6c0f","cardNo":"110101199003076173","identity":1,"inviteName":"11111","inviteCode":"18581068118","selfInvite":"13358360058","upgradeFlag":"0"}';
+        // $data = json_decode($data, true);
+        // var_dump($data, IetSystemService::push('/customer/uip/cusIdentity/sync', $data));
         return $this->respondJson(0, "获取成功");
         exit;
     }

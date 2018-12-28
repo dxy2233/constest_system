@@ -336,14 +336,14 @@ class NodeController extends BaseController
             }
              // 向IET同步数据
             $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            $inviteCode = $parent_user->recommend_code;
+            $inviteCode = $parent_user->mobile;
             $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->active()->one();
             $inviteName = $parent_identify->realname;
             $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
             $url = IetSystemService::IET_URL['cusIdentity_sync'];
             $old_up = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'old_type' => 5, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
-            $up_status = $old_up ? 1 : 0;
-            $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code, 'upgradeFlag' => $up_status];
+            $up_status = $old_up ? "1" : "0";
+            $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => $up_status];
             $res_curl = IetSystemService::push($url, $data_arr);
             if ($res_curl->code) {
                 $transaction->rollBack();
@@ -634,12 +634,12 @@ class NodeController extends BaseController
             $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
             $inviteName = $parent_identify->realname;
             $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            $inviteCode = $parent_user->recommend_code;
+            $inviteCode = $parent_user->mobile;
         }else{
             $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
             $inviteName = $parent_identify->realname;
             $parent_user = BUser::find()->where(['id' => 97])->one();
-            $inviteCode = $parent_user->recommend_code;
+            $inviteCode = $parent_user->mobile;
         }
         
         //推荐赠送
@@ -654,7 +654,7 @@ class NodeController extends BaseController
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
         $url = IetSystemService::IET_URL['cusIdentity_sync'];
-        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->recommend_code, 'upgradeFlag' => 0];
+        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
         $res_curl = IetSystemService::push($url, $data_arr);
         if ($res_curl->code) {
             $transaction->rollBack();
@@ -772,29 +772,6 @@ class NodeController extends BaseController
             return $this->respondJson(1, '不存在的节点');
         }
         $node_type = BNodeType::find()->where(['id' => $data['type_id']])->one();
-        $user = BUser::find()->where(['id' => $data->user_id])->one();
-        $identify = BUserIdentify::find()->active()->where(['user_id' => $data->user_id])->one();
-        $other = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'type_id' => $data->type_id, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
-        $return = [];
-        if ($other) {
-            $return['weixin'] = $other->weixin;
-            // $return['recommend_name'] = $other->recommend_name;
-            // $return['recommend_mobile'] = $other->recommend_mobile;
-            $return['grt_address'] = $other->grt_address;
-            $return['tt_address'] = $other->tt_address;
-            $return['bpt_address'] = $other->bpt_address;
-        } else {
-            $return['weixin'] =  $return['grt_address'] = $return['tt_address'] = $return['bpt_address'] = '';
-        }
-        
-        if ($identify) {
-            $return['username'] = $identify->realname;
-        } else {
-            $return['username'] = '';
-        }
-        $return['mobile'] = $user->mobile;
-        $return['type_name'] = $node_type->name;
-        $return['status_remark'] = $data->status_remark;
         if ($data->quota === null) {
             $return['quota'] = $node_type->quota;
         } else {
@@ -810,9 +787,27 @@ class NodeController extends BaseController
         } else {
             $return['use_quota'] = $return['quota'];
         }
-        $return['grt'] = $data->grt;
-        $return['tt'] = $data->tt;
-        $return['bpt'] = $data->bpt;
+        $list_transfer = BNodeTransfer::find()->where(['node_id' => $nodeId])->active()->all();
+        $list_upgrade = BNodeUpgrade::find()->where(['user_id' => $data->user_id])->active()->all();
+        $list = [];
+        
+        foreach($list_transfer as $v){
+            $item = [];
+            $item['type'] = '节点转让';
+            $node = BNode::find()
+            ->from(BNode::tableName().' A')
+            ->select(['B.name as type_name', 'C.realname', 'D.mobile', 'A.create_time'])
+            ->join('left join', BNodeType::tableName().' B', 'A.type_id = B.id')
+            ->join('left join', BUserIdentify::tableName().' C', 'C.user_id = A.to_user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
+            ->join('left join', BUser::tableName().' D', 'D.id = A.to_user_id')
+            ->where(['A.id' => $v['node_id']])
+            ->asArray()->one();
+            $item['node_type'] = $node['type_name'];
+            $item['realname'] = $node['realname'];
+            $item['mobile'] = $node['mobile'];
+            
+        }
+        $list = FuncHelper::arr_sort($list, 'create_time');
         return $this->respondJson(0, $msg, $return);
     }
 
@@ -903,46 +898,60 @@ class NodeController extends BaseController
         return $this->respondJson(0, '获取成功', $identify);
     }
 
-
+    // 分页功能添加  使用type区分两个tab
     // 获取投票明细
     public function actionGetVoteList()
     {
         $nodeId = $this->pInt('nodeId');
-        $voteList = [];
-        $data = BVote::find()
-        ->from(BVote::tableName()." A")
-        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
-        ->select(['A.*','B.mobile'])
-        ->where(['A.node_id' => $nodeId, 'A.status' => BNotice::STATUS_ACTIVE])
-        ->orderBy('A.create_time DESC')
-        ->asArray()->all();
-        foreach ($data as $v) {
-            $voteItem = [];
-            $voteItem['mobile'] = $v['mobile'];
-            $voteItem['voteNumber'] = $v['vote_number'];
-            $voteItem['type'] = BVote::getType($v['type']);
-            $voteItem['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
-            $voteList[] = $voteItem;
+        $type = $this->pInt('type', 1);
+        $page = $this->pInt('page', 1);
+        if($type == 1){
+            $voteList = [];
+            $find = BVote::find()
+            ->from(BVote::tableName()." A")
+            ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+            ->select(['A.*','B.mobile'])
+            ->where(['A.node_id' => $nodeId, 'A.status' => BNotice::STATUS_ACTIVE])
+            ->orderBy('A.create_time DESC');
+            $count = $find->count();
+            $data = $find
+            ->page($page)
+            ->asArray()->all();
+            foreach ($data as $v) {
+                $voteItem = [];
+                $voteItem['mobile'] = $v['mobile'];
+                $voteItem['voteNumber'] = $v['vote_number'];
+                $voteItem['type'] = BVote::getType($v['type']);
+                $voteItem['createTime'] = date('Y-m-d H:i:s', $v['create_time']);
+                $voteList[] = $voteItem;
+            }
+            $return = ['list' => $voteList, 'count' => $count];
+            return $this->respondJson(0, '获取成功', $return);
+        }else{
+            
+            $orderList = [];
+            $find = BVote::find()
+            ->from(BVote::tableName()." A")
+            ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+            ->where(['A.node_id' => $nodeId, 'A.status' => BNotice::STATUS_ACTIVE])
+            ->select(['sum(A.vote_number) as voteNumber','B.mobile'])
+            ->groupBy(['A.user_id'])
+            ->orderBy('sum(A.vote_number) desc');
+            $count = $find->count();
+            $data = $find
+            ->page($page)
+            ->asArray()->all();
+
+            foreach ($data as $v) {
+                $voteItem = [];
+                $voteItem['mobile'] = $v['mobile'];
+                $voteItem['voteNumber'] = $v['voteNumber'];
+                $orderList[] = $voteItem;
+            }
+            $return = ['list' => $orderList, 'count' => $count];
+            return $this->respondJson(0, '获取成功', $return);
         }
-        $orderList = [];
-        $order_data = BVote::find()
-        ->from(BVote::tableName()." A")
-        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
-        ->where(['A.node_id' => $nodeId, 'A.status' => BNotice::STATUS_ACTIVE])
-        ->select(['sum(A.vote_number) as voteNumber','B.mobile'])
-        ->groupBy(['A.user_id'])
-        ->orderBy('sum(A.vote_number) desc')
-        ->asArray()->all();
-        foreach ($order_data as $v) {
-            $voteItem = [];
-            $voteItem['mobile'] = $v['mobile'];
-            $voteItem['voteNumber'] = $v['voteNumber'];
-            $orderList[] = $voteItem;
-        }
-        $return = [];
-        $return['voteList'] = $voteList;
-        $return['orderList'] = $orderList;
-        return $this->respondJson(0, '获取成功', $return);
+
     }
 
     public function actionGetRule()

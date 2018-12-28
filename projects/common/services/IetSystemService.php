@@ -89,6 +89,7 @@ class IetSystemService extends ServiceBase
      */
     public static function push(string $url, array $data)
     {
+        //echo json_encode($data);
         foreach ($data as $k => $v) {
             if ($v === '') {
                 unset($data[$k]);

@@ -73,17 +73,24 @@ class NodeController extends BaseController
      */
     public function actionVote()
     {
+        $cache = \Yii::$app->cache;
         $page = $this->pInt('page', false);
         $pageSize = $this->pInt('page_size', 15);
         // 返回数据容器
         $data = [];
         $nodeTypeId = $this->pInt('id', 0);
+        $cacheKey = 'voteCache_'. $nodeTypeId;
         if (empty($nodeTypeId)) {
             return $this->respondJson(1, '节点类型ID不能为空');
         }
         $isOpen = SettingService::get('vote', 'is_open');
         if (!is_object($isOpen) && !(bool) $isOpen->value) {
             return $this->respondJson(1, "投票未启用");
+        }
+
+        if ($cache->exists($cacheKey) && !$page) {
+            $cacheData = $cache->get($cacheKey);
+            return $this->respondJson(0, '获取成功', $cacheData);
         }
 
         // 不传递page 则为首页
@@ -93,7 +100,9 @@ class NodeController extends BaseController
             if ($nodeNumberModel) {
                 $nodeNumber = intval($nodeNumberModel);
             }
+            
             $data = NodeService::getNodeList($nodeTypeId, 1, $nodeNumber);
+            $cache->set($cacheKey, $data, 5);
         } else {
             $data['list'] = NodeService::getNodeList($nodeTypeId, $page, $pageSize);
             $data['count'] = NodeService::$number;

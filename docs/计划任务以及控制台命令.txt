@@ -17,7 +17,7 @@
 */30 * * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii report-jingtum/to-main-trans login 2 1 >> /data/wwwlogs/crontab/contest/to_main_trans_login_2_1_$(date +\%Y\%m\%d).log 2>&1
 
 # ===================控制台部分【单次执行数据修复整理】===================
-php yii index/check-recommend           检查用户推荐?    ?系是否循环
+php yii index/check-recommend           检查用户推荐系是否循环
 php yii index/create-node-recommend     重建node_recommend数据
 php yii index/create-old-upgrade        补完历史节点申请
 php yii index/reset-voucher-gdt         已存在推荐关系赠送投票劵以及GDT

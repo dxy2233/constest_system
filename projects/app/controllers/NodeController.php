@@ -560,6 +560,9 @@ class NodeController extends BaseController
                 'grt_address' => $grtAddress,
                 'tt_address' => $ttAddress,
                 'bpt_address' => $bptAddress,
+                'old_grt' => $nodeModel->grt,
+                'old_tt' => $nodeModel->tt,
+                'old_bpt' => $nodeModel->bpt,
             ];
             $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function ($item) {
                 return !is_null($item);

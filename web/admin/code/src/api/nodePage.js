@@ -55,12 +55,14 @@ export function getNodeIdentify(nodeId) {
   })
 }
 // 获取节点投票信息
-export function getNodeVote(nodeId) {
+export function getNodeVote(nodeId, type, page) {
   return request({
     url: '/node/get-vote-list',
     method: 'post',
     data: {
-      nodeId
+      nodeId,
+      type,
+      page
     }
   })
 }

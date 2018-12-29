@@ -127,21 +127,27 @@
             <img :src="nodeInfoIdentify.picBack" alt="">
           </el-tab-pane>
           <el-tab-pane label="投票明细" name="2">
-            <el-radio-group v-model="pollName" class="radioTabs">
-              <el-radio-button label="投票记录"/>
-              <el-radio-button label="支持用户"/>
+            <el-radio-group v-model="pollName" class="radioTabs" @change="currentPageVote=1;initVote()">
+              <el-radio-button :label="1">投票记录</el-radio-button>
+              <el-radio-button :label="2">支持用户</el-radio-button>
             </el-radio-group>
-            <el-table v-show="pollName=='投票记录'" :data="nodeInfoVote.voteList">
+            <el-table v-show="pollName=='1'" :data="nodeInfoVote">
               <el-table-column prop="mobile" label="手机号"/>
               <el-table-column prop="voteNumber" label="票数"/>
               <el-table-column prop="type" label="投票方式"/>
               <el-table-column prop="createTime" label="投票时间"/>
             </el-table>
-            <el-table v-show="pollName=='支持用户'" :data="nodeInfoVote.orderList">
+            <el-table v-show="pollName=='2'" :data="nodeInfoVote">
               <el-table-column type="index" label="排名"/>
               <el-table-column prop="mobile" label="用户"/>
               <el-table-column prop="voteNumber" label="合计票数"/>
             </el-table>
+            <el-pagination
+              :current-page.sync="currentPageVote"
+              :total="parseInt(totalVote)"
+              :page-size="20"
+              layout="total, prev, pager, next, jumper"
+              @current-change="initVote"/>
           </el-tab-pane>
           <el-tab-pane label="享有权益" name="3">
             <el-table :data="nodeInfoRule" border>
@@ -679,10 +685,12 @@ export default {
       nodeInfoBase: [], // 节点信息
       nodeInfoIdentify: [], // 实名信息
       nodeInfoVote: [], // 投票信息
+      totalVote: 1,
+      currentPageVote: 1,
       nodeInfoRule: [], // 权限信息
       nodeInfoAddress: [], // 收货地址信息
       nodeInfoRecommend: [], // 推荐记录
-      pollName: '投票记录',
+      pollName: '1',
       dialogEdit: false,
       uploadLogo: '', // 上传图片后返回的地址
       dialogSet: false,
@@ -933,9 +941,8 @@ export default {
           this.nodeInfoIdentify = res.content
         })
       } else if (val.name === '2') {
-        getNodeVote(this.rowInfo.id).then(res => {
-          this.nodeInfoVote = res.content
-        })
+        this.currentPageVote = 1
+        this.initVote()
       } else if (val.name === '3') {
         getNodeRule(this.rowInfo.id).then(res => {
           this.nodeInfoRule = res.content
@@ -949,6 +956,13 @@ export default {
           this.nodeInfoRecommend = res.content
         })
       }
+    },
+    // 选项卡投票信息的表格数据
+    initVote() {
+      getNodeVote(this.rowInfo.id, this.pollName, this.currentPageVote).then(res => {
+        this.nodeInfoVote = res.content.list
+        this.totalVote = res.content.count
+      })
     },
     // 任职
     openTenure() {

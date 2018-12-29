@@ -56,6 +56,7 @@ class NodeTransfer extends \common\dzbase\DzModel
             'grt' => '转让时grt数量',
             'tt' => '转让时tt数量',
             'bpt' => '转让时bpt数量',
+            'node_type' => '节点类型',
             'status_remark' => '状态备注',
             'create_time' => '创建时间',
             'examine_time' => '审核时间',

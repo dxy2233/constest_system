@@ -100,7 +100,7 @@ class StatisticsController extends BaseController
         }
         if ($type == 1) {
             //登录人数
-            $sql = "SELECT count(*) as count,$select_field FROM (select * from gr_user_log group by user_id, floor(create_time/(24*3600))) `a` WHERE (`create_time` >= $str_time) AND (`create_time` <= $end_time) GROUP BY $group_arr[$group]";
+            $sql = "SELECT count(*) as count,$select_field FROM (select * from gr_user_log WHERE (`create_time` >= $str_time) AND (`create_time` <= $end_time) group by user_id, floor(create_time/(24*3600))) `a` GROUP BY $group_arr[$group]";
             $data = \Yii::$app->db->createCommand($sql)->queryAll();
         } elseif ($type == 2) {
             //新增用户数

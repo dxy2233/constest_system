@@ -264,9 +264,7 @@ class FinanceController extends BaseController
         $find = BUserCurrencyDetail::find()
         ->from(BUserCurrencyDetail::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
-        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
-        ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
-        ->select(['A.*','B.mobile','D.name']);
+        ->select(['A.*','B.mobile']);
         $searchName = $this->pString('searchName', '');
         if ($searchName != '') {
             $find->andWhere(['like','B.mobile',$searchName]);
@@ -297,7 +295,13 @@ class FinanceController extends BaseController
             $find->page($page);
         }
         $data = $find->asArray()->all();
+        $currency = BCurrency::find()->all();
+        $currency_id = [];
+        foreach ($currency as $v) {
+            $currency_id[$v['id']] = $v['name'];
+        }
         foreach ($data as &$v) {
+            $v['name'] = $currency_id[$v['currency_id']];
             $v['create_time'] = $v['create_time'] == 0 ? '-' : date('Y-m-d H:i:s', $v['create_time']);
             if (in_array($v['type'], $in_arr)) {
                 $v['type2'] = '收入';
@@ -327,9 +331,7 @@ class FinanceController extends BaseController
         $find = BUserCurrencyDetail::find()
         ->from(BUserCurrencyDetail::tableName()." A")
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
-        ->join('left join', BCurrency::tableName().' D', 'A.currency_id = D.id')
-        ->join('left join', BUserCurrency::tableName().' E', 'A.currency_id = E.currency_id && A.user_id = E.user_id')
-        ->select(['A.*','B.mobile','D.name']);
+        ->select(['A.*','B.mobile']);
         $id = $this->gString('id');
         if ($id != '') {
             $find->andWhere(['A.id' => explode(',', $id)]);
@@ -359,7 +361,13 @@ class FinanceController extends BaseController
         }
         $find->orderBy('A.create_time DESC');
         $data = $find->asArray()->all();
+        $currency = BCurrency::find()->all();
+        $currency_id = [];
+        foreach ($currency as $v) {
+            $currency_id[$v['id']] = $v['name'];
+        }
         foreach ($data as &$v) {
+            $v['name'] = $currency_id[$v['currency_id']];
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             if (in_array($v['type'], $in_arr)) {
                 $v['type2'] = '收入';

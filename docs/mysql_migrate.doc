@@ -433,6 +433,18 @@ update gr_node_extend set type_id = 5;
 
 以上sql 2018-12-20 14:00已同步线上
 =============================================================
+#索引优化
+ALTER TABLE `gr_user_access_token`
+ADD INDEX `expire_time` (`expire_time`);
+
+ALTER TABLE `gr_vote`
+ADD INDEX `undo_time` (`undo_time`);
+
+ALTER TABLE `gr_user_currency_detail`
+ADD INDEX `create_time` (`create_time`);
+
+ALTER TABLE `gr_user`
+ADD INDEX `create_time` (`create_time`);
 
 
 ALTER TABLE `gr_node_upgrade`
@@ -465,4 +477,7 @@ CREATE TABLE `gr_node_transfer` (
 INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `sort`, `create_time`) VALUES 
 (42,	'transfer/index',	'节点转让',	0,	0,	0),
 (43,	'transfer/get-node-transfer,transfer/get-user-name-and-identify,transfer/create-transfer',	'转让申请',	42,	0,	0),
-(44,	'transfer/get-transfer-detail,transfer/examine-on,transfer/examine-off',	'转让审核',	42,	0,	0);
+(44,	'transfer/get-transfer-detail,transfer/examine-on,transfer/examine-off',	'转让审核',	42,	0,	0),
+(45,  'transfer/download', '转让导出', '42', 0, 0);
+
+

@@ -64,9 +64,18 @@ class VoteController extends BaseController
      */
     public function actionIndex()
     {
+        $cache = \Yii::$app->cache;
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $voteShowType = $this->pString('type', 'all');
+        $cacheKey = 'voteCache_';
+        if ($page == 1) {
+            $cacheKey .= $voteShowType;
+            if ($cache->exists($cacheKey)) {
+                $cacheData = $cache->get($cacheKey);
+                return $this->respondJson(0, '获取成功', $cacheData);
+            }
+        };
         // 容器
         $data = [];
         
@@ -97,6 +106,9 @@ class VoteController extends BaseController
             $voteData[$key] = array_merge($vote, $addData);
         }
         $data['list'] = $voteData;
+        if ($page == 1) {
+            $cache->set($cacheKey, $data, 5);
+        }
         return $this->respondJson(0, '获取成功', $data);
     }
 

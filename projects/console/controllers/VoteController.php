@@ -92,7 +92,7 @@ class VoteController extends BaseController
         ->select(['*'])
         ->where(['>=', 'create_time', $this->start])
         ->andWhere(['<=', 'create_time', $this->end])
-        ->andWhere(['<=', 'consume', 0])
+        ->andWhere(['<>', 'unit_code', 'voucher'])
         ->all();
         $ordinaryGdt = (float) SettingService::get('vote', 'ordinary_gdt')->value;
         $payGdt = (float) SettingService::get('vote', 'pay_gdt')->value;

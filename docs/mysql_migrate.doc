@@ -433,3 +433,36 @@ update gr_node_extend set type_id = 5;
 
 以上sql 2018-12-20 14:00已同步线上
 =============================================================
+
+
+ALTER TABLE `gr_node_upgrade`
+ADD `old_grt` int(11) NOT NULL DEFAULT 0 COMMENT '升级时grt' AFTER `grt_address`;
+ALTER TABLE `gr_node_upgrade`
+ADD `old_tt` int(11) NOT NULL DEFAULT 0 COMMENT '升级时grt' AFTER `old_grt`;
+ALTER TABLE `gr_node_upgrade`
+ADD `old_bpt` int(11) NOT NULL DEFAULT 0 COMMENT '升级时grt' AFTER `old_tt`;
+
+CREATE TABLE `gr_node_transfer` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_user_id` int(11) NOT NULL DEFAULT '0' COMMENT '转出用户',
+  `to_user_id` int(11) NOT NULL DEFAULT '0' COMMENT '转入用户',
+  `node_id` int(11) NOT NULL DEFAULT '0' COMMENT '节点ID',
+  `images` varchar(1000) NOT NULL DEFAULT '' COMMENT '申请凭证',
+  `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '审核状态 0',
+  `status_remark` varchar(128) NOT NULL DEFAULT '' COMMENT '状态备注',
+  `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `node_type` int(11) NOT NULL DEFAULT '0' COMMENT '节点类型',
+  `grt` decimal(18,8) NOT NULL DEFAULT '0.00000000' COMMENT '转让时grt数量',
+  `tt` decimal(18,8) NOT NULL DEFAULT '0.00000000' COMMENT '转让时tt数量',
+  `bpt` decimal(18,8) NOT NULL DEFAULT '0.00000000' COMMENT '转让时tt数量',
+  `examine_time` int(11) NOT NULL DEFAULT '0' COMMENT '审核时间',
+  `examine_user` int(11) NOT NULL DEFAULT '0' COMMENT '审核管理员',
+  `update_time` int(11) NOT NULL DEFAULT '0' COMMENT '修改时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='节点转让申请';
+
+
+INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `sort`, `create_time`) VALUES 
+(42,	'transfer/index',	'节点转让',	0,	0,	0),
+(43,	'transfer/get-node-transfer,transfer/get-user-name-and-identify,transfer/create-transfer',	'转让申请',	42,	0,	0),
+(44,	'transfer/get-transfer-detail,transfer/examine-on,transfer/examine-off',	'转让审核',	42,	0,	0);

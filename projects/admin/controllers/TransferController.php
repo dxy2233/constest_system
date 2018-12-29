@@ -130,7 +130,7 @@ class TransferController extends BaseController
         $searchName = $this->pString('searchName');
         $find = BNodeTransfer::find()
         ->from(BNodeTransfer::tableName().' A')
-        ->select(['A.id', 'C.name as type_name', 'D.mobile as from_user_mobile', 'E.realname as from_user_name', 'F.mobile as to_user_mobile', 'G.realname as to_user_name', 'A.status', 'A.create_time', 'A.examine_time'])
+        ->select(['A.id','B.name as node_name', 'C.name as type_name', 'D.mobile as from_user_mobile', 'E.realname as from_user_name', 'F.mobile as to_user_mobile', 'G.realname as to_user_name', 'A.status', 'A.create_time', 'A.examine_time'])
         ->join('left join', BNode::tableName().' B', 'A.node_id = B.id')
         ->join('left join', BNodeType::tableName().' C', 'B.type_id = C.id')
         ->join('left join', BUser::tableName().' D', 'A.from_user_id = D.id')
@@ -171,10 +171,12 @@ class TransferController extends BaseController
             return $this->respondJson(1, 'ID不能为空');
         }
         $data = BNodeTransfer::find()->where(['id' => $id])->one();
+        
         if (!$data) {
             return $this->respondJson(1, '数据不存在');
         }
         $return = [];
+        
         $node_type = BNodeType::find()->where(['id' => $data->node_type])->one();
         $return['node_type'] = $node_type->name;
         $old_user = BUser::find()->where(['id' => $data->from_user_id])->one();
@@ -191,6 +193,49 @@ class TransferController extends BaseController
         return $this->respondJson(0, '获取成功', $return);
     }
 
+    public function actionDownload()
+    {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
+        $searchName = $this->pString('searchName');
+        $find = BNodeTransfer::find()
+        ->from(BNodeTransfer::tableName().' A')
+        ->select(['A.id','B.name as node_name', 'C.name as type_name', 'D.mobile as from_user_mobile', 'E.realname as from_user_name', 'F.mobile as to_user_mobile', 'G.realname as to_user_name', 'A.status', 'A.create_time', 'A.examine_time'])
+        ->join('left join', BNode::tableName().' B', 'A.node_id = B.id')
+        ->join('left join', BNodeType::tableName().' C', 'B.type_id = C.id')
+        ->join('left join', BUser::tableName().' D', 'A.from_user_id = D.id')
+        ->join('left join', BUserIdentify::tableName().' E', 'A.from_user_id = E.user_id && E.status = '.BUserIdentify::STATUS_ACTIVE)
+        ->join('left join', BUser::tableName().' F', 'A.to_user_id = F.id')
+        ->join('left join', BUserIdentify::tableName().' G', 'A.to_user_id = G.user_id && G.status = '.BUserIdentify::STATUS_ACTIVE);
+        if ($searchName != '') {
+            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
+        }
+        $page = $this->pInt('page', 1);
+        $status = $this->pInt('status', 0);
+        $find->andWhere(['A.status' => $status]);
+        $order = $this->gString('order');
+        if ($order != '') {
+            $order_arr = [1 => 'A.create_time', 2 => 'A.create_time desc'];
+            $order = $order_arr[$order];
+        } else {
+            $order = 'A.create_time desc';
+        }
+        $find->orderBy($order);
+        $data = $find->asArray()->all();
+        foreach ($data as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] = date('Y-m-d H:i:s', $v['examine_time']);
+            $v['status'] = BNodeTransfer::getStatus($v['status']);
+        }
+        $return = ['list' => $data];
+        $return['list'] = $data;
+        $headers = ['node_name'=> '转让节点名称', 'type_name' => '转让节点类型', 'from_user_mobile' => '转让方手机号', 'from_user_name' => '转让方姓名', 'to_user_mobile' => '受让方手机号', 'to_user_name' => '受让方姓名', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
+        $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
+
+        return;
+    }
 
     // 节点转让审核通过
     public function actionExamineOn()

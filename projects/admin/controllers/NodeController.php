@@ -19,6 +19,7 @@ use common\models\business\BNodeType;
 use common\models\business\BUserOther;
 use common\models\business\BNodeRule;
 use common\models\business\BNodeUpgrade;
+use common\models\business\BNodeTransfer;
 use common\models\business\BUserIdentify;
 use common\models\business\BTypeRuleContrast;
 use common\models\business\BUserWallet;
@@ -334,7 +335,7 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-             // 向IET同步数据
+            // 向IET同步数据
             $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
             $inviteCode = $parent_user->mobile;
             $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->active()->one();
@@ -635,7 +636,7 @@ class NodeController extends BaseController
             $inviteName = $parent_identify->realname;
             $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
             $inviteCode = $parent_user->mobile;
-        }else{
+        } else {
             $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
             $inviteName = $parent_identify->realname;
             $parent_user = BUser::find()->where(['id' => 97])->one();
@@ -777,6 +778,7 @@ class NodeController extends BaseController
         } else {
             $return['quota'] = $data->quota;
         }
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
         $res = NodeService::getNodeQuota($user->mobile);
         $msg = '获取成功';
         if ($res  && $res->code == 0) {
@@ -791,23 +793,49 @@ class NodeController extends BaseController
         $list_upgrade = BNodeUpgrade::find()->where(['user_id' => $data->user_id])->active()->all();
         $list = [];
         
-        foreach($list_transfer as $v){
+        foreach ($list_transfer as $v) {
             $item = [];
             $item['type'] = '节点转让';
-            $node = BNode::find()
-            ->from(BNode::tableName().' A')
-            ->select(['B.name as type_name', 'C.realname', 'D.mobile', 'A.create_time'])
-            ->join('left join', BNodeType::tableName().' B', 'A.type_id = B.id')
-            ->join('left join', BUserIdentify::tableName().' C', 'C.user_id = A.to_user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
-            ->join('left join', BUser::tableName().' D', 'D.id = A.to_user_id')
-            ->where(['A.id' => $v['node_id']])
+            $node_type = BNodeType::find()->where(['id' => $v['node_type']])->one();
+            $user = BUser::find()
+            ->from(BUser::tableName().' A')
+            ->select(['C.realname', 'A.mobile'])
+            ->join('left join', BUserIdentify::tableName().' C', 'C.user_id = A.id && C.status = '.BUserIdentify::STATUS_ACTIVE)
+            ->where(['A.id' => $v['to_user_id']])
             ->asArray()->one();
-            $item['node_type'] = $node['type_name'];
-            $item['realname'] = $node['realname'];
-            $item['mobile'] = $node['mobile'];
-            
+            $item['node_type'] = $node_type->name;
+            $item['realname'] = $user['realname'];
+            $item['mobile'] = $user['mobile'];
+            $item['create_time'] = $v['create_time'];
+            $item['grt'] = $v['grt'];
+            $item['tt'] = $v['tt'];
+            $item['bpt'] = $v['bpt'];
+            $list[] = $item;
+        }
+        foreach ($list_upgrade as $v) {
+            $item = [];
+            $item['type'] = $v['old_type'] ? '节点升级' : '创建节点';
+            $node_type = BNodeType::find()->where(['id' => $v['type_id']])->one();
+            $user = BUser::find()
+            ->from(BUser::tableName().' A')
+            ->select(['C.realname', 'A.mobile'])
+            ->join('left join', BUserIdentify::tableName().' C', 'C.user_id = A.id && C.status = '.BUserIdentify::STATUS_ACTIVE)
+            ->where(['A.id' => $v['user_id']])
+            ->asArray()->one();
+            $item['node_type'] = $node_type->name;
+            $item['realname'] = $user['realname'];
+            $item['mobile'] = $user['mobile'];
+            $item['create_time'] = $v['create_time'];
+            $item['grt'] = $v['grt'] + $v['old_grt'];
+            $item['tt'] = $v['tt'] + $v['old_tt'];
+            $item['bpt'] = $v['bpt'] + $v['old_bpt'];
+            $list[] = $item;
         }
         $list = FuncHelper::arr_sort($list, 'create_time');
+        foreach ($list as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+        }
+        $return['list'] = $list;
         return $this->respondJson(0, $msg, $return);
     }
 
@@ -905,7 +933,7 @@ class NodeController extends BaseController
         $nodeId = $this->pInt('nodeId');
         $type = $this->pInt('type', 1);
         $page = $this->pInt('page', 1);
-        if($type == 1){
+        if ($type == 1) {
             $voteList = [];
             $find = BVote::find()
             ->from(BVote::tableName()." A")
@@ -927,8 +955,7 @@ class NodeController extends BaseController
             }
             $return = ['list' => $voteList, 'count' => $count];
             return $this->respondJson(0, '获取成功', $return);
-        }else{
-            
+        } else {
             $orderList = [];
             $find = BVote::find()
             ->from(BVote::tableName()." A")
@@ -951,7 +978,6 @@ class NodeController extends BaseController
             $return = ['list' => $orderList, 'count' => $count];
             return $this->respondJson(0, '获取成功', $return);
         }
-
     }
 
     public function actionGetRule()
@@ -1370,7 +1396,7 @@ class NodeController extends BaseController
         $transaction->commit();
         return $this->respondJson(0, '启用成功');
     }
-
+    //修改节点详情
     public function actionUpdateNode()
     {
         $nodeId = $this->pInt('nodeId');
@@ -1422,6 +1448,15 @@ class NodeController extends BaseController
             $data->quota = round(floatval($quota), 2);
             if ($data->quota < 0) {
                 $data->quota = 0;
+            }
+            // 向IET同步数据
+            $url = IetSystemService::IET_URL['totalAmount_add'];
+            $user = BUser::find()->where(['id' => $data->user_id])->one();
+            $data_arr = ['phone' => $user->mobile, 'amount' => $data->quota];
+            $res_curl = IetSystemService::push($url, $data_arr);
+            if ($res_curl->code) {
+                $transaction->rollBack();
+                return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
             }
         } else {
             $data->quota = null;

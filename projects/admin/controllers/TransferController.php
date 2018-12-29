@@ -1,4 +1,3 @@
-
 <?php
 namespace admin\controllers;
 
@@ -11,6 +10,7 @@ use common\models\business\BArea;
 use common\models\business\BUser;
 use common\models\business\BUserIdentify;
 use common\models\business\BNode;
+use common\models\business\BNodeType;
 use common\models\business\BNodeTransfer;
 use common\models\business\BUserLog;
 use common\models\business\BVote;
@@ -47,8 +47,9 @@ class TransferController extends BaseController
         }
         $data = BNode::find()
         ->from(BNode::tableName()." A")
-        ->select(['A.user_id as from_id', 'B.name', 'C.realname', 'C.number'])
+        ->select(['A.user_id as from_id', 'B.name as node_type', 'C.realname', 'C.number', 'D.mobile'])
         ->join('left join', BNodeType::tableName().' B', 'A.type_id = B.id')
+        ->join('left join', BUser::tableName().' D', 'D.id = A.user_id')
         ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
         ->where(['a.id' => $id])
         ->asArray()->one();
@@ -102,11 +103,18 @@ class TransferController extends BaseController
             return $this->respondJson(1, '受让人未实名认证');
         }
         $images = $this->pString('images');
+        if (!$images) {
+            return $this->respondJson(1, '申请凭证不能为空');
+        }
         $transfer = new BNodeTransfer();
         $transfer->from_user_id = $from_id;
         $transfer->to_user_id = $to_id;
+        $transfer->grt = $node->grt;
+        $transfer->tt = $node->tt;
+        $transfer->node_type = $node->type_id;
+        $transfer->bpt = $node->bpt;
         $transfer->node_id = $node->id;
-        $transfer->images = explode(',', $images);
+        $transfer->images = $images;
         $transfer->status = BNodeTransfer::STATUS_INACTIVE;
         $transfer->status_remark = BNodeTransfer::getStatus($transfer->status);
         $transfer->create_time = time();
@@ -133,6 +141,8 @@ class TransferController extends BaseController
             $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
         }
         $page = $this->pInt('page', 1);
+        $status = $this->pInt('status', 0);
+        $find->andWhere(['A.status' => $status]);
         $count = $find->count();
         $order = $this->gString('order');
         if ($order != '') {
@@ -160,5 +170,97 @@ class TransferController extends BaseController
         if (!$id) {
             return $this->respondJson(1, 'ID不能为空');
         }
+        $data = BNodeTransfer::find()->where(['id' => $id])->one();
+        if (!$data) {
+            return $this->respondJson(1, '数据不存在');
+        }
+        $return = [];
+        $node_type = BNodeType::find()->where(['id' => $data->node_type])->one();
+        $return['node_type'] = $node_type->name;
+        $old_user = BUser::find()->where(['id' => $data->from_user_id])->one();
+        $return['from_user_mobile'] = $old_user->mobile;
+        $old_identify = BUserIdentify::find()->where(['user_id' => $data->from_user_id])->active()->one();
+        $return['from_user_name'] = $old_identify->realname;
+        $return['from_user_number'] = $old_identify->number;
+        $new_user = BUser::find()->where(['id' => $data->to_user_id])->one();
+        $return['to_user_mobile'] = $new_user->mobile;
+        $new_identify = BUserIdentify::find()->where(['user_id' => $data->to_user_id])->active()->one();
+        $return['to_user_name'] = $new_identify->realname;
+        $return['to_user_number'] = $new_identify->number;
+        $return['images'] = $data->images;
+        return $this->respondJson(0, '获取成功', $return);
+    }
+
+
+    // 节点转让审核通过
+    public function actionExamineOn()
+    {
+        $id = $this->pInt('id');
+        if (!$id) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $data = BNodeTransfer::find()->where(['id' => $id])->one();
+        if (!$data) {
+            return $this->respondJson(1, '数据不存在');
+        }
+        $node = BNode::find()->where(['user_id' => $data->from_user_id])->active()->one();
+        if (!$node) {
+            return $this->respondJson(1, '转让人非节点用户');
+        }
+
+        $to_user = BUser::find()->where(['id' => $data->to_user_id])->one();
+        if (!$to_user) {
+            return $this->respondJson(1, '受让人不存在');
+        }
+        $to_node = BNode::find()->where(['user_id' => $data->to_user_id])->active()->one();
+        if ($to_node) {
+            return $this->respondJson(1, '受让人已有节点');
+        }
+        $to_identify = BUserIdentify::find()->where(['user_id' => $data->to_user_id])->active()->one();
+        if (!$to_identify) {
+            return $this->respondJson(1, '受让人未实名认证');
+        }
+        // 修改审核状态
+        $transaction = \Yii::$app->db->beginTransaction();
+        $data->status = BNodeTransfer::STATUS_ACTIVE;
+        $data->examine_time = time();
+        $data->examine_user = $this->user_id;
+        if (!$data->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        // 修改节点对应user_id
+        $node->user_id = $data->to_user_id;
+        if (!$node->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
+        }
+        $transaction->commit();
+        return $this->respondJson(0, '审核成功');
+    }
+    // 节点转让审核不通过
+    public function actionExamineOff()
+    {
+        $nodeId = $this->pInt('nodeId');
+        if (empty($nodeId)) {
+            return $this->respondJson(1, 'ID不能为空');
+        }
+        $remark = $this->pString('remark');
+        if (empty($remark)) {
+            return $this->respondJson(1, '原因不能为空');
+        }
+        $data = BNodeTransfer::find()->where(['id' => $nodeId])->one();
+        if (empty($data)) {
+            return $this->respondJson(1, '不存在的申请');
+        }
+
+        $data->status = BNodeTransfer::STATUS_FAIL;
+        $data->status_remark = $remark;
+        $data->examine_time = time();
+        $data->examine_user =  $this->user_id;
+        if (!$data->save()) {
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
+        return $this->respondJson(0, '审核成功');
     }
 }

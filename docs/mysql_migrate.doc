@@ -431,8 +431,6 @@ INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `sort`, `create_t
 # 将导入的微信节点type_id 更改为 5
 update gr_node_extend set type_id = 5;
 
-以上sql 2018-12-20 14:00已同步线上
-=============================================================
 #索引优化
 ALTER TABLE `gr_user_access_token`
 ADD INDEX `expire_time` (`expire_time`);
@@ -446,6 +444,8 @@ ADD INDEX `create_time` (`create_time`);
 ALTER TABLE `gr_user`
 ADD INDEX `create_time` (`create_time`);
 
+以上sql 2018-12-29 14:00已同步线上
+=============================================================
 
 ALTER TABLE `gr_node_upgrade`
 ADD `old_grt` int(11) NOT NULL DEFAULT 0 COMMENT '升级时grt' AFTER `grt_address`;

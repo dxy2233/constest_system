@@ -389,5 +389,18 @@ export const asyncRouterMap = {
     ]
   },
 
+  42: {
+    path: '/nodetransfer',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'NodeTransfer',
+        component: () => import('@/views/nodeTransfer/index'),
+        meta: { title: '节点转让', icon: '用户日志' }
+      }
+    ]
+  },
+
   404: { path: '*', redirect: '/404', hidden: true }
 }

@@ -281,3 +281,36 @@ export function getRecomList(page, searchName, type, strTime, endTime) {
     }
   })
 }
+
+// 转让方信息
+export function transferFormInfo(id) {
+  return request({
+    url: '/transfer/get-node-transfer',
+    method: 'post',
+    data: {
+      id
+    }
+  })
+}
+// 转让手机号验证
+export function checkTransferMobile(mobile) {
+  return request({
+    url: '/transfer/get-user-name-and-identify',
+    method: 'post',
+    data: {
+      mobile
+    }
+  })
+}
+// 转让手机号验证
+export function postTransfer(fromId, toId, images) {
+  return request({
+    url: '/transfer/create-transfer',
+    method: 'post',
+    data: {
+      fromId,
+      toId,
+      images
+    }
+  })
+}

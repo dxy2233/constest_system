@@ -77,6 +77,7 @@
           <el-button v-show="rowInfo.status=='停用'" type="primary" class="btn" style="margin:0 10px;" @click="openNode">启用</el-button>
           <el-button v-if="buttons[3].child[1].isHave==1" type="primary" class="btn" @click="nodeBaseEdit">编辑</el-button>
           <el-button v-show="isCandidate&&rowInfo.isTenure==0" type="primary" class="btn" @click="openTenure">任职</el-button>
+          <el-button type="primary" class="btn" @click="openTransfer">转让</el-button>
           <el-button v-show="isCandidate&&rowInfo.isTenure==1" type="danger" plain class="btn" @click="closeTenure">卸任</el-button>
         </div>
         <div class="info">
@@ -89,20 +90,21 @@
             </el-col>
           </el-row>
         </div>
-        <el-tabs v-model="activeName" class="tabs" @tab-click="changeTabs">
+        <el-tabs v-model="activeName" @tab-click="changeTabs">
           <el-tab-pane label="基本信息" name="-1">
-            <div class="row"> <span>姓名</span> {{ nodeInfoOther.username | noContent }} </div>
-            <div class="row"> <span>手机号</span> {{ nodeInfoOther.mobile | noContent }} </div>
-            <div class="row"> <span>微信号</span> {{ nodeInfoOther.weixin | noContent }} </div>
-            <div class="row"> <span>节点类型</span> {{ nodeInfoOther.typeName | noContent }} </div>
-            <div class="row"> <span>质押GRT数量</span> {{ nodeInfoOther.grt | noContent }} </div>
-            <div class="row"> <span>GRT钱包地址</span> {{ nodeInfoOther.grtAddress | noContent }} </div>
-            <div class="row"> <span>质押BPT数量</span> {{ nodeInfoOther.bpt | noContent }} </div>
-            <div class="row"> <span>BPT钱包地址</span> {{ nodeInfoOther.bptAddress | noContent }} </div>
-            <div class="row"> <span>质押TT数量</span> {{ nodeInfoOther.tt | noContent }} </div>
-            <div class="row"> <span>TT钱包地址</span> {{ nodeInfoOther.ttAddress | noContent }} </div>
-            <div class="row"> <span>销售配额</span> {{ nodeInfoOther.quota | noContent }} </div>
-            <div class="row"> <span>剩余销售配额</span> {{ nodeInfoOther.useQuota | noContent }} </div>
+            <span style="padding-right:100px;">销售配额：{{ nodeInfoOther.quota | noContent }}</span>
+            <span>剩余销售配额：{{ nodeInfoOther.useQuota | noContent }}</span>
+            <p>节点记录</p>
+            <el-table :data="nodeInfoOther.list" style="margin:10px 0;">
+              <el-table-column prop="type" label="类型"/>
+              <el-table-column prop="nodeType" label="节点类型"/>
+              <el-table-column prop="mobile" label="用户"/>
+              <el-table-column prop="realname" label="姓名"/>
+              <el-table-column prop="grt" label="质押GRT"/>
+              <el-table-column prop="tt" label="质押TT"/>
+              <el-table-column prop="bpt" label="质押BPT"/>
+              <el-table-column prop="createTime" label="时间"/>
+            </el-table>
           </el-tab-pane>
           <el-tab-pane label="节点信息" name="0">
             <p style="color:#888;">logo</p>
@@ -561,13 +563,51 @@
         layout="total, prev, pager, next, jumper"
         @current-change="initRecom"/>
     </el-dialog>
+
+    <el-dialog :visible.sync="dialogTransfer" title="节点转让" @closed="closedTransfer">
+      <el-form ref="transferFrom" :model="fromTransfer" :rules="rulesTransfer" class="transfer-form">
+        <p>转让方</p>
+        <p><span>手机号：{{ transferForm.mobile }}</span><span>手机号：{{ transferForm.nodeType }}</span></p>
+        <p><span>姓名：{{ transferForm.realname }}</span><span>身份证号：{{ transferForm.number }}</span></p>
+        <hr>
+        <p>受让方</p>
+        <el-form-item label="手机号" prop="mobile" label-width="70px">
+          <el-input v-model="fromTransfer.mobile"/>
+          <p><span>姓名：{{ transferTo.realName }}</span><span>身份证号：{{ transferTo.number }}</span></p>
+        </el-form-item>
+        <el-form-item label="上传申请凭证" prop="images" label-width="110px">
+          <el-upload
+            :on-success="transferImgSuccess"
+            :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemove"
+            :before-upload="beforeTransferUpload"
+            :on-exceed="transferExceed"
+            :data="{type:'node-transfer'}"
+            :limit="3"
+            :file-list="transferImgListL"
+            action="/upload/upload/image"
+            name="image_file"
+            list-type="picture-card">
+            <i class="el-icon-plus"/>
+          </el-upload>
+          <el-dialog :visible.sync="dialogVisible" append-to-body>
+            <img :src="dialogImageUrl" alt="" width="100%">
+          </el-dialog>
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="dialogTransfer = false">取 消</el-button>
+        <el-button type="primary" @click="submitTransfer">提交转让</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getNodeList, getNodeType, getNodeBase, getNodeInfo, getNodeIdentify, getNodeVote, getNodeRule,
   getNodeAddress, onTenure, offTenure, stopNode, onNode, updataBase, getNodeSet, getRuleList, pushRuleList,
-  getHistory, pushNodeSet, addNode, checkMobile, checkNode, checkRecomMobile, getNodeRecommend, getRecomList } from '@/api/nodePage'
+  getHistory, pushNodeSet, addNode, checkMobile, checkNode, checkRecomMobile, getNodeRecommend, getRecomList,
+  transferFormInfo, checkTransferMobile, postTransfer } from '@/api/nodePage'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
@@ -595,6 +635,21 @@ export default {
         }
       } else {
         callback()
+      }
+    }
+    const checkTransfer = (rule, value, callback) => {
+      if (/^1\d{10}$/.test(value)) {
+        checkTransferMobile(value).then(res => {
+          if (!res) {
+            this.transferTo = {}
+            callback(new Error('请输入正确的手机号'))
+          } else {
+            this.transferTo = res.content
+            callback()
+          }
+        })
+      } else {
+        callback(new Error('请输入正确的手机号'))
       }
     }
     return {
@@ -737,7 +792,26 @@ export default {
       recomTotal: 1,
       recomSearchName: '',
       recomType: null,
-      recomDate: ''
+      recomDate: '',
+      dialogTransfer: false,
+      fromTransfer: {
+        mobile: '',
+        images: ''
+      },
+      rulesTransfer: {
+        mobile: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' },
+          { validator: checkTransfer, trigger: 'blur' }
+        ],
+        images: [
+          { required: true, message: '至少上传一张图片', trigger: 'blur' }
+        ]
+      },
+      transferForm: {}, // 转让方信息
+      transferTo: {}, // 受让方信息
+      dialogVisible: false,
+      dialogImageUrl: '',
+      transferImgListL: []
     }
   },
   computed: {
@@ -1239,6 +1313,73 @@ export default {
       this.recomCurrentPage = 1
       this.initRecom()
     },
+    // 打开转让
+    openTransfer() {
+      transferFormInfo(this.rowInfo.id).then(res => {
+        this.transferForm = res.content
+        this.dialogTransfer = true
+      })
+    },
+    // 关闭转让的回调
+    closedTransfer() {
+      this.transferForm = {}
+      this.transferTo = {}
+      this.fromTransfer.mobile = ''
+      this.fromTransfer.images = ''
+      this.transferImgListL = []
+    },
+    // 转让传图片的回调
+    handleRemove(file, fileList) {
+      this.fromTransfer.images = fileList.map(item =>
+        item.response.content
+      ).join(',')
+    },
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url
+      this.dialogVisible = true
+    },
+    transferImgSuccess(res, file, fileList) {
+      if (res.code !== 0) return
+      this.fromTransfer.images = fileList.map(item =>
+        item.response.content
+      ).join(',')
+    },
+    // 上传图片超出限制
+    transferExceed() {
+      Message({ message: '最多上传3张', type: 'warning' })
+    },
+    // 上传图片的限制
+    beforeTransferUpload(file) {
+      const isImage = file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/gif'
+      const isLt2M = file.size / 1024 / 1024 < 100
+      if (!isImage) {
+        this.$message.error('上传图片只能是jpeg/jpg/png/gif格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不能超过 100MB!')
+      }
+      return isImage && isLt2M
+    },
+    // 提交转让数据
+    submitTransfer() {
+      this.$refs['transferFrom'].validate((valid) => {
+        if (valid) {
+          this.$confirm('任职后本轮投中该节点的将获得GDT奖励', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            postTransfer(this.transferForm.fromId, this.transferTo.toId, this.fromTransfer.images).then(res => {
+              Message({ message: res.msg, type: 'success' })
+              this.dialogTransfer = false
+            })
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
     downExcel(type) {
       if (this.tableDataSelection.length > 0) {
         let id = ''
@@ -1316,16 +1457,12 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
-.tabs {
-  .row {
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-    span {
+.transfer-form {
+  p {
+    font-size: 16px;
+    span:nth-child(1) {
       display: inline-block;
-      width: 220px;
-      color: #888;
-      padding-right: 120px;
+      width: 300px;
     }
   }
 }

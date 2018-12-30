@@ -104,7 +104,7 @@ class NodeController extends BaseController
             }
             
             $data = NodeService::getNodeList($nodeTypeId, 1, $nodeNumber);
-            $cache->set($cacheKey, $data, 5);
+            $cache->set($cacheKey, $data, 15);
         } else {
             $data['list'] = NodeService::getNodeList($nodeTypeId, $page, $pageSize);
             $data['count'] = NodeService::$number;

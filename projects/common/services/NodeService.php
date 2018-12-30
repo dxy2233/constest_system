@@ -176,10 +176,10 @@ class NodeService extends ServiceBase
         } else {
             $voteMode->andWhere(['or', ['>', 'undo_time', time()], ['undo_time' => 0]]);
         }
-
         $res = $voteMode->groupBy(['node_id'])
         ->indexBy('node_id')
         ->asArray()
+        ->cache(15)
         ->all();
         $data = [];
         ArrayHelper::multisort($res, 'people_number', SORT_DESC);

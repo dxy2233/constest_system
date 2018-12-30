@@ -44,7 +44,7 @@ class VoteController extends BaseController
     public function actionCountTime()
     {
         //$countTime = (int) SettingService::get('vote', 'count_time')->value;
-        $cycle = BCycle::find()->all();
+        $cycle = BCycle::find()->cache(15)->all();
         $countTime = NOW_TIME;
         foreach ($cycle as $v) {
             if ($v->cycle_start_time <= time() && $v->cycle_end_time>=time()) {

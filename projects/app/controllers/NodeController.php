@@ -57,9 +57,8 @@ class NodeController extends BaseController
         $nodeTypeQuery = BNodeType::find()
         ->select(['id', 'name', 'grt', 'tt', 'bpt'])
         ->where(['is_order' => BNodeType::STATUS_ACTIVE])
-        ->active();
-        
-        $nodeTypeQuery->cache(5);
+        ->active()
+        ->cache(15);
         if ($page) {
             $data['count'] = $nodeTypeQuery->count();
             $nodeTypeQuery->page($page, $pageSize);
@@ -200,6 +199,7 @@ class NodeController extends BaseController
         ->select(['user_id', 'node_id', 'create_time', 'type', 'status'])
         ->with('user')
         ->active()
+        ->cache(15)
         ->where(['node_id' => $nodeId]);
         if ($nodeShowType !== 'log') {
             $voteModel->addSelect(['SUM(vote_number) as vote_number']);
@@ -240,7 +240,8 @@ class NodeController extends BaseController
         ->select(['id', 'name', 'grt', 'tt', 'bpt'])
         // 获取节点类型不调用 微店节点
         ->where(['<>', 'id', 5])
-        ->active();
+        ->active()
+        ->cache(15);
         $nodeType = $nodeTypeQuery->orderBy(['sort' => SORT_ASC])->asArray()->all();
         return $this->respondJson(0, '获取成功', $nodeType);
     }

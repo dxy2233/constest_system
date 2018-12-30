@@ -58,6 +58,8 @@ class NodeController extends BaseController
         ->select(['id', 'name', 'grt', 'tt', 'bpt'])
         ->where(['is_order' => BNodeType::STATUS_ACTIVE])
         ->active();
+        
+        $nodeTypeQuery->cache(5);
         if ($page) {
             $data['count'] = $nodeTypeQuery->count();
             $nodeTypeQuery->page($page, $pageSize);

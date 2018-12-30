@@ -89,6 +89,7 @@ class VoteController extends BaseController
         $voteModel->addSelect(['SUM(vote_number) as vote_number']);
         $voteModel->groupBy('user_id');
         $voteModel->orderBy(['vote_number' => SORT_DESC]);
+        $voteModel->cache(5);
         $data['count'] = $voteModel->count();
         $voteModel->page($page, $pageSize);
         $voteDataModel = $voteModel->all();

@@ -233,6 +233,7 @@ class NodeService extends ServiceBase
         ->filterWhere(['n.type_id' => $nodeType])
         ->orderBy(['vote_number' => SORT_DESC])
         ->groupBy('n.id');
+        $nodeModel->cache(5);
         self::$number = $nodeModel->count();
         // $nodeModel->cache(-1);
         if (!is_null($page)) {

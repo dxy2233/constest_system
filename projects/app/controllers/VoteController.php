@@ -89,7 +89,7 @@ class VoteController extends BaseController
         $voteModel->addSelect(['SUM(vote_number) as vote_number']);
         $voteModel->groupBy('user_id');
         $voteModel->orderBy(['vote_number' => SORT_DESC]);
-        $voteModel->cache(10);
+        $voteModel->cache(15);
         $data['count'] = $voteModel->count();
         $voteModel->page($page, $pageSize);
         $voteDataModel = $voteModel->all();
@@ -108,7 +108,7 @@ class VoteController extends BaseController
         }
         $data['list'] = $voteData;
         if ($page == 1) {
-            $cache->set($cacheKey, $data, 5);
+            $cache->set($cacheKey, $data, 15);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

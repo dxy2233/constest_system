@@ -429,6 +429,11 @@ class VoteController extends BaseController
         if (is_null($nodeTypeModel) && !$nodeTypeModel->is_vote) {
             return $this->respondJson(1, '该节点不能投票');
         }
+        
+        if (!$nodeTypeModel->is_vote) {
+            return $this->respondJson(1, '该节点不能投票');
+        }
+
         // 自己不能给自己投票
         // if ($nodeModel->user_id == $userModel->id) {
         //     return $this->respondJson(1, '不能投票给自己');

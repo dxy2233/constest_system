@@ -166,7 +166,7 @@ class WalletController extends BaseController
         $currencyModel = BUserCurrencyDetail::find()
         ->select(['amount', 'remark', 'effect_time', 'status'])
         ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType])
-        ->andWhere(['>', 'amount', 0])
+        ->andWhere(['<>', 'amount', 0])
         ->active();
         // var_dump($currencyModel->createCommand()->getRawSql());exit;
         $data['count'] = $currencyModel->count();

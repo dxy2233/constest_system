@@ -144,13 +144,14 @@ class TransferController extends BaseController
         $status = $this->pInt('status', 0);
         $find->andWhere(['A.status' => $status]);
         $count = $find->count();
-        $order = $this->gString('order');
+        $order = $this->pString('order');
         if ($order != '') {
             $order_arr = [1 => 'A.create_time', 2 => 'A.create_time desc'];
             $order = $order_arr[$order];
         } else {
             $order = 'A.create_time desc';
         }
+        
         $find->orderBy($order);
         $find->page($page);
         $data = $find->asArray()->all();

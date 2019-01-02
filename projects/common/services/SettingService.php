@@ -26,7 +26,7 @@ class SettingService extends ServiceBase
     public static function get(string $group = null, string $key = null)
     {
         $cache = \Yii::$app->cache;
-        $query = BSetting::find()->filterWhere(['group' => $group, 'key' => $key]);
+        $query = BSetting::find()->filterWhere(['group' => $group, 'key' => $key])->cache(15);
         if (!is_null($key)) {
             return $query->one() ?? (object) ['value' => null];
         }

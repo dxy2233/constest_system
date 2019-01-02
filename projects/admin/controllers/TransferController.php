@@ -290,7 +290,7 @@ class TransferController extends BaseController
             );
             if (!$sign) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '审核失败', '推荐关系修改失败');
+                return $this->respondJson(1, '审核失败', '节点推荐关系修改失败');
             }
             $str = $node_recommend->parent_list. ','. $data->from_user_id;
             $new_str = $node_recommend->parent_list. ','. $data->to_user_id;
@@ -305,7 +305,7 @@ class TransferController extends BaseController
         );
         if (!$sign) {
             $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', '推荐关系修改失败');
+            return $this->respondJson(1, '审核失败', '下级节点推荐关系修改失败');
         }
         
         $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = $str";
@@ -318,7 +318,7 @@ class TransferController extends BaseController
     // 节点转让审核不通过
     public function actionExamineOff()
     {
-        $nodeId = $this->pInt('nodeId');
+        $nodeId = $this->pInt('id');
         if (empty($nodeId)) {
             return $this->respondJson(1, 'ID不能为空');
         }

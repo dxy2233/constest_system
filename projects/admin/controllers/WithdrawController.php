@@ -162,13 +162,12 @@ class WithdrawController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $status = $this->pInt('status');
-        $searchName = $this->pString('searchName', '');
-        $currency_id = $this->pInt('currency_id');
-        $str_time = $this->pString('str_time', '');
-        $end_time = $this->pString('end_time', '');
-        $type = $this->pInt('type');
-        $page = $this->pInt('page', 1);
+        $status = $this->gInt('status');
+        $searchName = $this->gString('searchName', '');
+        $currency_id = $this->gInt('currency_id');
+        $str_time = $this->gString('str_time', '');
+        $end_time = $this->gString('end_time', '');
+        $type = $this->gInt('type');
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
@@ -196,7 +195,8 @@ class WithdrawController extends BaseController
 
 
         $data = $find->asArray()->all();
-        //echo $find->createCommand()->getRawSql();
+        // echo $find->createCommand()->getRawSql();
+        // exit;
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);

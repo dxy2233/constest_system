@@ -166,7 +166,6 @@ class UserController extends BaseController
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
-        
         $order = $this->gString('order');
         if ($order != '') {
             $order_arr = [1 => 'sum(B.vote_number)', 2 => 'A.create_time', 3 => 'A.last_login_time', 4 => 'sum(B.vote_number) desc', 5 => 'A.create_time desc', 6 => 'A.last_login_time desc'];

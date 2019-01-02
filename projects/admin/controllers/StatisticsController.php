@@ -39,18 +39,18 @@ class StatisticsController extends BaseController
     // 数据统计
     public function actionIndex()
     {
-        $user_login_num = BUser::find()->where(['>=', 'last_login_time',strtotime(date('Y-m-d'))])->count();
-        $user_all_num = BUser::find()->where(['status' => BUser::$STATUS_ON])->count();
-        $repeat_login_num = BUserLog::find()->where(['type' => BUserLog::$TYPE_LOGIN])->andWhere(['>=', 'create_time',time()-3600*24*7])->groupBy(['user_id'])->having(['>', 'count(id)', 1])->count();
-        $user_create_num = BUser::find()->where(['>=', 'create_time',strtotime(date('Y-m-d'))])->count();
-        $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['status' => BVote::STATUS_ACTIVE])->andWhere(['>=', 'create_time',strtotime(date('Y-m-d'))])->asArray()->one();
+        $user_login_num = BUser::find()->where(['>=', 'last_login_time',strtotime(date('Y-m-d'))])->cache(60)->count();
+        $user_all_num = BUser::find()->where(['status' => BUser::$STATUS_ON])->cache(60)->count();
+        $repeat_login_num = BUserLog::find()->where(['type' => BUserLog::$TYPE_LOGIN])->andWhere(['>=', 'create_time',time()-3600*24*7])->groupBy(['user_id'])->having(['>', 'count(id)', 1])->cache(60)->count();
+        $user_create_num = BUser::find()->where(['>=', 'create_time',strtotime(date('Y-m-d'))])->cache(60)->count();
+        $vote = BVote::find()->select(['sum(vote_number) as num'])->where(['status' => BVote::STATUS_ACTIVE])->andWhere(['>=', 'create_time',strtotime(date('Y-m-d'))])->cache(60)->asArray()->one();
         $vote_num = $vote['num'] ? $vote['num'] : "0";
-        $vote_all = BVote::find()->select(['sum(vote_number) as num'])->where(['status' => BVote::STATUS_ACTIVE])->asArray()->one();
+        $vote_all = BVote::find()->select(['sum(vote_number) as num'])->where(['status' => BVote::STATUS_ACTIVE])->cache(60)->asArray()->one();
         $vote_all_num = $vote_all['num'] ? $vote_all['num'] : "0";
-        $identify_num = BUserIdentify::find()->where(['status' => BUserIdentify::STATUS_ACTIVE])->andWhere(['>=', 'examine_time', strtotime(date('Y-m-d'))])->count();
-        $identify_all_num = BUserIdentify::find()->where(['status' => BUserIdentify::STATUS_ACTIVE])->count();
-        $node_num = BNode::find()->where(['status' => BNode::STATUS_ON])->andWhere(['>=', 'examine_time', strtotime(date('Y-m-d'))])->count();
-        $node_all_num = BNode::find()->where(['status' => BNode::STATUS_ON])->count();
+        $identify_num = BUserIdentify::find()->where(['status' => BUserIdentify::STATUS_ACTIVE])->andWhere(['>=', 'examine_time', strtotime(date('Y-m-d'))])->cache(60)->count();
+        $identify_all_num = BUserIdentify::find()->where(['status' => BUserIdentify::STATUS_ACTIVE])->cache(60)->count();
+        $node_num = BNode::find()->where(['status' => BNode::STATUS_ON])->andWhere(['>=', 'examine_time', strtotime(date('Y-m-d'))])->cache(60)->count();
+        $node_all_num = BNode::find()->where(['status' => BNode::STATUS_ON])->cache(60)->count();
         $return = [];
         $return['user_login_num'] = $user_login_num; // 今日用户登陆
         $return['user_all_num'] = $user_all_num;  // 用户总数
@@ -101,27 +101,27 @@ class StatisticsController extends BaseController
         if ($type == 1) {
             //登录人数
             $sql = "SELECT count(*) as count,$select_field FROM (select * from gr_user_log group by user_id, floor(create_time/(24*3600))) `a` WHERE (`create_time` >= $str_time) AND (`create_time` <= $end_time) GROUP BY $group_arr[$group]";
-            $data = \Yii::$app->db->createCommand($sql)->queryAll();
+            $data = \Yii::$app->db->createCommand($sql)->cache(60)->queryAll();
         } elseif ($type == 2) {
             //新增用户数
             $sql = "SELECT count(*) as count,$select_field FROM gr_user WHERE (`create_time` >= $str_time) AND (`create_time` <= $end_time) GROUP BY $group_arr[$group]";
-            $data = \Yii::$app->db->createCommand($sql)->queryAll();
+            $data = \Yii::$app->db->createCommand($sql)->cache(60)->queryAll();
         } elseif ($type == 3) {
             //新增投票量
             $sql = "SELECT sum(vote_number) as count,$select_field FROM gr_vote WHERE (`create_time` >= $str_time) AND (`create_time` <= $end_time) AND (status = ".BVote::STATUS_ACTIVE.") GROUP BY $group_arr[$group]";
-            $data = \Yii::$app->db->createCommand($sql)->queryAll();
+            $data = \Yii::$app->db->createCommand($sql)->cache(60)->queryAll();
         } elseif ($type == 4) {
             //新增实名认证人数
             $group_by = str_replace('create_time', 'examine_time', $group_arr[$group]);
             $select_field = str_replace('create_time', 'examine_time', $select_field);
             $sql = "SELECT count(*) as count,$select_field FROM gr_user_identify WHERE (`examine_time` >= $str_time) AND (`examine_time` <= $end_time) AND (status = ".BUserIdentify::STATUS_ACTIVE.") GROUP BY $group_by";
-            $data = \Yii::$app->db->createCommand($sql)->queryAll();
+            $data = \Yii::$app->db->createCommand($sql)->cache(60)->queryAll();
         } elseif ($type == 5) {
             //新增节点数量
             $group_by = str_replace('create_time', 'examine_time', $group_arr[$group]);
             $select_field = str_replace('create_time', 'examine_time', $select_field);
             $sql = "SELECT count(*) as count,$select_field FROM gr_node WHERE (`examine_time` >= $str_time) AND (`examine_time` <= $end_time) AND (status = ".BNode::STATUS_ON.") GROUP BY $group_by";
-            $data = \Yii::$app->db->createCommand($sql)->queryAll();
+            $data = \Yii::$app->db->createCommand($sql)->cache(60)->queryAll();
         }
 
         $return = [];
@@ -206,14 +206,16 @@ class StatisticsController extends BaseController
       ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
       ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id && D.status = '.BNode::STATUS_ON)
       ->select(['count(A.id) as count','B.id'])
-      ->where(['>', 'A.area_province_id', 0]);
+      ->where(['>', 'A.area_province_id', 0])
+      ->cache(60);
         $find_city = BUserOther::find()
       ->from(BUserOther::tableName()." A")
       ->join('left join', BArea::tableName().' B', 'A.area_city_id = B.id')
       ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
       ->join('left join', BNode::tableName().' D', 'A.user_id = D.user_id && D.status = '.BNode::STATUS_ON)
       ->select(['count(A.id) as count','B.id'])
-      ->where(['>', 'A.area_city_id', 0]);
+      ->where(['>', 'A.area_city_id', 0])
+      ->cache(60);
         $type = $this->pInt('type');
         if ($type == 2) {
             //实名认证用户

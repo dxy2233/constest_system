@@ -57,7 +57,8 @@ class NodeController extends BaseController
         $nodeTypeQuery = BNodeType::find()
         ->select(['id', 'name', 'grt', 'tt', 'bpt'])
         ->where(['is_order' => BNodeType::STATUS_ACTIVE])
-        ->active();
+        ->active()
+        ->cache(15);
         if ($page) {
             $data['count'] = $nodeTypeQuery->count();
             $nodeTypeQuery->page($page, $pageSize);
@@ -73,17 +74,24 @@ class NodeController extends BaseController
      */
     public function actionVote()
     {
+        $cache = \Yii::$app->cache;
         $page = $this->pInt('page', false);
         $pageSize = $this->pInt('page_size', 15);
         // 返回数据容器
         $data = [];
         $nodeTypeId = $this->pInt('id', 0);
+        $cacheKey = 'voteCache_'. $nodeTypeId;
         if (empty($nodeTypeId)) {
             return $this->respondJson(1, '节点类型ID不能为空');
         }
         $isOpen = SettingService::get('vote', 'is_open');
         if (!is_object($isOpen) && !(bool) $isOpen->value) {
             return $this->respondJson(1, "投票未启用");
+        }
+
+        if ($cache->exists($cacheKey) && !$page) {
+            $cacheData = $cache->get($cacheKey);
+            return $this->respondJson(0, '获取成功', $cacheData);
         }
 
         // 不传递page 则为首页
@@ -93,7 +101,9 @@ class NodeController extends BaseController
             if ($nodeNumberModel) {
                 $nodeNumber = intval($nodeNumberModel);
             }
+            
             $data = NodeService::getNodeList($nodeTypeId, 1, $nodeNumber);
+            $cache->set($cacheKey, $data, 15);
         } else {
             $data['list'] = NodeService::getNodeList($nodeTypeId, $page, $pageSize);
             $data['count'] = NodeService::$number;
@@ -189,6 +199,7 @@ class NodeController extends BaseController
         ->select(['user_id', 'node_id', 'create_time', 'type', 'status'])
         ->with('user')
         ->active()
+        ->cache(15)
         ->where(['node_id' => $nodeId]);
         if ($nodeShowType !== 'log') {
             $voteModel->addSelect(['SUM(vote_number) as vote_number']);
@@ -229,7 +240,8 @@ class NodeController extends BaseController
         ->select(['id', 'name', 'grt', 'tt', 'bpt'])
         // 获取节点类型不调用 微店节点
         ->where(['<>', 'id', 5])
-        ->active();
+        ->active()
+        ->cache(15);
         $nodeType = $nodeTypeQuery->orderBy(['sort' => SORT_ASC])->asArray()->all();
         return $this->respondJson(0, '获取成功', $nodeType);
     }

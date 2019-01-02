@@ -65,10 +65,12 @@ class UserController extends BaseController
         $find = BUser::find()
         ->from(BUser::tableName()." A")
 
-        ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num'])
+        ->select(['A.mobile', 'A.status', 'A.create_time', 'A.last_login_time', 'A.id','sum(B.vote_number) as num','C.name as node_name', 'D.name as type_name'])
         ->groupBy(['A.id'])
         ->join('left join', BVote::tableName().' B', 'B.user_id = A.id && B.status = '.BNotice::STATUS_ACTIVE)
-        ->join('left join', BNode::tableName().' C', 'C.user_id = A.id && C.status = '.BNotice::STATUS_ACTIVE);
+        
+        ->join('left join', BNode::tableName().' C', 'C.user_id = A.id && C.status = '.BNotice::STATUS_ACTIVE)
+        ->join('left join', BNodeType::tableName().' D', 'C.type_id = D.id');
         $pageSize = $this->pInt('pageSize');
         $page = $this->pInt('page', 1);
         
@@ -97,25 +99,21 @@ class UserController extends BaseController
         }
         $find->orderBy($order);
         $count = $find->count();
-        $is_download = $this->pInt('is_download', 0);
-        if ($page != 0 && $is_download == 0) {
+
             $find->page($page);
-        }
+        
         
         //echo $find->createCommand()->getRawSql();
         $list = $find->asArray()->all();
         //var_dump($list);
         foreach ($list as &$v) {
-            $node = BNode::find()
-            ->from(BNode::tableName()." A")
-            ->join('inner join', 'gr_node_type B', 'A.type_id = B.id')
-            ->select(['B.name', 'A.name as nodeName'])->where(['A.user_id' => $v['id'], 'A.status' => BNotice::STATUS_ACTIVE])->asArray()->one();
-            if ($node) {
-                $v['userType'] = $node['name'];
-                $v['nodeName'] = $node['nodeName'];
-            } else {
+
+            if($v['type_name'] == ''){
                 $v['userType'] = '普通用户';
                 $v['nodeName'] = '——';
+            }else{
+                $v['userType'] = $v['type_name'];
+                $v['nodeName'] = $v['node_name'];
             }
             $v['create_time'] = $v['create_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['create_time']);
             $v['last_login_time'] = $v['last_login_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['last_login_time']);
@@ -134,11 +132,7 @@ class UserController extends BaseController
                 $v['referee'] = $recommend['mobile'];
             }
         }
-        if ($is_download == 1) {
-            $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '推荐人', 'status' => '已投票数', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
-            $this->download($list, $headers, '用户列表'.date('YmdHis'));
-            return;
-        }
+
         $return = ['count' => $count, 'list' => $list];
         return $this->respondJson(0, '获取成功', $return);
     }

@@ -44,7 +44,7 @@ class VoteController extends BaseController
     public function actionCountTime()
     {
         //$countTime = (int) SettingService::get('vote', 'count_time')->value;
-        $cycle = BCycle::find()->all();
+        $cycle = BCycle::find()->cache(15)->all();
         $countTime = NOW_TIME;
         foreach ($cycle as $v) {
             if ($v->cycle_start_time <= time() && $v->cycle_end_time>=time()) {
@@ -64,9 +64,18 @@ class VoteController extends BaseController
      */
     public function actionIndex()
     {
+        $cache = \Yii::$app->cache;
         $page = $this->pInt('page', 1);
         $pageSize = $this->pInt('page_size', 15);
         $voteShowType = $this->pString('type', 'all');
+        $cacheKey = 'voteCache_';
+        if ($page == 1) {
+            $cacheKey .= $voteShowType;
+            if ($cache->exists($cacheKey)) {
+                $cacheData = $cache->get($cacheKey);
+                return $this->respondJson(0, '获取成功', $cacheData);
+            }
+        };
         // 容器
         $data = [];
         
@@ -80,6 +89,7 @@ class VoteController extends BaseController
         $voteModel->addSelect(['SUM(vote_number) as vote_number']);
         $voteModel->groupBy('user_id');
         $voteModel->orderBy(['vote_number' => SORT_DESC]);
+        $voteModel->cache(15);
         $data['count'] = $voteModel->count();
         $voteModel->page($page, $pageSize);
         $voteDataModel = $voteModel->all();
@@ -97,6 +107,9 @@ class VoteController extends BaseController
             $voteData[$key] = array_merge($vote, $addData);
         }
         $data['list'] = $voteData;
+        if ($page == 1) {
+            $cache->set($cacheKey, $data, 15);
+        }
         return $this->respondJson(0, '获取成功', $data);
     }
 
@@ -413,9 +426,10 @@ class VoteController extends BaseController
         }
         // 当前节点类型是否开启投票功能
         $nodeTypeModel = $nodeModel->nodeType;
-        if (is_null($nodeTypeModel) && !$nodeTypeModel->is_vote) {
+        if (!$nodeTypeModel || !$nodeTypeModel->is_vote) {
             return $this->respondJson(1, '该节点不能投票');
         }
+
         // 自己不能给自己投票
         // if ($nodeModel->user_id == $userModel->id) {
         //     return $this->respondJson(1, '不能投票给自己');

@@ -107,6 +107,10 @@ class TransferController extends BaseController
         if (!$images) {
             return $this->respondJson(1, '申请凭证不能为空');
         }
+        $old_data = BNodeTransfer::find()->where(['status' => BNodeTransfer::STATUS_INACTIVE, 'from_user_id' => $from_id])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '已有其它未审核的申请');
+        }
         $transfer = new BNodeTransfer();
         $transfer->from_user_id = $from_id;
         $transfer->to_user_id = $to_id;
@@ -298,15 +302,18 @@ class TransferController extends BaseController
             $str = $data->from_user_id;
             $new_str = $data->to_user_id;
         }
-
-        $sign = BNodeRecommend::updateAll(
-            ['parent_id' => $data->to_user_id],
-            ['=', 'parent_id', $data->from_user_id]
-        );
-        if (!$sign) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', '下级节点推荐关系修改失败');
+        $other_recommend = BNodeRecommend::find()->where(['parent_id' => $data->from_user_id])->one();
+        if ($other_recommend) {
+            $sign = BNodeRecommend::updateAll(
+                ['parent_id' => $data->to_user_id],
+                ['=', 'parent_id', $data->from_user_id]
+            );
+            if (!$sign) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', '下级节点推荐关系修改失败');
+            }
         }
+
         
         $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = $str";
         $connection=\Yii::$app->db;

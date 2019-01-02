@@ -426,11 +426,7 @@ class VoteController extends BaseController
         }
         // 当前节点类型是否开启投票功能
         $nodeTypeModel = $nodeModel->nodeType;
-        if (is_null($nodeTypeModel) && !$nodeTypeModel->is_vote) {
-            return $this->respondJson(1, '该节点不能投票');
-        }
-        
-        if (!$nodeTypeModel->is_vote) {
+        if (!$nodeTypeModel || !$nodeTypeModel->is_vote) {
             return $this->respondJson(1, '该节点不能投票');
         }
 

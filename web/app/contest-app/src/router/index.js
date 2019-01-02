@@ -96,8 +96,12 @@ export let mainRouter = [
             path: 'transfer',
             component: () => import('views/assets/transfer/index'),
           }
-        ]
+        ],
       },
+      {
+        path:'gdt:id',
+        component: () => import('views/assets/assetsDetails/gdt'),
+      }
       /*{
         path: 'collect',
         name:'collect',

@@ -47,6 +47,7 @@ class NoticeController extends BaseController
         ->active(BNotice::STATUS_ACTIVE)
         // ->hasStartAndEndTime()
         ->where(['id' => $noticeId])
+        ->cache(15)
         ->one();
         if (!is_object($notice)) {
             return $this->respondJson(1, '获取公告失败');

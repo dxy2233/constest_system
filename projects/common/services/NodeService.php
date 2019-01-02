@@ -162,6 +162,7 @@ class NodeService extends ServiceBase
      */
     public static function getPeopleNum(array $id_arr = [], $str_time = '', $end_time = '')
     {
+        $cache = \Yii::$app->cache;
         $voteMode = BVote::find()
         ->select(['node_id', 'COUNT(DISTINCT user_id) as people_number']);
         if (!empty($id_arr)) {
@@ -174,12 +175,16 @@ class NodeService extends ServiceBase
             $voteMode->endTime($end_time, 'create_time');
             $voteMode->andWhere(['or', ['>', 'undo_time', strtotime($end_time)], ['undo_time' => 0]]);
         } else {
-            $voteMode->andWhere(['or', ['>', 'undo_time', time()], ['undo_time' => 0]]);
+            $cacheKey = 'cacheTime';
+            $time = $cache->getOrSet($cacheKey, function () {
+                return time();
+            }, 15);
+            $voteMode->andWhere(['or', ['>', 'undo_time', $time], ['undo_time' => 0]]);
         }
-
         $res = $voteMode->groupBy(['node_id'])
         ->indexBy('node_id')
         ->asArray()
+        ->cache(15)
         ->all();
         $data = [];
         ArrayHelper::multisort($res, 'people_number', SORT_DESC);
@@ -233,6 +238,7 @@ class NodeService extends ServiceBase
         ->filterWhere(['n.type_id' => $nodeType])
         ->orderBy(['vote_number' => SORT_DESC])
         ->groupBy('n.id');
+        $nodeModel->cache(15);
         self::$number = $nodeModel->count();
         // $nodeModel->cache(-1);
         if (!is_null($page)) {

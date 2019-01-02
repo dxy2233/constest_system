@@ -350,8 +350,15 @@ export default {
         })
         return
       }
+      if (this.date) {
+        var str = this.date[0]
+        var end = this.date[1]
+      } else {
+        str = ''
+        end = ''
+      }
       getVerifiCode().then(res => {
-        var url = `/withdraw/download?download_code=${res.content}&status=${this.checkTypetoNum}&currency_id=${this.moneyType}&searchName=${this.search}&type=${this.dataType}&str_time=${this.date[0]}&end_time=${this.date[1]}`
+        var url = `/withdraw/download?download_code=${res.content}&status=${this.checkTypetoNum}&currency_id=${this.moneyType}&searchName=${this.search}&type=${this.dataType}&str_time=${str}&end_time=${end}`
         const elink = document.createElement('a')
         elink.style.display = 'none'
         elink.target = '_blank'

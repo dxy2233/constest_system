@@ -164,14 +164,18 @@ class WalletController extends BaseController
         $detailType = (bool) $type ? BUserCurrencyDetail::getTypeRevenue() : BUserCurrencyDetail::getTypePay();
         
         $currencyModel = BUserCurrencyDetail::find()
-        ->select(['amount', 'remark', 'effect_time', 'status'])
+        ->select(['amount', 'remark', 'effect_time', 'status', 'currency_id'])
         ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => $detailType])
         ->andWhere(['<>', 'amount', 0])
         ->active();
         // var_dump($currencyModel->createCommand()->getRawSql());exit;
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
+        $gdtId = BCurrency::getCurrencyIdByCode('gdt');
         foreach ($data['list'] as &$val) {
+            if ($val['currency_id'] == $gdtId && $val['remark'] == '提币') {
+                $val['remark'] = '领取积分';
+            }
             if ($val['remark'] == '充币') {
                 $val['remark'] = '转入积分';
             } elseif ($val['remark'] == '提币') {
@@ -180,6 +184,7 @@ class WalletController extends BaseController
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
             $val['status_str'] = BUserCurrencyDetail::getStatus($val['status']);
             $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
+            unset($val['currency_id']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

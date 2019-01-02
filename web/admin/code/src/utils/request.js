@@ -35,6 +35,9 @@ service.interceptors.request.use(
 // response 拦截器
 service.interceptors.response.use(
   response => {
+    if (response.data.type === 'application/octet-stream') {
+      return response
+    }
     const res = response.data
     // 0:正常 -1:么有登录 1:有错 2:么有权限
     if (res.code === -1) {

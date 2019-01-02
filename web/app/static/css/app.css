@@ -5767,7 +5767,7 @@ i.weui-tabbar__icon,
   border-top: 1px solid #E5E5E5;
 }
 
-.app-header[data-v-d6154f76] {
+.app-header[data-v-7f6188c8] {
   padding: 0 15px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -5788,13 +5788,13 @@ i.weui-tabbar__icon,
   z-index: 5;
   background: #fff;
 }
-.app-header .left[data-v-d6154f76] {
+.app-header .left[data-v-7f6188c8] {
   float: left;
 }
-.app-header .icon-back[data-v-d6154f76] {
+.app-header .icon-back[data-v-7f6188c8] {
   font-size: 20px;
 }
-.app-header .center[data-v-d6154f76] {
+.app-header .center[data-v-7f6188c8] {
   position: absolute;
   text-align: center;
   top: 0;
@@ -5804,7 +5804,7 @@ i.weui-tabbar__icon,
   font-size: 16px;
   z-index: -1;
 }
-.app-header .right[data-v-d6154f76] {
+.app-header .right[data-v-7f6188c8] {
   float: right;
   font-size: 14px;
 }
@@ -6192,4 +6192,4 @@ html .weui-toast_text .weui-toast__content {
   content: "\E905";
 }
 /*# sourceMappingURL=src/stylus/index.css.map */
-/*# sourceMappingURL=app.css.map?v=942f7f6a1aa79d185216004f9025db39*/
+/*# sourceMappingURL=app.css.map?v=3776dad6b68cf794e9f271953d28e982*/

@@ -1,14 +1,11 @@
 <template>
   <slide>
-    <div class="assets-details">
-      <!--<x-header :left-options="{backText: ''}" class="w-header">
-        {{currencyInfo.name}}
-      </x-header>-->
+    <div class="assets-details-gdt">
       <app-header>
-        <div @click="refreshData" slot="right" class="refresh-btn">
+        <!--<div @click="refreshData" slot="right" class="refresh-btn">
           <inline-loading v-show="refreshLoad"></inline-loading>
           <span>刷新数据</span>
-        </div>
+        </div>-->
       </app-header>
       <div class="assets-details-main">
         <div class="brief">
@@ -16,16 +13,6 @@
             <p>{{currencyInfo.name}}</p>
             <h3>{{currencyInfo.positionAmount}}</h3>
           </div>
-          <ul class="bottom">
-            <li>
-              <p>可用</p>
-              <h4>{{currencyInfo.useAmount}}</h4>
-            </li>
-            <li @click="goFrozen">
-              <p>锁仓</p>
-              <h4>{{currencyInfo.frozenAmount}}</h4>
-            </li>
-          </ul>
         </div>
         <ul class="tab-list">
           <li v-for="item in tabList" :key="item.name" @click="selectedTab(item)"
@@ -49,18 +36,10 @@
           </scroller>
         </div>
         <div class="handle-btn">
-          <ul>
-            <router-link tag="li" :to="{path:'/assets/dts'+dtsId+'/collect',query:{name:currencyInfo.name}}"
-                         v-if="parseInt(currencyInfo.rechargeStatus)">
-              <img src="/static/images/collect.png" alt="">
-              <span>转入</span>
-            </router-link>
-            <router-link v-if="parseInt(currencyInfo.withdrawStatus)"
-                         tag="li" :to="'/assets/dts'+dtsId+'/transfer'">
-              <img src="/static/images/transfer.png" alt="">
-              <span>转出</span>
-            </router-link>
-          </ul>
+          <router-link v-if="parseInt(currencyInfo.withdrawStatus)"
+                       tag="button" :to="{path:'/assets/dts'+dtsId+'/transfer',query:{name:'gdt'}}">
+            <span>领取</span>
+          </router-link>
         </div>
       </div>
       <router-view></router-view>
@@ -84,11 +63,11 @@
         tabList: [
           {
             type: '1',
-            name: '收入明细',
+            name: '获取明细',
           },
           {
             type: '0',
-            name: '支出记录'
+            name: '领取记录'
           }
         ],
         currentType: localStorage.getItem("currencyDetailType") || '1',
@@ -206,9 +185,8 @@
 <style lang="stylus" rel="stylesheet/stylus">
   @import "~stylus/variable"
   @import "~stylus/mixin"
-  .assets-details
+  .assets-details-gdt
     fixed-full-screen()
-    overflow auto
 
     .refresh-btn
       display flex
@@ -232,7 +210,7 @@
       margin 10px $space-box
 
       & > .top
-        padding 15px 0
+        padding 30px 0
         background url("/static/images/assets-bg1.png") center no-repeat
         background-size cover
         text-align center
@@ -283,7 +261,7 @@
 
     .detail
       position absolute
-      top 225px
+      top 195px
       bottom 0
       padding-bottom 60px
       width 100%
@@ -317,30 +295,6 @@
           .status
             font-size $font-size-small-s
 
-    /*.handle-btn
-      position absolute
-      left $space-box
-      bottom $space-box
-      right $space-box
-      ul
-        border-radius 10px
-        overflow hidden
-        background $color-theme
-        line-height 48px
-        height 48px
-        li
-          width 50%
-          float left
-          text-align center
-          font-size $font-size-medium-x
-          color white
-      .line
-        position absolute
-        top 0
-        left 50%
-        height 48px
-        width 1px
-        background white*/
 
     .handle-btn
       position absolute
@@ -348,28 +302,24 @@
       bottom 0
       right 0
       background white
-
-      ul
+      padding 10px $space-box
+      button
+        text-align center
+        border none
+        font-size $font-size-medium-x
+        box-sizing border-box
+        width 100%
+        line-height 40px
+        color white
+        background $color-theme
+        border-radius 10px
+      /*ul
         overflow hidden
         line-height 60px
         height 60px
         margin-left -1px
-        box-sizing border-box
+        box-sizing border-box*/
 
-        li
-          width 50%
-          float left
-          text-align center
-          border-top 1px solid $color-border-sub
-          font-size $font-size-medium-x
-          box-sizing border-box
-          border-left 1px solid $color-border-sub
-          display flex
-          align-items center
-          justify-content center
 
-          img
-            margin-right 5px
-            width 25px
 
 </style>

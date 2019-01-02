@@ -23,6 +23,7 @@ class WithdrawController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
         ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -110,7 +111,7 @@ class WithdrawController extends BaseController
         $currency_id = $this->pInt('currency_id');
         $str_time = $this->pString('str_time', '');
         $end_time = $this->pString('end_time', '');
-
+        $type = $this->pInt('type');
         $page = $this->pInt('page', 1);
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
@@ -128,7 +129,9 @@ class WithdrawController extends BaseController
         if ($str_time != '') {
             $find->startTime($str_time, 'A.create_time');
         }
-        
+        if ($type != '') {
+            $find->andWhere(['A.type' => $type]);
+        }
         if ($end_time != '') {
             $find->endTime($end_time, 'A.create_time');
         }
@@ -150,6 +153,61 @@ class WithdrawController extends BaseController
         $return['count'] = $count;
         $return['list'] = $data;
         return $this->respondJson(0, "获取成功", $return);
+    }
+
+    //导出
+    public function actionDownload()
+    {
+        $down = $this->checkDownloadCode();
+        if (!$down) {
+            exit('验证失败');
+        }
+        $status = $this->pInt('status');
+        $searchName = $this->pString('searchName', '');
+        $currency_id = $this->pInt('currency_id');
+        $str_time = $this->pString('str_time', '');
+        $end_time = $this->pString('end_time', '');
+        $type = $this->pInt('type');
+        $page = $this->pInt('page', 1);
+        $find = BUserRechargeWithdraw::find()
+        ->from(BUserRechargeWithdraw::tableName()." A")
+        ->where(['A.status' => $status])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
+        ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
+        ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
+        ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
+        if ($searchName != '') {
+            $find->andWhere(['or',['like', 'B.mobile', $searchName], ['like', 'A.order_number', $searchName]]);
+        }
+        if ($currency_id != 0) {
+            $find->andWhere(['A.currency_id' => $currency_id]);
+        }
+        if ($str_time != '') {
+            $find->startTime($str_time, 'A.create_time');
+        }
+        if ($type != '') {
+            $find->andWhere(['A.type' => $type]);
+        }
+        if ($end_time != '') {
+            $find->endTime($end_time, 'A.create_time');
+        }
+        $find->orderBy('A.create_time DESC');
+
+
+
+        $data = $find->asArray()->all();
+        //echo $find->createCommand()->getRawSql();
+        foreach ($data as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
+            $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
+            $v['type'] = BUserRechargeWithdraw::getType($v['type']);
+            $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
+        }
+        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间'];
+
+        $this->download($data, $headers, '转账审核'.date('YmdHis'));
+
+        return;
     }
 
     // 审核失败

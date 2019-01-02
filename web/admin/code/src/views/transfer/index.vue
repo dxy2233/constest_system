@@ -6,6 +6,7 @@
       <el-radio-button label="未通过"/>
     </el-radio-group>
     <el-button v-if="buttons[10].child[1].isHave==1" class="btn-right" style="margin-left:10px;" @click="openTransferSet">转账设置</el-button>
+    <el-button class="btn-right" style="margin-right:10px;" @click="downExcel">导出excel</el-button>
     <br>
 
     <el-input v-model="search" clearable placeholder="流水号/手机号" style="width:200px;" @change="searchData">
@@ -25,6 +26,13 @@
     <el-select v-model="moneyType" clearable placeholder="积分" style="float:right;" @change="searchData">
       <el-option
         v-for="item in allMoneyType"
+        :key="item.id"
+        :label="item.name"
+        :value="item.id"/>
+    </el-select>
+    <el-select v-model="dataType" clearable placeholder="类型" style="float:right;" @change="searchData">
+      <el-option
+        v-for="item in allDataType"
         :key="item.id"
         :label="item.name"
         :value="item.id"/>
@@ -123,6 +131,7 @@
 <script>
 import { getList, editSet, passTrial, failTrial, getSetValue, walletInfo } from '@/api/transfer'
 import { getMoneyType } from '@/api/assets'
+import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
 
@@ -138,6 +147,12 @@ export default {
       tableDataSelection: [],
       currentPage: 1,
       pageSize: 20,
+      dataType: 0,
+      allDataType: [
+        { id: 0, name: '全部' },
+        { id: 1, name: '转入' },
+        { id: 2, name: '转出' }
+      ],
       allMoneyType: [],
       moneyType: '',
       showInfo: false,
@@ -192,7 +207,7 @@ export default {
   },
   methods: {
     init() {
-      getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.date[0], this.date[1]).then(res => {
+      getList(this.checkTypetoNum, this.moneyType, this.search, this.currentPage, this.dataType, this.date[0], this.date[1]).then(res => {
         this.tableData = res.content.list
         this.total = res.content.count
       })
@@ -315,6 +330,35 @@ export default {
           console.log('error submit!!')
           return false
         }
+      })
+    },
+    downExcel() {
+      if (this.tableDataSelection.length > 0) {
+        let id = ''
+        this.tableDataSelection.forEach((item, index) => {
+          id = `${id}${item.id},`
+        })
+        getVerifiCode().then(res => {
+          var url = `/withdraw/download?download_code=${res.content}&status=${this.checkTypetoNum}&id=${id}`
+          const elink = document.createElement('a')
+          elink.style.display = 'none'
+          elink.target = '_blank'
+          elink.href = url
+          document.body.appendChild(elink)
+          elink.click()
+          document.body.removeChild(elink)
+        })
+        return
+      }
+      getVerifiCode().then(res => {
+        var url = `/withdraw/download?download_code=${res.content}&status=${this.checkTypetoNum}&currency_id=${this.moneyType}&searchName=${this.search}&type=${this.dataType}&str_time=${this.date[0]}&end_time=${this.date[1]}`
+        const elink = document.createElement('a')
+        elink.style.display = 'none'
+        elink.target = '_blank'
+        elink.href = url
+        document.body.appendChild(elink)
+        elink.click()
+        document.body.removeChild(elink)
       })
     }
   }

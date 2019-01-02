@@ -64,7 +64,7 @@
 import { getNodeUpList, nodeUpPass, nodeUpFail, getBaseInfo } from '@/api/nodeUp'
 // import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
-// import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'NodeUp',
@@ -90,9 +90,9 @@ export default {
     }
   },
   computed: {
-    // ...mapGetters([
-    //   'buttons'
-    // ]),
+    ...mapGetters([
+      'buttons'
+    ]),
     checkTypetoNum() {
       if (this.checkType === '待审核') {
         return 2

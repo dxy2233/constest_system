@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 // 节点审核列表
 // 0待审核 1已通过 3 未通过
-export function getList(status, currency_id, searchName, page, str_time, end_time) {
+export function getList(status, currency_id, searchName, page, type, str_time, end_time) {
   return request({
     url: '/withdraw/index',
     method: 'post',
@@ -11,6 +11,7 @@ export function getList(status, currency_id, searchName, page, str_time, end_tim
       currency_id,
       searchName,
       page,
+      type,
       str_time,
       end_time
     }

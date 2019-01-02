@@ -4,19 +4,8 @@
       <div class="assets-content">
         <dl class="currency">
           <dt>资产种类</dt>
-          <dd v-if="gdt" class="gdt-item">
-            <img src="/static/images/personal-node/bg1.png" alt="">
-            <div class="content">
-              <h2>
-                待领取的GDT
-              </h2>
-              <router-link tag="button" :to="{path:'/assets/gdt'+gdt.id}">
-                查看
-              </router-link>
-            </div>
-          </dd>
-          <router-link tag="dd" class="list-item" v-for="item in currencyList" :key="item.code"
-                       :to="'/assets/dts'+item.id">
+          <dd v-if="gdt">gdt</dd>
+          <router-link tag="dd" v-for="item in currencyList" :key="item.code" :to="'/assets/dts'+item.id">
             <div class="left">
               <img :src="'/static/images/assets-icon/'+item.code+'.jpg'" alt="" class="icon">
               <span>{{item.name}}</span>
@@ -64,7 +53,6 @@
           for (let item of list) {
             if (item.name === 'GDT') {
               this.gdt = item
-              localStorage.setItem("gdtInfo", JSON.stringify(item));
             } else {
               ar.push(item)
             }
@@ -81,7 +69,6 @@
           return
         }
         this.currencyList = []
-        this.gdt = null
         this.listShow = true
         this.getCurrencyList()
         /*if (!this.currencyList.length){
@@ -141,41 +128,12 @@
           margin-bottom 30px
           font-weight bold
 
-        .gdt-item
-          position relative
-
-          img
-            width 100%
-            height 120px
-
-          .content
-            position absolute
-            top 35px
-            left 0
-            right 0
-            padding 0 $space-box
-            display flex
-            justify-content space-between
-            color #f4db9e
-            align-items center
-
-            h2
-              font-size 20px
-
-            button
-              background none
-              border 2px solid #f4db9e
-              color #f4db9e
-              font-size $font-size-medium
-              padding 5px 15px
-              border-radius 20px
-
-        .list-item
+        dd
           display flex
           justify-content space-between
           font-size $font-size-medium
           align-items center
-          padding 25px $space-box
+          padding 25px 13px
           box-shadow 0 0 12px 2px rgba(90, 90, 90, 0.18)
           margin-bottom 20px
           border-radius 5px

@@ -7,24 +7,25 @@
       <app-header>
       </app-header>
       <div class="h-main wrapper">
-        <div class="title">转出</div>
+        <div class="title">{{htmlString.title}}</div>
         <div class="transfer-form">
           <div class="form-item">
             <label for="">积分</label>
             <div class="ipt-box">
-              <sel :dataList="currencyList" placeholder="请选择积分"
+              <input v-if="this.$route.query.name==='gdt'" type="text" readonly value="GDT">
+              <sel v-else :dataList="currencyList" placeholder="请选择积分"
                    value="id" label="name" @changeSel="changeCurrent" :select="this.form.id"></sel>
             </div>
           </div>
           <div class="form-item">
             <label for="">数量</label>
             <div class="ipt-box">
-              <input type="text" v-model="form.amount" :placeholder="'余额'+balance">
+              <input type="text" v-model="form.amount" :placeholder="htmlString.amountPlaceholder+balance">
               <span class="all-btn" @click="form.amount = balance" v-if="form.id">全部</span>
             </div>
           </div>
           <div class="form-item">
-            <label for="">接收方钱包地址</label>
+            <label for="">{{htmlString.addressLabel}}</label>
             <div class="ipt-box">
               <input type="text" v-model="form.address" placeholder="输入或长按黏贴">
             </div>
@@ -36,7 +37,9 @@
             </div>
           </div>
         </div>
-        <x-button type="warn" class="again-btn" @click.native="submitTransfer" :disabled="btnDisabled">确认支付</x-button>
+        <x-button type="warn" class="again-btn" @click.native="submitTransfer" :disabled="btnDisabled">
+          {{htmlString.btn}}
+        </x-button>
         <valid-pay-psw v-if="validPswShow" @validSuccess="validPswSuccess" @close="validPswShow=false"></valid-pay-psw>
         <valid-vcode v-if="validVcodeShow" @close="validVcodeShow=false" @valid="validAll"></valid-vcode>
         <loading :show="loadingShow" text=""></loading>
@@ -81,36 +84,42 @@
         payPsw: '',
         vcode: "",
         loadingShow: false,
-        hasIdentify:true,
-        btnDisabled:false
+        hasIdentify: true,
+        btnDisabled: false,
+        htmlString: {
+          title: '转出',
+          amountPlaceholder: '余额',
+          addressLabel: '接收方钱包地址',
+          btn: '确认支付'
+        }
       }
     },
     methods: {
-      vaildAmount(){
+      vaildAmount() {
         let vaild = this.clickAmount(this.form.amount)
         if (vaild) {
           this.$vux.toast.show(vaild)
         }
       },
-      vaildAdress(){
-        this.clickAdress(this.form.address,(res)=>{
-          if (res){
+      vaildAdress() {
+        this.clickAdress(this.form.address, (res) => {
+          if (res) {
             this.$vux.toast.show(res)
           }
         })
       },
-      clickAdress(value,cb){
+      clickAdress(value, cb) {
         if (!value) {
           cb('转账地址不能为空')
           return
         }
-        http.post('/wallet/address-check',{
-          id:this.form.id,
-          address:this.form.address
-        },(res)=>{
-          if (res.code !== 0){
+        http.post('/wallet/address-check', {
+          id: this.form.id,
+          address: this.form.address
+        }, (res) => {
+          if (res.code !== 0) {
             cb(res.msg)
-          }else {
+          } else {
             cb('')
           }
         })
@@ -128,10 +137,10 @@
         if (!value) {
           return '请输入数量'
         }
-        if (!(/^\d+(\.\d+)?$/.test(value))||value*1===0) {
+        if (!(/^\d+(\.\d+)?$/.test(value)) || value * 1 === 0) {
           return '请输入有效的数量'
         }
-        if (value-this.balance>0){
+        if (value - this.balance > 0) {
           return '可用不足'
         }
         return ''
@@ -146,12 +155,12 @@
           this.$vux.toast.show(vaild)
           return
         }
-        this.clickAdress(this.form.address,(res)=>{
-          if (res){
+        this.clickAdress(this.form.address, (res) => {
+          if (res) {
             this.$vux.toast.show(res)
             return
           }
-          if (!this.hasIdentify){
+          if (!this.hasIdentify) {
             this.$vux.toast.show('请先通过实名认证')
             return
           }
@@ -180,7 +189,7 @@
             time: 3000,
             type: type
           })
-          if (res.code === 0){
+          if (res.code === 0) {
             this.$router.go(-1)
           }
           this.validVcodeShow = false
@@ -188,12 +197,25 @@
       }
     },
     created() {
+      if (this.$route.query.name==='gdt'){
+        this.htmlString = {
+          title:'领取',
+          amountPlaceholder:'可领取',
+          addressLabel:'您的IET钱包地址',
+          btn:'确认领取'
+        }
+        this.form.id = this.$route.params.id
+        let gdt = JSON.parse(localStorage.getItem('gdtInfo'))
+        this.balance = gdt.useAmount
+        this.hasIdentify = gdt.hasIdentify
+        return
+      }
       let list = JSON.parse(localStorage.getItem('currencyList'))
       let nL = []
-      for (let item of  list){
-        if (parseInt(item.withdrawStatus)){
+      for (let item of  list) {
+        if (parseInt(item.withdrawStatus)) {
           nL.push(item)
-          if (item.id === this.$route.params.id){
+          if (item.id === this.$route.params.id) {
             // console.log(item)
             this.form.id = item.id
             this.balance = item.useAmount
@@ -202,10 +224,9 @@
         }
       }
       this.currencyList = nL
-      // this.form.id='1'
     },
-    watch:{
-      'form.amount':function () {
+    watch: {
+      'form.amount': function () {
         let p = limitIpt(this.form.amount, 2)
         this.form.amount = p
       }
@@ -219,27 +240,34 @@
   .assets-transfer
     fixed-full-screen()
     overflow auto
+
     & > .wrapper
       padding-left $space-box
       padding-right $space-box
+
     .title
       font-size 28px
       padding 35px 0
+
     .transfer-form
       .vux-x-icon
         display none
+
       .form-item
         margin-bottom 30px
+
       .ipt-box
         position relative
         line-height 30px
         height 30px
         border-bottom 1px solid $color-border
         ipt-pr(#959DA6)
+
       input
         width 100%
         line-height 30px
         color $color-text-sub
+
       .all-btn
         position absolute
         right 0

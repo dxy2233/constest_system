@@ -162,13 +162,12 @@ class WithdrawController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $status = $this->pInt('status');
-        $searchName = $this->pString('searchName', '');
-        $currency_id = $this->pInt('currency_id');
-        $str_time = $this->pString('str_time', '');
-        $end_time = $this->pString('end_time', '');
-        $type = $this->pInt('type');
-        $page = $this->pInt('page', 1);
+        $status = $this->gInt('status');
+        $searchName = $this->gString('searchName', '');
+        $currency_id = $this->gInt('currency_id');
+        $str_time = $this->gString('str_time', '');
+        $end_time = $this->gString('end_time', '');
+        $type = $this->gInt('type');
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
@@ -196,14 +195,15 @@ class WithdrawController extends BaseController
 
 
         $data = $find->asArray()->all();
-        //echo $find->createCommand()->getRawSql();
+        // echo $find->createCommand()->getRawSql();
+        // exit;
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
             $v['examine_time'] =  $v['examine_time'] == 0 ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['type'] = BUserRechargeWithdraw::getType($v['type']);
             $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
         }
-        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间'];
+        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间', 'destination_address' => '对方钱包地址'];
 
         $this->download($data, $headers, '转账审核'.date('YmdHis'));
 
@@ -267,13 +267,17 @@ class WithdrawController extends BaseController
             $walletList = \Yii::$app->params['JTWallet'];
         }
         $data = [];
-        foreach ($walletList as $key => $wallet) {
-            $res = JingTumService::getInstance()->queryBalance($wallet['address'], $currencyCode) ;
 
-            if ($res->code != 0) {
-                $res->content = "0.000000";
+        foreach ($walletList as $key => $wallet) {
+            if ($currencyCode != 'GDT') {
+                $res = JingTumService::getInstance()->queryBalance($wallet['address'], $currencyCode) ;
+                if ($res->code != 0) {
+                    $res->content = "0.000000";
+                }
+                $data[$key] = $res->content;
+            } else {
+                $data[$key] = '-';
             }
-            $data[$key] = $res->content;
         }
 
         return $this->respondJson(0, '获取成功', $data);

@@ -85,6 +85,7 @@ trait UserCurrencyTrait
         $arr = [
             static::$TYPE_ELECTION,
             static::$TYPE_VOTE,
+            static::$TYPE_WITHDRAW,
         ];
         if (!is_null($key)) {
             return in_array($key, $arr) ? true : false;

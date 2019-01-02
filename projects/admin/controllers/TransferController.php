@@ -12,6 +12,7 @@ use common\models\business\BUserIdentify;
 use common\models\business\BNode;
 use common\models\business\BNodeType;
 use common\models\business\BNodeTransfer;
+use common\models\business\BNodeRecommend;
 use common\models\business\BUserLog;
 use common\models\business\BVote;
 use common\components\IpUtil;
@@ -281,6 +282,36 @@ class TransferController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
         }
+        $node_recommend = BNodeRecommend::find()->where(['user_id' => $data->from_user_id])->one();
+        if ($node_recommend) {
+            $sign = BNodeRecommend::updateAll(
+                ['user_id' => $data->to_user_id],
+                ['=', 'user_id', $data->from_user_id]
+            );
+            if (!$sign) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', '推荐关系修改失败');
+            }
+            $str = $node_recommend->parent_list. ','. $data->from_user_id;
+            $new_str = $node_recommend->parent_list. ','. $data->to_user_id;
+        } else {
+            $str = $data->from_user_id;
+            $new_str = $data->to_user_id;
+        }
+
+        $sign = BNodeRecommend::updateAll(
+            ['parent_id' => $data->to_user_id],
+            ['=', 'parent_id', $data->from_user_id]
+        );
+        if (!$sign) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', '推荐关系修改失败');
+        }
+        
+        $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = $str";
+        $connection=\Yii::$app->db;
+        $command=$connection->createCommand($sql);
+        $rowCount=$command->execute();
         $transaction->commit();
         return $this->respondJson(0, '审核成功');
     }

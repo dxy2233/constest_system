@@ -64,19 +64,13 @@ class IndexController extends \common\dzbase\DzController
     public function actionText()
     {
         header('Access-Control-Allow-Origin:*');
-        $file = './a.txt';
+        $file = './a.xls';
         if (file_exists($file)) {
             $str = file_get_contents($file);
-            // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            // header('Content-Disposition: attachment;filename="测试.xls"');
-            // header('Cache-Control: max-age=0');
-            $data = str_split($str, 4);
- 
-            $str = '';
-            foreach ($data as $v) {
-                $str .= base_convert($v, 2, 16);
-            }
-            $str =  pack('H*', $str);
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment;filename="测试.xls"');
+            header('Cache-Control: max-age=0');
+
             echo  $str;
         }
 

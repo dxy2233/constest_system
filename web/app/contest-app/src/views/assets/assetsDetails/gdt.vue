@@ -91,12 +91,12 @@
         data1: {
           page: 1,
           dataList: [],
-          total:''
+          total: ''
         },
         data0: {
           page: 1,
           dataList: [],
-          total:''
+          total: ''
         },
 
       }
@@ -117,6 +117,7 @@
         http.post('/wallet/currency-detail', {
           id: this.$route.params.id,
           page: this.data1.page,
+          type: '1',
           page_size: 10
         }, (res) => {
           if (res.code !== 0) {

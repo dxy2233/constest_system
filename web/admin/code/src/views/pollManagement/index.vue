@@ -297,7 +297,7 @@ export default {
       tableData: [],
       total: 1,
       currentPage: 1,
-      order: null,
+      order: '',
       dialogSet: false,
       dialogSetData: [],
       pushSetData: [],
@@ -367,7 +367,7 @@ export default {
     },
     sortChange(val) {
       this.currentPage = 1
-      if (val.prop === null) this.order = null
+      if (val.prop === null) this.order = ''
       else if (val.prop === 'voteNumber' && val.order === 'ascending') this.order = 1
       else if (val.prop === 'voteNumber' && val.order === 'descending') this.order = 4
       else if (val.prop === 'type' && val.order === 'ascending') this.order = 2

@@ -214,4 +214,14 @@ class BUser extends \common\models\User
     {
         return $this->hasOne(BNodeExtend::className(), ['mobile' => 'mobile']);
     }
+
+    /**
+     * 微店节点关联
+     * 一对一
+     * @return void
+     */
+    public function getNodeTransfer()
+    {
+        return $this->hasOne(BNodeTransfer::className(), ['from_user_id' => 'id'])->orderBy(['id' => SORT_DESC]);
+    }
 }

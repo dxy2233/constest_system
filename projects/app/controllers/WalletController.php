@@ -269,7 +269,7 @@ class WalletController extends BaseController
             if ($val['currency_id'] == $gdtId) {
                 $val['remark'] = str_replace('转出', '领取', $val['remark']);
             }
-            $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
+            $val['amount'] = FuncHelper::formatAmount($val['amount'] * -1, 0, true);
             $val['audit_time'] = FuncHelper::formateDate($val['audit_time']);
             $val['create_time'] = FuncHelper::formateDate($val['create_time']);
             $val['status_str'] = $val['remark'].BUserRechargeWithdraw::getStatus($val['status']);

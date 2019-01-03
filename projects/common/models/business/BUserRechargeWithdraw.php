@@ -29,7 +29,7 @@ class BUserRechargeWithdraw extends \common\models\UserRechargeWithdraw
     public static function getStatus($key = '')
     {
         $arr = [
-            self::$STATUS_EFFECT_WAIT => \Yii::t('app', '待审核'),
+            self::$STATUS_EFFECT_WAIT => \Yii::t('app', '划拨中'),
             self::$STATUS_EFFECT_SUCCESS => \Yii::t('app', '成功'),
             self::$STATUS_EFFECT_FAIL => \Yii::t('app', '失败'),
         ];

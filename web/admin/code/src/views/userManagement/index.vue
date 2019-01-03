@@ -350,7 +350,7 @@ export default {
       tableDataSelection: [],
       currentPage: 1,
       total: 1,
-      order: null,
+      order: '',
       edidWallet: '',
       showUserInfo: false,
       rowInfo: [], // 表格选中的信息
@@ -466,7 +466,7 @@ export default {
     // 排序
     sortChange(val) {
       this.currentPage = 1
-      if (val.prop === null) this.order = null
+      if (val.prop === null) this.order = ''
       else if (val.prop === 'num' && val.order === 'ascending') this.order = 1
       else if (val.prop === 'num' && val.order === 'descending') this.order = 4
       else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 2

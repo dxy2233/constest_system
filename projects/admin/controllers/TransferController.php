@@ -94,11 +94,11 @@ class TransferController extends BaseController
         if (!$to_id) {
             return $this->respondJson(1, '受让人ID不能为空');
         }
-        $to_user = BUser::find()->where(['id' => $to_id])->one();
+        $to_user = BUser::find()->where(['id' => $to_id])->active()->one();
         if (!$to_user) {
             return $this->respondJson(1, '受让人不存在');
         }
-        $to_node = BNode::find()->where(['user_id' => $to_id])->active()->one();
+        $to_node = BNode::find()->where(['user_id' => $to_id])->one();
         if ($to_node) {
             return $this->respondJson(1, '受让人已有节点');
         }
@@ -273,11 +273,11 @@ class TransferController extends BaseController
             return $this->respondJson(1, '转让人非节点用户');
         }
 
-        $to_user = BUser::find()->where(['id' => $data->to_user_id])->one();
+        $to_user = BUser::find()->where(['id' => $data->to_user_id])->active()->one();
         if (!$to_user) {
             return $this->respondJson(1, '受让人不存在');
         }
-        $to_node = BNode::find()->where(['user_id' => $data->to_user_id])->active()->one();
+        $to_node = BNode::find()->where(['user_id' => $data->to_user_id])->one();
         if ($to_node) {
             return $this->respondJson(1, '受让人已有节点');
         }

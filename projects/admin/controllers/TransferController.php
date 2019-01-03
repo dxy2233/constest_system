@@ -96,7 +96,7 @@ class TransferController extends BaseController
         }
         $to_user = BUser::find()->where(['id' => $to_id])->active()->one();
         if (!$to_user) {
-            return $this->respondJson(1, '受让人不存在');
+            return $this->respondJson(1, '受让人不存在或已被停用');
         }
         $to_node = BNode::find()->where(['user_id' => $to_id])->one();
         if ($to_node) {
@@ -275,7 +275,7 @@ class TransferController extends BaseController
 
         $to_user = BUser::find()->where(['id' => $data->to_user_id])->active()->one();
         if (!$to_user) {
-            return $this->respondJson(1, '受让人不存在');
+            return $this->respondJson(1, '受让人不存在或已被停用');
         }
         $to_node = BNode::find()->where(['user_id' => $data->to_user_id])->one();
         if ($to_node) {
@@ -328,24 +328,36 @@ class TransferController extends BaseController
             }
         }
         $from_user = BUser::find()->where(['id' => $data->from_user_id])->one();
+        
         $extend = BNodeExtend::find()->where(['mobile' => $from_user->mobile])->one();
+        
         if ($extend) {
-            $extend -> BNodeExtend::STATUS_STOP;
+            $extend->status = BNodeExtend::STATUS_STOP;
             if (!$extend->save()) {
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $extend->getFirstErrorText());
             }
-            $new_extend = new BNodeExtend();
-            $new_extend->name = $extend->name;
-            $new_extend->type_id = $extend->type_id;
-            $new_extend->type_name = $extend->type_name;
-            $new_extend->quota = $extend->quota;
-            $new_extend->company = $extend->company;
-            $new_extend->mobile = $to_user->mobile;
-            $new_extend->status = BNodeExtend::STATUS_ACTIVE;
-            if (!$new_extend->save()) {
-                $transaction->rollBack();
-                return $this->respondJson(1, '审核失败', $new_extend->getFirstErrorText());
+            $old_extend = BNodeExtend::find()->where(['mobile' => $to_user->mobile])->one();
+            if ($old_extend) {
+                $old_extend = $to_user->mobile;
+                $old_extend->status = BNodeExtend::STATUS_ACTIVE;
+                if (!$old_extend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '审核失败', $old_extend->getFirstErrorText());
+                }
+            } else {
+                $new_extend = new BNodeExtend();
+                $new_extend->name = $extend->name;
+                $new_extend->type_id = $extend->type_id;
+                $new_extend->type_name = $extend->type_name;
+                $new_extend->quota = $extend->quota;
+                $new_extend->company = $extend->company;
+                $new_extend->mobile = $to_user->mobile;
+                $new_extend->status = BNodeExtend::STATUS_ACTIVE;
+                if (!$new_extend->save()) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, '审核失败', $new_extend->getFirstErrorText());
+                }
             }
         }
         

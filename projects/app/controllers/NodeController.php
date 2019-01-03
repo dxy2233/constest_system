@@ -15,6 +15,7 @@ use common\models\business\BNodeType;
 use common\models\business\BUserOther;
 use common\models\business\BNodeUpgrade;
 use common\models\business\BNodeTransfer;
+use common\models\business\BNodeExtend;
 
 class NodeController extends BaseController
 {
@@ -128,28 +129,38 @@ class NodeController extends BaseController
         
         if (empty($nodeId) && !is_null($userModel)) {
             $nodeModel = $userModel->node;
-            $newNodeGrade = $userModel->newNodeGrade;
-            if (!$nodeModel && !$newNodeGrade) {
-                if (!$nodeExtendModel = $userModel->nodeExtend) {
-                    return $this->respondJson(0, '节点不存在', ['status' => -1, 'type_id'=> 0, 'status_str' => '节点不存在']);
-                } else {
-                    return $this->respondJson(0, '节点未激活', ['status' => -2, 'type_id' => $nodeExtendModel->type_id, 'status_str' => '节点未激活']);
+            if (!$nodeModel) {
+                $nodeTransfer = $userModel->nodeTransfer;
+                // 复用定义
+                $nodefound = $this->respondJson(0, '节点不存在', ['status' => -1, 'type_id'=> 0, 'status_str' => '节点不存在']);
+                // 判断节点是否已转让
+                if ($nodeTransfer && $nodeTransfer->status == BNodeTransfer::STATUS_ACTIVE) {
+                    return $nodefound;
                 }
-            } else {
-                $nodeInfoModel = $nodeModel ?? $newNodeGrade;
-                if ($nodeInfoModel->status !== $nodeInfoModel::STATUS_ACTIVE) {
-                    $nodeInfo = FuncHelper::arrayOnly($nodeInfoModel->toArray(), ['status', 'status_remark', 'name']);
-                    $nodeInfo['status_str'] = $nodeInfoModel::getStatus($nodeInfo['status']);
-                    $nodeType = $nodeInfoModel->nodeType;
-                    $nodeInfo['type_id'] = $nodeType->id;
-                    $nodeInfo['type_name'] = $nodeType->name;
-                    if ($nodeModel) {
-                        $nodeInfo['status'] = $nodeModel->status ?: -100;
+                // 判断节点是否激活
+                $newNodeGrade = $userModel->newNodeGrade;
+                if (!$newNodeGrade) {
+                    $nodeExtendModel = $userModel->getNodeExtend()->active(BNodeExtend::STATUS_INACTIVE)->one();
+                    if (!$nodeExtendModel) {
+                        return $nodefound;
+                    } else {
+                        return $this->respondJson(0, '节点未激活', ['status' => -2, 'type_id' => $nodeExtendModel->type_id, 'status_str' => '节点未激活']);
                     }
-                    return $this->respondJson(0, '获取成功', $nodeInfo);
                 }
-                $nodeId = $nodeModel->id;
             }
+            $nodeInfoModel = $nodeModel ?? $userModel->newNodeGrade;
+            if ($nodeInfoModel->status !== $nodeInfoModel::STATUS_ACTIVE) {
+                $nodeInfo = FuncHelper::arrayOnly($nodeInfoModel->toArray(), ['status', 'status_remark', 'name']);
+                $nodeInfo['status_str'] = $nodeInfoModel::getStatus($nodeInfo['status']);
+                $nodeType = $nodeInfoModel->nodeType;
+                $nodeInfo['type_id'] = $nodeType->id;
+                $nodeInfo['type_name'] = $nodeType->name;
+                if ($nodeModel) {
+                    $nodeInfo['status'] = $nodeModel->status ?: -100;
+                }
+                return $this->respondJson(0, '获取成功', $nodeInfo);
+            }
+            $nodeId = $nodeModel->id;   
         }
 
         $nodeModel = BNode::find()
@@ -681,6 +692,10 @@ class NodeController extends BaseController
             $nodeModel->examine_time = time() + 10;
             if (!$nodeModel->save()) {
                 throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
+            }
+            $nodeExtend->status = BNodeExtend::STATUS_ACTIVE;
+            if (!$nodeExtend->save()) {
+                throw new ErrorException($nodeExtend->getFirstErrorText());
             }
             $transaction->commit();
             return $this->respondJson(0, '激活成功');

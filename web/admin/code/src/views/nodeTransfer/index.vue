@@ -47,8 +47,8 @@
           <el-button v-show="noticeChecktoNum==0" type="danger" plain class="btn" style="margin:0 10px;" @click="doomFail">不通过</el-button>
           <el-button v-show="noticeChecktoNum==0" type="primary" class="btn" @click="doomPass">通过</el-button>
         </div>
-        <!-- <p v-show="noticeChecktoNum==4">未通过原因：{{ rowDetail.statusRemark }}</p> -->
-        <p style="padding-top:50px;">
+        <p v-show="noticeChecktoNum==2">未通过原因：{{ rowDetail.statusRemark }}</p>
+        <p style="padding-top:30px;">
           <span style="display:inline-block;width:250px;">转让节点类型：{{ rowDetail.nodeType }}</span>
           <span>转让方手机号：{{ rowDetail.fromUserMobile }}</span>
         </p>
@@ -251,6 +251,7 @@ export default {
   display: block;
   height: 400px;
   border: 1px solid #ddd;
+  margin-bottom: 20px;
   &:hover {
     cursor: pointer;
   }

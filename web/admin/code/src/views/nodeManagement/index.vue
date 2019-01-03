@@ -1378,15 +1378,9 @@ export default {
     submitTransfer() {
       this.$refs['transferFrom'].validate((valid) => {
         if (valid) {
-          this.$confirm('任职后本轮投中该节点的将获得GDT奖励', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            postTransfer(this.transferForm.fromId, this.transferTo.toId, this.fromTransfer.images).then(res => {
-              Message({ message: res.msg, type: 'success' })
-              this.dialogTransfer = false
-            })
+          postTransfer(this.transferForm.fromId, this.transferTo.toId, this.fromTransfer.images).then(res => {
+            Message({ message: res.msg, type: 'success' })
+            this.dialogTransfer = false
           })
         } else {
           console.log('error submit!!')

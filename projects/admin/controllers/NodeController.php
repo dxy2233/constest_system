@@ -287,15 +287,8 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败'.$log->content);
         }
-        // 修改审核状态
-        $data->status = BNodeUpgrade::STATUS_ACTIVE;
-        $data->examine_time = NOW_TIME;
-        $data->status_remark = '已开启';
-        if (!$data->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
-        }
-        // 添加节点信息
+        
+        // 修改节点信息
         $node = BNode::find()->where(['user_id' => $data->user_id])->one();
         $node->type_id = $data->type_id;
         $node->grt = (float)$node->grt + (float)$data->grt;
@@ -310,12 +303,20 @@ class NodeController extends BaseController
             $wd_quota = BNodeType::find()->where(['id' => 5])->one();
             $node->quota = ($node->quota == null) ? $now_quota->quota + $wd_quota->quota : $node->quota += $wd_quota->quota;
         }
-        $node->examine_time = $data->examine_time;
+        $node->examine_time = NOW_TIME;
         if (!$node->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
         }
-
+        // 修改审核状态
+        $data->status = BNodeUpgrade::STATUS_ACTIVE;
+        $data->examine_time = NOW_TIME;
+        $data->status_remark = '已开启';
+        $data->node_id = $node->id;
+        if (!$data->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
+        }
         $recommend = BNodeRecommend::find()->where(['user_id' => $data->user_id])->one();
         $user = BUser::find()->where(['id' => $data->user_id])->one();
 
@@ -335,21 +336,21 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            // 向IET同步数据
-            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            $inviteCode = $parent_user->mobile;
-            $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->active()->one();
-            $inviteName = $parent_identify->realname;
-            $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
-            $url = IetSystemService::IET_URL['cusIdentity_sync'];
-            $old_up = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'old_type' => 5, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
-            $up_status = $old_up ? "1" : "0";
-            $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => $up_status];
-            $res_curl = IetSystemService::push($url, $data_arr);
-            if ($res_curl->code) {
-                $transaction->rollBack();
-                return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-            }
+            // // 向IET同步数据
+            // $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            // $inviteCode = $parent_user->mobile;
+            // $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->active()->one();
+            // $inviteName = $parent_identify->realname;
+            // $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
+            // $url = IetSystemService::IET_URL['cusIdentity_sync'];
+            // $old_up = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'old_type' => 5, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
+            // $up_status = $old_up ? "1" : "0";
+            // $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => $up_status];
+            // $res_curl = IetSystemService::push($url, $data_arr);
+            // if ($res_curl->code) {
+            //     $transaction->rollBack();
+            //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+            // }
         } elseif ($data->type_id == 1 && $recommend) {
             // 如果升级为超级节点清除推荐关系
             $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list.",".$data->user_id."%'";
@@ -368,22 +369,22 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $res->msg);
         }
         
-        // 向IET同步数据
-        if ($data->old_type == 5) {
-            //微店节点升级
-            $url = IetSystemService::IET_URL['wd_upgrade'];
-            $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
-        } else {
-            $url = IetSystemService::IET_URL['node_upgrade'];
-            $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
-        }
+        // // 向IET同步数据
+        // if ($data->old_type == 5) {
+        //     //微店节点升级
+        //     $url = IetSystemService::IET_URL['wd_upgrade'];
+        //     $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
+        // } else {
+        //     $url = IetSystemService::IET_URL['node_upgrade'];
+        //     $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
+        // }
 
-        $res_curl = IetSystemService::push($url, $data_arr);
+        // $res_curl = IetSystemService::push($url, $data_arr);
 
-        if ($res_curl->code) {
-            $transaction->rollBack();
-            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        }
+        // if ($res_curl->code) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        // }
 
         // 发送短信通知用户
         
@@ -590,14 +591,7 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败'.$log->content);
         }
-        // 修改审核状态
-        $data->status = BNodeUpgrade::STATUS_ACTIVE;
-        $data->examine_time = NOW_TIME;
-        $data->status_remark = '已开启';
-        if (!$data->save()) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
-        }
+        
         // 添加节点信息
         $node = new BNode();
         $node->status = BNode::STATUS_ON;
@@ -610,11 +604,20 @@ class NodeController extends BaseController
         $node->desc = $data->desc;
         $node->scheme = $data->scheme;
         $node->logo = $data->logo;
-        $node->status_remark = $data->status_remark;
-        $node->examine_time = $data->examine_time;
+        $node->status_remark = '已开启';
+        $node->examine_time = NOW_TIME;
         if (!$node->save()) {
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $node->getFirstErrorText());
+        }
+        // 修改审核状态
+        $data->status = BNodeUpgrade::STATUS_ACTIVE;
+        $data->examine_time = NOW_TIME;
+        $data->status_remark = '已开启';
+        $data->node_id = $node->id;
+        if (!$data->save()) {
+            $transaction->rollBack();
+            return $this->respondJson(1, '审核失败', $data->getFirstErrorText());
         }
         if ($data->parent_id) {
             $parent = BNodeRecommend::find()->where(['user_id' => $data->parent_id])->one();
@@ -651,16 +654,16 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $res->msg);
         }
 
-        // 向IET同步数据
-        $user = BUser::find()->where(['id' => $data->user_id])->one();
-        $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
-        $url = IetSystemService::IET_URL['cusIdentity_sync'];
-        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
-        $res_curl = IetSystemService::push($url, $data_arr);
-        if ($res_curl->code) {
-            $transaction->rollBack();
-            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        }
+        // // 向IET同步数据
+        // $user = BUser::find()->where(['id' => $data->user_id])->one();
+        // $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
+        // $url = IetSystemService::IET_URL['cusIdentity_sync'];
+        // $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
+        // $res_curl = IetSystemService::push($url, $data_arr);
+        // if ($res_curl->code) {
+        //     $transaction->rollBack();
+        //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        // }
 
         // 发送短信通知用户
         $typeName = str_replace('节点', '', $node_type->name);
@@ -790,7 +793,7 @@ class NodeController extends BaseController
             $return['use_quota'] = $return['quota'];
         }
         $list_transfer = BNodeTransfer::find()->where(['node_id' => $nodeId])->active()->all();
-        $list_upgrade = BNodeUpgrade::find()->where(['user_id' => $data->user_id])->active()->all();
+        $list_upgrade = BNodeUpgrade::find()->where(['node_id' => $nodeId])->active()->all();
         $list = [];
         
         foreach ($list_transfer as $v) {
@@ -1449,15 +1452,15 @@ class NodeController extends BaseController
             if ($data->quota < 0) {
                 $data->quota = 0;
             }
-            // 向IET同步数据
-            $url = IetSystemService::IET_URL['totalAmount_add'];
-            $user = BUser::find()->where(['id' => $data->user_id])->one();
-            $data_arr = ['phone' => $user->mobile, 'amount' => $data->quota];
-            $res_curl = IetSystemService::push($url, $data_arr);
-            if ($res_curl->code) {
-                $transaction->rollBack();
-                return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-            }
+            // // 向IET同步数据
+            // $url = IetSystemService::IET_URL['totalAmount_add'];
+            // $user = BUser::find()->where(['id' => $data->user_id])->one();
+            // $data_arr = ['phone' => $user->mobile, 'amount' => $data->quota];
+            // $res_curl = IetSystemService::push($url, $data_arr);
+            // if ($res_curl->code) {
+            //     $transaction->rollBack();
+            //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+            // }
         } else {
             $data->quota = null;
         }

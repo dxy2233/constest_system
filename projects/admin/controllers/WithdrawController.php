@@ -203,7 +203,7 @@ class WithdrawController extends BaseController
             $v['type'] = BUserRechargeWithdraw::getType($v['type']);
             $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
         }
-        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间'];
+        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间', 'destination_address' => '对方钱包地址'];
 
         $this->download($data, $headers, '转账审核'.date('YmdHis'));
 
@@ -267,13 +267,17 @@ class WithdrawController extends BaseController
             $walletList = \Yii::$app->params['JTWallet'];
         }
         $data = [];
-        foreach ($walletList as $key => $wallet) {
-            $res = JingTumService::getInstance()->queryBalance($wallet['address'], $currencyCode) ;
 
-            if ($res->code != 0) {
-                $res->content = "0.000000";
+        foreach ($walletList as $key => $wallet) {
+            if ($currencyCode != 'GDT') {
+                $res = JingTumService::getInstance()->queryBalance($wallet['address'], $currencyCode) ;
+                if ($res->code != 0) {
+                    $res->content = "0.000000";
+                }
+                $data[$key] = $res->content;
+            } else {
+                $data[$key] = '-';
             }
-            $data[$key] = $res->content;
         }
 
         return $this->respondJson(0, '获取成功', $data);

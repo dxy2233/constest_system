@@ -312,6 +312,7 @@ class UpdateService extends ServiceBase
             return true;
         }
     }
+
     // 检查用户推荐关系是否循环
     public static function checkRecommend()
     {

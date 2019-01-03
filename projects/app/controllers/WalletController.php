@@ -251,8 +251,12 @@ class WalletController extends BaseController
 
         $currencyModel = BUserRechargeWithdraw::find()
         ->select(['amount', 'remark', 'audit_time', 'create_time', 'status', 'currency_id'])
-        ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW]);
-
+        ->where([
+            'user_id' => $userId,
+            'currency_id' => $currencyId,
+            'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW,
+            'status' => [BUserRechargeWithdraw::$STATUS_EFFECT_WAIT, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS]
+        ]);
         // 获取GDT的货币ID
         $gdtId = BCurrency::getCurrencyIdByCode('gdt');
         $data['count'] = $currencyModel->count();

@@ -13,6 +13,7 @@ use common\models\business\BNode;
 use common\models\business\BNodeType;
 use common\models\business\BNodeTransfer;
 use common\models\business\BNodeRecommend;
+use common\models\business\BNodeUpgrade;
 use common\models\business\BUserLog;
 use common\models\business\BVote;
 use common\components\IpUtil;

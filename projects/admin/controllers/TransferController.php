@@ -11,6 +11,7 @@ use common\models\business\BUser;
 use common\models\business\BUserIdentify;
 use common\models\business\BNode;
 use common\models\business\BNodeType;
+use common\models\business\BNodeExtend;
 use common\models\business\BNodeTransfer;
 use common\models\business\BNodeRecommend;
 use common\models\business\BNodeUpgrade;
@@ -108,6 +109,11 @@ class TransferController extends BaseController
         $images = $this->pString('images');
         if (!$images) {
             return $this->respondJson(1, '申请凭证不能为空');
+        }
+        // 判断受让人是否微店
+        $extend = BNodeExtend::find()->where(['mobile' => $to_user->mobile])->andWhere(['!=', 'status', BNodeExtend::STATUS_STOP])->one();
+        if ($extend) {
+            return $this->respondJson(1, '受让人已有微店节点');
         }
         $old_data = BNodeTransfer::find()->where(['status' => BNodeTransfer::STATUS_INACTIVE, 'from_user_id' => $from_id])->one();
         
@@ -321,7 +327,27 @@ class TransferController extends BaseController
                 return $this->respondJson(1, '审核失败', '下级节点推荐关系修改失败');
             }
         }
-
+        $from_user = BUser::find()->where(['id' => $data->from_user_id])->one();
+        $extend = BNodeExtend::find()->where(['mobile' => $from_user->mobile])->one();
+        if ($extend) {
+            $extend -> BNodeExtend::STATUS_STOP;
+            if (!$extend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', $extend->getFirstErrorText());
+            }
+            $new_extend = new BNodeExtend();
+            $new_extend->name = $extend->name;
+            $new_extend->type_id = $extend->type_id;
+            $new_extend->type_name = $extend->type_name;
+            $new_extend->quota = $extend->quota;
+            $new_extend->company = $extend->company;
+            $new_extend->mobile = $to_user->mobile;
+            $new_extend->status = BNodeExtend::STATUS_ACTIVE;
+            if (!$new_extend->save()) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', $new_extend->getFirstErrorText());
+            }
+        }
         
         $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = $str";
         $connection=\Yii::$app->db;

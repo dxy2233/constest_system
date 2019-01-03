@@ -494,3 +494,10 @@ update gr_node a join gr_node_upgrade b on a.user_id = b.user_id set b.node_id =
 #        'key' => '!#&Gh$dd&a*hd**12Q_!QAZ',
 #        'signType' => 'MD5',
 #    ],
+
+# 需修改配置文件
+#  // 推荐赠送相关数据
+#  'recommend' => [
+#       'voucher' => [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000,5 => 0],
+#       'gdt' => [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200,5 => 0]
+#    ],

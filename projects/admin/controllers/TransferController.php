@@ -329,7 +329,7 @@ class TransferController extends BaseController
         }
         $from_user = BUser::find()->where(['id' => $data->from_user_id])->one();
         
-        $extend = BNodeExtend::find()->where(['mobile' => $from_user->mobile])->one();
+        $extend = BNodeExtend::find()->where(['mobile' => $from_user->mobile])->andWhere(['!=', 'status', BNodeExtend::STATUS_STOP])->one();
         
         if ($extend) {
             $extend->status = BNodeExtend::STATUS_STOP;
@@ -339,7 +339,7 @@ class TransferController extends BaseController
             }
             $old_extend = BNodeExtend::find()->where(['mobile' => $to_user->mobile])->one();
             if ($old_extend) {
-                $old_extend = $to_user->mobile;
+                $old_extend->mobile = $to_user->mobile;
                 $old_extend->status = BNodeExtend::STATUS_ACTIVE;
                 if (!$old_extend->save()) {
                     $transaction->rollBack();

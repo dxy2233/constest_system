@@ -236,7 +236,7 @@ class WithdrawController extends BaseController
     // 审核成功
     public function actionExamineOn()
     {
-        $id = $this->pInt('id');
+        $id = $this->pString('id');
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
         }
@@ -244,12 +244,17 @@ class WithdrawController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '数据不存在');
         }
-        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS);
-        if ($return->code == 0) {
-            return $this->respondJson(0, '审核成功');
-        } else {
-            return $this->respondJson(1, '审核失败');
+        $id_arr = explode(',', $id);
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($id_arr as $v) {
+            $return = WithdrawService::withdrawCurrencyAudit($v, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS);
+            if ($return->code != 0) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败');
+            }
         }
+        $transaction->commit();
+        return $this->respondJson(0, '审核成功');
     }
 
     // 钱包资产信息

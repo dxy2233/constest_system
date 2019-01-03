@@ -28,6 +28,7 @@ class TransferController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
       ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -143,7 +144,7 @@ class TransferController extends BaseController
         ->join('left join', BUser::tableName().' F', 'A.to_user_id = F.id')
         ->join('left join', BUserIdentify::tableName().' G', 'A.to_user_id = G.user_id && G.status = '.BUserIdentify::STATUS_ACTIVE);
         if ($searchName != '') {
-            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
+            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'D.mobile', $searchName]]);
         }
         $page = $this->pInt('page', 1);
         $status = $this->pInt('status', 0);
@@ -205,7 +206,7 @@ class TransferController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $searchName = $this->pString('searchName');
+        $searchName = $this->gString('searchName');
         $find = BNodeTransfer::find()
         ->from(BNodeTransfer::tableName().' A')
         ->select(['A.id','B.name as node_name', 'C.name as type_name', 'D.mobile as from_user_mobile', 'E.realname as from_user_name', 'F.mobile as to_user_mobile', 'G.realname as to_user_name', 'A.status', 'A.create_time', 'A.examine_time'])
@@ -216,10 +217,10 @@ class TransferController extends BaseController
         ->join('left join', BUser::tableName().' F', 'A.to_user_id = F.id')
         ->join('left join', BUserIdentify::tableName().' G', 'A.to_user_id = G.user_id && G.status = '.BUserIdentify::STATUS_ACTIVE);
         if ($searchName != '') {
-            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
+            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'D.mobile', $searchName]]);
         }
-        $page = $this->pInt('page', 1);
-        $status = $this->pInt('status', 0);
+        $page = $this->gInt('page', 1);
+        $status = $this->gInt('status', 0);
         $find->andWhere(['A.status' => $status]);
         $order = $this->gString('order');
         if ($order != '') {

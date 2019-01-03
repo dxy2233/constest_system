@@ -480,4 +480,9 @@ INSERT INTO `gr_admin_rule` (`id`, `url`, `name`, `parent_id`, `sort`, `create_t
 (44,	'transfer/get-transfer-detail,transfer/examine-on,transfer/examine-off',	'转让审核',	42,	0,	0),
 (45,  'transfer/download', '转让导出', '42', 0, 0);
 
+# 节点升级表添加节点ID字段
+ALTER TABLE `gr_node_upgrade`
+ADD `node_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER `user_id`;
 
+# 初始化节点ID字段
+update gr_node a join gr_node_upgrade b on a.user_id = b.user_id set b.node_id = a.id

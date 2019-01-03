@@ -174,14 +174,11 @@ class WalletController extends BaseController
         // 获取GDT的货币ID
         $gdtId = BCurrency::getCurrencyIdByCode('gdt');
         foreach ($data['list'] as &$val) {
-            if ($val['currency_id'] == $gdtId && $val['remark'] == '提币') {
-                $val['remark'] = '领取积分';
+            if ($val['currency_id'] == $gdtId) {
+                $val['remark'] = str_replace('提币', '领取积分', $val['remark']);
             }
-            if ($val['remark'] == '充币') {
-                $val['remark'] = '转入积分';
-            } elseif ($val['remark'] == '提币') {
-                $val['remark'] = '转出积分';
-            }
+            $val['remark'] = str_replace('充币', '转入积分', $val['remark']);
+            $val['remark'] = str_replace('提币', '转出积分', $val['remark']);
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
             $val['status_str'] = BUserCurrencyDetail::getStatus($val['status']);
             $val['effect_time'] = FuncHelper::formateDate($val['effect_time']);
@@ -254,25 +251,26 @@ class WalletController extends BaseController
 
         $currencyModel = BUserRechargeWithdraw::find()
         ->select(['amount', 'remark', 'audit_time', 'create_time', 'status', 'currency_id'])
-        ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW]);
-
+        ->where([
+            'user_id' => $userId,
+            'currency_id' => $currencyId,
+            'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW,
+            'status' => [BUserRechargeWithdraw::$STATUS_EFFECT_WAIT, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS]
+        ]);
         // 获取GDT的货币ID
         $gdtId = BCurrency::getCurrencyIdByCode('gdt');
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
-            if ($val['remark'] == '充币') {
-                $val['remark'] = '转入积分';
-            } elseif ($val['remark'] == '提币') {
-                $val['remark'] = '转出积分';
-            }
             if ($val['currency_id'] == $gdtId) {
-                $val['remark'] = str_replace('转出', '领取', $val['remark']);
+                $val['remark'] = str_replace('提币', '领取积分', $val['remark']);
             }
+            $val['remark'] = str_replace('充币', '转入积分', $val['remark']);
+            $val['remark'] = str_replace('提币', '转出积分', $val['remark']);
             $val['amount'] = FuncHelper::formatAmount($val['amount'] * -1, 0, true);
             $val['audit_time'] = FuncHelper::formateDate($val['audit_time']);
             $val['create_time'] = FuncHelper::formateDate($val['create_time']);
-            $val['status_str'] = $val['remark'].BUserRechargeWithdraw::getStatus($val['status']);
+            $val['status_str'] = BUserRechargeWithdraw::getStatus($val['status']);
             $val['status'] = $val['status'];
             unset($val['currency_id']);
         }

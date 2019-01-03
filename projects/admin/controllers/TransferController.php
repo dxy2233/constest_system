@@ -109,8 +109,13 @@ class TransferController extends BaseController
             return $this->respondJson(1, '申请凭证不能为空');
         }
         $old_data = BNodeTransfer::find()->where(['status' => BNodeTransfer::STATUS_INACTIVE, 'from_user_id' => $from_id])->one();
+        
         if ($old_data) {
-            return $this->respondJson(1, '已有其它未审核的申请');
+            return $this->respondJson(1, '已有其它未审核的转让申请');
+        }
+        $old_up = BNodeUpgrade::find()->where(['status' => BNodeUpgrade::STATUS_INACTIVE, 'user_id' => $from_id])->one();
+        if ($old_up) {
+            return $this->respondJson(1, '已有其它未审核的升级申请');
         }
         $transfer = new BNodeTransfer();
         $transfer->from_user_id = $from_id;

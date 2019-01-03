@@ -13,6 +13,7 @@ use common\models\business\BNode;
 use common\models\business\BNodeType;
 use common\models\business\BNodeTransfer;
 use common\models\business\BNodeRecommend;
+use common\models\business\BNodeUpgrade;
 use common\models\business\BUserLog;
 use common\models\business\BVote;
 use common\components\IpUtil;
@@ -202,6 +203,7 @@ class TransferController extends BaseController
         $return['to_user_name'] = $new_identify->realname;
         $return['to_user_number'] = $new_identify->number;
         $return['images'] = $data->images;
+        $return['status_remark'] = $data->status_remark;
         return $this->respondJson(0, '获取成功', $return);
     }
 

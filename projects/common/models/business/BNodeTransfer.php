@@ -13,7 +13,7 @@ class BNodeTransfer extends \common\models\NodeTransfer
         $arr = [
             static::STATUS_ACTIVE => \Yii::t('app', '审核成功'),
             static::STATUS_INACTIVE => \Yii::t('app', '待审核'),
-            static::STATUS_FAIL => \Yii::t('app', '审核未通过'),
+            static::STATUS_FAIL => \Yii::t('app', '审核失败'),
         ];
         if ($key !== '') {
             return isset($arr[$key]) ? $arr[$key] : '';

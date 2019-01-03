@@ -246,12 +246,12 @@ class TransferController extends BaseController
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-            $v['examine_time'] = date('Y-m-d H:i:s', $v['examine_time']);
+            $v['examine_time'] = ($v['examine_time'] == '') ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['status'] = BNodeTransfer::getStatus($v['status']);
         }
         $return = ['list' => $data];
         $return['list'] = $data;
-        $headers = ['node_name'=> '转让节点名称', 'type_name' => '转让节点类型', 'from_user_mobile' => '转让方手机号', 'from_user_name' => '转让方姓名', 'to_user_mobile' => '受让方手机号', 'to_user_name' => '受让方姓名', 'status' => '状态', 'create_time' => '提交时间'];
+        $headers = ['node_name'=> '转让节点名称', 'type_name' => '转让节点类型', 'from_user_mobile' => '转让方手机号', 'from_user_name' => '转让方姓名', 'to_user_mobile' => '受让方手机号', 'to_user_name' => '受让方姓名', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
         $this->download($return['list'], $headers, '节点转让'.date('YmdHis'));
 
         return;

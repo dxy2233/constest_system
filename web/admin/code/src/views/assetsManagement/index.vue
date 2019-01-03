@@ -108,7 +108,7 @@ export default {
       tableData: [],
       total: 1,
       currentPage: 1,
-      order: null,
+      order: '',
       dialogLock: false,
       searchLockData: '',
       lockMoneyType: '',
@@ -139,7 +139,7 @@ export default {
     // 排序
     sortChange(val) {
       this.currentPage = 1
-      if (val.prop === null) this.order = null
+      if (val.prop === null) this.order = ''
       else if (val.prop === 'name' && val.order === 'ascending') this.order = 1
       else if (val.prop === 'name' && val.order === 'descending') this.order = 5
       else if (val.prop === 'positionAmount' && val.order === 'ascending') this.order = 2

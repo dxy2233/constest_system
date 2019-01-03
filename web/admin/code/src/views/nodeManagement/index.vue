@@ -17,7 +17,7 @@
       <el-button slot="append" icon="el-icon-search" @click.native="searchTableData"/>
     </el-input>
     <div style="float:right;margin-top:20px;">
-      投票时间
+      加入时间
       <el-date-picker
         v-model="searchDate"
         type="daterange"
@@ -665,7 +665,7 @@ export default {
       searchDate: '',
       tableData: [], // 表格总数据
       total: 1,
-      order: null,
+      order: '',
       rowIndex: '',
       tableDataSelection: [],
       currentPage: 1,
@@ -902,7 +902,7 @@ export default {
     // 排序
     sortChange(val) {
       this.currentPage = 1
-      if (val.prop === null) this.order = null
+      if (val.prop === null) this.order = ''
       else if (val.prop === 'createTime' && val.order === 'ascending') this.order = 1
       else if (val.prop === 'createTime' && val.order === 'descending') this.order = 2
       this.init()

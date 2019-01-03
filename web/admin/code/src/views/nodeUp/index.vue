@@ -80,7 +80,7 @@ export default {
       search: '',
       tableData: [],
       total: 1,
-      order: null,
+      order: '',
       tableDataSelection: [],
       currentPage: 1,
       pageSize: 20,

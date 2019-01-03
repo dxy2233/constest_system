@@ -861,10 +861,11 @@ class NodeController extends BaseController
         $recommend_data = BNodeRecommend::find()
         ->from(BNodeRecommend::tableName()." A")
         ->join('left join', 'gr_user D', 'A.user_id = D.id')
-        ->join('left join', 'gr_node B', 'B.user_id = D.id')
+        ->join('left join', 'gr_node B', 'B.user_id = A.user_id')
         ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
         ->where(['A.parent_id' => $node->user_id])->orderBy('A.create_time desc')->asArray()->all();
+
         foreach ($recommend_data as $v) {
             $recommend_item = [];
             $recommend_item['nodeName'] = $v['nodeName'];

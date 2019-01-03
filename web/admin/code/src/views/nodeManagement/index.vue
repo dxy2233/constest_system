@@ -573,7 +573,7 @@
     <el-dialog :visible.sync="dialogTransfer" title="节点转让" @closed="closedTransfer">
       <el-form ref="transferFrom" :model="fromTransfer" :rules="rulesTransfer" class="transfer-form">
         <p>转让方</p>
-        <p><span>手机号：{{ transferForm.mobile }}</span><span>手机号：{{ transferForm.nodeType }}</span></p>
+        <p><span>手机号：{{ transferForm.mobile }}</span><span>节点类型：{{ transferForm.nodeType }}</span></p>
         <p><span>姓名：{{ transferForm.realname }}</span><span>身份证号：{{ transferForm.number }}</span></p>
         <hr>
         <p>受让方</p>

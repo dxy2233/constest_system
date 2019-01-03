@@ -174,7 +174,7 @@ class WalletController extends BaseController
         // 获取GDT的货币ID
         $gdtId = BCurrency::getCurrencyIdByCode('gdt');
         foreach ($data['list'] as &$val) {
-            if ($val['currency_id'] == $gdtId) {
+            if (intval($val['currency_id']) == $gdtId) {
                 $val['remark'] = str_replace('提币', '领取积分', $val['remark']);
                 $val['remark'] = str_replace('转出', '领取', $val['remark']);
             }

@@ -2,6 +2,10 @@
   <slide>
     <div class="assets-details-gdt">
       <app-header>
+        <!--<div @click="refreshData" slot="right" class="refresh-btn">
+          <inline-loading v-show="refreshLoad"></inline-loading>
+          <span>刷新数据</span>
+        </div>-->
       </app-header>
       <div class="assets-details-main">
         <div class="brief">
@@ -15,35 +19,38 @@
               :class="{'act':item.type===currentType}">{{item.name}}
           </li>
         </ul>
-        <m-load @loadMore="handleBottom1" ref="my_scroller1" class="detail" v-show="currentType==='1'">
-          <ul class="detail-list">
-            <li v-for="item in data1.dataList">
-              <p>
-                <span class="remark">{{item.remark}}</span>
-                <span class="status">{{item.statusStr}}</span>
-              </p>
-              <p>
-                <span class="time">{{item.effectTime}}</span>
-                <span class="amount">{{item.amount}}</span>
-              </p>
-            </li>
-          </ul>
-        </m-load>
-        <m-load @loadMore="handleBottom0" ref="my_scroller0" class="detail" v-show="currentType==='0'">
-          <ul class="detail-list">
-            <li v-for="item in data0.dataList">
-              <p>
-                <span class="remark">{{item.remark}}</span>
-                <span class="status">{{item.statusStr}}</span>
-              </p>
-              <p>
-                <span class="time">{{item.createTime}}</span>
-                <span class="amount">{{item.amount}}</span>
-              </p>
-            </li>
-          </ul>
-        </m-load>
-
+        <div class="detail" v-show="currentType==='1'">
+          <scroller :on-infinite="handleBottom1" ref="my_scroller1">
+            <ul class="detail-list">
+              <li v-for="item in data1.dataList">
+                <p>
+                  <span class="remark">{{item.remark}}</span>
+                  <span class="status">{{item.statusStr}}</span>
+                </p>
+                <p>
+                  <span class="time">{{item.effectTime}}</span>
+                  <span class="amount">{{item.amount}}</span>
+                </p>
+              </li>
+            </ul>
+          </scroller>
+        </div>
+        <div class="detail" v-show="currentType==='0'">
+          <scroller :on-infinite="handleBottom0" ref="my_scroller0">
+            <ul class="detail-list">
+              <li v-for="item in data0.dataList">
+                <p>
+                  <span class="remark">{{item.remark}}</span>
+                  <span class="status">{{item.statusStr}}</span>
+                </p>
+                <p>
+                  <span class="time">{{item.createTime}}</span>
+                  <span class="amount">{{item.amount}}</span>
+                </p>
+              </li>
+            </ul>
+          </scroller>
+        </div>
         <div class="handle-btn">
           <router-link v-if="parseInt(currencyInfo.withdrawStatus)"
                        tag="button" :to="{path:'/assets/dts'+dtsId+'/transfer',query:{name:'gdt'}}">
@@ -60,14 +67,12 @@
   import slide from 'components/slide/index'
   import http from 'js/http'
   import {InlineLoading} from 'vux'
-  import MLoad from 'components/mLoad/index'
 
   export default {
     name: "index",
     components: {
       slide,
-      InlineLoading,
-      MLoad
+      InlineLoading
     },
     data() {
       return {
@@ -102,6 +107,26 @@
       }
     },
     methods: {
+      refreshData() {
+        this.refreshLoad = true
+        http.post('/wallet/recharge-refresh', {
+          id: this.$route.params.id,
+        }, (res) => {
+          // res.content.isRefresh = true
+          this.refreshLoad = false
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          if (res.content.isRefresh) {
+            this.getCurrencyInfo()
+            this.page = 1
+            this.dataList = []
+            this.total = ''
+            this.$refs.my_scroller.finishInfinite(false);
+          }
+        })
+      },
       goFrozen() {
         this.$router.push({
           path: `/assets/dts${this.dtsId}/frozen`
@@ -112,8 +137,19 @@
         if (item.type === this.currentType) return
         this.currentType = item.type
         localStorage.setItem("currencyDetailType", item.type);
+        /*if (item.type === this.currentType) return
+        this.currentType = item.type
+        localStorage.setItem("currencyDetailType", item.type);
+        this.page = 1
+        this.dataList = []
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);*/
       },
       handleBottom1() {
+        if (this.data1.total !== '' && this.data1.dataList.length >= parseInt(this.data1.total)) {
+          this.$refs.my_scroller1.finishInfinite(true);
+          return
+        }
         http.post('/wallet/currency-detail', {
           id: this.$route.params.id,
           page: this.data1.page,
@@ -126,11 +162,14 @@
           this.data1.dataList = this.data1.dataList.concat(res.content.list)
           this.data1.total = res.content.count
           this.data1.page++
-          let noMore = this.data1.dataList.length >= res.content.count
-          this.$refs.my_scroller1.$emit('finishInfinite', noMore);
+          this.$refs.my_scroller1.finishInfinite(false);
         })
       },
       handleBottom0() {
+        if (this.data0.total !== '' && this.data0.dataList.length >= parseInt(this.data0.total)) {
+          this.$refs.my_scroller0.finishInfinite(true);
+          return
+        }
         http.post('/wallet/currency-auditing', {
           id: this.$route.params.id,
           page: this.data0.page,
@@ -143,8 +182,26 @@
           this.data0.dataList = this.data0.dataList.concat(res.content.list)
           this.data0.total = res.content.count
           this.data0.page++
-          let noMore = this.data0.dataList.length >= res.content.count
-          this.$refs.my_scroller0.$emit('finishInfinite', noMore);
+          this.$refs.my_scroller0.finishInfinite(false);
+        })
+      },
+      getList() {
+        http.post('/wallet/currency-detail', {
+          id: this.$route.params.id,
+          type: this.currentType,
+          page: this.page,
+          page_size: 10
+        }, (res) => {
+          if (res.code !== 0) {
+            this.$vux.toast.show(res.msg)
+            return
+          }
+          this.dataList = this.dataList.concat(res.content.list)
+          if (this.dataList.length < parseInt(res.content.count)) {
+            this.$refs.vueLoad.onBottomLoaded();
+          } else {
+            this.$refs.vueLoad.onBottomLoaded(false);
+          }
         })
       },
       getCurrencyInfo() {
@@ -156,11 +213,14 @@
             return
           }
           this.currencyInfo = res.content
+          // this.currencyInfo.useCode = this.currencyInfo.code.toUpperCase()
         })
       }
     },
     created() {
+      // this.currentType = localStorage.getItem("currencyDetailType") || '1'
       this.getCurrencyInfo()
+      // this.getList()
     },
     destroyed() {
       localStorage.removeItem('currentType')
@@ -251,7 +311,7 @@
       bottom 0
       padding-bottom 60px
       width 100%
-      overflow scroll
+      overflow hidden
 
       .detail-list
         padding-left $space-box
@@ -300,6 +360,13 @@
         color white
         background $color-theme
         border-radius 10px
+
+  /*ul
+    overflow hidden
+    line-height 60px
+    height 60px
+    margin-left -1px
+    box-sizing border-box*/
 
 
 </style>

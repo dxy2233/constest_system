@@ -655,7 +655,7 @@ class NodeController extends BaseController
         }
 
         // // 向IET同步数据
-        // $user = BUser::find()->where(['id' => $data->user_id])->one();
+        $user = BUser::find()->where(['id' => $data->user_id])->one();
         // $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
         // $url = IetSystemService::IET_URL['cusIdentity_sync'];
         // $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];

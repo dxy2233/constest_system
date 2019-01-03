@@ -13,6 +13,7 @@ use common\models\business\BNode;
 use common\models\business\BNodeType;
 use common\models\business\BNodeTransfer;
 use common\models\business\BNodeRecommend;
+use common\models\business\BNodeUpgrade;
 use common\models\business\BUserLog;
 use common\models\business\BVote;
 use common\components\IpUtil;
@@ -109,8 +110,13 @@ class TransferController extends BaseController
             return $this->respondJson(1, '申请凭证不能为空');
         }
         $old_data = BNodeTransfer::find()->where(['status' => BNodeTransfer::STATUS_INACTIVE, 'from_user_id' => $from_id])->one();
+        
         if ($old_data) {
-            return $this->respondJson(1, '已有其它未审核的申请');
+            return $this->respondJson(1, '已有其它未审核的转让申请');
+        }
+        $old_up = BNodeUpgrade::find()->where(['status' => BNodeUpgrade::STATUS_INACTIVE, 'user_id' => $from_id])->one();
+        if ($old_up) {
+            return $this->respondJson(1, '已有其它未审核的升级申请');
         }
         $transfer = new BNodeTransfer();
         $transfer->from_user_id = $from_id;
@@ -197,6 +203,7 @@ class TransferController extends BaseController
         $return['to_user_name'] = $new_identify->realname;
         $return['to_user_number'] = $new_identify->number;
         $return['images'] = $data->images;
+        $return['status_remark'] = $data->status_remark;
         return $this->respondJson(0, '获取成功', $return);
     }
 
@@ -239,7 +246,7 @@ class TransferController extends BaseController
         $return = ['list' => $data];
         $return['list'] = $data;
         $headers = ['node_name'=> '转让节点名称', 'type_name' => '转让节点类型', 'from_user_mobile' => '转让方手机号', 'from_user_name' => '转让方姓名', 'to_user_mobile' => '受让方手机号', 'to_user_name' => '受让方姓名', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
-        $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
+        $this->download($return['list'], $headers, '节点转让'.date('YmdHis'));
 
         return;
     }

@@ -36,7 +36,7 @@ class WithdrawService extends ServiceBase
             'poundage' => $poundage, // 手续费
             'destination_address' => $address, // 接收方地址
             'tag' => $addressTag, // 地址标签
-            'remark' => '提币',
+            'remark' => '转出积分',
             'status' => BUserRechargeWithdraw::$STATUS_EFFECT_WAIT,
             'status_remark' => '待确认',
             'create_time' => $time,
@@ -46,18 +46,18 @@ class WithdrawService extends ServiceBase
      * @throws ErrorException
      * @throws Exception
      * @throws \Exception
-     * info : 提币申请(前台)
+     * info : 转出积分申请(前台)
      */
     public static function withdrawCurrencyApply($data)
     {
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            // 添加充提币申请
+            // 添加充转出积分申请
             $withdraw = new BUserRechargeWithdraw();
             $withdraw->setAttributes($data);
             $withdraw->order_number = FuncHelper::generateOrderCode(); // 订单号
-            $withdraw->type = BUserRechargeWithdraw::$TYPE_WITHDRAW; // 提币
-            $withdraw->remark = $withdraw->remark ? $withdraw->remark : '提币';
+            $withdraw->type = BUserRechargeWithdraw::$TYPE_WITHDRAW; // 转出积分
+            $withdraw->remark = $withdraw->remark ? $withdraw->remark : '转出积分';
             $sign = $withdraw->save();
             if (!$sign) {
                 throw new ErrorException('user_recharge_withdraw table data is not inserted successfully');
@@ -68,11 +68,11 @@ class WithdrawService extends ServiceBase
             $userFrozen = new BUserCurrencyFrozen();
             $userFrozen->user_id = $data['user_id'];
             $userFrozen->currency_id = $data['currency_id'];
-            $userFrozen->type = BUserCurrencyFrozen::$TYPE_WITHDRAW; // 充提币
+            $userFrozen->type = BUserCurrencyFrozen::$TYPE_WITHDRAW; // 充转出积分
             $userFrozen->relate_table = 'user_recharge_withdraw';
             $userFrozen->relate_id = $withdrawLastId;
-            $userFrozen->amount = round($data['amount'] + $data['poundage'], 8); // 总数量=提币数量+手续费
-            $userFrozen->remark = '提币';
+            $userFrozen->amount = round($data['amount'] + $data['poundage'], 8); // 总数量=转出积分数量+手续费
+            $userFrozen->remark = '转出积分';
             $userFrozen->status = BUserCurrencyFrozen::STATUS_FROZEN; // 冻结
             $userFrozen->create_time = $data['create_time'];
             $userFrozen->update_time = $data['update_time'];
@@ -105,7 +105,7 @@ class WithdrawService extends ServiceBase
      * @param string $remark
      * @return array
      * @throws \yii\db\Exception
-     * info : 提币审核（后台）
+     * info : 转出积分审核（后台）
      */
     public static function withdrawCurrencyAudit($id, $status, $remark='', $adminId='')
     {
@@ -148,13 +148,13 @@ class WithdrawService extends ServiceBase
                     'create_time' => $time,
                     'update_time' => $time,
                 ];
-                // 提币明细
+                // 转出积分明细
                 $currencyDetail = new BUserCurrencyDetail();
                 $currencyDetail->setAttributes($currencyData);
-                $currencyDetail->type = BUserCurrencyDetail::$TYPE_WITHDRAW; // 充值提币
+                $currencyDetail->type = BUserCurrencyDetail::$TYPE_WITHDRAW; // 充值转出积分
                 $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
                 $currencyDetail->effect_time = $time;
-                $currencyDetail->remark = '提币';
+                $currencyDetail->remark = '转出积分';
                 $currencyDetail->amount = -$res['amount'];
                 $sign = $currencyDetail->save();
                 if (!$sign) {
@@ -176,7 +176,7 @@ class WithdrawService extends ServiceBase
                     }
                 }
 
-                //执行钱包提币
+                //执行钱包转出积分
                 $currencyJingtum = BCurrency::getJingtumCurrency();
 
                 if (in_array($res['currency_id'], $currencyJingtum)) {
@@ -274,7 +274,7 @@ class WithdrawService extends ServiceBase
             ->andWhere(['in', 'type', [BUserLog::$TYPE_ALERT_LOGIN_PWD, BUserLog::$TYPE_ALERT_TRANS_PWD, BUserLog::$TYPE_ALERT_MOBILE]])->count();
 
         if ($count > 0) {
-            return new FuncResult(1, '由于您修改了重要信息，24小时内无法进行提币操作');
+            return new FuncResult(1, '由于您修改了重要信息，24小时内无法进行转出积分操作');
         }
 
         return new FuncResult(0);
@@ -285,7 +285,7 @@ class WithdrawService extends ServiceBase
      * @param $address
      * @param $currencyId
      * @return bool
-     * info : 验证提币地址合法性
+     * info : 验证转出积分地址合法性
      */
     public static function withdrawAddressCheck($address, $currencyId)
     {

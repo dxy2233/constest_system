@@ -261,15 +261,14 @@ class WalletController extends BaseController
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
-            if ($val['currency_id'] == $gdtId) {
-                $val['remark'] = str_replace('提币', '领取积分', $val['remark']);
-            }
             if ($val['remark'] == '充币') {
                 $val['remark'] = '转入积分';
             } elseif ($val['remark'] == '提币') {
                 $val['remark'] = '转出积分';
             }
-
+            if ($val['currency_id'] == $gdtId) {
+                $val['remark'] = str_replace('转出', '领取', $val['remark']);
+            }
             $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
             $val['audit_time'] = FuncHelper::formateDate($val['audit_time']);
             $val['create_time'] = FuncHelper::formateDate($val['create_time']);

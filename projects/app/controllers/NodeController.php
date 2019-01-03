@@ -14,6 +14,7 @@ use common\services\SettingService;
 use common\models\business\BNodeType;
 use common\models\business\BUserOther;
 use common\models\business\BNodeUpgrade;
+use common\models\business\BNodeTransfer;
 
 class NodeController extends BaseController
 {
@@ -483,6 +484,14 @@ class NodeController extends BaseController
         if (!$nodeTypeModel) {
             return $this->respondJson(1, '节点类型不存在');
         }
+        // 判断节点是否正在转让中
+        $hasTransfer = BNodeTransfer::find()
+        ->where(['from_user_id' => $userModel->id, 'node_id' => $nodeModel->id, 'status' => BNodeTransfer::STATUS_INACTIVE])
+        ->exists();
+        if ($hasTransfer) {
+            return $this->respondJson(1, '节点正在进行转让不能升级');
+        }
+        
         $typeNodeCount = (int) BNode::find()->where(['type_id' => $typeId, 'status' => [BNode::STATUS_OFF, BNode::STATUS_ON]])->count();
         if ($nodeTypeModel->max_candidate <= $typeNodeCount) {
             return $this->respondJson(1, '候选人数已满');

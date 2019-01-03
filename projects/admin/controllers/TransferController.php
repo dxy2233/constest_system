@@ -203,6 +203,7 @@ class TransferController extends BaseController
         $return['to_user_name'] = $new_identify->realname;
         $return['to_user_number'] = $new_identify->number;
         $return['images'] = $data->images;
+        $return['status_remark'] = $data->status_remark;
         return $this->respondJson(0, '获取成功', $return);
     }
 

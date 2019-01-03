@@ -88,7 +88,7 @@ class TransferController extends BaseController
         }
         $node = BNode::find()->where(['user_id' => $from_id])->active()->one();
         if (!$node) {
-            return $this->respondJson(1, '转让人非节点用户');
+            return $this->respondJson(1, '转让人处于不能转让状态');
         }
         $to_id = $this->pInt('toId');
         if (!$to_id) {
@@ -270,7 +270,7 @@ class TransferController extends BaseController
         }
         $node = BNode::find()->where(['user_id' => $data->from_user_id])->active()->one();
         if (!$node) {
-            return $this->respondJson(1, '转让人非节点用户');
+            return $this->respondJson(1, '转让人处于不能转让状态');
         }
 
         $to_user = BUser::find()->where(['id' => $data->to_user_id])->active()->one();

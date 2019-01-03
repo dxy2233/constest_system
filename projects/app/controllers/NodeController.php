@@ -599,6 +599,7 @@ class NodeController extends BaseController
             $nodeUpgradeModel->attributes = array_filter($nodeUpgradeData, function ($item) {
                 return !is_null($item);
             });
+            
             if (!$nodeUpgradeModel->save()) {
                 throw new ErrorException($nodeUpgradeModel->getFirstErrorText());
             }

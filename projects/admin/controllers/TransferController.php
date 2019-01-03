@@ -55,7 +55,7 @@ class TransferController extends BaseController
         ->join('left join', BNodeType::tableName().' B', 'A.type_id = B.id')
         ->join('left join', BUser::tableName().' D', 'D.id = A.user_id')
         ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
-        ->where(['a.id' => $id])
+        ->where(['A.id' => $id])
         ->asArray()->one();
         if (!$data) {
             return $this->respondJson(1, '不存在的节点');

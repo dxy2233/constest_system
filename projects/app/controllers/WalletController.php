@@ -171,6 +171,7 @@ class WalletController extends BaseController
         // var_dump($currencyModel->createCommand()->getRawSql());exit;
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
+        // 获取GDT的货币ID
         $gdtId = BCurrency::getCurrencyIdByCode('gdt');
         foreach ($data['list'] as &$val) {
             if ($val['currency_id'] == $gdtId && $val['remark'] == '提币') {
@@ -227,6 +228,54 @@ class WalletController extends BaseController
             $val['create_time'] = FuncHelper::formateDate($val['create_time']);
             $val['status_str'] = $val['remark'].BUserCurrencyFrozen::getStatus($val['status']);
             $val['status'] = (bool) $val['status'];
+        }
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    
+    /**
+     * 积分提现审核明细
+     *
+     * @return void
+     */
+    public function actionCurrencyAuditing()
+    {
+        $currencyId = $this->pInt('id', false);
+        $page = $this->pInt('page', 1);
+        $pageSize = $this->pInt('page_size', 15);
+        $data = [
+            'page' => $page,
+            'page_size' => $pageSize
+        ];
+        if (!$currencyId) {
+            return $this->respondJson(1, '积分不能为空');
+        }
+        $userId = $this->user->id;
+
+        $currencyModel = BUserRechargeWithdraw::find()
+        ->select(['amount', 'remark', 'audit_time', 'create_time', 'status', 'currency_id'])
+        ->where(['user_id' => $userId, 'currency_id' => $currencyId, 'type' => BUserRechargeWithdraw::$TYPE_WITHDRAW]);
+
+        // 获取GDT的货币ID
+        $gdtId = BCurrency::getCurrencyIdByCode('gdt');
+        $data['count'] = $currencyModel->count();
+        $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
+        foreach ($data['list'] as &$val) {
+            if ($val['currency_id'] == $gdtId) {
+                $val['remark'] = str_replace('提币', '领取积分', $val['remark']);
+            }
+            if ($val['remark'] == '充币') {
+                $val['remark'] = '转入积分';
+            } elseif ($val['remark'] == '提币') {
+                $val['remark'] = '转出积分';
+            }
+
+            $val['amount'] = FuncHelper::formatAmount($val['amount'], 0, true);
+            $val['audit_time'] = FuncHelper::formateDate($val['audit_time']);
+            $val['create_time'] = FuncHelper::formateDate($val['create_time']);
+            $val['status_str'] = $val['remark'].BUserRechargeWithdraw::getStatus($val['status']);
+            $val['status'] = $val['status'];
+            unset($val['currency_id']);
         }
         return $this->respondJson(0, '获取成功', $data);
     }

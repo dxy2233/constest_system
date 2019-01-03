@@ -11,6 +11,9 @@ import {Icon, XHeader, XButton, LoadMore} from 'vux'
 import appHeader from 'components/appHeader/index'
 import loadMore from 'components/loadmore/index'
 import {cancelLogin} from 'js/mixin'
+import Mint from 'mint-ui';
+import 'mint-ui/lib/style.css'
+Vue.use(Mint);
 
 import VueScroller from 'vue-scroller'
 Vue.use(VueScroller)

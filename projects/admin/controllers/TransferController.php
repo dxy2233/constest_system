@@ -28,6 +28,7 @@ class TransferController extends BaseController
         
         $behaviors = [];
         $authActions = [
+            'download'
       ];
 
         if (isset($parentBehaviors['authenticator']['isThrowException'])) {
@@ -107,6 +108,10 @@ class TransferController extends BaseController
         if (!$images) {
             return $this->respondJson(1, '申请凭证不能为空');
         }
+        $old_data = BNodeTransfer::find()->where(['status' => BNodeTransfer::STATUS_INACTIVE, 'from_user_id' => $from_id])->one();
+        if ($old_data) {
+            return $this->respondJson(1, '已有其它未审核的申请');
+        }
         $transfer = new BNodeTransfer();
         $transfer->from_user_id = $from_id;
         $transfer->to_user_id = $to_id;
@@ -139,7 +144,7 @@ class TransferController extends BaseController
         ->join('left join', BUser::tableName().' F', 'A.to_user_id = F.id')
         ->join('left join', BUserIdentify::tableName().' G', 'A.to_user_id = G.user_id && G.status = '.BUserIdentify::STATUS_ACTIVE);
         if ($searchName != '') {
-            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
+            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'D.mobile', $searchName]]);
         }
         $page = $this->pInt('page', 1);
         $status = $this->pInt('status', 0);
@@ -201,7 +206,7 @@ class TransferController extends BaseController
         if (!$down) {
             exit('验证失败');
         }
-        $searchName = $this->pString('searchName');
+        $searchName = $this->gString('searchName');
         $find = BNodeTransfer::find()
         ->from(BNodeTransfer::tableName().' A')
         ->select(['A.id','B.name as node_name', 'C.name as type_name', 'D.mobile as from_user_mobile', 'E.realname as from_user_name', 'F.mobile as to_user_mobile', 'G.realname as to_user_name', 'A.status', 'A.create_time', 'A.examine_time'])
@@ -212,10 +217,10 @@ class TransferController extends BaseController
         ->join('left join', BUser::tableName().' F', 'A.to_user_id = F.id')
         ->join('left join', BUserIdentify::tableName().' G', 'A.to_user_id = G.user_id && G.status = '.BUserIdentify::STATUS_ACTIVE);
         if ($searchName != '') {
-            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'C.mobile', $searchName]]);
+            $find->andWhere(['or', ['like', 'B.name', $searchName], ['like', 'D.mobile', $searchName]]);
         }
-        $page = $this->pInt('page', 1);
-        $status = $this->pInt('status', 0);
+        $page = $this->gInt('page', 1);
+        $status = $this->gInt('status', 0);
         $find->andWhere(['A.status' => $status]);
         $order = $this->gString('order');
         if ($order != '') {
@@ -290,7 +295,7 @@ class TransferController extends BaseController
             );
             if (!$sign) {
                 $transaction->rollBack();
-                return $this->respondJson(1, '审核失败', '推荐关系修改失败');
+                return $this->respondJson(1, '审核失败', '节点推荐关系修改失败');
             }
             $str = $node_recommend->parent_list. ','. $data->from_user_id;
             $new_str = $node_recommend->parent_list. ','. $data->to_user_id;
@@ -298,15 +303,18 @@ class TransferController extends BaseController
             $str = $data->from_user_id;
             $new_str = $data->to_user_id;
         }
-
-        $sign = BNodeRecommend::updateAll(
-            ['parent_id' => $data->to_user_id],
-            ['=', 'parent_id', $data->from_user_id]
-        );
-        if (!$sign) {
-            $transaction->rollBack();
-            return $this->respondJson(1, '审核失败', '推荐关系修改失败');
+        $other_recommend = BNodeRecommend::find()->where(['parent_id' => $data->from_user_id])->one();
+        if ($other_recommend) {
+            $sign = BNodeRecommend::updateAll(
+                ['parent_id' => $data->to_user_id],
+                ['=', 'parent_id', $data->from_user_id]
+            );
+            if (!$sign) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败', '下级节点推荐关系修改失败');
+            }
         }
+
         
         $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = $str";
         $connection=\Yii::$app->db;
@@ -318,7 +326,7 @@ class TransferController extends BaseController
     // 节点转让审核不通过
     public function actionExamineOff()
     {
-        $nodeId = $this->pInt('nodeId');
+        $nodeId = $this->pInt('id');
         if (empty($nodeId)) {
             return $this->respondJson(1, 'ID不能为空');
         }

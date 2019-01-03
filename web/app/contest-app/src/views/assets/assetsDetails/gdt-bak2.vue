@@ -15,34 +15,22 @@
               :class="{'act':item.type===currentType}">{{item.name}}
           </li>
         </ul>
-        <m-load @loadMore="handleBottom1" ref="my_scroller1" class="detail" v-show="currentType==='1'">
-          <ul class="detail-list">
-            <li v-for="item in data1.dataList">
-              <p>
-                <span class="remark">{{item.remark}}</span>
-                <span class="status">{{item.statusStr}}</span>
-              </p>
-              <p>
-                <span class="time">{{item.effectTime}}</span>
-                <span class="amount">{{item.amount}}</span>
-              </p>
-            </li>
-          </ul>
-        </m-load>
-        <m-load @loadMore="handleBottom0" ref="my_scroller0" class="detail" v-show="currentType==='0'">
-          <ul class="detail-list">
-            <li v-for="item in data0.dataList">
-              <p>
-                <span class="remark">{{item.remark}}</span>
-                <span class="status">{{item.statusStr}}</span>
-              </p>
-              <p>
-                <span class="time">{{item.createTime}}</span>
-                <span class="amount">{{item.amount}}</span>
-              </p>
-            </li>
-          </ul>
-        </m-load>
+        <div class="detail">
+          <scroller :on-infinite="handleBottom" ref="my_scroller">
+            <ul class="detail-list">
+              <li v-for="item in dataList">
+                <p>
+                  <span class="remark">{{item.remark}}</span>
+                  <span class="status">{{item.statusStr}}</span>
+                </p>
+                <p>
+                  <span class="time">{{currentType === '1'?item.effectTime:item.createTime}}</span>
+                  <span class="amount">{{item.amount}}</span>
+                </p>
+              </li>
+            </ul>
+          </scroller>
+        </div>
 
         <div class="handle-btn">
           <router-link v-if="parseInt(currencyInfo.withdrawStatus)"
@@ -60,14 +48,12 @@
   import slide from 'components/slide/index'
   import http from 'js/http'
   import {InlineLoading} from 'vux'
-  import MLoad from 'components/mLoad/index'
 
   export default {
     name: "index",
     components: {
       slide,
-      InlineLoading,
-      MLoad
+      InlineLoading
     },
     data() {
       return {
@@ -91,12 +77,12 @@
         data1: {
           page: 1,
           dataList: [],
-          total:''
+          total: ''
         },
         data0: {
           page: 1,
           dataList: [],
-          total:''
+          total: ''
         },
 
       }
@@ -107,44 +93,54 @@
           path: `/assets/dts${this.dtsId}/frozen`
         })
       },
-
       selectedTab(item) {
         if (item.type === this.currentType) return
         this.currentType = item.type
         localStorage.setItem("currencyDetailType", item.type);
+        this.page = 1
+        this.dataList = []
+        this.total = ''
+        this.$refs.my_scroller.finishInfinite(false);
       },
-      handleBottom1() {
-        http.post('/wallet/currency-detail', {
+      handleBottom() {
+        if (this.total !== '' && this.dataList.length >= parseInt(this.total)) {
+          this.$refs.my_scroller.finishInfinite(true);
+          return
+        }
+        let url = this.currentType === '1' ? '/wallet/currency-detail' : '/wallet/currency-auditing'
+        http.post(url, {
           id: this.$route.params.id,
-          page: this.data1.page,
+          page: this.page,
           page_size: 10
         }, (res) => {
+          if (this.loadShow) this.loadShow = false
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
             return
           }
-          this.data1.dataList = this.data1.dataList.concat(res.content.list)
-          this.data1.total = res.content.count
-          this.data1.page++
-          let noMore = this.data1.dataList.length >= res.content.count
-          this.$refs.my_scroller1.$emit('finishInfinite', noMore);
+          this.dataList = this.dataList.concat(res.content.list)
+          this.total = res.content.count
+          this.page++
+          this.$refs.my_scroller.finishInfinite(false);
         })
       },
-      handleBottom0() {
-        http.post('/wallet/currency-auditing', {
+      getList() {
+        http.post('/wallet/currency-detail', {
           id: this.$route.params.id,
-          page: this.data0.page,
+          type: this.currentType,
+          page: this.page,
           page_size: 10
         }, (res) => {
           if (res.code !== 0) {
             this.$vux.toast.show(res.msg)
             return
           }
-          this.data0.dataList = this.data0.dataList.concat(res.content.list)
-          this.data0.total = res.content.count
-          this.data0.page++
-          let noMore = this.data0.dataList.length >= res.content.count
-          this.$refs.my_scroller0.$emit('finishInfinite', noMore);
+          this.dataList = this.dataList.concat(res.content.list)
+          if (this.dataList.length < parseInt(res.content.count)) {
+            this.$refs.vueLoad.onBottomLoaded();
+          } else {
+            this.$refs.vueLoad.onBottomLoaded(false);
+          }
         })
       },
       getCurrencyInfo() {
@@ -156,11 +152,14 @@
             return
           }
           this.currencyInfo = res.content
+          // this.currencyInfo.useCode = this.currencyInfo.code.toUpperCase()
         })
       }
     },
     created() {
+      // this.currentType = localStorage.getItem("currencyDetailType") || '1'
       this.getCurrencyInfo()
+      // this.getList()
     },
     destroyed() {
       localStorage.removeItem('currentType')
@@ -251,7 +250,7 @@
       bottom 0
       padding-bottom 60px
       width 100%
-      overflow scroll
+      overflow hidden
 
       .detail-list
         padding-left $space-box
@@ -300,6 +299,13 @@
         color white
         background $color-theme
         border-radius 10px
+
+  /*ul
+    overflow hidden
+    line-height 60px
+    height 60px
+    margin-left -1px
+    box-sizing border-box*/
 
 
 </style>

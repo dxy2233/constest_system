@@ -61,7 +61,8 @@ class NodeUpgrade extends \common\dzbase\DzModel
     {
         return [
             'id' => 'ID',
-            'user_id' => '节点ID',
+            'user_id' => '用户ID',
+            'node_id' => '节点ID',
             'name' => '节点名称',
             'logo' => 'LOGO',
             'desc' => '简介',

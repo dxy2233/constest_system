@@ -45,7 +45,7 @@ class NodeUpgrade extends \common\dzbase\DzModel
     public function rules()
     {
         return [
-            [['user_id', 'old_type', 'type_id', 'parent_id', 'status', 'grt', 'tt', 'bpt', 'examine_time', 'create_time', 'update_time'], 'integer'],
+            [['user_id', 'old_type', 'type_id', 'parent_id', 'status', 'grt', 'tt', 'bpt', 'old_grt', 'old_tt', 'old_bpt', 'examine_time', 'create_time', 'update_time'], 'integer'],
             [['user_id', 'type_id'], 'required'],
             [['desc', 'scheme'], 'string'],
             [['name', 'logo', 'grt_address', 'tt_address', 'bpt_address'], 'string', 'max' => 256],

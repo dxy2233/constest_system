@@ -55,7 +55,7 @@ class TransferController extends BaseController
         ->join('left join', BNodeType::tableName().' B', 'A.type_id = B.id')
         ->join('left join', BUser::tableName().' D', 'D.id = A.user_id')
         ->join('left join', BUserIdentify::tableName().' C', 'A.user_id = C.user_id && C.status = '.BUserIdentify::STATUS_ACTIVE)
-        ->where(['a.id' => $id])
+        ->where(['A.id' => $id])
         ->asArray()->one();
         if (!$data) {
             return $this->respondJson(1, '不存在的节点');
@@ -88,7 +88,7 @@ class TransferController extends BaseController
         }
         $node = BNode::find()->where(['user_id' => $from_id])->active()->one();
         if (!$node) {
-            return $this->respondJson(1, '转让人非节点用户');
+            return $this->respondJson(1, '转让人处于不能转让状态');
         }
         $to_id = $this->pInt('toId');
         if (!$to_id) {
@@ -246,12 +246,12 @@ class TransferController extends BaseController
         $data = $find->asArray()->all();
         foreach ($data as &$v) {
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
-            $v['examine_time'] = date('Y-m-d H:i:s', $v['examine_time']);
+            $v['examine_time'] = ($v['examine_time'] == '') ? '-' :date('Y-m-d H:i:s', $v['examine_time']);
             $v['status'] = BNodeTransfer::getStatus($v['status']);
         }
         $return = ['list' => $data];
         $return['list'] = $data;
-        $headers = ['node_name'=> '转让节点名称', 'type_name' => '转让节点类型', 'from_user_mobile' => '转让方手机号', 'from_user_name' => '转让方姓名', 'to_user_mobile' => '受让方手机号', 'to_user_name' => '受让方姓名', 'status' => '状态', 'create_time' => '提交时间'];
+        $headers = ['node_name'=> '转让节点名称', 'type_name' => '转让节点类型', 'from_user_mobile' => '转让方手机号', 'from_user_name' => '转让方姓名', 'to_user_mobile' => '受让方手机号', 'to_user_name' => '受让方姓名', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
         $this->download($return['list'], $headers, '节点转让'.date('YmdHis'));
 
         return;
@@ -270,7 +270,7 @@ class TransferController extends BaseController
         }
         $node = BNode::find()->where(['user_id' => $data->from_user_id])->active()->one();
         if (!$node) {
-            return $this->respondJson(1, '转让人非节点用户');
+            return $this->respondJson(1, '转让人处于不能转让状态');
         }
 
         $to_user = BUser::find()->where(['id' => $data->to_user_id])->active()->one();

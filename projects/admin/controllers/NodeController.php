@@ -635,15 +635,15 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
-            $inviteName = $parent_identify->realname;
-            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            $inviteCode = $parent_user->mobile;
+            // $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
+            // $inviteName = $parent_identify->realname;
+            // $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            // $inviteCode = $parent_user->mobile;
         } else {
-            $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
-            $inviteName = $parent_identify->realname;
-            $parent_user = BUser::find()->where(['id' => 97])->one();
-            $inviteCode = $parent_user->mobile;
+            // $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
+            // $inviteName = $parent_identify->realname;
+            // $parent_user = BUser::find()->where(['id' => 97])->one();
+            // $inviteCode = $parent_user->mobile;
         }
         
         //推荐赠送

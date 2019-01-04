@@ -116,7 +116,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.tag', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
@@ -171,7 +171,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.tag', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
@@ -203,7 +203,7 @@ class WithdrawController extends BaseController
             $v['type'] = BUserRechargeWithdraw::getType($v['type']);
             $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
         }
-        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间', 'destination_address' => '对方钱包地址'];
+        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'tag' => 'IET账号', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间', 'destination_address' => '对方钱包地址'];
 
         $this->download($data, $headers, '转账审核'.date('YmdHis'));
 

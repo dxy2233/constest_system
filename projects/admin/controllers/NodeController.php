@@ -635,15 +635,15 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
-            $inviteName = $parent_identify->realname;
-            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            $inviteCode = $parent_user->mobile;
+            // $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
+            // $inviteName = $parent_identify->realname;
+            // $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            // $inviteCode = $parent_user->mobile;
         } else {
-            $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
-            $inviteName = $parent_identify->realname;
-            $parent_user = BUser::find()->where(['id' => 97])->one();
-            $inviteCode = $parent_user->mobile;
+            // $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
+            // $inviteName = $parent_identify->realname;
+            // $parent_user = BUser::find()->where(['id' => 97])->one();
+            // $inviteCode = $parent_user->mobile;
         }
         
         //推荐赠送
@@ -861,10 +861,11 @@ class NodeController extends BaseController
         $recommend_data = BNodeRecommend::find()
         ->from(BNodeRecommend::tableName()." A")
         ->join('left join', 'gr_user D', 'A.user_id = D.id')
-        ->join('left join', 'gr_node B', 'B.user_id = D.id')
+        ->join('left join', 'gr_node B', 'B.user_id = A.user_id')
         ->join('left join', 'gr_node_type C', 'B.type_id = C.id')
         ->select(['A.create_time','B.name as nodeName','C.name as typeName', 'D.username'])
         ->where(['A.parent_id' => $node->user_id])->orderBy('A.create_time desc')->asArray()->all();
+
         foreach ($recommend_data as $v) {
             $recommend_item = [];
             $recommend_item['nodeName'] = $v['nodeName'];

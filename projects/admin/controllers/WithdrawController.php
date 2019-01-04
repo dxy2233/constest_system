@@ -116,7 +116,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.tag', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
@@ -171,7 +171,7 @@ class WithdrawController extends BaseController
         $find = BUserRechargeWithdraw::find()
         ->from(BUserRechargeWithdraw::tableName()." A")
         ->where(['A.status' => $status])
-        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
+        ->select(['A.order_number','C.name','B.mobile','A.amount', 'A.type', 'A.tag', 'A.status', 'A.remark', 'A.create_time', 'A.audit_time as examine_time', 'A.id', 'A.destination_address', 'A.status_remark'])
         ->andWhere(['>=', 'A.amount', 'C.withdraw_audit_amount'])
         ->join('left join', BUser::tableName().' B', 'A.user_id = B.id')
         ->join('left join', BCurrency::tableName().' C', 'A.currency_id = C.id');
@@ -203,7 +203,7 @@ class WithdrawController extends BaseController
             $v['type'] = BUserRechargeWithdraw::getType($v['type']);
             $v['status'] = BUserRechargeWithdraw::getStatus($v['status']);
         }
-        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间', 'destination_address' => '对方钱包地址'];
+        $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'tag' => 'IET账号', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间', 'destination_address' => '对方钱包地址'];
 
         $this->download($data, $headers, '转账审核'.date('YmdHis'));
 
@@ -236,7 +236,7 @@ class WithdrawController extends BaseController
     // 审核成功
     public function actionExamineOn()
     {
-        $id = $this->pInt('id');
+        $id = $this->pString('id');
         if (empty($id)) {
             return $this->respondJson(1, 'ID不能为空');
         }
@@ -244,12 +244,17 @@ class WithdrawController extends BaseController
         if (empty($data)) {
             return $this->respondJson(1, '数据不存在');
         }
-        $return = WithdrawService::withdrawCurrencyAudit($id, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS);
-        if ($return->code == 0) {
-            return $this->respondJson(0, '审核成功');
-        } else {
-            return $this->respondJson(1, '审核失败');
+        $id_arr = explode(',', $id);
+        $transaction = \Yii::$app->db->beginTransaction();
+        foreach ($id_arr as $v) {
+            $return = WithdrawService::withdrawCurrencyAudit($v, BUserRechargeWithdraw::$STATUS_EFFECT_SUCCESS);
+            if ($return->code != 0) {
+                $transaction->rollBack();
+                return $this->respondJson(1, '审核失败');
+            }
         }
+        $transaction->commit();
+        return $this->respondJson(0, '审核成功');
     }
 
     // 钱包资产信息

@@ -487,6 +487,9 @@ ADD `node_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER `us
 # 初始化节点ID字段
 update gr_node a join gr_node_upgrade b on a.user_id = b.user_id set b.node_id = a.id
 
+# 开放GDT货币的显示与体现
+update gr_currency set status = 1, withdraw_status = 1 where code = 'gdt';
+
 # 需要新增配置文件
 #// IET 接口配置
 #    'ietApiConfig'=> [

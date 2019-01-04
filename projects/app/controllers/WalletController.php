@@ -19,6 +19,7 @@ use common\models\business\BUserWallet;
 use common\models\business\BUserCurrency;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BUserCurrencyFrozen;
+use yii\helpers\StringHelper;
 
 class WalletController extends BaseController
 {
@@ -352,6 +353,7 @@ class WalletController extends BaseController
         if (!$currencyId) {
             return $this->respondJson(1, '转出积分不能为空');
         }
+
         $amount = $this->pFloat('amount', 0);
         if ($amount <= 0) {
             return $this->respondJson(1, '转出数量必须大于0');
@@ -361,6 +363,19 @@ class WalletController extends BaseController
             return $this->respondJson(1, '转出地址不能为空');
         }
         $remark = $this->pString('remark', '');
+
+        $tag = '';// 地址标签
+        
+        $gdtId = BCurrency::getCurrencyIdByCode('gdt');
+        if ($gdtId == $currencyId) {
+            $tag = $this->pString('tag');
+            if (!$tag) {
+                return $this->respondJson(1, '账号不能为空');
+            }
+            if (strstr($tag, '@') === false && !FuncHelper::validatMobile($tag)) {
+                return $this->respondJson(1, '账号输入有误');
+            }
+        }
 
         // 获取设置中相关设置
         $settingCurrency = 'currency';
@@ -471,7 +486,7 @@ class WalletController extends BaseController
             'amount' => $amount, // 总数量
             'poundage' => $poundage, // 手续费
             'destination_address' => $address, // 接收方地址
-            'tag' => "", // 地址标签
+            'tag' => $tag, // 地址标签
             'remark' => $remark,
             'status' => BUserRechargeWithdraw::$STATUS_EFFECT_WAIT,
             'create_time' => $time,

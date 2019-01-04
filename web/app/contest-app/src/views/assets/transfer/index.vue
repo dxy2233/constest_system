@@ -24,6 +24,12 @@
               <span class="all-btn" @click="form.amount = balance" v-if="form.id">全部</span>
             </div>
           </div>
+          <div class="form-item" v-if="!isTransfer">
+            <label for="">您的IET账号</label>
+            <div class="ipt-box">
+              <input type="text" v-model="form.tag" placeholder="手机号/邮箱">
+            </div>
+          </div>
           <div class="form-item">
             <label for="">{{htmlString.addressLabel}}</label>
             <div class="ipt-box">
@@ -74,7 +80,8 @@
           id: '',
           amount: '',
           address: '',
-          remark: ''
+          remark: '',
+          tag: ''
         },
         currencyList: [],
         currency: '',
@@ -91,7 +98,8 @@
           amountPlaceholder: '余额',
           addressLabel: '接收方钱包地址',
           btn: '确认支付'
-        }
+        },
+        isTransfer: true
       }
     },
     methods: {
@@ -155,6 +163,24 @@
           this.$vux.toast.show(vaild)
           return
         }
+        if (!this.isTransfer){
+          if (!this.form.tag) {
+            this.$vux.toast.show('请输入IET账号')
+            return
+          }else {
+            if (this.form.tag.includes('@')) {//邮箱
+              if (!(/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(this.form.tag))) {
+                this.$vux.toast.show('请输入有效的IET账号')
+                return
+              }
+            }else {
+              if (!(/^1\d{10}$/.test(this.form.tag))) {
+                this.$vux.toast.show('请输入有效的IET账号')
+                return
+              }
+            }
+          }
+        }
         this.clickAdress(this.form.address, (res) => {
           if (res) {
             this.$vux.toast.show(res)
@@ -197,13 +223,14 @@
       }
     },
     created() {
-      if (this.$route.query.name==='gdt'){
+      if (this.$route.query.name === 'gdt') {
         this.htmlString = {
-          title:'领取',
-          amountPlaceholder:'可领取',
-          addressLabel:'您的IET钱包地址',
-          btn:'确认领取'
+          title: '领取',
+          amountPlaceholder: '可领取',
+          addressLabel: '您的IET地址',
+          btn: '确认领取'
         }
+        this.isTransfer = false
         this.form.id = this.$route.params.id
         let gdt = JSON.parse(localStorage.getItem('gdtInfo'))
         this.balance = gdt.useAmount

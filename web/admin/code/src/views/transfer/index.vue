@@ -52,6 +52,7 @@
       <el-table-column prop="name" label="积分"/>
       <el-table-column prop="mobile" label="用户"/>
       <el-table-column prop="amount" label="数量"/>
+      <el-table-column prop="tag" label="IET账号"/>
       <el-table-column prop="type" label="类型"/>
       <el-table-column prop="remark" label="备注"/>
       <el-table-column label="状态">

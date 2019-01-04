@@ -485,7 +485,7 @@ ALTER TABLE `gr_node_upgrade`
 ADD `node_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '节点ID' AFTER `user_id`;
 
 # 初始化节点ID字段
-update gr_node a join gr_node_upgrade b on a.user_id = b.user_id set b.node_id = a.id
+update gr_node a join gr_node_upgrade b on a.user_id = b.user_id set b.node_id = a.id;
 
 # 开放GDT货币的显示与体现
 update gr_currency set status = 1, withdraw_status = 1 where code = 'gdt';
@@ -504,3 +504,6 @@ update gr_currency set status = 1, withdraw_status = 1 where code = 'gdt';
 #       'voucher' => [ 1 => 0, 2 => 200000, 3 => 80000, 4 => 20000,5 => 0],
 #       'gdt' => [ 1 => 0, 2 => 2000, 3 => 800, 4 => 200,5 => 0]
 #    ],
+
+以上sql 2019-01-01 15:00已同步线上
+=============================================================

@@ -101,6 +101,7 @@
         </div>
       </div>
       <el-button style="margin-top:20px;" @click="openAddCamp">+新增竞选投票</el-button>
+      <el-button style="margin-top:20px;" @click="award">立即触发投中奖励</el-button>
       <el-dialog
         :visible.sync="dialogAddCamp"
         title="竞选投票"
@@ -223,7 +224,7 @@
 
 <script>
 import { getVoteList, getVoteSet, pushVoteSet, getVoteRank, getCampHistory, getCamp,
-  addCamp, deleteCamp, editCamp, editCountDown, getCountDown } from '@/api/poll'
+  addCamp, deleteCamp, editCamp, editCountDown, getCountDown, refreshNow } from '@/api/poll'
 import { getVerifiCode } from '@/api/public'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
@@ -501,6 +502,18 @@ export default {
           getCamp().then(res => {
             this.dialogCampData = res.content
           })
+        })
+      })
+    },
+    // 立即结算奖励
+    award() {
+      this.$confirm('任职名单确认无误，立即触发投中奖励', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        refreshNow().then(res => {
+          Message({ message: res.msg, type: 'success' })
         })
       })
     },

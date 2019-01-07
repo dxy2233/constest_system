@@ -372,7 +372,7 @@ class WalletController extends BaseController
             if (!$tag) {
                 return $this->respondJson(1, '账号不能为空');
             }
-            if (strstr($tag, '@') === false && !FuncHelper::validatMobile($tag)) {
+            if (strpos($tag, '@') === false && !FuncHelper::validatMobile($tag)) {
                 return $this->respondJson(1, '账号输入有误');
             }
         }

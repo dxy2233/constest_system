@@ -120,3 +120,11 @@ export function getCountDown() {
     method: 'post'
   })
 }
+
+// 竞选设置立即刷新
+export function refreshNow() {
+  return request({
+    url: '/vote/now-reload',
+    method: 'post'
+  })
+}

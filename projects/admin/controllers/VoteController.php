@@ -10,6 +10,7 @@ use yii\helpers\ArrayHelper;
 use common\models\business\BSetting;
 use common\models\business\BVote;
 use common\models\business\BUser;
+use common\models\business\BCycle;
 use common\models\business\BNode;
 use common\models\business\BNotice;
 use common\task\TestJob;
@@ -167,7 +168,12 @@ class VoteController extends BaseController
 
     public function actionNowReload()
     {
-        $bool = JobService::beginPut(1);
+        $cycle = BCycle::find()->where(['<=', 'tenure_start_time', time()])->andWhere(['>=', 'tenure_end_time', time()])->one();
+        if (!$cycle) {
+            return $this->respondJson(1, "操作失败", '未在任职期间内');
+        }
+        $res = JobService::PutDo($cycle->cycle_start_time, $cycle->cycle_end_time);
+        return $this->respondJson($res->code, $res->msg, $res->content);
     }
     public function actionGetSettingList()
     {

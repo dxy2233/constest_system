@@ -12,6 +12,7 @@ use common\models\business\BCycle;
 use common\models\business\BVote;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BCurrency;
+use common\components\FuncResult;
 use Yii;
 
 class JobService extends ServiceBase
@@ -29,9 +30,16 @@ class JobService extends ServiceBase
                 $res = self::HistoryDo();
                 $history = true;
             }
-            // 任职截止 发放奖励
+            // 任职截止 清空任职状态
             if (abs($v->tenure_end_time - time()) <= 30 && !$put) {
-                $res = self::PutDo($v);
+                // $res = self::PutDo($v);
+                $sign = BNode::updateAll(
+                    ['is_tenure' => BNotice::STATUS_INACTIVE],
+                    ['=', 'is_tenure', BNotice::STATUS_ACTIVE]
+                );
+                if (!$sign) {
+                    Yii::info('清空任任状态失败', 'history');
+                }
                 $put = true;
             }
         }
@@ -97,8 +105,8 @@ class JobService extends ServiceBase
         }
     }
 
-    // 任职结束
-    public static function PutDo($cycle)
+    // 发放投中奖励
+    public static function PutDo($start_time, $end_time)
     {
         $data = BNode::find()->where(['is_tenure' => BNotice::STATUS_ACTIVE])->all();
         $msg = [];
@@ -112,9 +120,15 @@ class JobService extends ServiceBase
         $transaction = \Yii::$app->db->beginTransaction();
         foreach ($data as $v) {
             // 发放投中奖励
-            $vote = BVote::find()->where(['node_id'=>$v->id])->andWhere(['>=','create_time',$cycle->cycle_start_time])->andWhere(['<=','create_time',$cycle->cycle_end_time])->all();
+            $vote = BVote::find()->where(['node_id'=>$v->id])->andWhere(['>=','create_time',$start_time])->andWhere(['<=','create_time',$end_time])->all();
 
             foreach ($vote as $val) {
+                // 检查是否已发放
+                $old_data = BUserCurrencyDetail::find()->where(['relate_id' => $val->id, 'relate_table' => 'vote', 'type' => BUserCurrencyDetail::$TYPE_REWARD, 'status' => BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS, 'user_id' => $val->user_id])->one();
+                if ($old_data) {
+                    continue;
+                }
+                // 发放奖励
                 $currencyDetail = new BUserCurrencyDetail();
                 $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
                 $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
@@ -133,15 +147,15 @@ class JobService extends ServiceBase
                     $currencyDetail->amount = $reward['voucher_reward'] * $val->consume;
                 }
                 if (!$currencyDetail->save()) {
-                    $msg[] = $currencyDetail->getFirstErrorText().'发放选中奖励'.$val->id;
+                    $msg[] = $currencyDetail->getFirstErrorText().'发放选中奖励失败'.$val->id;
                 }
             }
             
             // 清空任职状态
-            $v->is_tenure = BNotice::STATUS_INACTIVE;
-            if (!$v->save()) {
-                $msg[] = $v->getFirstErrorText().'清空任职'.$v->id;
-            }
+            // $v->is_tenure = BNotice::STATUS_INACTIVE;
+            // if (!$v->save()) {
+            //     $msg[] = $v->getFirstErrorText().'清空任职'.$v->id;
+            // }
         }
         foreach ($user_arr as $v) {
             $sign = UserService::resetCurrency($v, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
@@ -151,12 +165,10 @@ class JobService extends ServiceBase
         }
         if (count($msg) > 0) {
             $transaction->rollBack();
-            Yii::error(json_encode($msg), 'history');
-            return false;
+            return new FuncResult(1, '执行失败', json_encode($msg));
         } else {
             $transaction->commit();
-            Yii::info('执行成功', 'history');
-            return true;
+            return new FuncResult(0, '执行成功');
         }
     }
 }

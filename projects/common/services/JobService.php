@@ -109,6 +109,7 @@ class JobService extends ServiceBase
     public static function PutDo($start_time, $end_time)
     {
         $data = BNode::find()->where(['is_tenure' => BNotice::STATUS_ACTIVE])->all();
+
         $msg = [];
         $user_arr = [];
         $setting = BSetting::find()->where(['in', 'key', ['pay_reward', 'ordinary_reward', 'voucher_reward']])->all();
@@ -120,11 +121,13 @@ class JobService extends ServiceBase
         $transaction = \Yii::$app->db->beginTransaction();
         foreach ($data as $v) {
             // 发放投中奖励
-            $vote = BVote::find()->where(['node_id'=>$v->id])->andWhere(['>=','create_time',$start_time])->andWhere(['<=','create_time',$end_time])->all();
+            $vote = BVote::find()->where(['node_id'=>$v->id])->andWhere(['>=','create_time',$start_time])->andWhere(['<=','create_time',$end_time])->active()->all();
 
             foreach ($vote as $val) {
                 // 检查是否已发放
-                $old_data = BUserCurrencyDetail::find()->where(['relate_id' => $val->id, 'relate_table' => 'vote', 'type' => BUserCurrencyDetail::$TYPE_REWARD, 'status' => BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS, 'user_id' => $val->user_id])->one();
+                
+                $old_data = BUserCurrencyDetail::find()->where(['relate_id' => $val->id, 'relate_table' => 'vote', 'type' => BUserCurrencyDetail::$TYPE_REWARD, 'status' => BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS, 'user_id' => $val->user_id, 'remark' => '投中奖励'])->active()->one();
+
                 if ($old_data) {
                     continue;
                 }

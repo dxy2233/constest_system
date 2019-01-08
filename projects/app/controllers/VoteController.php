@@ -225,6 +225,7 @@ class VoteController extends BaseController
         foreach ($data['list'] as &$vote) {
             if (in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
                 $vote['is_revoke'] = false;
+                $vote['create_time'] = $vote['undo_time'];
             } else {
                 $return  = VoteService::hasRevoke($this->user, $vote['id']);
                 $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? $return->content : false;

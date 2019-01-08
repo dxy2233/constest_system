@@ -170,7 +170,6 @@ class VoteController extends BaseController
     {
         $cycle = BCycle::find()->where(['<=', 'tenure_start_time', time()])->andWhere(['>=', 'tenure_end_time', time()])->one();
         if (!$cycle) {
-            var_dump($this->respondJson(1, "操作失败", '未在任职期间内'));
             return $this->respondJson(1, "操作失败", '未在任职期间内');
         }
         $res = JobService::PutDo($cycle->cycle_start_time, $cycle->cycle_end_time);

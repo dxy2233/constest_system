@@ -336,21 +336,15 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            // // 向IET同步数据
-            // $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            // $inviteCode = $parent_user->mobile;
-            // $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->active()->one();
-            // $inviteName = $parent_identify->realname;
-            // $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
-            // $url = IetSystemService::IET_URL['cusIdentity_sync'];
-            // $old_up = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'old_type' => 5, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
-            // $up_status = $old_up ? "1" : "0";
-            // $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => $up_status];
-            // $res_curl = IetSystemService::push($url, $data_arr);
-            // if ($res_curl->code) {
-            //     $transaction->rollBack();
-            //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-            // }
+            // 向IET同步数据 推荐关系变更
+            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            $old_parent_user = BUser::find()->where(['id' => 97])->one();
+            $data_arr = ['account' => $user->mobile, 'oldInviteCode' => $old_parent_user->mobile, 'newInviteCode' => $parent_user->mobile];
+            $res_curl = IetSystemService::push($url, $data_arr);
+            if ($res_curl->code) {
+                $transaction->rollBack();
+                return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+            }
         } elseif ($data->type_id == 1 && $recommend) {
             // 如果升级为超级节点清除推荐关系
             $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list.",".$data->user_id."%'";
@@ -369,22 +363,20 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $res->msg);
         }
         
-        // // 向IET同步数据
-        // if ($data->old_type == 5) {
-        //     //微店节点升级
-        //     $url = IetSystemService::IET_URL['wd_upgrade'];
-        //     $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
-        // } else {
-        //     $url = IetSystemService::IET_URL['node_upgrade'];
-        //     $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
-        // }
+        // 向IET同步数据  身份变更
 
-        // $res_curl = IetSystemService::push($url, $data_arr);
+        // iet节点对应类型 1-普通、2-动力、3-中极、4-高级、5-超级、6-微店
 
-        // if ($res_curl->code) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        // }
+        $iet_type_arr = [1 => 5, 2 => 4, 3 => 3, 4 => 2, 5 => 6];
+        $url = IetSystemService::IET_URL['identity_change'];
+        $data_arr = ['phone' => $user->mobile, 'identity' => $iet_type_arr[$data->type_id]];
+
+        $res_curl = IetSystemService::push($url, $data_arr);
+
+        if ($res_curl->code) {
+            $transaction->rollBack();
+            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        }
 
         // 发送短信通知用户
         
@@ -635,15 +627,13 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            // $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
-            // $inviteName = $parent_identify->realname;
-            // $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            // $inviteCode = $parent_user->mobile;
+            $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
+            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            $inviteCode = $parent_user->mobile;
         } else {
-            // $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
-            // $inviteName = $parent_identify->realname;
-            // $parent_user = BUser::find()->where(['id' => 97])->one();
-            // $inviteCode = $parent_user->mobile;
+            $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
+            $parent_user = BUser::find()->where(['id' => 97])->one();
+            $inviteCode = $parent_user->mobile;
         }
         
         //推荐赠送
@@ -653,17 +643,17 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $res->msg);
         }
-
-        // // 向IET同步数据
         $user = BUser::find()->where(['id' => $data->user_id])->one();
-        // $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
-        // $url = IetSystemService::IET_URL['cusIdentity_sync'];
-        // $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
-        // $res_curl = IetSystemService::push($url, $data_arr);
-        // if ($res_curl->code) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        // }
+        // 向IET同步数据 节点新增
+        $iet_type_arr = [1 => 5, 2 => 4, 3 => 3, 4 => 2, 5 => 6];
+        $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
+        $url = IetSystemService::IET_URL['cusIdentity_sync'];
+        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardType' => '0', 'cardNo' => $identify->number, 'identity' => $iet_type_arr[$data->type_id], 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
+        $res_curl = IetSystemService::push($url, $data_arr);
+        if ($res_curl->code) {
+            $transaction->rollBack();
+            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        }
 
         // 发送短信通知用户
         $typeName = str_replace('节点', '', $node_type->name);

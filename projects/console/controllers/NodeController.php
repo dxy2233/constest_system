@@ -15,6 +15,7 @@ use yii\helpers\ArrayHelper;
 use common\components\FuncHelper;
 use common\models\business\BSetting;
 use common\models\business\BNodeUpgrade;
+use common\models\business\BNodeExtend;
 
 class NodeController extends BaseController
 {
@@ -85,6 +86,7 @@ class NodeController extends BaseController
                     if (!$model->save()) {
                         throw new ErrorException($model->getFirstError());
                     }
+                    BNodeExtend::updateAll(['status' => BNodeExtend::STATUS_ACTIVE], ['mobile' => $nodeUpgrade['mobile']]);
                     echo 'ID：' . $updateUpgradeModel->id . ' 节点名称：' . $updateUpgradeModel->name . ' 补充成功' . PHP_EOL;
                 } else {
                     $oldModel = $existsOld->one();

@@ -26,6 +26,11 @@ class NodeController extends BaseController
         echo "welcome";
     }
 
+    /**
+     * 补录微店节点激活记录
+     *
+     * @return void
+     */
     public function actionSupplementWei()
     {
         // 微店节点类型

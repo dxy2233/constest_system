@@ -365,6 +365,32 @@ class TransferController extends BaseController
         $connection=\Yii::$app->db;
         $command=$connection->createCommand($sql);
         $rowCount=$command->execute();
+
+
+        // 向IET同步数据  节点转让
+
+        // 将转让方变更为普通用户
+
+        $iet_type_arr = \Yii::$app->params['ietApiConfig']['type_id_arr'];
+        $url = IetSystemService::IET_URL['identity_change'];
+        $data_arr = ['phone' => $from_user->mobile, 'identity' => $iet_type_arr[0]];
+
+        $res_curl = IetSystemService::push($url, $data_arr);
+
+        if ($res_curl->code) {
+            $transaction->rollBack();
+            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        }
+        // 将受让方用户变为转让方同级别节点
+        $url = IetSystemService::IET_URL['cusIdentity_sync'];
+        $parent_user = BUser::find()->where(['id' => $node_recommend->parent_id])->one();
+        $data_arr = ['phone' => $to_user->mobile, 'username' => $to_identify->realname, 'cardType' => '0', 'cardNo' => $to_identify->number, 'identity' => $iet_type_arr[$node->type_id], 'inviteCode' => $parent_user->mobile, 'selfInvite' => $to_user->mobile, 'upgradeFlag' => "0"];
+        $res_curl = IetSystemService::push($url, $data_arr);
+        if ($res_curl->code) {
+            $transaction->rollBack();
+            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+        }
+
         $transaction->commit();
         return $this->respondJson(0, '审核成功');
     }

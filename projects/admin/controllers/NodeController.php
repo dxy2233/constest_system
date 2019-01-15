@@ -338,7 +338,7 @@ class NodeController extends BaseController
             }
             // 向IET同步数据 推荐关系变更
             $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            $old_parent_user = BUser::find()->where(['id' => 97])->one();
+            $old_parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
             $data_arr = ['account' => $user->mobile, 'oldInviteCode' => $old_parent_user->mobile, 'newInviteCode' => $parent_user->mobile];
             $res_curl = IetSystemService::push($url, $data_arr);
             if ($res_curl->code) {
@@ -367,7 +367,7 @@ class NodeController extends BaseController
 
         // iet节点对应类型 1-普通、2-动力、3-中极、4-高级、5-超级、6-微店
 
-        $iet_type_arr = [1 => 5, 2 => 4, 3 => 3, 4 => 2, 5 => 6];
+        $iet_type_arr = \Yii::$app->params['ietApiConfig']['type_id_arr'];
         $url = IetSystemService::IET_URL['identity_change'];
         $data_arr = ['phone' => $user->mobile, 'identity' => $iet_type_arr[$data->type_id]];
 
@@ -627,12 +627,10 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
             $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
             $inviteCode = $parent_user->mobile;
         } else {
-            $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
-            $parent_user = BUser::find()->where(['id' => 97])->one();
+            $parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
             $inviteCode = $parent_user->mobile;
         }
         
@@ -645,11 +643,12 @@ class NodeController extends BaseController
         }
         $user = BUser::find()->where(['id' => $data->user_id])->one();
         // 向IET同步数据 节点新增
-        $iet_type_arr = [1 => 5, 2 => 4, 3 => 3, 4 => 2, 5 => 6];
+        $iet_type_arr = \Yii::$app->params['ietApiConfig']['type_id_arr'];
         $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
         $url = IetSystemService::IET_URL['cusIdentity_sync'];
         $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardType' => '0', 'cardNo' => $identify->number, 'identity' => $iet_type_arr[$data->type_id], 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
         $res_curl = IetSystemService::push($url, $data_arr);
+        var_dump($res_curl);
         if ($res_curl->code) {
             $transaction->rollBack();
             return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
@@ -1430,6 +1429,15 @@ class NodeController extends BaseController
                 if ($res->code != 0) {
                     return $this->respondJson($res->code, '审核失败', $res->msg);
                 }
+                // 向IET同步数据 推荐关系变更
+                $user = BUser::find()->where(['id' => $data->user_id])->one();
+                $old_parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
+                $data_arr = ['account' => $user->mobile, 'oldInviteCode' => $old_parent_user->mobile, 'newInviteCode' => $parent->mobile];
+                $res_curl = IetSystemService::push($url, $data_arr);
+                if ($res_curl->code) {
+                    $transaction->rollBack();
+                    return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
+                }
             }
         }
         $scheme = $this->pString('scheme', '');
@@ -1443,7 +1451,7 @@ class NodeController extends BaseController
             if ($data->quota < 0) {
                 $data->quota = 0;
             }
-            // // 向IET同步数据
+            // // 向IET同步数据 修改节点无需同步
             // $url = IetSystemService::IET_URL['totalAmount_add'];
             // $user = BUser::find()->where(['id' => $data->user_id])->one();
             // $data_arr = ['phone' => $user->mobile, 'amount' => $data->quota];

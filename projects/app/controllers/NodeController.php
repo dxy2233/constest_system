@@ -285,6 +285,12 @@ class NodeController extends BaseController
         if (!$userModel->is_identified) {
             return $this->respondJson(1, '未实名认证');
         }
+
+        $nodeExtendModel = $userModel->getNodeExtend()->active(BNodeExtend::STATUS_INACTIVE)->one();
+        if ($nodeExtendModel) {
+            return $this->respondJson(1, '请到用户中心进行激活');
+        }
+
         $grtNum = $this->pFloat('grt_num', 0);
         $grtAddress = $this->pString('grt_address');
         $ttNum = $this->pFloat('tt_num', 0);

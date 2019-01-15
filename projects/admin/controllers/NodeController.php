@@ -633,7 +633,6 @@ class NodeController extends BaseController
             $parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
             $inviteCode = $parent_user->mobile;
         }
-        
         //推荐赠送
         $res = NodeService::checkVoucher($data->user_id);
 
@@ -1611,14 +1610,17 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '注册失败'.$user->getFirstErrorText());
             }
             $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON, 'recharge_status' => BCurrency::$RECHARGE_STATUS_ON])->all();
-            foreach ($currency as $v) {
-                $returnInfo = RechargeService::getAddress($v['id'], $user->id);
-                
-                if ($returnInfo->code) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, $returnInfo->msg);
+            // 测试环境不创建钱包
+            if(!YII_DEBUG){
+                foreach ($currency as $v) {
+                    $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+                    if ($returnInfo->code) {
+                        $transaction->rollBack();
+                        return $this->respondJson(1, $returnInfo->msg);
+                    }
                 }
             }
+
         }
         // $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         // $node_type = BNodeType::find()->where(['id' => $type_id])->one();
@@ -1657,7 +1659,6 @@ class NodeController extends BaseController
             return $this->respondJson(1, '建设方案不能为空');
         }
         $weixin = $this->pString('weixin', '');
-
         $grt_address = $this->pString('grt_address', '');
         $tt_address = $this->pString('tt_address', '');
         $bpt_address = $this->pString('bpt_address', '');
@@ -1679,7 +1680,6 @@ class NodeController extends BaseController
             // UserService::checkNodeRecommend($user->id, $recommend_user->recommend_code);
             $node->parent_id = $recommend_user->id;
         }
-
         $node->status = BNodeUpgrade::STATUS_WAIT;
         // $node->examine_time = time();
 
@@ -1689,60 +1689,6 @@ class NodeController extends BaseController
         }
 
 
-
-
-        // if ($bpt_address || $weixin || $grt_address || $tt_address) {
-        //     // 添加个人其它信息
-        //     $other = BUserOther::find()->where(['user_id' => $user->id])->one();
-        //     if (empty($other)) {
-        //         $other = new BUserOther();
-        //         $other->user_id = $user->id;
-        //     }
-        //     $other->weixin = $weixin;
-
-        //     $other->grt_address = $grt_address;
-        //     $other->tt_address = $tt_address;
-        //     $other->scenario = BUserOther::SCENARIO_APPLY;
-        //     $other->bpt_address = $bpt_address;
-        //     if (!$other->save()) {
-        //         $transaction->rollBack();
-        //         return $this->respondJson(1, '注册失败'.$other->getFirstErrorText());
-        //     }
-        // }
-
-
-
-        // 推荐赠送
-        // $res = NodeService::checkVoucher($user->id);
-        // if ($res->code != 0) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败', $res->msg);
-        // }
-        
-        // // 补全充值冻结信息
-        // $log = NodeService::addNodeMakeLogs($node);
-        // if ($log->code != 0) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败'.$log->content);
-        // }
-        // // 赠送gdt
-        // $currencyDetail = new BUserCurrencyDetail();
-        // $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
-        // $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-        // $currencyDetail->effect_time = NOW_TIME;
-        // $currencyDetail->remark = '申请节点奖励';
-        // $currencyDetail->user_id = $user->id;
-        // $currencyDetail->relate_table = 'node';
-        // $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
-        // $currencyDetail->relate_id = $node->id;
-        // $currencyDetail->amount = $node_type->gdt_reward;
-
-        // if (!$currencyDetail->save()) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败'.$currencyDetail->getFirstErrorText());
-        // }
-        // //重算gdt
-        // UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
         // 实名认证信息
         $user_id = $user->id;
         
@@ -1786,7 +1732,6 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '实名信息添加失败', $user->getFirstErrorText());
             }
         }
-
 
         $transaction->commit();
         return $this->respondJson(0, '添加成功');

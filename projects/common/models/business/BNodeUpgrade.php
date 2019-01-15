@@ -32,6 +32,15 @@ class BNodeUpgrade extends \common\models\NodeUpgrade
     {
         return $this->hasOne(BNodeType::className(), ['id' => 'type_id']);
     }
+    /**
+     * 申请下用户关联
+     *  一对多
+     * @return void
+     */
+    public function getUser()
+    {
+        return $this->hasOne(BUser::className(), ['id' => 'user_id']);
+    }
 
 
 

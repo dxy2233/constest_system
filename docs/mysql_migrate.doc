@@ -524,8 +524,6 @@ CREATE TABLE `gr_iet_push` (
   `push_data` text NOT NULL COMMENT '推送数据',
   `response` text NOT NULL COMMENT '响应数据',
   `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '推送状态 0 未推送 1 推送成功 2 推送失败',
-  `relate_table` varchar(100) NOT NULL DEFAULT '' COMMENT '推送关联数据表',
-  `relate_id` int(11) NOT NULL DEFAULT '0' COMMENT '推送关联数据ID',
   `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '推送时间',
   `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   PRIMARY KEY (`id`)
@@ -541,3 +539,8 @@ CREATE TABLE `gr_iet_push_log` (
   `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '推送时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='IET 接口推送记录表';
+
+
+# 异步同步IET 数据
+#0 0 * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii index/push-data-to-iet >> /data/wwwlogs/crontab/contest/iet_push_2_1_$(date +\%Y\%m\%d).log 2>&1
+

@@ -38,7 +38,7 @@ class IetPush extends \common\dzbase\DzModel
             [['push_data', 'response'], 'string'],
             [['status', 'create_time', 'update_time'], 'integer'],
             [['push_name'], 'string', 'max' => 255],
-            [['push_type', 'relate_table'], 'string', 'max' => 100],
+            [['push_type'], 'string', 'max' => 100],
         ];
     }
 

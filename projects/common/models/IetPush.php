@@ -36,7 +36,7 @@ class IetPush extends \common\dzbase\DzModel
         return [
             [['push_data'], 'required'],
             [['push_data', 'response'], 'string'],
-            [['status', 'relate_id', 'create_time', 'update_time'], 'integer'],
+            [['status', 'create_time', 'update_time'], 'integer'],
             [['push_name'], 'string', 'max' => 255],
             [['push_type', 'relate_table'], 'string', 'max' => 100],
         ];
@@ -54,8 +54,6 @@ class IetPush extends \common\dzbase\DzModel
             'push_data' => Yii::t('app', '推送数据'),
             'response' => Yii::t('app', '响应数据'),
             'status' => Yii::t('app', '推送状态 0 未推送 1 推送成功 2 推送失败'),
-            'relate_table' => Yii::t('app', '推送关联数据表'),
-            'relate_id' => Yii::t('app', '推送关联数据ID'),
             'create_time' => Yii::t('app', '推送时间'),
             'update_time' => Yii::t('app', '更新时间'),
         ];

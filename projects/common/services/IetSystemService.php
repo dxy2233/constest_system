@@ -163,10 +163,10 @@ class IetSystemService extends ServiceBase
         }
         $iet_push->create_time = time();
         $iet_push->relate_id = $id;
-        if(!isset($response->data['code'])){
-            var_dump($response->data);
-            exit;
-        }
+        // if(!isset($response->data['code'])){
+        //     var_dump($response->data);
+        //     exit;
+        // }
         $iet_push->status = ($response->data['code'] == 0 || $response->data['code'] == 0) ? 1 : 2;
         $iet_push->save();
     }

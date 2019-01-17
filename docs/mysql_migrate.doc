@@ -516,3 +516,28 @@ update gr_currency set status = 1, withdraw_status = 1 where code = 'gdt';
 #        'type_id_arr' => [0 => 1, 1 => 5, 2 => 4, 3 => 3, 4 => 2, 5 => 6],
 #        'parent_id' => 97
 #    ],
+
+CREATE TABLE `gr_iet_push` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `push_name` varchar(255) NOT NULL DEFAULT '' COMMENT '推送名称',
+  `push_type` varchar(100) NOT NULL DEFAULT '' COMMENT '推送类型',
+  `push_data` text NOT NULL COMMENT '推送数据',
+  `response` text NOT NULL COMMENT '响应数据',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '推送状态 0 未推送 1 推送成功 2 推送失败',
+  `relate_table` varchar(100) NOT NULL DEFAULT '' COMMENT '推送关联数据表',
+  `relate_id` int(11) NOT NULL DEFAULT '0' COMMENT '推送关联数据ID',
+  `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '推送时间',
+  `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='IET 接口推送记录表';
+
+CREATE TABLE `gr_iet_push_log` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `push_type` varchar(100) NOT NULL DEFAULT '' COMMENT '推送类型',
+  `push_data` text NOT NULL COMMENT '推送数据',
+  `response` text NOT NULL COMMENT '响应数据',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '推送状态 1 推送成功 2 推送失败',
+  `relate_id` int(11) NOT NULL DEFAULT '0' COMMENT '推送关联数据ID',
+  `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '推送时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='IET 接口推送记录表';

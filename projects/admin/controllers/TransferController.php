@@ -4,6 +4,7 @@ namespace admin\controllers;
 use common\services\AclService;
 use common\services\TicketService;
 use common\services\NodeService;
+use common\services\IetSystemService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUserOther;
 use common\models\business\BArea;
@@ -361,7 +362,7 @@ class TransferController extends BaseController
             }
         }
         
-        $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = $str";
+        $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = '$str'";
         $connection=\Yii::$app->db;
         $command=$connection->createCommand($sql);
         $rowCount=$command->execute();
@@ -375,21 +376,14 @@ class TransferController extends BaseController
         $url = IetSystemService::IET_URL['identity_change'];
         $data_arr = ['phone' => $from_user->mobile, 'identity' => $iet_type_arr[0]];
 
-        $res_curl = IetSystemService::push($url, $data_arr);
+        $res_curl = IetSystemService::createLog($url, $data_arr, '');
 
-        if ($res_curl->code) {
-            $transaction->rollBack();
-            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        }
+
         // 将受让方用户变为转让方同级别节点
         $url = IetSystemService::IET_URL['cusIdentity_sync'];
         $parent_user = BUser::find()->where(['id' => $node_recommend->parent_id])->one();
         $data_arr = ['phone' => $to_user->mobile, 'username' => $to_identify->realname, 'cardType' => '0', 'cardNo' => $to_identify->number, 'identity' => $iet_type_arr[$node->type_id], 'inviteCode' => $parent_user->mobile, 'selfInvite' => $to_user->mobile, 'upgradeFlag' => "0"];
-        $res_curl = IetSystemService::push($url, $data_arr);
-        if ($res_curl->code) {
-            $transaction->rollBack();
-            return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        }
+        $res_curl = IetSystemService::createLog($url, $data_arr, '');
 
         $transaction->commit();
         return $this->respondJson(0, '审核成功');

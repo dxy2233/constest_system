@@ -26,6 +26,7 @@ php yii index/update-recommend          重置所有用户上级列表字段
 
 php yii vote/retry-give-gdt             重算投票赠送GDT
 
+0 0 * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii index/push-data-to-iet >> /data/wwwlogs/crontab/contest/iet_push_2_1_$(date +\%Y\%m\%d).log &
 
 
 

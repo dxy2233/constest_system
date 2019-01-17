@@ -541,3 +541,5 @@ CREATE TABLE `gr_iet_push_log` (
   `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '推送时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='IET 接口推送记录表';
+
+#0 0 * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii index/push-data-to-iet >> /data/wwwlogs/crontab/contest/iet_push_2_1_$(date +\%Y\%m\%d).log &

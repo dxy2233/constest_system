@@ -43,7 +43,6 @@ class RechargeService extends ServiceBase
                     $address = $jingtumAddress->address;
                 }
             }
-
             if (empty($address)) {
                 //创建钱包
                 $returnInfo = self::createAddress($currencyId);
@@ -52,7 +51,6 @@ class RechargeService extends ServiceBase
                 }
                 $address = $returnInfo->content;
             }
-
             if ($address) {
                 //添加地址
                 $userRechargeAddress = new BUserRechargeAddress();
@@ -65,7 +63,6 @@ class RechargeService extends ServiceBase
                 if (!$res) {
                     return new ReturnInfo(1, "获取失败");
                 }
-
                 //井通下的积分共用一个钱包，添加相应积分地址
                 if (in_array($currencyId, $currencyJingtum)) {
                     foreach ($currencyJingtum as $val) {
@@ -101,7 +98,6 @@ class RechargeService extends ServiceBase
         $address = "";
 
         $currencyJingtum = BCurrency::getJingtumCurrency();
-
         if (in_array($currencyId, $currencyJingtum)) {
             //账户余额是否足够
             $amount = \Yii::$app->params['JTWalletActiveAmount'];
@@ -124,7 +120,6 @@ class RechargeService extends ServiceBase
                         //成功
                         $address = $resWallet->content['address'];
                     }
-
                     if ($address) {
                         $walletJingtumId = $walletJingtum->id;
                         $transactionNumber = FuncHelper::generateWalletSentTransNum();
@@ -146,7 +141,6 @@ class RechargeService extends ServiceBase
                         $walletSent->update_time = NOW_TIME;
                         $res = $walletSent->insert();
                         $walletSentId = $walletSent->id;
-
                         if ($res) {
                             $resWalletSent = JingTumService::getInstance()->userTransferUser(\Yii::$app->params['JTWallet']['active']['key'], \Yii::$app->params['JTWallet']['active']['address'], $address, $transactionNumber, $amount, $remark, JingTumService::ASSETS_TYPE_GRT);
                             if ($resWalletSent->code == 0) {

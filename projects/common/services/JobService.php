@@ -10,6 +10,7 @@ use common\models\business\BNotice;
 use common\models\business\BHistory;
 use common\models\business\BCycle;
 use common\models\business\BVote;
+use common\models\business\BIetPush;
 use common\models\business\BUserCurrencyDetail;
 use common\models\business\BCurrency;
 use common\components\FuncResult;
@@ -173,5 +174,24 @@ class JobService extends ServiceBase
             $transaction->commit();
             return new FuncResult(0, '执行成功');
         }
+    }
+
+    // 向IET同步数据，一天一次
+    public static function pushDataToIET(){
+        $data = BIetPush::find()->where(['!=', 'status', BIetPush::TENURE_YES])->all();
+        $msg = [];
+        foreach($data as $v){
+            $res = IetSystemService::push(IetSystemService::IET_URL[$v->push_type], json_decode($v->push_data, true), $v->id);
+            if($res->code == 0 || $res->code == 39606){
+                $v->status = BIetPush::TENURE_YES;
+            }else{
+                $v->status = BIetPush::TENURE_NO;
+            }
+            $v->response = json_encode($res->content['res']);
+            if(!$v->save()){
+                $msg[] = $v->getFirstErrorText();
+            }
+        }
+        Yii::info('执行结束'.json_encode($msg), 'history');
     }
 }

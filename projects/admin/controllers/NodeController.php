@@ -349,6 +349,12 @@ class NodeController extends BaseController
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
             $recommend->delete();
+            // 向IET同步数据 推荐关系变更
+            $old_parent_user = BUser::find()->where(['id' => $recommend->parent_id])->one();
+            $parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
+            $data_arr = ['account' => $user->mobile, 'oldInviteCode' => $old_parent_user->mobile, 'newInviteCode' => $parent_user->mobile];
+            $url = IetSystemService::IET_URL['recommend_change'];
+            $res_curl = IetSystemService::createLog($url, $data_arr, '');
         }
 
         

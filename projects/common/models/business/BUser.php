@@ -224,4 +224,13 @@ class BUser extends \common\models\User
     {
         return $this->hasOne(BNodeTransfer::className(), ['from_user_id' => 'id'])->orderBy(['id' => SORT_DESC]);
     }
+    /**
+     * 社区投票关联
+     * 一对多
+     * @return void
+     */
+    public function getUserWithdraw()
+    {
+        return $this->hasMany(BUserRechargeWithdraw::className(), ['user_id' => 'id']);
+    }
 }

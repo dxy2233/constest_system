@@ -129,23 +129,25 @@ class NodeController extends BaseController
      */
     public function actionIndex()
     {
-        $mobile = $this->pString('mobile');
-        if (!$mobile) {
+        if (!$mobile = \Yii::$app->request->post('mobile')) {
             return $this->respondJson(1, '手机号不能为空');
         }
         if (!FuncHelper::validatMobile($mobile)) {
             return $this->respondJson(1, '手机号格式错误');
         }
-        $userNode = BUser::find()
-        ->select(['n.name', 'u.mobile', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota'])
+        $userNodeModel = BUser::find()
+        ->select(['n.name', 'u.mobile', 'n.type_id', 'nt.name type_name', 'IFNULL(n.quota,nt.quota) quota'])
         ->alias('u')
         ->joinWith(['node n' => function ($query) {
             // $query->where(['in', 'n.status', [BNode::STATUS_DEL, BNode::STATUS_OFF]]);
             $query->where(['n.status' => BNode::STATUS_ON]);
             $query->joinWith(['nodeType nt'], false);
         }], false)
-        ->where(['u.mobile' => $mobile])
-        ->asArray()
+        ->where(['u.mobile' => $mobile]);
+        if ($queryWhere = \Yii::$app->request->post('queryWhere')) {
+            $userNodeModel->andFilterWhere($queryWhere);
+        }
+        $userNode = $userNodeModel->asArray()
         ->one();
         if (empty($userNode)) {
             return $this->respondJson(1, '节点不存在');
@@ -173,8 +175,8 @@ class NodeController extends BaseController
                     throw new ErrorException($mobile.'：手机号错误');
                 }
             }
-            $userNode = BUser::find()
-            ->select(['n.name', 'u.mobile', 'nt.name type_name'])
+            $userNodeModel = BUser::find()
+            ->select(['n.name', 'u.mobile', 'n.type_id', 'nt.name type_name'])
             ->alias('u')
             ->joinWith(['node n' => function ($query) {
                 // $query->where(['in', 'n.status', [BNode::STATUS_DEL, BNode::STATUS_OFF]]);
@@ -182,8 +184,11 @@ class NodeController extends BaseController
                 $query->joinWith(['nodeType nt'], false);
             }], false)
             ->where(['u.mobile' => $mobileList])
-            ->indexBy('mobile')
-            ->asArray()
+            ->indexBy('mobile');
+            if ($queryWhere = \Yii::$app->request->post('queryWhere')) {
+                $userNodeModel->andFilterWhere($queryWhere);
+            }
+            $userNode = $userNodeModel->asArray()
             ->all();
             return $this->respondJson(0, '获取成功', $userNode);
         } catch (\Exception $e) {

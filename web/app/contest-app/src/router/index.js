@@ -78,18 +78,18 @@ export let mainRouter = [
     /*meta: {
       keepAlive: false // 不需要缓存
     },*/
-    children:[
+    children: [
       {
         path: 'dts:id',
         component: () => import('views/assets/assetsDetails/index'),
-        children:[
+        children: [
           {
             path: 'frozen',
             component: () => import('views/assets/frozen/index'),
           },
           {
             path: 'collect',
-            name:'collect',
+            name: 'collect',
             component: () => import('views/assets/collect/index'),
           },
           {
@@ -99,8 +99,14 @@ export let mainRouter = [
         ],
       },
       {
-        path:'gdt:id',
+        path: 'gdt:id',
         component: () => import('views/assets/assetsDetails/gdt'),
+        children: [
+          {
+            path: ':recodeId',
+            component: () => import('views/assets/assetsDetails/recodeDetails'),
+          }
+        ]
       }
       /*{
         path: 'collect',
@@ -128,7 +134,7 @@ export let mainRouter = [
           {
             path: 'index',
             component: () => import('views/personal/node/index'),
-            children:[
+            children: [
               {
                 path: 'interests',
                 component: () => import('views/personal/node/interests'),
@@ -170,9 +176,9 @@ export let mainRouter = [
         ]
       },
       {
-        path:'applynode',
+        path: 'applynode',
         component: () => import('views/personal/node/applynode'),
-        children:[
+        children: [
           {
             path: 'rules',
             component: () => import('views/personal/node/rules'),
@@ -220,7 +226,7 @@ export let mainRouter = [
           {
             path: 'index',
             component: () => import('views/personal/psw/index'),
-            children:[
+            children: [
               {
                 path: 'reset',
                 component: () => import('views/personal/psw/reset'),
@@ -240,49 +246,49 @@ export let mainRouter = [
         ]
       },
       {
-        path:'voucher',
+        path: 'voucher',
         component: () => import('views/personal/voteVoucher/index'),
       },
       {
-        path:'vote',
+        path: 'vote',
         component: () => import('views/personal/vote/index'),
-        children:[
+        children: [
           {
-            path:'redeem',
+            path: 'redeem',
             component: () => import('views/personal/vote/redeem'),
           }
         ]
       },
       {
-        path:'rcmd',
+        path: 'rcmd',
         component: () => import('views/personal/recommend/index'),
-        children:[
+        children: [
           {
-            path:'record',
+            path: 'record',
             component: () => import('views/personal/recommend/record'),
           }
         ]
       },
       {
-        path:'set',
+        path: 'set',
         component: () => import('views/personal/set/index'),
-        children:[
+        children: [
           {
-            path:'about',
+            path: 'about',
             component: () => import('views/personal/set/about'),
           }
         ]
       },
       {
-        path:'service',
+        path: 'service',
         component: () => import('views/personal/service/index'),
       },
       {
-        path:'address',
+        path: 'address',
         component: () => import('views/personal/address/index'),
-        children:[
+        children: [
           {
-            path:'edit:type',
+            path: 'edit:type',
             component: () => import('views/personal/address/submit'),
           }
         ]

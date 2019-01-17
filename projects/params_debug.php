@@ -39,7 +39,7 @@ return [
 
     // （钱包业务）测试地址：http://47.92.80.205:3002/v2
     // （钱包业务）正式地址：https://grtchain.daguobrand.com/v2/
-    'JTBusinessUrl'=>'http://47.92.80.205:3002/v2',//井通钱包业务URL
+    'JTBusinessUrl'=>'http://47.92.80.107:3002/v2',//井通钱包业务URL
     'JTAccountUrl'=>'',//井通账号体系URL 暂时未用该参数
     'JTAddress'=>'',//公钥  jpFWhXZCEcifZQftfWBPyQmmxTnucRvTbB 测试
     'JTKey'=>'',//私钥  snmhqnej9YopAieT7A8C4uroQupm3 测试

@@ -313,9 +313,11 @@ class TransferController extends BaseController
             }
             $str = $node_recommend->parent_list. ','. $data->from_user_id;
             $new_str = $node_recommend->parent_list. ','. $data->to_user_id;
+            $node_recommend_user_id = $node_recommend->parent_id;
         } else {
             $str = $data->from_user_id;
             $new_str = $data->to_user_id;
+            $node_recommend_user_id = \Yii::$app->params['ietApiConfig']['parent_id'];
         }
         $other_recommend = BNodeRecommend::find()->where(['parent_id' => $data->from_user_id])->one();
         if ($other_recommend) {
@@ -381,7 +383,7 @@ class TransferController extends BaseController
 
         // 将受让方用户变为转让方同级别节点
         $url = IetSystemService::IET_URL['cusIdentity_sync'];
-        $parent_user = BUser::find()->where(['id' => $node_recommend->parent_id])->one();
+        $parent_user = BUser::find()->where(['id' => $node_recommend_user_id])->one();
         $data_arr = ['phone' => $to_user->mobile, 'username' => $to_identify->realname, 'cardType' => '0', 'cardNo' => $to_identify->number, 'identity' => $iet_type_arr[$node->type_id], 'inviteCode' => $parent_user->mobile, 'selfInvite' => $to_user->mobile, 'upgradeFlag' => "0"];
         $res_curl = IetSystemService::createLog($url, $data_arr, '');
 

@@ -336,21 +336,12 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            // // 向IET同步数据
-            // $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            // $inviteCode = $parent_user->mobile;
-            // $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->active()->one();
-            // $inviteName = $parent_identify->realname;
-            // $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
-            // $url = IetSystemService::IET_URL['cusIdentity_sync'];
-            // $old_up = BNodeUpgrade::find()->where(['user_id' => $data->user_id, 'old_type' => 5, 'status' => BNodeUpgrade::STATUS_ACTIVE])->one();
-            // $up_status = $old_up ? "1" : "0";
-            // $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => $up_status];
-            // $res_curl = IetSystemService::push($url, $data_arr);
-            // if ($res_curl->code) {
-            //     $transaction->rollBack();
-            //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-            // }
+            // 向IET同步数据 推荐关系变更
+            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            $old_parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
+            $data_arr = ['account' => $user->mobile, 'oldInviteCode' => $old_parent_user->mobile, 'newInviteCode' => $parent_user->mobile];
+            $url = IetSystemService::IET_URL['recommend_change'];
+            $res_curl = IetSystemService::createLog($url, $data_arr, '');
         } elseif ($data->type_id == 1 && $recommend) {
             // 如果升级为超级节点清除推荐关系
             $sql = "UPDATE `gr_contest`.`gr_node_recommend` SET `parent_list` = replace(`parent_list`,'".$recommend->parent_list."','') where `parent_list` like '".$recommend->parent_list.",".$data->user_id."%'";
@@ -358,6 +349,12 @@ class NodeController extends BaseController
             $command=$connection->createCommand($sql);
             $rowCount=$command->execute();
             $recommend->delete();
+            // 向IET同步数据 推荐关系变更
+            $old_parent_user = BUser::find()->where(['id' => $recommend->parent_id])->one();
+            $parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
+            $data_arr = ['account' => $user->mobile, 'oldInviteCode' => $old_parent_user->mobile, 'newInviteCode' => $parent_user->mobile];
+            $url = IetSystemService::IET_URL['recommend_change'];
+            $res_curl = IetSystemService::createLog($url, $data_arr, '');
         }
 
         
@@ -369,22 +366,16 @@ class NodeController extends BaseController
             return $this->respondJson(1, '审核失败', $res->msg);
         }
         
-        // // 向IET同步数据
-        // if ($data->old_type == 5) {
-        //     //微店节点升级
-        //     $url = IetSystemService::IET_URL['wd_upgrade'];
-        //     $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
-        // } else {
-        //     $url = IetSystemService::IET_URL['node_upgrade'];
-        //     $data_arr = ['phone' => $user->mobile, 'identity' => $data->type_id];
-        // }
+        // 向IET同步数据  身份变更
 
-        // $res_curl = IetSystemService::push($url, $data_arr);
+        // iet节点对应类型 1-普通、2-动力、3-中极、4-高级、5-超级、6-微店
 
-        // if ($res_curl->code) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        // }
+        $iet_type_arr = \Yii::$app->params['ietApiConfig']['type_id_arr'];
+        $url = IetSystemService::IET_URL['identity_change'];
+        $data_arr = ['phone' => $user->mobile, 'identity' => $iet_type_arr[$data->type_id]];
+
+        $res_curl = IetSystemService::createLog($url, $data_arr, '');
+
 
         // 发送短信通知用户
         
@@ -635,17 +626,12 @@ class NodeController extends BaseController
                 $transaction->rollBack();
                 return $this->respondJson(1, '审核失败', $recommend->getFirstErrorText());
             }
-            // $parent_identify = BUserIdentify::find()->where(['user_id' => $data->parent_id])->one();
-            // $inviteName = $parent_identify->realname;
-            // $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
-            // $inviteCode = $parent_user->mobile;
+            $parent_user = BUser::find()->where(['id' => $data->parent_id])->one();
+            $inviteCode = $parent_user->mobile;
         } else {
-            // $parent_identify = BUserIdentify::find()->where(['user_id' => 97])->one();
-            // $inviteName = $parent_identify->realname;
-            // $parent_user = BUser::find()->where(['id' => 97])->one();
-            // $inviteCode = $parent_user->mobile;
+            $parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
+            $inviteCode = $parent_user->mobile;
         }
-        
         //推荐赠送
         $res = NodeService::checkVoucher($data->user_id);
 
@@ -653,17 +639,14 @@ class NodeController extends BaseController
             $transaction->rollBack();
             return $this->respondJson(1, '审核失败', $res->msg);
         }
-
-        // // 向IET同步数据
         $user = BUser::find()->where(['id' => $data->user_id])->one();
-        // $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
-        // $url = IetSystemService::IET_URL['cusIdentity_sync'];
-        // $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardNo' => $identify->number, 'identity' => $data->type_id, 'inviteName' => $inviteName, 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
-        // $res_curl = IetSystemService::push($url, $data_arr);
-        // if ($res_curl->code) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, 'IET数据同步失败', $res_curl->msg. $res_curl->content);
-        // }
+        // 向IET同步数据 节点新增
+        $iet_type_arr = \Yii::$app->params['ietApiConfig']['type_id_arr'];
+        $identify = BUserIdentify::find()->where(['user_id' => $user->id])->active()->one();
+        $url = IetSystemService::IET_URL['cusIdentity_sync'];
+        $data_arr = ['phone' => $user->mobile, 'username' => $identify->realname, 'cardType' => '0', 'cardNo' => $identify->number, 'identity' => $iet_type_arr[$data->type_id], 'inviteCode' => $inviteCode, 'selfInvite' => $user->mobile, 'upgradeFlag' => "0"];
+        $res_curl = IetSystemService::createLog($url, $data_arr, '');
+
 
         // 发送短信通知用户
         $typeName = str_replace('节点', '', $node_type->name);
@@ -1440,6 +1423,13 @@ class NodeController extends BaseController
                 if ($res->code != 0) {
                     return $this->respondJson($res->code, '审核失败', $res->msg);
                 }
+                // 向IET同步数据 推荐关系变更
+                $user = BUser::find()->where(['id' => $data->user_id])->one();
+                $old_parent_user = BUser::find()->where(['id' => \Yii::$app->params['ietApiConfig']['parent_id']])->one();
+                $data_arr = ['account' => $user->mobile, 'oldInviteCode' => $old_parent_user->mobile, 'newInviteCode' => $parent->mobile];
+                $url = IetSystemService::IET_URL['recommend_change'];
+                $res_curl = IetSystemService::createLog($url, $data_arr, '');
+
             }
         }
         $scheme = $this->pString('scheme', '');
@@ -1453,7 +1443,7 @@ class NodeController extends BaseController
             if ($data->quota < 0) {
                 $data->quota = 0;
             }
-            // // 向IET同步数据
+            // // 向IET同步数据 修改节点无需同步
             // $url = IetSystemService::IET_URL['totalAmount_add'];
             // $user = BUser::find()->where(['id' => $data->user_id])->one();
             // $data_arr = ['phone' => $user->mobile, 'amount' => $data->quota];
@@ -1613,14 +1603,17 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '注册失败'.$user->getFirstErrorText());
             }
             $currency = BCurrency::find()->where(['status' => BCurrency::$CURRENCY_STATUS_ON, 'recharge_status' => BCurrency::$RECHARGE_STATUS_ON])->all();
-            foreach ($currency as $v) {
-                $returnInfo = RechargeService::getAddress($v['id'], $user->id);
-                
-                if ($returnInfo->code) {
-                    $transaction->rollBack();
-                    return $this->respondJson(1, $returnInfo->msg);
+            // 测试环境不创建钱包
+            if(!YII_DEBUG){
+                foreach ($currency as $v) {
+                    $returnInfo = RechargeService::getAddress($v['id'], $user->id);
+                    if ($returnInfo->code) {
+                        $transaction->rollBack();
+                        return $this->respondJson(1, $returnInfo->msg);
+                    }
                 }
             }
+
         }
         // $now_count = BNode::find()->where(['type_id' => $type_id, 'status' => BNode::STATUS_ON])->count();
         // $node_type = BNodeType::find()->where(['id' => $type_id])->one();
@@ -1659,7 +1652,6 @@ class NodeController extends BaseController
             return $this->respondJson(1, '建设方案不能为空');
         }
         $weixin = $this->pString('weixin', '');
-
         $grt_address = $this->pString('grt_address', '');
         $tt_address = $this->pString('tt_address', '');
         $bpt_address = $this->pString('bpt_address', '');
@@ -1681,7 +1673,6 @@ class NodeController extends BaseController
             // UserService::checkNodeRecommend($user->id, $recommend_user->recommend_code);
             $node->parent_id = $recommend_user->id;
         }
-
         $node->status = BNodeUpgrade::STATUS_WAIT;
         // $node->examine_time = time();
 
@@ -1691,60 +1682,6 @@ class NodeController extends BaseController
         }
 
 
-
-
-        // if ($bpt_address || $weixin || $grt_address || $tt_address) {
-        //     // 添加个人其它信息
-        //     $other = BUserOther::find()->where(['user_id' => $user->id])->one();
-        //     if (empty($other)) {
-        //         $other = new BUserOther();
-        //         $other->user_id = $user->id;
-        //     }
-        //     $other->weixin = $weixin;
-
-        //     $other->grt_address = $grt_address;
-        //     $other->tt_address = $tt_address;
-        //     $other->scenario = BUserOther::SCENARIO_APPLY;
-        //     $other->bpt_address = $bpt_address;
-        //     if (!$other->save()) {
-        //         $transaction->rollBack();
-        //         return $this->respondJson(1, '注册失败'.$other->getFirstErrorText());
-        //     }
-        // }
-
-
-
-        // 推荐赠送
-        // $res = NodeService::checkVoucher($user->id);
-        // if ($res->code != 0) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败', $res->msg);
-        // }
-        
-        // // 补全充值冻结信息
-        // $log = NodeService::addNodeMakeLogs($node);
-        // if ($log->code != 0) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败'.$log->content);
-        // }
-        // // 赠送gdt
-        // $currencyDetail = new BUserCurrencyDetail();
-        // $currencyDetail->currency_id = BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT);
-        // $currencyDetail->status = BUserCurrencyDetail::$STATUS_EFFECT_SUCCESS;
-        // $currencyDetail->effect_time = NOW_TIME;
-        // $currencyDetail->remark = '申请节点奖励';
-        // $currencyDetail->user_id = $user->id;
-        // $currencyDetail->relate_table = 'node';
-        // $currencyDetail->type = BUserCurrencyDetail::$TYPE_REWARD;
-        // $currencyDetail->relate_id = $node->id;
-        // $currencyDetail->amount = $node_type->gdt_reward;
-
-        // if (!$currencyDetail->save()) {
-        //     $transaction->rollBack();
-        //     return $this->respondJson(1, '注册失败'.$currencyDetail->getFirstErrorText());
-        // }
-        // //重算gdt
-        // UserService::resetCurrency($user->id, BCurrency::getCurrencyIdByCode(BCurrency::$CURRENCY_GDT));
         // 实名认证信息
         $user_id = $user->id;
         
@@ -1788,7 +1725,6 @@ class NodeController extends BaseController
                 return $this->respondJson(1, '实名信息添加失败', $user->getFirstErrorText());
             }
         }
-
 
         $transaction->commit();
         return $this->respondJson(0, '添加成功');

@@ -200,31 +200,24 @@ class VoteController extends BaseController
         ->joinWith(['node n' => function ($query) {
             $query->joinWith(['nodeType nt'], false);
         }], false);
+        $sortField = 'create_time';
         if ($type) {
             // 默认为投出的
             $voteModel->active(BVote::STATUS_ACTIVE, 'v.');
         } else {
             // 赎回中以及赎回
             $voteModel->where(['v.status' => [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]]);
+            $sortField = 'undo_time';
         }
-        $voteModel->orderBy(['create_time' => SORT_DESC]);
+        $voteModel->orderBy([$sortField => SORT_DESC]);
         $data['count'] = $voteModel->count();
         $data['list'] = $voteModel->page($page, $pageSize)
         ->asArray()
         ->all();
-        // 创建一个闭包函数
-        $history = function ($user, int $voteId) {
-            // $historyModel = BHistory::find()->select('id')
-            // ->where(['node_id' => $nodeId])
-            // ->andWhere(['>', 'create_time', $voteTime])
-            // ->orderBy(['update_number' => SORT_DESC]);
-            // return $historyModel->exists();
-            // $return  = VoteService::hasRevoke($user, $voteId);
-            // return $return['content'];
-        };
         foreach ($data['list'] as &$vote) {
             if (in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING])) {
                 $vote['is_revoke'] = false;
+                $vote['create_time'] = $vote['undo_time'];
             } else {
                 $return  = VoteService::hasRevoke($this->user, $vote['id']);
                 $vote['is_revoke'] = in_array($vote['type'], BVote::IS_REVOKE) ? $return->content : false;
@@ -233,7 +226,6 @@ class VoteController extends BaseController
             $vote['create_time'] = FuncHelper::formateDate($vote['create_time']);
             $vote['status_str'] = BVote::getStatus($vote['status']);
             $vote['type_str'] = BVote::getType($vote['type']);
-            // $vote['is_revoke'] = in_array($vote['status'], [BVote::STATUS_INACTIVE, BVote::STATUS_INACTIVE_ING]) ? false : in_array($vote['type'], BVote::IS_REVOKE);
             unset($vote['user_id'], $vote['node_id'], $vote['consume'], $vote['status'], $vote['unit_code']);
         }
         return $this->respondJson(0, '获取成功', $data);

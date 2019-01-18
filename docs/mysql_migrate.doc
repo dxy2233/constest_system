@@ -540,11 +540,17 @@ CREATE TABLE `gr_iet_push_log` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='IET 接口推送记录表';
 
+# 重置所有微店节点记录表的激活状态
+UPDATE `gr_node_extend` SET status = 0 WHERE status = 1
+
+#重置所有微店节点记录表的激活状态
+#php yii node/reset-node-extend
+
+以上sql 2019-01-18 15:00已同步线上
+=============================================================
 
 
 # 异步同步IET 数据
 #0 0 * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii index/push-data-to-iet >> /data/wwwlogs/crontab/contest/iet_push_2_1_$(date +\%Y\%m\%d).log 2>&1
 
-# 测试环境修改配置文件
-# 'JTBusinessUrl'=>'http://47.92.80.107:3002/v2'
 

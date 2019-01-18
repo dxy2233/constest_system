@@ -105,20 +105,23 @@
     },
     methods: {
       goSubmit() {
+        // console.log('fe')
         if (!this.agree) {
           this.$vux.toast.show('请先阅读并同意节点申请协议')
           return
         }
+        // console.log(this.myNodeInfo.status)
+        //微店激活
+        if (this.myNodeInfo.status === -2) {
+          this.wdShow = true
+          return
+        }
+
         if (this.myNodeInfo.status !== -1) {
           this.nodeConfirmShow = true
           return
         }
 
-        //微店激活
-        if (this.identifyMsg.status === -2) {
-          this.wdShow = true
-          return
-        }
 
         if (this.identifyMsg.status !== 1) {
           this.idfConfirmShow = true

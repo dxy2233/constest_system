@@ -27,3 +27,4 @@ php yii index/update-node               后台修改节点质押数据，不提�
 php yii index/update-recommend          重置所有用户上级列表字段
 php yii vote/retry-give-gdt             重算投票赠送GDT
 php yii node/supplement-wei             补录微店节点激活（监测所有节点）
+php yii node/reset-node-extend             重置所有微店节点记录表的激活状态

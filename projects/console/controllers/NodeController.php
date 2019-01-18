@@ -90,8 +90,49 @@ class NodeController extends BaseController
                     echo 'ID：' . $updateUpgradeModel->id . ' 节点名称：' . $updateUpgradeModel->name . ' 补充成功' . PHP_EOL;
                 } else {
                     $oldModel = $existsOld->one();
+                    BNodeExtend::updateAll(['status' => BNodeExtend::STATUS_ACTIVE], ['mobile' => $nodeUpgrade['mobile']]);
                     echo 'ID：' . $oldModel->id . ' 节点名称：' . $oldModel->name . ' 已存在' . PHP_EOL;
                 }
+            }
+            $transaction->commit();
+        } catch (\Exception $e) {
+            var_dump(1, $e->getMessage()) . PHP_EOL;
+            $transaction->rollBack();
+        }
+    }
+
+    
+    /**
+     * 重置所有微店节点记录表的激活状态
+     *
+     * @return void
+     */
+    public function actionResetNodeExtend()
+    {
+        $weidianType = 5;
+        $nodeUpgradeModel = BNodeUpgrade::find()
+        ->select(['nu.id', 'nu.name', 'nu.user_id', 'nu.node_id', 'nu.type_id', 'u.mobile'])
+        ->alias('nu')
+        ->where([
+            'nu.status' => BNodeUpgrade::STATUS_ACTIVE,
+            'nu.old_type' => 0,
+            'nu.type_id' => $weidianType
+        ])
+        ->joinWith(['user u' => function ($query) {
+            $query->joinWith(['nodeExtend ne'], false);
+        }], false)
+        ->andWhere(['<>', 'ne.mobile', '']);
+        $nodeupgradeData = $nodeUpgradeModel
+        ->asArray()
+        ->all();
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            foreach ($nodeupgradeData as $nodeUpgrade) {
+                if (!$updateCount = BNodeExtend::updateAll(['status' => BNodeExtend::STATUS_ACTIVE], ['mobile' => $nodeUpgrade['mobile'], 'status' => BNodeExtend::STATUS_INACTIVE])) {
+                    echo 'ID：' . $nodeUpgrade['id'] . ' 节点名称：' . $nodeUpgrade['name'] . ' 节点手机号：' . $nodeUpgrade['mobile'] . ' 状态更新未成功' . PHP_EOL;
+                    continue;
+                }
+                echo 'ID：' . $nodeUpgrade['id'] . ' 节点名称：' . $nodeUpgrade['name'] . ' 节点手机号：' . $nodeUpgrade['mobile'] . ' 状态更新成功' . PHP_EOL;
             }
             $transaction->commit();
         } catch (\Exception $e) {

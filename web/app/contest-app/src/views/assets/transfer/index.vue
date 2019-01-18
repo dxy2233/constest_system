@@ -39,7 +39,7 @@
           <div class="form-item">
             <label for="">备注</label>
             <div class="ipt-box">
-              <input type="text" v-model="form.remark" placeholder="描述描述描述">
+              <input type="text" maxlength="50" v-model="form.remark" placeholder="描述描述描述">
             </div>
           </div>
         </div>

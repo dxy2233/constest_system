@@ -99,20 +99,21 @@
           font-weight bold
 
         h2
-          font-size $font-size-large-x
+          font-size 26px
       .bottom
         padding 20px 0
         li
           margin-bottom 20px
           overflow hidden
           .label
-            width 70px
+            width 90px
             float left
             color $color-text-minor
           .value
             word-wrap break-word
             float left
-            width calc(100% - 70px)
+            text-align right
+            width calc(100% - 90px)
 
 
 </style>

@@ -130,8 +130,10 @@ class LogController extends BaseController
         }
         $headers = ['create_time'=> '操作时间','real_name' => '操作人', 'department' => '部门', 'controller' => '操作模块', 'action' => '操作内容', 'ip' => '操作设备IP'];
 
-        $this->download($data, $headers, '日志列表'.date('YmdHis'));
-
+        $down = $this->download($data, $headers, '日志列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 }

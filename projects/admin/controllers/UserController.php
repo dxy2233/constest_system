@@ -212,8 +212,10 @@ class UserController extends BaseController
         
         $headers = ['mobile'=> '用户','userType' => '类型', 'nodeName' => '拥有节点', 'num' => '已投票数', 'referee' => '邀请人', 'status' => '状态', 'create_time' => '注册时间', 'last_login_time' => '最后登录时间'];
 
-        $this->download($list, $headers, '用户列表'.date('YmdHis'));
-
+        $down = $this->download($list, $headers, '用户列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 
@@ -866,8 +868,10 @@ class UserController extends BaseController
         $return = [];
         $return['list'] = $data;
         $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被邀请用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '邀请时间'];
-        $this->download($return['list'], $headers, '邀请列表'.date('YmdHis'));
-
+        $down = $this->download($return['list'], $headers, '邀请列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 }

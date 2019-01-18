@@ -167,8 +167,10 @@ class NodeController extends BaseController
         }
 
         $headers = ['key'=> '排名', 'name' => '节点名称', 'mobile' => '用户', 'recommend_mobile' => '推荐人手机号', 'vote_number' => '票数', 'count' => '支持人数', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'is_tenure' => '身份', 'create_time' => '加入时间', 'status' => '状态', 'type_name' => '节点类型', 'weixin' => '微信', 'grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'consignee' => '收件人姓名', 'consignee_mobile' => '收件人电话', 'zip_code' => '邮编', 'address' => '收货地址', 'realname' => '姓名', 'number' => '身份证号'];
-        $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
-
+        $down = $this->download($data['list'], $headers, '节点列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
     // 升级审核列表
@@ -530,8 +532,10 @@ class NodeController extends BaseController
             $return[] = $item;
         }
         $headers = ['name'=> '节点名称', 'type_name' => '节点类型', 'mobile' => '手机号','username' => '姓名','weixin' => '微信','grt_address' => 'grt地址', 'tt_address' => 'tt地址', 'bpt_address' => 'bpt地址', 'grt' => '质押GRT', 'bpt' => '质押BPT', 'tt' => '质押TT', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
-        $this->download($return, $headers, '节点审核列表'.date('YmdHis'));
- 
+        $down = $this->download($return, $headers, '节点审核列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 
@@ -1076,8 +1080,10 @@ class NodeController extends BaseController
 
         $headers = ['order'=> '排名','nodeName' => '节点名称', 'username' => '账号', 'vote_number' => '票数', 'count' => '支持人数', 'is_tenure' => '状态'];
 
-        $this->download($data, $headers, '历史排名'.date('YmdHis'));
-
+        $down = $this->download($data, $headers, '历史排名'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 
@@ -1850,8 +1856,10 @@ class NodeController extends BaseController
         $return = [];
         $return['list'] = $data;
         $headers = ['p_mobile'=> '用户', 'p_realname' => '姓名', 'p_type_id' => '类型', 'u_mobile' => '被推荐用户', 'u_realname' => '姓名', 'u_type_id' => '类型', 'amount' => '赠送投票券', 'create_time' => '推荐时间'];
-        $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
-
+        $down = $this->download($return['list'], $headers, '推荐列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 }

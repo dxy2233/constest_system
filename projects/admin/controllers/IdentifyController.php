@@ -106,8 +106,10 @@ class IdentifyController extends BaseController
         
         $headers = ['mobile'=> '手机号','realname' => '姓名', 'number' => '身份证号', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
 
-        $this->download($list, $headers, '实名认证列表'.date('YmdHis'));
-
+        $down = $this->download($list, $headers, '实名认证列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 

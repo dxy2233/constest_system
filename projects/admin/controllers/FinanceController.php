@@ -145,7 +145,9 @@ class FinanceController extends BaseController
 
         $headers = ['mobile'=> '用户', 'name' => '积分', 'position_amount' => '总额',  'use_amount' => '可用', 'frozen_amount' => '锁仓'];
         $down = $this->download($data, $headers, '资产管理'.date('YmdHis'));
-
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
     
@@ -251,8 +253,10 @@ class FinanceController extends BaseController
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $headers = ['mobile'=> '用户', 'name' => '积分', 'amount' => '数量', 'remark' => '描述', 'create_time' => '时间'];
-        $this->download($data, $headers, '锁仓记录'.date('YmdHis'));
-
+        $down = $this->download($data, $headers, '锁仓记录'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 
@@ -378,8 +382,10 @@ class FinanceController extends BaseController
             $v['status'] = BUserCurrencyDetail::getStatus($v['status']);
         }
         $headers = ['id'=> '流水号', 'mobile' => '用户', 'name' => '积分', 'type2' => '收支', 'type' => '类型', 'amount' => '数量', 'status' => '状态', 'create_time' => '时间'];
-        $this->download($data, $headers, '财务流水'.date('YmdHis'));
-
+        $down = $this->download($data, $headers, '财务流水'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 }

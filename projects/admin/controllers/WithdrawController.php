@@ -205,8 +205,10 @@ class WithdrawController extends BaseController
         }
         $headers = ['order_number'=> '流水号','name' => '积分', 'mobile' => '用户', 'amount' => '数量', 'tag' => 'IET账号', 'type' => '类型', 'remark' => '备注', 'status' => '状态', 'create_time' => '申请时间', 'examine_time' => '审核时间', 'destination_address' => '对方钱包地址'];
 
-        $this->download($data, $headers, '转账审核'.date('YmdHis'));
-
+        $down = $this->download($data, $headers, '转账审核'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 

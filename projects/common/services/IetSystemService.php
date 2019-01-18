@@ -5,6 +5,7 @@ use yii\base\Exception;
 use yii\httpclient\Client;
 use common\components\FuncHelper;
 use common\models\business\BIetPush;
+use common\models\business\BIetPushLog;
 
 class IetSystemService extends ServiceBase
 {
@@ -17,9 +18,13 @@ class IetSystemService extends ServiceBase
       // 节点升级
       'node_upgrade' => '/customer/uip/node/upgrade',
       // 用户节点同步
-      'cusIdentity_sync' => '/customer/uip/cusIdentity/sync',
+      'cusIdentity_sync' => '/customer/uip/custidentity/sync',
       // 节点新增
       'totalAmount_add' => '/customer/uip/totalAmount/add',
+      // 节点身份变更
+      'identity_change' => '/customer/uip/custidentity/change',
+      // 节点关系变更
+      'recommend_change' => '/customer/uip/custidentity/inviterelation/change.json'
     ];
 
     protected static $config = [];
@@ -87,7 +92,7 @@ class IetSystemService extends ServiceBase
      * @param array $data
      * @return void
      */
-    public static function push(string $url, array $data)
+    public static function push(string $url, array $data, int $id)
     {
         //echo json_encode($data);
         foreach ($data as $k => $v) {
@@ -111,7 +116,7 @@ class IetSystemService extends ServiceBase
         ->setOptions([
           'timeout' => 5, // set timeout to 5 seconds for the case server is not responding
         ])->send();
-        self::createLog($url, $data, $response);
+        self::createPushLog($url, $data, $response, $id);
 
         if ($response->isOk) {
             return new ReturnInfo($response->data['code'], $response->data['msg'], $response->data['success']);
@@ -129,15 +134,40 @@ class IetSystemService extends ServiceBase
      * @param array $data
      * @return void
      */
-    public static function createLog(string $url, array $data, $response)
+    public static function createLog(string $url, array $data, $response = '')
     {
         $iet_push = new BIetPush();
+        $iet_push->push_type = array_search($url, self::IET_URL);
         $iet_push->push_name = array_search($url, self::IET_URL);
+        $iet_push->push_data = json_encode($data);
+        if($response != ''){
+            $iet_push->response = json_encode($response);
+        }
+        $iet_push->status = BIetPush::TENURE_WAIT;
+
+        $iet_push->save();
+    }
+        /**
+     * 记录日志
+     *
+     * @param array $data
+     * @return void
+     */
+    public static function createPushLog(string $url, array $data, $response = '', $id = 0)
+    {
+        $iet_push = new BIetPushLog();
         $iet_push->push_type = array_search($url, self::IET_URL);
         $iet_push->push_data = json_encode($data);
-        $iet_push->response = json_encode($response);
-        $iet_push->status = ($response->data['code'] == 0) ? 1 : 2;
+        if($response != ''){
+            $iet_push->response = json_encode($response->data);
+        }
         $iet_push->create_time = time();
+        $iet_push->relate_id = $id;
+        if(!isset($response->data['code'])){
+            var_dump($response->data);
+            exit;
+        }
+        $iet_push->status = ($response->data['code'] == 0 || $response->data['code'] == 39606) ? 1 : 2;
         $iet_push->save();
     }
 }

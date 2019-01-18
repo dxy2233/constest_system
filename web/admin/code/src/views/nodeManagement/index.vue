@@ -203,7 +203,7 @@
         <div class="title">社区建设方案</div>
         <el-input v-model="nodeInfoBase.scheme" :rows="2" type="textarea"/>
       </div>
-      <div v-if="rowInfo.typeId!=1&&rowInfo.typeId!=5&&!nodeInfoBase.recommendMobile" class="item">
+      <div v-if="rowInfo.typeId!=1&&!nodeInfoBase.recommendMobile" class="item">
         <div class="title">添加推荐人手机号</div>
         <el-input v-model="nodeInfoBase.recommendMobile2"/>
       </div>

@@ -15,6 +15,8 @@
 0 2 * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii report-jingtum/to-main-trans >> /data/wwwlogs/crontab/contest/to_main_trans_$(date +\%Y\%m\%d).log 2>&1
 */30 * * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii report-jingtum/to-main-trans login 2 0 >> /data/wwwlogs/crontab/contest/to_main_trans_login_2_0_$(date +\%Y\%m\%d).log 2>&1
 */30 * * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii report-jingtum/to-main-trans login 2 1 >> /data/wwwlogs/crontab/contest/to_main_trans_login_2_1_$(date +\%Y\%m\%d).log 2>&1
+# 异步同步IET 数据
+0 0 * * * /usr/local/php/bin/php /data/wwwroot/contest_system/yii index/push-data-to-iet >> /data/wwwlogs/crontab/contest/iet_push_2_1_$(date +\%Y\%m\%d).log 2>&1
 
 # ===================控制台部分【单次执行数据修复整理】===================
 php yii index/check-recommend           检查用户推荐系是否循环
@@ -23,9 +25,6 @@ php yii index/create-old-upgrade        补完历史节点申请
 php yii index/reset-voucher-gdt         已存在推荐关系赠送投票劵以及GDT
 php yii index/update-node               后台修改节点质押数据，不提供前端操作
 php yii index/update-recommend          重置所有用户上级列表字段
-
 php yii vote/retry-give-gdt             重算投票赠送GDT
-
-
-
-
+php yii node/supplement-wei             补录微店节点激活（监测所有节点）
+php yii node/reset-node-extend             重置所有微店节点记录表的激活状态

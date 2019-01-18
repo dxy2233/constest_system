@@ -82,6 +82,15 @@ class IndexController extends BaseController
         UpdateService::createOldUpgrade();
     }
     /**
+             * 向IET同步数据
+             *
+             * @return void
+             */
+    public function actionPushDataToIet()
+    {
+        JobService::pushDataToIET();
+    }
+    /**
      * 已存在推荐关系赠送投票劵以及GDT
      *
      * @return void

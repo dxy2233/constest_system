@@ -233,7 +233,7 @@ class WalletController extends BaseController
 
     
     /**
-     * 积分提现审核明细
+     * 积分提现审核明细列表
      *
      * @return void
      */
@@ -252,7 +252,7 @@ class WalletController extends BaseController
         $userId = $this->user->id;
 
         $currencyModel = BUserRechargeWithdraw::find()
-        ->select(['amount', 'remark', 'audit_time', 'create_time', 'status', 'currency_id'])
+        ->select(['id', 'amount', 'remark', 'audit_time', 'create_time', 'status', 'currency_id', 'type'])
         ->where([
             'user_id' => $userId,
             'currency_id' => $currencyId,
@@ -264,9 +264,12 @@ class WalletController extends BaseController
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
+            $val['name'] = $val['type'] == BUserRechargeWithdraw::$TYPE_RECHARGE ? '转入积分' : '转出积分';
             if (intval($val['currency_id']) === $gdtId) {
+                if ($val['type'] == BUserRechargeWithdraw::$TYPE_WITHDRAW) {
+                    $val['remark'] = str_replace('转出', '领取', $val['name']);
+                }
                 $val['remark'] = str_replace('提币', '领取积分', $val['remark']);
-                $val['remark'] = str_replace('转出', '领取', $val['remark']);
             }
             $val['remark'] = str_replace('充币', '转入积分', $val['remark']);
             $val['remark'] = str_replace('提币', '转出积分', $val['remark']);
@@ -277,6 +280,44 @@ class WalletController extends BaseController
             $val['status'] = $val['status'];
             unset($val['currency_id']);
         }
+        return $this->respondJson(0, '获取成功', $data);
+    }
+
+    
+    /**
+     * 积分提现审核明细
+     *
+     * @return void
+     */
+    public function actionAuditingInfo()
+    {
+        if (!$id = $this->pInt('id')) {
+            return $this->respondJson(1, 'ID 不能为空');
+        }
+        if (!$userModel = $this->user) {
+            return $this->respondJson(1, '请先登录');
+        }
+        $userWithdrawModel = $userModel->getUserWithdraw()
+        ->where(['id' => $id]);
+        if (!$userWithdrawData = $userWithdrawModel->one()) {
+            return $this->respondJson(0, '数据不存在');
+        }
+        if ($userWithdrawData->type == BUserRechargeWithdraw::$TYPE_WITHDRAW) {
+            $userWithdrawData->amount = $userWithdrawData->amount * -1;
+        }
+        $data = FuncHelper::arrayOnly($userWithdrawData->toArray(), ['create_time', 'destination_address', 'status', 'remark', 'amount', 'currency_id', 'tag']);
+        if (!$currencyModel = $userWithdrawData->currency) {
+            return $this->respondJson(0, '积分类型不存在');
+        }
+        $data['status_str'] = BUserRechargeWithdraw::getStatus($data['status']);
+        $data['currency_name'] = strtoupper($currencyModel->name);
+        if ($currencyModel->code === 'gdt') {
+            $data['remark'] = str_replace('提币', '领取积分', $data['remark']);
+            $data['remark'] = str_replace('转出', '领取', $data['remark']);
+        }
+        $data['remark'] = str_replace('充币', '转入积分', $data['remark']);
+        $data['remark'] = str_replace('提币', '转出积分', $data['remark']);
+        $data['create_time'] = FuncHelper::formateDate($data['create_time']);
         return $this->respondJson(0, '获取成功', $data);
     }
 

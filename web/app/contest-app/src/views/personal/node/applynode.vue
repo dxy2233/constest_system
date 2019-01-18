@@ -66,6 +66,13 @@
                  @on-confirm="onNodeConfirm">
           <p style="text-align:center;">暂时无法申请</p>
         </confirm>
+
+        <confirm v-model="wdShow"
+                 title="您的节点尚未激活"
+                 confirm-text="确定"
+                 @on-confirm="onWDConfirm">
+          <p style="text-align:center;">现在激活?</p>
+        </confirm>
       </div>
     </div>
   </slide>
@@ -92,19 +99,29 @@
         applyUrl: 'http://uaq5pzd9vm1kxhdk.mikecrm.com/6aNQyf2',
         agree: false,
         idfConfirmShow: false,
-        nodeConfirmShow:false
+        nodeConfirmShow: false,
+        wdShow: false
       }
     },
     methods: {
       goSubmit() {
+        // console.log('fe')
         if (!this.agree) {
           this.$vux.toast.show('请先阅读并同意节点申请协议')
           return
         }
+        // console.log(this.myNodeInfo.status)
+        //微店激活
+        if (this.myNodeInfo.status === -2) {
+          this.wdShow = true
+          return
+        }
+
         if (this.myNodeInfo.status !== -1) {
           this.nodeConfirmShow = true
           return
         }
+
 
         if (this.identifyMsg.status !== 1) {
           this.idfConfirmShow = true
@@ -113,6 +130,11 @@
 
         this.$router.push({
           path: '/personal/applynode/submit'
+        })
+      },
+      onWDConfirm() {
+        this.$router.push({
+          path: '/personal'
         })
       },
       onIdfConfirm() {
@@ -139,7 +161,7 @@
             return 'fail'
         }
       },
-      nodePath(){
+      nodePath() {
         //0 停用 1 已生效 2 审核中 3 撤销 4 审核未通过 5 删除'
         if (!this.myNodeInfo) return ''
         switch (this.myNodeInfo.status) {
@@ -165,18 +187,23 @@
   @import "~stylus/mixin"
   .apply-node
     fixed-full-screen()
+
     & > .h-main
       width 100%
       height 100%
       overflow auto
+
       .top
         background #ffca12
         padding-bottom 25px
+
         img
           width 100%
+
       .center
         background #ffca12
         position relative
+
         .icon
           display block
           width 100px
@@ -185,6 +212,7 @@
           left 50%
           margin-left -50px
           z-index 2
+
         .center-box
           position relative
           bottom -25px
@@ -193,34 +221,43 @@
           background white
           border-radius 2px
           padding-top 50px
+
           .info
             color #421e88
             font-size $font-size-medium
             font-weight bold
             padding $space-box
+
           .tel
             background #673dc7
             position relative
+
             img
               position absolute
               top 10px
               width 30px
+
             .left-img
               left -30px
+
             .right-img
               right -30px
+
             h4
               font-size $font-size-large
+
             .text
               text-align center
               color white
               font-weight bold
               font-size $font-size-medium-x
               line-height 40px
+
           .contact
             padding 30px 0
             color #ff3ba1
             text-align center
+
             .button
               background url("/static/images/apply/button.png")
               background-size 100% 100%
@@ -230,33 +267,42 @@
               margin 0 auto
               line-height 45px
               font-size $font-size-medium-x
+
             p
               font-size $font-size-medium-x
+
             h4
               font-weight bold
               font-size 26px
               margin-top 10px
+
       .bottom
         background #421e88
         padding-top 50px
         padding-bottom 20px
+
         img
           display block
           margin 0 auto
           width 80%
+
       .apply-btn
         padding-bottom 50px
         padding-left 5%
         padding-right 5%
         background $color-background-sub
+
         .check-box
           display flex
           align-items center
+
           p
             color $color-text-minor
             padding 18px 5px
+
           span
             color $color-theme
+
         button
           margin-bottom 20px
 

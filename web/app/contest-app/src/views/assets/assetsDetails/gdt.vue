@@ -31,7 +31,7 @@
         </m-load>
         <m-load @loadMore="handleBottom0" ref="my_scroller0" class="detail" v-show="currentType==='0'">
           <ul class="detail-list">
-            <li v-for="item in data0.dataList">
+            <router-link tag="li" v-for="item in data0.dataList" :to="$route.path+'/'+item.id" :key="item.id">
               <p>
                 <span class="remark">{{item.remark}}</span>
                 <span class="status">{{item.statusStr}}</span>
@@ -40,7 +40,7 @@
                 <span class="time">{{item.createTime}}</span>
                 <span class="amount">{{item.amount}}</span>
               </p>
-            </li>
+            </router-link>
           </ul>
         </m-load>
 
@@ -265,12 +265,14 @@
           p
             display flex
             justify-content space-between
-            align-items center
+            /*align-items center*/
             line-height 20px
+            align-items start
 
           .remark
             font-weight bold
-
+            display inline-block
+            width calc(100% - 50px)
           .time
             font-size 10px
             color $color-text-minor

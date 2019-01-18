@@ -4,6 +4,7 @@ namespace admin\controllers;
 use common\services\AclService;
 use common\services\TicketService;
 use common\services\NodeService;
+use common\services\IetSystemService;
 use yii\helpers\ArrayHelper;
 use common\models\business\BUserOther;
 use common\models\business\BArea;
@@ -252,8 +253,10 @@ class TransferController extends BaseController
         $return = ['list' => $data];
         $return['list'] = $data;
         $headers = ['node_name'=> '转让节点名称', 'type_name' => '转让节点类型', 'from_user_mobile' => '转让方手机号', 'from_user_name' => '转让方姓名', 'to_user_mobile' => '受让方手机号', 'to_user_name' => '受让方姓名', 'status' => '状态', 'create_time' => '提交时间', 'examine_time' => '审核时间'];
-        $this->download($return['list'], $headers, '节点转让'.date('YmdHis'));
-
+        $down = $this->download($return['list'], $headers, '节点转让'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 
@@ -312,9 +315,11 @@ class TransferController extends BaseController
             }
             $str = $node_recommend->parent_list. ','. $data->from_user_id;
             $new_str = $node_recommend->parent_list. ','. $data->to_user_id;
+            $node_recommend_user_id = $node_recommend->parent_id;
         } else {
             $str = $data->from_user_id;
             $new_str = $data->to_user_id;
+            $node_recommend_user_id = \Yii::$app->params['ietApiConfig']['parent_id'];
         }
         $other_recommend = BNodeRecommend::find()->where(['parent_id' => $data->from_user_id])->one();
         if ($other_recommend) {
@@ -361,10 +366,29 @@ class TransferController extends BaseController
             }
         }
         
-        $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = $str";
+        $sql = "UPDATE `gr_contest`.`gr_user_recommend` SET `parent_list` = replace(`parent_list`,'$str','$new_str') where `parent_list` like '".$str.',%'."' || `parent_list` = '$str'";
         $connection=\Yii::$app->db;
         $command=$connection->createCommand($sql);
         $rowCount=$command->execute();
+
+
+        // 向IET同步数据  节点转让
+
+        // 将转让方变更为普通用户
+
+        $iet_type_arr = \Yii::$app->params['ietApiConfig']['type_id_arr'];
+        $url = IetSystemService::IET_URL['identity_change'];
+        $data_arr = ['phone' => $from_user->mobile, 'identity' => $iet_type_arr[0]];
+
+        $res_curl = IetSystemService::createLog($url, $data_arr, '');
+
+
+        // 将受让方用户变为转让方同级别节点
+        $url = IetSystemService::IET_URL['cusIdentity_sync'];
+        $parent_user = BUser::find()->where(['id' => $node_recommend_user_id])->one();
+        $data_arr = ['phone' => $to_user->mobile, 'username' => $to_identify->realname, 'cardType' => '0', 'cardNo' => $to_identify->number, 'identity' => $iet_type_arr[$node->type_id], 'inviteCode' => $parent_user->mobile, 'selfInvite' => $to_user->mobile, 'upgradeFlag' => "0"];
+        $res_curl = IetSystemService::createLog($url, $data_arr, '');
+
         $transaction->commit();
         return $this->respondJson(0, '审核成功');
     }

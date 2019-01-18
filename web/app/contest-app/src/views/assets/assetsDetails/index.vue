@@ -300,12 +300,13 @@
           p
             display flex
             justify-content space-between
-            align-items center
+            align-items start
             line-height 20px
 
           .remark
             font-weight bold
-
+            display inline-block
+            width calc(100% - 50px)
           .time
             font-size 10px
             color $color-text-minor

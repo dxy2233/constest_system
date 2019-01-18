@@ -126,8 +126,10 @@ class VoteController extends BaseController
             $v['create_time'] = date('Y-m-d H:i:s', $v['create_time']);
         }
         $headers = ['mobile'=> '投票用户', 'name' => '投票节点名称', 'vote_number' => '投出票数', 'type' => '投票方式', 'create_time' => '投票时间'];
-        $this->download($data, $headers, '投票列表'.date('YmdHis'));
-
+        $down = $this->download($data, $headers, '投票列表'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
     /**
@@ -256,8 +258,10 @@ class VoteController extends BaseController
         }
         $headers = ['order'=> '排名', 'mobile' => '账号', 'num' => '票数', 'type' => '方式'];
 
-        $this->download($data, $headers, '投票排名'.date('YmdHis'));
-
+        $down = $this->download($data, $headers, '投票排名'.date('YmdHis'));
+        if(!$down){
+            exit('下载数据量过大，请筛选后批量下载');
+        }
         return;
     }
 }

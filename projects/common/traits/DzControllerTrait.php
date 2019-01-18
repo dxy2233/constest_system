@@ -34,24 +34,24 @@ trait DzControllerTrait
         if (!$user_id) {
             return false;
         }
-        // $user = BAdminUser::find()->where(['id' => $user_id->id])->one();
-        // $my_rule = BAdminRole::find()->where(['id' => $user->role_id])->one();
-        // if ($my_rule->id != 1) {
-        //     // 权限判断
-        //     $this_rule_str = \Yii::$app->request->getPathInfo();
+        $user = BAdminUser::find()->where(['id' => $user_id->id])->one();
+        $my_rule = BAdminRole::find()->where(['id' => $user->role_id])->one();
+        if ($my_rule->id != 1) {
+            // 权限判断
+            $this_rule_str = \Yii::$app->request->getPathInfo();
             
-        //     $my_rule_list = json_decode($my_rule->rule_list, true);
-        //     $this_rule = BAdminRule::find()->where(['like', 'url', $this_rule_str])->one();
-        //     if ($this_rule && !in_array($this_rule->id, $my_rule_list)) {
-        //         return false;
-        //         exit();
-        //     } elseif ($this_rule) {
-        //         if ($this_rule->parent_id && !in_array($this_rule->parent_id, $my_rule_list)) {
-        //             return false;
-        //             exit();
-        //         }
-        //     }
-        // }
+            $my_rule_list = json_decode($my_rule->rule_list, true);
+            $this_rule = BAdminRule::find()->where(['like', 'url', $this_rule_str])->one();
+            if ($this_rule && !in_array($this_rule->id, $my_rule_list)) {
+                return false;
+                exit();
+            } elseif ($this_rule) {
+                if ($this_rule->parent_id && !in_array($this_rule->parent_id, $my_rule_list)) {
+                    return false;
+                    exit();
+                }
+            }
+        }
         return true;
     }
     final protected function download($list, $headers, $fileName = '')
@@ -59,7 +59,9 @@ trait DzControllerTrait
         if ($fileName == '') {
             $fileName = time();
         }
-        
+        if(count($list)>10000){
+            return false;
+        }
         $columns = [];
         foreach ($headers as $key => $val) {
             $columns[] = $key;

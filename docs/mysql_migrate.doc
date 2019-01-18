@@ -540,10 +540,10 @@ CREATE TABLE `gr_iet_push_log` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='IET 接口推送记录表';
 
-# 重置所有微店节点记录表的激活状态
+# 重置所有微店节点记录表的激活状态语句
 UPDATE `gr_node_extend` SET status = 0 WHERE status = 1
 
-#重置所有微店节点记录表的激活状态
+#重置所有微店节点记录表的激活状态控制台命令
 #php yii node/reset-node-extend
 
 以上sql 2019-01-18 15:00已同步线上

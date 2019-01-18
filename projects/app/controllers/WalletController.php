@@ -252,7 +252,7 @@ class WalletController extends BaseController
         $userId = $this->user->id;
 
         $currencyModel = BUserRechargeWithdraw::find()
-        ->select(['id', 'amount', 'remark', 'audit_time', 'create_time', 'status', 'currency_id'])
+        ->select(['id', 'amount', 'remark', 'audit_time', 'create_time', 'status', 'currency_id', 'type'])
         ->where([
             'user_id' => $userId,
             'currency_id' => $currencyId,
@@ -264,9 +264,12 @@ class WalletController extends BaseController
         $data['count'] = $currencyModel->count();
         $data['list'] = $currencyModel->page($page, $pageSize)->orderBy('create_time desc, id desc')->asArray()->all();
         foreach ($data['list'] as &$val) {
+            $val['name'] = $val['type'] == BUserRechargeWithdraw::$TYPE_RECHARGE ? '转入积分' : '转出积分';
             if (intval($val['currency_id']) === $gdtId) {
+                if ($val['type'] == BUserRechargeWithdraw::$TYPE_WITHDRAW) {
+                    $val['remark'] = str_replace('转出', '领取', $val['name']);
+                }
                 $val['remark'] = str_replace('提币', '领取积分', $val['remark']);
-                $val['remark'] = str_replace('转出', '领取', $val['remark']);
             }
             $val['remark'] = str_replace('充币', '转入积分', $val['remark']);
             $val['remark'] = str_replace('提币', '转出积分', $val['remark']);

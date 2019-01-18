@@ -1442,7 +1442,7 @@ class NodeController extends BaseController
         if (empty($scheme)) {
             return $this->respondJson(1, '建设方案不能为空');
         }
-        $is_tenure = $this->pInt('is_tenure', 0);
+        // $is_tenure = $this->pInt('is_tenure', 0);
         $quota = \Yii::$app->request->post('quota', null);
         if ($quota !== '' && $quota !== null) {
             $data->quota = round(floatval($quota), 2);
@@ -1465,7 +1465,7 @@ class NodeController extends BaseController
         $data->name = $name;
         $data->desc = $desc;
         $data->scheme = $scheme;
-        $data->is_tenure = $is_tenure;
+        // $data->is_tenure = $is_tenure;
         $str = '编辑';
         if ($data->save()) {
             return $this->respondJson(0, $str.'成功');

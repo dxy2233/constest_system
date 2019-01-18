@@ -182,7 +182,7 @@ class JobService extends ServiceBase
         $msg = [];
         foreach($data as $v){
             $res = IetSystemService::push(IetSystemService::IET_URL[$v->push_type], json_decode($v->push_data, true), $v->id);
-            if($res->code == 0 || $res->code == 39606){
+            if($res->code == 0 || $res->code == 39606 || $res->code == 39513){
                 $v->status = BIetPush::TENURE_YES;
             }else{
                 $v->status = BIetPush::TENURE_NO;

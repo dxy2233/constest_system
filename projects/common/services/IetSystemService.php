@@ -167,7 +167,7 @@ class IetSystemService extends ServiceBase
             var_dump($response->data);
             exit;
         }
-        $iet_push->status = ($response->data['code'] == 0 || $response->data['code'] == 39606) ? 1 : 2;
+        $iet_push->status = ($response->data['code'] == 0 || $response->data['code'] == 39606 || $response->data['code'] == 39513) ? 1 : 2;
         $iet_push->save();
     }
 }

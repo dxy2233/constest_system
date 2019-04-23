@@ -1,6 +1,0 @@
-export const WAIT_CURSOR = 'WAIT_CURSOR'
-export const TOAST_OBJ='TOAST_OBJ'
-export const LOGIN_MSG='LOGIN_MSG'
-export const IDENTIFY_MSG ='IDENTIFY_MSG'
-export const PAY_PSW = 'PAY_PSW'
-export const MY_NODE_INFO = 'MY_NODE_INFO'
